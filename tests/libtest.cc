@@ -30,7 +30,6 @@ int main(int argc, char **argv)
         toknizer.Get(tok);
         ASSERTL(19, tok.ival);
     }
-
     {
         std::stringstream strm("  12 ");
         Parser parser;
@@ -39,6 +38,18 @@ int main(int argc, char **argv)
 
         ASSERTL(12, tree->ival);
     }
+    {
+        std::stringstream strm("  39 + 3 ");
+        Parser parser;
+
+        const Node *tree = parser.ParseStream(strm);
+
+        ASSERTI(NOD_ADD, tree->kind);
+        ASSERTL(0, tree->ival);
+        ASSERTL(39, tree->lhs->ival);
+        ASSERTL(3, tree->rhs->ival);
+    }
+
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
