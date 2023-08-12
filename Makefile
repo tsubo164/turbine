@@ -1,13 +1,13 @@
-.PHONY: clean test
+MAKE := make
 
-mds: main.cc
-		g++ -Wall --std=c++14 -o $@ $<
+.PHONY: clean test all
 
-test: mds
-		echo 42 > in
-		./mds 42 > out
-		diff in out
-		@echo OK
+all:
+		$(MAKE) -C src
+
+test:
+		$(MAKE) -C tests $@
 
 clean:
-		rm -f mds in out
+		$(MAKE) -C src $@
+		$(MAKE) -C tests $@
