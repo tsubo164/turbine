@@ -55,4 +55,3 @@ int Tokenizer::scan_number(int first_char, Token &tok)
 
     return tok.kind;
 }
-

@@ -12,8 +12,8 @@ test: all
 
 libtest: libtest.cc
 	$(CC) -std=c++14 -c libtest.cc
-	$(CC) -o $@ libtest.o ../src/libmds.a
-	./$@
+	$(CC) -o $@.out libtest.o ../src/libmds.a
+	./$@.out
 
 clean:
-	$(RM) $(TARGETS) *.o
+	$(RM) $(TARGETS) *.o *.out

@@ -1,4 +1,6 @@
 *.swp
-in
-out
+*.o
+*.d
+*.a
+*.out
 mds
