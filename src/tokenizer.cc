@@ -15,6 +15,8 @@ void Tokenizer::SetInput(std::istream &stream)
 
 int Tokenizer::Get(Token &tok)
 {
+    tok = {};
+
     while (!strm_->eof()) {
         const int ch = strm_->get();
 
@@ -23,6 +25,10 @@ int Tokenizer::Get(Token &tok)
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
             scan_number(ch, tok);
+            return tok.kind;
+
+        case '+':
+            tok.kind = TOK_PLUS;
             return tok.kind;
 
         case EOF:

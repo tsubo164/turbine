@@ -6,12 +6,13 @@
 enum TokenKind {
     TOK_UNKNOWN = -1,
     TOK_INTNUM,
+    TOK_PLUS,
     TOK_EOF
 };
 
 struct Token {
     int kind = 0;
-    long ival;
+    long ival = 0;
 };
 
 class Tokenizer {
