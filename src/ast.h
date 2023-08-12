@@ -25,4 +25,6 @@ struct Node {
 Node *NewNode(int kind);
 void DeleteTree(Node *tree);
 
+long EvalTree(const Node *tree);
+
 #endif // _H

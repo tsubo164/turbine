@@ -49,7 +49,22 @@ int main(int argc, char **argv)
         ASSERTL(39, tree->lhs->ival);
         ASSERTL(3, tree->rhs->ival);
     }
+    {
+        std::stringstream strm("  3129 + 1293 ");
+        Parser parser;
 
+        const Node *tree = parser.ParseStream(strm);
+
+        ASSERTL(4422, EvalTree(tree));
+    }
+    {
+        std::stringstream strm("  3129 + 1293+1111");
+        Parser parser;
+
+        const Node *tree = parser.ParseStream(strm);
+
+        ASSERTL(5533, EvalTree(tree));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
