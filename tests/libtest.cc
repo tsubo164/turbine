@@ -2,6 +2,8 @@
 #include <sstream>
 #include "test.h"
 #include "../src/tokenizer.h"
+#include "../src/bytecode.h"
+#include "../src/codegen.h"
 #include "../src/parser.h"
 
 int main(int argc, char **argv)
@@ -64,6 +66,23 @@ int main(int argc, char **argv)
         const Node *tree = parser.ParseStream(strm);
 
         ASSERTL(5533, EvalTree(tree));
+    }
+    {
+        std::stringstream strm("20+22");
+        Parser parser;
+
+        const Node *tree = parser.ParseStream(strm);
+        Bytecode code;
+        GenerateCode(tree, code);
+
+        ASSERTI(6, code.Size());
+
+        ASSERTI(OP_LOADB, code.Read(0));
+        ASSERTI(20, code.Read(1));
+        ASSERTI(OP_LOADB, code.Read(2));
+        ASSERTI(22, code.Read(3));
+        ASSERTI(OP_ADD, code.Read(4));
+        ASSERTI(OP_EOC, code.Read(5));
     }
 
     if (GetTestCount() <= 1)

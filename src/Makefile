@@ -4,7 +4,7 @@ OPT     := -O2
 CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors --std=c++14 -c
 RM      := rm -f
 
-SRCS    := ast parser tokenizer
+SRCS    := ast bytecode codegen parser tokenizer
 
 .PHONY: clean
 
