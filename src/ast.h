@@ -26,5 +26,6 @@ Node *NewNode(int kind);
 void DeleteTree(Node *tree);
 
 long EvalTree(const Node *tree);
+void PrintTree(const Node *tree);
 
 #endif // _H

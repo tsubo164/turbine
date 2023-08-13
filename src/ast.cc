@@ -1,4 +1,5 @@
 #include "ast.h"
+#include <iostream>
 
 Node::Node(int node_kind) : kind(node_kind)
 {
@@ -42,4 +43,50 @@ static long eval(const Node *node)
 long EvalTree(const Node *tree)
 {
     return eval(tree);
+}
+
+static const char *kind_string(int kind)
+{
+#define N(kind) case kind: return #kind;
+	switch (kind) {
+    N(NOD_NOP);
+	N(NOD_INTNUM);
+    N(NOD_ADD);
+	default: return "???";
+	}
+#undef N
+}
+
+static void print_recursive(const Node *node, int depth)
+{
+    if (!node)
+        return;
+
+    for (int i = 0; i < depth; i++)
+        printf("  ");
+    printf("%d. ", depth);
+
+    printf("%s", kind_string(node->kind));
+
+    switch (node->kind) {
+
+    case NOD_INTNUM:
+        printf(" %ld", node->ival);
+        break;
+
+    case NOD_ADD:
+        break;
+
+    default:
+        break;
+    }
+    printf("\n");
+
+    print_recursive(node->lhs, depth + 1);
+    print_recursive(node->rhs, depth + 1);
+}
+
+void PrintTree(const Node *tree)
+{
+    print_recursive(tree, 0);
 }

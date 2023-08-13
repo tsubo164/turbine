@@ -3,14 +3,14 @@
 const char *OpcodeString(Byte op)
 {
 #define O(op) case op: return #op;
-	switch ( op ) {
-    O( OP_NOP );
+	switch (op) {
+    O(OP_NOP);
 
-	O( OP_LOADB );
+	O(OP_LOADB);
 
-    O( OP_ADD );
+    O(OP_ADD);
 
-    O( OP_EOC );
+    O(OP_EOC);
 	default: return "???";
 	}
 #undef O
