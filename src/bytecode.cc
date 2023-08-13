@@ -1,5 +1,21 @@
 #include "bytecode.h"
 
+const char *OpcodeString(Byte op)
+{
+#define O(op) case op: return #op;
+	switch ( op ) {
+    O( OP_NOP );
+
+	O( OP_LOADB );
+
+    O( OP_ADD );
+
+    O( OP_EOC );
+	default: return "???";
+	}
+#undef O
+}
+
 Bytecode::Bytecode()
 {
 }
@@ -22,6 +38,11 @@ void Bytecode::AddInt()
 void Bytecode::End()
 {
     bytes_.push_back(OP_EOC);
+}
+
+const Byte *Bytecode::Data() const
+{
+    return &bytes_[0];
 }
 
 Byte Bytecode::Read(Int index) const

@@ -5,6 +5,7 @@
 #include "../src/bytecode.h"
 #include "../src/codegen.h"
 #include "../src/parser.h"
+#include "../src/vm.h"
 
 int main(int argc, char **argv)
 {
@@ -83,6 +84,19 @@ int main(int argc, char **argv)
         ASSERTI(22, code.Read(3));
         ASSERTI(OP_ADD, code.Read(4));
         ASSERTI(OP_EOC, code.Read(5));
+    }
+    {
+        std::stringstream strm("20+22");
+        Parser parser;
+
+        const Node *tree = parser.ParseStream(strm);
+        Bytecode code;
+        GenerateCode(tree, code);
+
+        VM vm;
+        vm.Run(code);
+
+        ASSERTL(42, vm.StackTopInt());
     }
 
     if (GetTestCount() <= 1)

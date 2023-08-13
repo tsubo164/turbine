@@ -17,18 +17,21 @@ enum Opcode {
 
 class Bytecode {
 public:
-	Bytecode();
-	~Bytecode();
+    Bytecode();
+    ~Bytecode();
 
-	void LoadByte(Byte operand);
-	void AddInt();
-	void End();
+    void LoadByte(Byte operand);
+    void AddInt();
+    void End();
 
-	Byte Read(Int index) const;
-	Int Size() const;
+    const Byte *Data() const;
+    Byte Read(Int index) const;
+    Int Size() const;
 
 private:
-	std::vector<Byte> bytes_;
+    std::vector<Byte> bytes_;
 };
+
+const char *OpcodeString(Byte op);
 
 #endif // _H
