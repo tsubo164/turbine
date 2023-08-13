@@ -1,4 +1,18 @@
 #include "tokenizer.h"
+#include <unordered_map>
+
+static const std::unordered_map<std::string, int> keywords = {
+    {"if", TOK_IF},
+};
+
+static int keyword_or_identifier(const std::string &word)
+{
+    const auto found = keywords.find(word);
+    if (found != keywords.end()) {
+        return found->second;
+    }
+    return TOK_IDENT;
+}
 
 Tokenizer::Tokenizer()
 {
@@ -10,36 +24,45 @@ Tokenizer::~Tokenizer()
 
 void Tokenizer::SetInput(std::istream &stream)
 {
-    strm_ = &stream;
+    stream_ = &stream;
+}
+
+void Tokenizer::SetStringTable(StringTable &string_table)
+{
+    strtable_ = &string_table;
 }
 
 int Tokenizer::Get(Token &tok)
 {
     tok = {};
 
-    while (!strm_->eof()) {
-        const int ch = strm_->get();
+    while (!stream_->eof()) {
+        const int ch = stream_->get();
 
-        switch (ch) {
-
-        case '0': case '1': case '2': case '3': case '4':
-        case '5': case '6': case '7': case '8': case '9':
+        // number
+        if (isdigit(ch)) {
             scan_number(ch, tok);
-            return tok.kind;
+            break;
+        }
 
-        case '+':
+        if (ch == '+') {
             tok.kind = TOK_PLUS;
-            return tok.kind;
+            break;
+        }
 
-        case EOF:
+        // word
+        if (isalpha(ch)) {
+            scan_word(ch, tok);
+            break;
+        }
+
+        if (ch == EOF) {
             tok.kind = TOK_EOF;
-            return tok.kind;
-
-        default:
             break;
         }
     }
-    return TOK_UNKNOWN;
+
+    return tok.kind;
 }
 
 int Tokenizer::scan_number(int first_char, Token &tok)
@@ -47,10 +70,10 @@ int Tokenizer::scan_number(int first_char, Token &tok)
     static char buf[256] = {'\0'};
     char *pbuf = buf;
 
-    for (int ch = first_char; isdigit(ch); ch = strm_->get()) {
+    for (int ch = first_char; isdigit(ch); ch = stream_->get()) {
         *pbuf++ = ch;
     }
-    strm_->unget();
+    stream_->unget();
 
     *pbuf = '\0';
     pbuf = buf;
@@ -58,6 +81,22 @@ int Tokenizer::scan_number(int first_char, Token &tok)
     char *end = NULL;
     tok.ival = strtol(buf, &end, 10);
     tok.kind = TOK_INTNUM;
+
+    return tok.kind;
+}
+
+int Tokenizer::scan_word(int first_char, Token &tok)
+{
+    strbuf_.clear();
+
+    for (int ch = first_char; isalnum(ch) || ch == '_'; ch = stream_->get()) {
+        strbuf_ += ch;
+    }
+    stream_->unget();
+
+    tok.kind = keyword_or_identifier(strbuf_);
+    if (tok.kind == TOK_IDENT)
+        tok.str_id = strtable_->Insert(strbuf_);
 
     return tok.kind;
 }

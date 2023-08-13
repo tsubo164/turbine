@@ -23,6 +23,17 @@ void AssertL(long expected, long actual, int line)
     }
 }
 
+void AssertS(const std::string &expected, const std::string &actual, int line)
+{
+    test_count++;
+
+    if (expected != actual) {
+        printf("error: expected: \"%s\" actual: \"%s\" [%d]\n",
+                expected.c_str(), actual.c_str(), line);
+        exit(1);
+    }
+}
+
 int GetTestCount()
 {
     return test_count;

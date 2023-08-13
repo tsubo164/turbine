@@ -34,6 +34,22 @@ int main(int argc, char **argv)
         ASSERTL(19, tok.ival);
     }
     {
+        std::stringstream strm(" foo  \n if");
+        StringTable string_table;
+        Tokenizer toknizer;
+        Token tok;
+
+        toknizer.SetInput(strm);
+        toknizer.SetStringTable(string_table);
+
+        toknizer.Get(tok);
+        ASSERTI(TOK_IDENT, tok.kind);
+        ASSERTS("foo", string_table.Lookup(tok.str_id));
+
+        toknizer.Get(tok);
+        ASSERTL(TOK_IF, tok.kind);
+    }
+    {
         std::stringstream strm("  12 ");
         Parser parser;
 
