@@ -6,6 +6,8 @@ Node::Node(int node_kind) : kind(node_kind)
 
 Node::~Node()
 {
+    delete lhs;
+    delete rhs;
 }
 
 Node *NewNode(int kind)

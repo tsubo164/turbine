@@ -37,42 +37,50 @@ int main(int argc, char **argv)
         std::stringstream strm("  12 ");
         Parser parser;
 
-        const Node *tree = parser.ParseStream(strm);
+        Node *tree = parser.ParseStream(strm);
 
         ASSERTL(12, tree->ival);
+
+        DeleteTree(tree);
     }
     {
         std::stringstream strm("  39 + 3 ");
         Parser parser;
 
-        const Node *tree = parser.ParseStream(strm);
+        Node *tree = parser.ParseStream(strm);
 
         ASSERTI(NOD_ADD, tree->kind);
         ASSERTL(0, tree->ival);
         ASSERTL(39, tree->lhs->ival);
         ASSERTL(3, tree->rhs->ival);
+
+        DeleteTree(tree);
     }
     {
         std::stringstream strm("  3129 + 1293 ");
         Parser parser;
 
-        const Node *tree = parser.ParseStream(strm);
+        Node *tree = parser.ParseStream(strm);
 
         ASSERTL(4422, EvalTree(tree));
+
+        DeleteTree(tree);
     }
     {
         std::stringstream strm("  3129 + 1293+1111");
         Parser parser;
 
-        const Node *tree = parser.ParseStream(strm);
+        Node *tree = parser.ParseStream(strm);
 
         ASSERTL(5533, EvalTree(tree));
+
+        DeleteTree(tree);
     }
     {
         std::stringstream strm("20+22");
         Parser parser;
 
-        const Node *tree = parser.ParseStream(strm);
+        Node *tree = parser.ParseStream(strm);
         Bytecode code;
         GenerateCode(tree, code);
 
@@ -84,12 +92,14 @@ int main(int argc, char **argv)
         ASSERTI(22, code.Read(3));
         ASSERTI(OP_ADD, code.Read(4));
         ASSERTI(OP_EOC, code.Read(5));
+
+        DeleteTree(tree);
     }
     {
         std::stringstream strm("20+22");
         Parser parser;
 
-        const Node *tree = parser.ParseStream(strm);
+        Node *tree = parser.ParseStream(strm);
         Bytecode code;
         GenerateCode(tree, code);
 
@@ -97,6 +107,8 @@ int main(int argc, char **argv)
         vm.Run(code);
 
         ASSERTL(42, vm.StackTopInt());
+
+        DeleteTree(tree);
     }
 
     if (GetTestCount() <= 1)
