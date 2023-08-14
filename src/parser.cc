@@ -15,6 +15,11 @@ Node *Parser::ParseStream(std::istream &stream)
     return expression();
 }
 
+void Parser::SetStringTable(StringTable &string_table)
+{
+    tokenizer_.SetStringTable(string_table);
+}
+
 const Token *Parser::gettok()
 {
     if (currtok_ != headtok_) {
@@ -61,6 +66,11 @@ Node *Parser::primary_expr()
         node->ival = tok->ival;
         return node;
 
+    case TOK_IDENT:
+        node = NewNode(NOD_IDENT);
+        node->ival = tok->str_id; // XXX TMP
+        return node;
+
     default:
         // ??
         return nullptr;
@@ -92,4 +102,24 @@ Node *Parser::add_expr()
 Node *Parser::expression()
 {
     return add_expr();
+}
+
+Node *Parser::assign_expr()
+{
+    Node *tree = primary_expr();
+    Node *assg = nullptr;
+    const Token *tok = gettok();
+
+    switch (tok->kind) {
+
+    case '=':
+        assg = NewNode(NOD_ASSIGN);
+        assg->lhs = tree;
+        assg->rhs = expression();
+        return assg;
+
+    default:
+        ungettok();
+        return tree;
+    }
 }

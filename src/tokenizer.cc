@@ -45,6 +45,11 @@ int Tokenizer::Get(Token &tok)
             break;
         }
 
+        if (ch == '=') {
+            tok.kind = TOK_EQ;
+            break;
+        }
+
         if (ch == '+') {
             tok.kind = TOK_PLUS;
             break;

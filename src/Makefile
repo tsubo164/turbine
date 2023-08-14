@@ -1,6 +1,6 @@
 CC      := g++
 AR      := ar
-OPT     := -O2
+OPT     := -g
 CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors --std=c++14 -c
 RM      := rm -f
 

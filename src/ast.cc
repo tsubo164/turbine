@@ -48,12 +48,13 @@ long EvalTree(const Node *tree)
 static const char *kind_string(int kind)
 {
 #define N(kind) case kind: return #kind;
-	switch (kind) {
+    switch (kind) {
     N(NOD_NOP);
-	N(NOD_INTNUM);
+    N(NOD_INTNUM);
+    N(NOD_ASSIGN);
     N(NOD_ADD);
-	default: return "???";
-	}
+    default: return "???";
+    }
 #undef N
 }
 
@@ -74,7 +75,13 @@ static void print_recursive(const Node *node, int depth)
         printf(" %ld", node->ival);
         break;
 
+    case NOD_ASSIGN:
+        break;
     case NOD_ADD:
+        break;
+
+    case NOD_IDENT:
+        printf(" %ld", node->ival);
         break;
 
     default:

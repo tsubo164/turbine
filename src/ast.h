@@ -4,7 +4,9 @@
 enum NodeKind {
     NOD_NOP = 0,
     NOD_INTNUM,
+    NOD_ASSIGN,
     NOD_ADD,
+    NOD_IDENT,
 };
 
 struct Node {

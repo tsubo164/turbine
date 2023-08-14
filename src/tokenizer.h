@@ -10,6 +10,7 @@ enum TokenKind {
     TOK_INTNUM,
     TOK_IDENT,
     TOK_IF,
+    TOK_EQ,
     TOK_PLUS,
     TOK_UNKNOWN,
 };

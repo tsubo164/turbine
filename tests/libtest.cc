@@ -20,7 +20,7 @@ int main(int argc, char **argv)
         ASSERTL(42, tok.ival);
     }
     {
-        std::stringstream strm(" +  19  ");
+        std::stringstream strm(" +  19  =");
         Tokenizer toknizer;
         Token tok;
 
@@ -32,6 +32,9 @@ int main(int argc, char **argv)
 
         toknizer.Get(tok);
         ASSERTL(19, tok.ival);
+
+        toknizer.Get(tok);
+        ASSERTL(TOK_EQ, tok.kind);
     }
     {
         std::stringstream strm(" foo  \n if");
@@ -69,6 +72,21 @@ int main(int argc, char **argv)
         ASSERTL(0, tree->ival);
         ASSERTL(39, tree->lhs->ival);
         ASSERTL(3, tree->rhs->ival);
+
+        DeleteTree(tree);
+    }
+    {
+        std::stringstream strm("  id + 114 ");
+        StringTable string_table;
+        Parser parser;
+
+        parser.SetStringTable(string_table);
+        Node *tree = parser.ParseStream(strm);
+
+        ASSERTI(NOD_ADD, tree->kind);
+        ASSERTL(0, tree->ival);
+        ASSERTS("id", string_table.Lookup(tree->lhs->ival));
+        ASSERTL(114, tree->rhs->ival);
 
         DeleteTree(tree);
     }

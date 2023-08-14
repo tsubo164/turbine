@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "string_table.h"
 #include "tokenizer.h"
 #include "ast.h"
 #include <array>
@@ -11,6 +12,7 @@ public:
     ~Parser();
 
     Node *ParseStream(std::istream &sstrm);
+    void SetStringTable(StringTable &string_table);
 
 private:
     Tokenizer tokenizer_;
@@ -32,6 +34,7 @@ private:
     Node *primary_expr();
     Node *add_expr();
     Node *expression();
+    Node *assign_expr();
 };
 
 #endif // _H
