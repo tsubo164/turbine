@@ -5,39 +5,39 @@
 #include <string>
 #include "string_table.h"
 
-enum TokenKind {
-    TOK_EOF = -1,
-    TOK_INTNUM,
-    TOK_IDENT,
-    TOK_IF,
-    TOK_EQ,
-    TOK_PLUS,
-    TOK_UNKNOWN,
+enum class TokenKind {
+    Eof = -1,
+    IntNum,
+    Ident,
+    If,
+    Equal,
+    Plus,
+    Unknown,
 };
+using TK = enum TokenKind;
 
 struct Token {
-    int kind = 0;
-
+    TokenKind kind = TK::Unknown;
     long ival = 0;
     int str_id = 0;
 };
 
 class Tokenizer {
 public:
-    Tokenizer();
-    ~Tokenizer();
+    Tokenizer() {}
+    ~Tokenizer() {}
 
     void SetInput(std::istream &stream);
     void SetStringTable(StringTable &str_table);
-    int Get(Token &tok);
+    TokenKind Get(Token &tok);
 
 private:
     std::istream *stream_ = nullptr;
     StringTable *strtable_ = nullptr;
     std::string strbuf_;
 
-    int scan_number(int first_char, Token &tok);
-    int scan_word(int first_char, Token &tok);
+    TokenKind scan_number(int first_char, Token &tok);
+    TokenKind scan_word(int first_char, Token &tok);
 };
 
 #endif // _H

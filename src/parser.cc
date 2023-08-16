@@ -53,10 +53,10 @@ Expr *Parser::primary_expr()
 
     switch (tok->kind) {
 
-    case TOK_INTNUM:
+    case TK::IntNum:
         return new IntNumExpr(tok->ival);
 
-    case TOK_IDENT:
+    case TK::Ident:
         return new IdentExpr(tok->ival); // XXX TMP
 
     default:
@@ -74,7 +74,7 @@ Expr *Parser::add_expr()
 
         switch (tok->kind) {
 
-        case TOK_PLUS:
+        case TK::Plus:
             tree = new AddExpr(tree, primary_expr());
             break;
 
@@ -97,7 +97,7 @@ Expr *Parser::assign_expr()
 
     switch (tok->kind) {
 
-    case '=':
+    case TK::Equal:
         return new AssignExpr(tree, expression());
 
     default:

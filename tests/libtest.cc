@@ -28,13 +28,13 @@ int main(int argc, char **argv)
 
         toknizer.Get(tok);
         ASSERTL(0, tok.ival);
-        ASSERTI(TOK_PLUS, tok.kind);
+        ASSERTK(TK::Plus, tok.kind);
 
         toknizer.Get(tok);
         ASSERTL(19, tok.ival);
 
         toknizer.Get(tok);
-        ASSERTL(TOK_EQ, tok.kind);
+        ASSERTK(TK::Equal, tok.kind);
     }
     {
         std::stringstream strm(" foo  \n if");
@@ -46,11 +46,11 @@ int main(int argc, char **argv)
         toknizer.SetStringTable(string_table);
 
         toknizer.Get(tok);
-        ASSERTI(TOK_IDENT, tok.kind);
+        ASSERTK(TK::Ident, tok.kind);
         ASSERTS("foo", string_table.Lookup(tok.str_id));
 
         toknizer.Get(tok);
-        ASSERTL(TOK_IF, tok.kind);
+        ASSERTK(TK::If, tok.kind);
     }
     {
         std::stringstream strm("  12 ");
