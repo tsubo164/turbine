@@ -109,6 +109,18 @@ int main(int argc, char **argv)
         DeleteTree(tree);
     }
     {
+        std::stringstream strm("a = 12");
+        StringTable string_table;
+        Parser parser(string_table);
+
+        Node *tree = parser.ParseStream(strm);
+        tree->Print();
+
+        ASSERTL(12, tree->Eval());
+
+        DeleteTree(tree);
+    }
+    {
         std::stringstream strm("20+22");
         StringTable string_table;
         Parser parser(string_table);

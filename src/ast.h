@@ -8,6 +8,7 @@ struct Node {
     Node() {}
     virtual ~Node() {}
     virtual long Eval() const = 0;
+    virtual void Print(int depth = 0) const = 0;
     virtual void Gen(Bytecode &code) const = 0;
 };
 
@@ -17,16 +18,18 @@ struct Expr : public Node {
 struct IntNumExpr : public Expr {
     IntNumExpr(long val) : ival(val) {}
 
-    long ival = 0;
+    long ival;
     long Eval() const override final;
+    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
 struct IdentExpr : public Expr {
-    IdentExpr(int name) {}
+    IdentExpr(int name_) : name(name_) {}
 
-    int name = 0;
+    int name;
     long Eval() const override final;
+    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -36,6 +39,7 @@ struct AddExpr : public Expr {
     std::unique_ptr<Expr> lhs;
     std::unique_ptr<Expr> rhs;
     long Eval() const override final;
+    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -45,6 +49,7 @@ struct AssignExpr : public Expr {
     std::unique_ptr<Expr> lval;
     std::unique_ptr<Expr> rval;
     long Eval() const override final;
+    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 

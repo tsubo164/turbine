@@ -30,8 +30,8 @@ private:
     // expressions
     Expr *primary_expr();
     Expr *add_expr();
-    Expr *expression();
     Expr *assign_expr();
+    Expr *expression();
 };
 
 #endif // _H

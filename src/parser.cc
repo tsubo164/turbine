@@ -44,7 +44,7 @@ Expr *Parser::primary_expr()
         return new IntNumExpr(tok->ival);
 
     case TK::Ident:
-        return new IdentExpr(tok->ival); // XXX TMP
+        return new IdentExpr(tok->str_id);
 
     default:
         // ??
@@ -72,14 +72,10 @@ Expr *Parser::add_expr()
     }
 }
 
-Expr *Parser::expression()
-{
-    return add_expr();
-}
-
+// assign = equality ("=" assign)?
 Expr *Parser::assign_expr()
 {
-    Expr *tree = primary_expr();
+    Expr *tree = add_expr();
     const Token *tok = gettok();
 
     switch (tok->kind) {
@@ -91,4 +87,9 @@ Expr *Parser::assign_expr()
         ungettok();
         return tree;
     }
+}
+
+Expr *Parser::expression()
+{
+    return assign_expr();
 }
