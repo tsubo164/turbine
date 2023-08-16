@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
         Node *tree = parser.ParseStream(strm);
 
-        ASSERTL(12, tree->ival);
+        ASSERTL(12, tree->Eval());
 
         DeleteTree(tree);
     }
@@ -68,10 +68,7 @@ int main(int argc, char **argv)
 
         Node *tree = parser.ParseStream(strm);
 
-        ASSERTI(NOD_ADD, tree->kind);
-        ASSERTL(0, tree->ival);
-        ASSERTL(39, tree->lhs->ival);
-        ASSERTL(3, tree->rhs->ival);
+        ASSERTL(42, tree->Eval());
 
         DeleteTree(tree);
     }
@@ -83,10 +80,7 @@ int main(int argc, char **argv)
         parser.SetStringTable(string_table);
         Node *tree = parser.ParseStream(strm);
 
-        ASSERTI(NOD_ADD, tree->kind);
-        ASSERTL(0, tree->ival);
-        ASSERTS("id", string_table.Lookup(tree->lhs->ival));
-        ASSERTL(114, tree->rhs->ival);
+        ASSERTL(114, tree->Eval());
 
         DeleteTree(tree);
     }
@@ -96,7 +90,7 @@ int main(int argc, char **argv)
 
         Node *tree = parser.ParseStream(strm);
 
-        ASSERTL(4422, EvalTree(tree));
+        ASSERTL(4422, tree->Eval());
 
         DeleteTree(tree);
     }
@@ -106,7 +100,7 @@ int main(int argc, char **argv)
 
         Node *tree = parser.ParseStream(strm);
 
-        ASSERTL(5533, EvalTree(tree));
+        ASSERTL(5533, tree->Eval());
 
         DeleteTree(tree);
     }

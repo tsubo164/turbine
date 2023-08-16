@@ -27,14 +27,11 @@ private:
     const Token *gettok();
     void ungettok();
 
-    // ast helpers
-    Node *branch(Node *node, Node *l, Node *r);
-
     // expressions
-    Node *primary_expr();
-    Node *add_expr();
-    Node *expression();
-    Node *assign_expr();
+    Expr *primary_expr();
+    Expr *add_expr();
+    Expr *expression();
+    Expr *assign_expr();
 };
 
 #endif // _H

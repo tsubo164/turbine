@@ -47,29 +47,17 @@ void Parser::ungettok()
         currtok_--;
 }
 
-Node *Parser::branch(Node *node, Node *l, Node *r)
-{
-    node->lhs = l;
-    node->rhs = r;
-    return node;
-}
-
-Node *Parser::primary_expr()
+Expr *Parser::primary_expr()
 {
     const Token *tok = gettok();
-    Node *node = nullptr;
 
     switch (tok->kind) {
 
     case TOK_INTNUM:
-        node = NewNode(NOD_INTNUM);
-        node->ival = tok->ival;
-        return node;
+        return new IntNumExpr(tok->ival);
 
     case TOK_IDENT:
-        node = NewNode(NOD_IDENT);
-        node->ival = tok->str_id; // XXX TMP
-        return node;
+        return new IdentExpr(tok->ival); // XXX TMP
 
     default:
         // ??
@@ -77,10 +65,9 @@ Node *Parser::primary_expr()
     }
 }
 
-Node *Parser::add_expr()
+Expr *Parser::add_expr()
 {
-    Node *tree = primary_expr();
-    Node *expr = nullptr;
+    Expr *tree = primary_expr();
 
     for (;;) {
         const Token *tok = gettok();
@@ -88,8 +75,7 @@ Node *Parser::add_expr()
         switch (tok->kind) {
 
         case TOK_PLUS:
-            expr = NewNode(NOD_ADD);
-            tree = branch(expr, tree, primary_expr());
+            tree = new AddExpr(tree, primary_expr());
             break;
 
         default:
@@ -99,24 +85,20 @@ Node *Parser::add_expr()
     }
 }
 
-Node *Parser::expression()
+Expr *Parser::expression()
 {
     return add_expr();
 }
 
-Node *Parser::assign_expr()
+Expr *Parser::assign_expr()
 {
-    Node *tree = primary_expr();
-    Node *assg = nullptr;
+    Expr *tree = primary_expr();
     const Token *tok = gettok();
 
     switch (tok->kind) {
 
     case '=':
-        assg = NewNode(NOD_ASSIGN);
-        assg->lhs = tree;
-        assg->rhs = expression();
-        return assg;
+        return new AssignExpr(tree, expression());
 
     default:
         ungettok();
