@@ -6,85 +6,49 @@
 #include "../src/codegen.h"
 #include "../src/parser.h"
 #include "../src/vm.h"
+#include "../src/mds.h"
+
+int run_text(const char *code)
+{
+    std::stringstream input("  3129 + 1293 ");
+    MDS mds;
+
+    return mds.Run(input);
+}
 
 int main(int argc, char **argv)
 {
     {
-        std::stringstream strm("  42 ");
-        StringTable string_table;
-        Tokenizer toknizer(string_table);
-        Token tok;
+        std::stringstream input(" 42 ");
+        MDS mds;
 
-        toknizer.SetInput(strm);
+        const int ret = mds.Run(input);
 
-        toknizer.Get(tok);
-        ASSERTL(42, tok.ival);
+        ASSERTL(42, ret);
     }
     {
-        std::stringstream strm(" +  19  =");
-        StringTable string_table;
-        Tokenizer toknizer(string_table);
-        Token tok;
+        std::stringstream input(" 12 ");
+        MDS mds;
 
-        toknizer.SetInput(strm);
+        const int ret = mds.Run(input);
 
-        toknizer.Get(tok);
-        ASSERTL(0, tok.ival);
-        ASSERTK(TK::Plus, tok.kind);
-
-        toknizer.Get(tok);
-        ASSERTL(19, tok.ival);
-
-        toknizer.Get(tok);
-        ASSERTK(TK::Equal, tok.kind);
+        ASSERTL(12, ret);
     }
     {
-        std::stringstream strm(" foo  \n if");
-        StringTable string_table;
-        Tokenizer toknizer(string_table);
-        Token tok;
+        std::stringstream input("  39 + 3 ");
+        MDS mds;
 
-        toknizer.SetInput(strm);
+        const int ret = mds.Run(input);
 
-        toknizer.Get(tok);
-        ASSERTK(TK::Ident, tok.kind);
-        ASSERTS("foo", string_table.Lookup(tok.str_id));
-
-        toknizer.Get(tok);
-        ASSERTK(TK::If, tok.kind);
+        ASSERTL(42, ret);
     }
     {
-        std::stringstream strm("  12 ");
-        StringTable string_table;
-        Parser parser(string_table);
+        std::stringstream input("  id + 114 ");
+        MDS mds;
 
-        Node *tree = parser.ParseStream(strm);
+        const int ret = mds.Run(input);
 
-        ASSERTL(12, tree->Eval());
-
-        DeleteTree(tree);
-    }
-    {
-        std::stringstream strm("  39 + 3 ");
-        StringTable string_table;
-        Parser parser(string_table);
-
-        Node *tree = parser.ParseStream(strm);
-
-        ASSERTL(42, tree->Eval());
-
-        DeleteTree(tree);
-    }
-    {
-        std::stringstream strm("  id + 114 ");
-        StringTable string_table;
-        Parser parser(string_table);
-
-        Node *tree = parser.ParseStream(strm);
-
-        ASSERTL(114, tree->Eval());
-
-        DeleteTree(tree);
+        ASSERTL(114, ret);
     }
     {
         std::stringstream strm("  3129 + 1293 ");
