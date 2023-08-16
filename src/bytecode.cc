@@ -3,31 +3,37 @@
 const char *OpcodeString(Byte op)
 {
 #define O(op) case op: return #op;
-	switch (op) {
+    switch (op) {
     O(OP_NOP);
 
-	O(OP_LOADB);
+    O(OP_LOADB);
+    O(OP_LOADLOCAL);
+    O(OP_ALLOC);
 
     O(OP_ADD);
 
     O(OP_EOC);
-	default: return "???";
-	}
+    default: return "???";
+    }
 #undef O
 }
 
-Bytecode::Bytecode()
-{
-}
-
-Bytecode::~Bytecode()
-{
-}
-
-void Bytecode::LoadByte(Byte operand)
+void Bytecode::LoadByte(Byte byte)
 {
     bytes_.push_back(OP_LOADB);
-    bytes_.push_back(operand);
+    bytes_.push_back(byte);
+}
+
+void Bytecode::LoadLocal(Byte id)
+{
+    bytes_.push_back(OP_LOADLOCAL);
+    bytes_.push_back(id);
+}
+
+void Bytecode::AllocateLocal(Byte count)
+{
+    bytes_.push_back(OP_ALLOC);
+    bytes_.push_back(count);
 }
 
 void Bytecode::AddInt()
@@ -56,4 +62,8 @@ Byte Bytecode::Read(Int index) const
 Int Bytecode::Size() const
 {
     return bytes_.size();
+}
+
+void Bytecode::Print() const
+{
 }

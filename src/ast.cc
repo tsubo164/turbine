@@ -76,6 +76,7 @@ void IntNumExpr::Gen(Bytecode &code) const
 
 void IdentExpr::Gen(Bytecode &code) const
 {
+    code.LoadLocal(0);
 }
 
 void AddExpr::Gen(Bytecode &code) const

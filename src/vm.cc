@@ -89,7 +89,7 @@ void VM::run()
     while (!is_eoc() && !brk) {
         const Int op = fetch_byte();
 
-        if (0) {
+        if (print_stack_) {
             printf("%s\n", OpcodeString(op));
             PrintStack();
         }
@@ -153,4 +153,9 @@ void VM::PrintStack() const
         printf( "\n" );
     }
     printf( "--------------\n" );
+}
+
+void VM::EnablePrintStack(bool enable)
+{
+    print_stack_ = enable;
 }

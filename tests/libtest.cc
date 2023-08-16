@@ -114,7 +114,6 @@ int main(int argc, char **argv)
         Parser parser(string_table);
 
         Node *tree = parser.ParseStream(strm);
-        tree->Print();
 
         ASSERTL(12, tree->Eval());
 
@@ -153,6 +152,27 @@ int main(int argc, char **argv)
         vm.Run(code);
 
         ASSERTL(42, vm.StackTopInt());
+
+        DeleteTree(tree);
+    }
+    {
+        std::stringstream strm(" a =   11");
+        StringTable string_table;
+        Parser parser(string_table);
+
+        Node *tree = parser.ParseStream(strm);
+        Bytecode code;
+
+        code.AllocateLocal(8);
+        GenerateCode(tree, code);
+        tree->Print();
+
+        VM vm;
+        vm.EnablePrintStack(true);
+        vm.Run(code);
+
+        //ASSERTL(42, vm.StackTopInt());
+        code.Print();
 
         DeleteTree(tree);
     }

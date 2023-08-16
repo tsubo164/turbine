@@ -19,6 +19,7 @@ public:
 
     Int StackTopInt() const;
     void PrintStack() const;
+    void EnablePrintStack(bool enable);
 
 private:
     std::vector<Object> stack_ = {{0}};
@@ -28,6 +29,8 @@ private:
     Int ip_ = 0; // instruction pointer
     Int sp_ = 0; // stack pointer
     Int bp_ = 0; // base pointer
+
+    bool print_stack_ = false;
 
     void run();
 

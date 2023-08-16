@@ -11,16 +11,20 @@ using Float = double;
 enum Opcode {
     OP_NOP = 0,
     OP_LOADB,
+    OP_LOADLOCAL,
+    OP_ALLOC,
     OP_ADD,
     OP_EOC,
 };
 
 class Bytecode {
 public:
-    Bytecode();
-    ~Bytecode();
+    Bytecode() {}
+    ~Bytecode() {}
 
-    void LoadByte(Byte operand);
+    void LoadByte(Byte byte);
+    void LoadLocal(Byte id);
+    void AllocateLocal(Byte count);
     void AddInt();
     void End();
 
@@ -28,6 +32,7 @@ public:
     Byte Read(Int index) const;
     Int Size() const;
 
+    void Print() const;
 private:
     std::vector<Byte> bytes_;
 };
