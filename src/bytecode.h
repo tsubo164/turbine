@@ -10,9 +10,12 @@ using Float = double;
 
 enum Opcode {
     OP_NOP = 0,
+
     OP_LOADB,
     OP_LOADLOCAL,
+    OP_STORELOCAL,
     OP_ALLOC,
+
     OP_ADD,
     OP_EOC,
 };
@@ -24,12 +27,13 @@ public:
 
     void LoadByte(Byte byte);
     void LoadLocal(Byte id);
+    void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
     void AddInt();
     void End();
 
     const Byte *Data() const;
-    Byte Read(Int index) const;
+    Int Read(Int index) const;
     Int Size() const;
 
     void Print() const;

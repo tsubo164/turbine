@@ -163,16 +163,15 @@ int main(int argc, char **argv)
         Node *tree = parser.ParseStream(strm);
         Bytecode code;
 
-        code.AllocateLocal(8);
+        code.AllocateLocal(1); // XXX TMP
         GenerateCode(tree, code);
-        tree->Print();
+        code.Print();
 
         VM vm;
         vm.EnablePrintStack(true);
         vm.Run(code);
 
-        //ASSERTL(42, vm.StackTopInt());
-        code.Print();
+        ASSERTL(11, vm.StackTopInt());
 
         DeleteTree(tree);
     }

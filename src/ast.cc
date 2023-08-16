@@ -88,6 +88,10 @@ void AddExpr::Gen(Bytecode &code) const
 
 void AssignExpr::Gen(Bytecode &code) const
 {
+    // rval first
+    rval->Gen(code);
+    const int id = lval->Eval();
+    code.StoreLocal(id);
 }
 
 void DeleteTree(Node *tree)

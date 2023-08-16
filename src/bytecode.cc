@@ -1,4 +1,5 @@
 #include "bytecode.h"
+#include <iostream>
 
 const char *OpcodeString(Byte op)
 {
@@ -8,6 +9,7 @@ const char *OpcodeString(Byte op)
 
     O(OP_LOADB);
     O(OP_LOADLOCAL);
+    O(OP_STORELOCAL);
     O(OP_ALLOC);
 
     O(OP_ADD);
@@ -27,6 +29,12 @@ void Bytecode::LoadByte(Byte byte)
 void Bytecode::LoadLocal(Byte id)
 {
     bytes_.push_back(OP_LOADLOCAL);
+    bytes_.push_back(id);
+}
+
+void Bytecode::StoreLocal(Byte id)
+{
+    bytes_.push_back(OP_STORELOCAL);
     bytes_.push_back(id);
 }
 
@@ -51,7 +59,7 @@ const Byte *Bytecode::Data() const
     return &bytes_[0];
 }
 
-Byte Bytecode::Read(Int index) const
+Int Bytecode::Read(Int index) const
 {
     if (index < 0 || index >= Size())
         return OP_NOP;
@@ -66,4 +74,44 @@ Int Bytecode::Size() const
 
 void Bytecode::Print() const
 {
+    bool brk = false;
+    int index = 0;
+
+    while (index < Size() && !brk) {
+        const int op = Read(index++);
+
+        switch (op) {
+        case OP_NOP:
+            std::cout << OpcodeString(op) << std::endl;
+            break;
+
+        case OP_LOADB:
+            std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            break;
+
+        case OP_LOADLOCAL:
+            std::cout << OpcodeString(op) << " @" << Read(index++) << std::endl;
+            break;
+
+        case OP_STORELOCAL:
+            std::cout << OpcodeString(op) << " @" << Read(index++) << std::endl;
+            break;
+
+        case OP_ALLOC:
+            std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            break;
+
+        case OP_ADD:
+            std::cout << OpcodeString(op) << std::endl;
+            break;
+
+        case OP_EOC:
+            std::cout << OpcodeString(op) << std::endl;
+            brk = true;
+            break;
+
+        default:
+            break;
+        }
+    }
 }

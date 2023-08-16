@@ -52,15 +52,15 @@ Object VM::pop()
     return stack_[sp_--];
 }
 
+Object VM::top() const
+{
+    return stack_[sp_];
+}
+
 Int VM::pop_int()
 {
     const Object obj = pop();
     return obj.ival;
-}
-
-Object VM::top() const
-{
-    return stack_[sp_];
 }
 
 void VM::push_int(Int val)
@@ -68,6 +68,11 @@ void VM::push_int(Int val)
     Object obj;
     obj.ival = val;
     push(obj);
+}
+
+void VM::set_local(int id, Object obj)
+{
+    stack_[bp_ + 1 + id] = obj;
 }
 
 bool VM::is_eoc() const
@@ -101,6 +106,29 @@ void VM::run()
                 Object obj;
                 obj.ival = fetch_byte();
                 push(obj);
+            }
+            break;
+
+        case OP_LOADLOCAL:
+            {
+                Object obj;
+                obj.ival = fetch_byte();
+                push(obj);
+            }
+            break;
+
+        case OP_STORELOCAL:
+            {
+                const Int id  = fetch_byte();
+                const Object obj = pop();
+                set_local(id, obj);
+            }
+            break;
+
+        case OP_ALLOC:
+            {
+                const Int size  = fetch_byte();
+                set_sp(sp_ + size);
             }
             break;
 
