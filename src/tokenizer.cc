@@ -19,11 +19,6 @@ void Tokenizer::SetInput(std::istream &stream)
     stream_ = &stream;
 }
 
-void Tokenizer::SetStringTable(StringTable &string_table)
-{
-    strtable_ = &string_table;
-}
-
 TokenKind Tokenizer::Get(Token &tok)
 {
     tok = {};
@@ -93,7 +88,7 @@ TokenKind Tokenizer::scan_word(int first_char, Token &tok)
 
     tok.kind = keyword_or_identifier(strbuf_);
     if (tok.kind == TK::Ident)
-        tok.str_id = strtable_->Insert(strbuf_);
+        tok.str_id = strtable_.Insert(strbuf_);
 
     return tok.kind;
 }

@@ -8,11 +8,11 @@
 
 class Parser {
 public:
-    Parser();
-    ~Parser();
+    Parser(StringTable &string_table) : tokenizer_(string_table) {}
+    ~Parser() {}
 
     Node *ParseStream(std::istream &sstrm);
-    void SetStringTable(StringTable &string_table);
+    void SetStringTable();
 
 private:
     Tokenizer tokenizer_;

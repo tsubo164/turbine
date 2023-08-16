@@ -24,16 +24,15 @@ struct Token {
 
 class Tokenizer {
 public:
-    Tokenizer() {}
+    Tokenizer(StringTable &string_table) : strtable_(string_table) {}
     ~Tokenizer() {}
 
     void SetInput(std::istream &stream);
-    void SetStringTable(StringTable &str_table);
     TokenKind Get(Token &tok);
 
 private:
     std::istream *stream_ = nullptr;
-    StringTable *strtable_ = nullptr;
+    StringTable &strtable_;
     std::string strbuf_;
 
     TokenKind scan_number(int first_char, Token &tok);

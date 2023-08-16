@@ -1,23 +1,10 @@
 #include "parser.h"
 
-Parser::Parser()
-{
-}
-
-Parser::~Parser()
-{
-}
-
 Node *Parser::ParseStream(std::istream &stream)
 {
     tokenizer_.SetInput(stream);
 
     return expression();
-}
-
-void Parser::SetStringTable(StringTable &string_table)
-{
-    tokenizer_.SetStringTable(string_table);
 }
 
 const Token *Parser::gettok()

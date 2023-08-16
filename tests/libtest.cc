@@ -11,7 +11,8 @@ int main(int argc, char **argv)
 {
     {
         std::stringstream strm("  42 ");
-        Tokenizer toknizer;
+        StringTable string_table;
+        Tokenizer toknizer(string_table);
         Token tok;
 
         toknizer.SetInput(strm);
@@ -21,7 +22,8 @@ int main(int argc, char **argv)
     }
     {
         std::stringstream strm(" +  19  =");
-        Tokenizer toknizer;
+        StringTable string_table;
+        Tokenizer toknizer(string_table);
         Token tok;
 
         toknizer.SetInput(strm);
@@ -39,11 +41,10 @@ int main(int argc, char **argv)
     {
         std::stringstream strm(" foo  \n if");
         StringTable string_table;
-        Tokenizer toknizer;
+        Tokenizer toknizer(string_table);
         Token tok;
 
         toknizer.SetInput(strm);
-        toknizer.SetStringTable(string_table);
 
         toknizer.Get(tok);
         ASSERTK(TK::Ident, tok.kind);
@@ -54,7 +55,8 @@ int main(int argc, char **argv)
     }
     {
         std::stringstream strm("  12 ");
-        Parser parser;
+        StringTable string_table;
+        Parser parser(string_table);
 
         Node *tree = parser.ParseStream(strm);
 
@@ -64,7 +66,8 @@ int main(int argc, char **argv)
     }
     {
         std::stringstream strm("  39 + 3 ");
-        Parser parser;
+        StringTable string_table;
+        Parser parser(string_table);
 
         Node *tree = parser.ParseStream(strm);
 
@@ -75,9 +78,8 @@ int main(int argc, char **argv)
     {
         std::stringstream strm("  id + 114 ");
         StringTable string_table;
-        Parser parser;
+        Parser parser(string_table);
 
-        parser.SetStringTable(string_table);
         Node *tree = parser.ParseStream(strm);
 
         ASSERTL(114, tree->Eval());
@@ -86,7 +88,8 @@ int main(int argc, char **argv)
     }
     {
         std::stringstream strm("  3129 + 1293 ");
-        Parser parser;
+        StringTable string_table;
+        Parser parser(string_table);
 
         Node *tree = parser.ParseStream(strm);
 
@@ -96,7 +99,8 @@ int main(int argc, char **argv)
     }
     {
         std::stringstream strm("  3129 + 1293+1111");
-        Parser parser;
+        StringTable string_table;
+        Parser parser(string_table);
 
         Node *tree = parser.ParseStream(strm);
 
@@ -106,7 +110,8 @@ int main(int argc, char **argv)
     }
     {
         std::stringstream strm("20+22");
-        Parser parser;
+        StringTable string_table;
+        Parser parser(string_table);
 
         Node *tree = parser.ParseStream(strm);
         Bytecode code;
@@ -125,7 +130,8 @@ int main(int argc, char **argv)
     }
     {
         std::stringstream strm("20+22");
-        Parser parser;
+        StringTable string_table;
+        Parser parser(string_table);
 
         Node *tree = parser.ParseStream(strm);
         Bytecode code;
