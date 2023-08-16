@@ -6,71 +6,51 @@
 #include "../src/codegen.h"
 #include "../src/parser.h"
 #include "../src/vm.h"
-#include "../src/mds.h"
-
-int run_text(const char *code)
-{
-    std::stringstream input("  3129 + 1293 ");
-    MDS mds;
-
-    return mds.Run(input);
-}
+#include "../src/interpreter.h"
 
 int main(int argc, char **argv)
 {
     {
         std::stringstream input(" 42 ");
-        MDS mds;
+        Interpreter ip;
 
-        const int ret = mds.Run(input);
-
-        ASSERTL(42, ret);
+        ASSERTL(42, ip.Run(input));
     }
     {
         std::stringstream input(" 12 ");
-        MDS mds;
+        Interpreter ip;
 
-        const int ret = mds.Run(input);
-
-        ASSERTL(12, ret);
+        ASSERTL(12, ip.Run(input));
     }
     {
         std::stringstream input("  39 + 3 ");
-        MDS mds;
+        Interpreter ip;
 
-        const int ret = mds.Run(input);
-
-        ASSERTL(42, ret);
+        ASSERTL(42, ip.Run(input));
     }
     {
         std::stringstream input("  id + 114 ");
-        MDS mds;
+        Interpreter ip;
 
-        const int ret = mds.Run(input);
-
-        ASSERTL(114, ret);
+        ASSERTL(114, ip.Run(input));
     }
     {
-        std::stringstream strm("  3129 + 1293 ");
-        StringTable string_table;
-        Parser parser(string_table);
+        std::stringstream input("  3129 + 1293 ");
+        Interpreter ip;
 
-        Node *tree = parser.ParseStream(strm);
-
-        ASSERTL(4422, tree->Eval());
-
-        DeleteTree(tree);
+        ASSERTL(4422, ip.Run(input));
     }
     {
-        std::stringstream strm("  3129 + 1293+1111");
-        StringTable string_table;
-        Parser parser(string_table);
+        std::stringstream input("  3129 + 1293+1111");
+        Interpreter ip;
 
-        Node *tree = parser.ParseStream(strm);
+        ASSERTL(5533, ip.Run(input));
+    }
+    {
+        //std::stringstream input("a = 12");
+        //Interpreter ip;
 
-        ASSERTL(5533, tree->Eval());
-
-        DeleteTree(tree);
+        //ASSERTL(5533, ip.Run(input));
     }
     {
         std::stringstream strm("a = 12");

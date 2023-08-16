@@ -1,5 +1,6 @@
 #include "ast.h"
 #include <iostream>
+#include <limits>
 
 static void print_indent(int depth)
 {
@@ -71,7 +72,13 @@ long AssignExpr::Eval() const
 // Gen
 void IntNumExpr::Gen(Bytecode &code) const
 {
-    code.LoadByte(ival);
+    constexpr Int bytemin = std::numeric_limits<Byte>::min();
+    constexpr Int bytemax = std::numeric_limits<Byte>::max();
+
+    if (ival >= bytemin && ival <= bytemax)
+        code.LoadByte(ival);
+    else
+        code.LoadInt(ival);
 }
 
 void IdentExpr::Gen(Bytecode &code) const

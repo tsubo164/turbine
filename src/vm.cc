@@ -36,6 +36,20 @@ Int VM::fetch_byte()
     return read_byte(ip_++);
 }
 
+Int VM::fetch_int()
+{
+    constexpr int SIZE = sizeof(Int);
+    Byte buf[SIZE] = {0};
+
+    for ( int i = 0; i < SIZE; i++ )
+        buf[i] = static_cast<Byte>(fetch_byte());
+
+    Int ret = 0;
+    std::memcpy(&ret, buf, SIZE);
+
+    return ret;
+}
+
 void VM::push(Object obj)
 {
     if (sp_ == stack_.size() - 1) {
@@ -105,6 +119,14 @@ void VM::run()
             {
                 Object obj;
                 obj.ival = fetch_byte();
+                push(obj);
+            }
+            break;
+
+        case OP_LOADI:
+            {
+                Object obj;
+                obj.ival = fetch_int();
                 push(obj);
             }
             break;

@@ -1,5 +1,6 @@
 #include "bytecode.h"
 #include <iostream>
+#include <cstring>
 
 const char *OpcodeString(Byte op)
 {
@@ -8,6 +9,7 @@ const char *OpcodeString(Byte op)
     O(OP_NOP);
 
     O(OP_LOADB);
+    O(OP_LOADI);
     O(OP_LOADLOCAL);
     O(OP_STORELOCAL);
     O(OP_ALLOC);
@@ -20,10 +22,28 @@ const char *OpcodeString(Byte op)
 #undef O
 }
 
+template<typename T>
+void push_back(std::vector<Byte> &bytes, T operand)
+{
+    constexpr int SIZE = sizeof(T);
+    Byte buf[SIZE] = {0};
+
+    std::memcpy(buf, &operand, SIZE);
+
+    for ( int i = 0; i < SIZE; i++ )
+        bytes.push_back(buf[i]);
+}
+
 void Bytecode::LoadByte(Byte byte)
 {
     bytes_.push_back(OP_LOADB);
     bytes_.push_back(byte);
+}
+
+void Bytecode::LoadInt(Int integer)
+{
+    bytes_.push_back(OP_LOADI);
+    push_back<Int>(bytes_, integer);
 }
 
 void Bytecode::LoadLocal(Byte id)

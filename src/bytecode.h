@@ -12,6 +12,7 @@ enum Opcode {
     OP_NOP = 0,
 
     OP_LOADB,
+    OP_LOADI,
     OP_LOADLOCAL,
     OP_STORELOCAL,
     OP_ALLOC,
@@ -26,6 +27,7 @@ public:
     ~Bytecode() {}
 
     void LoadByte(Byte byte);
+    void LoadInt(Int integer);
     void LoadLocal(Byte id);
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
