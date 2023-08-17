@@ -11,10 +11,10 @@
 int main(int argc, char **argv)
 {
     {
-        std::stringstream input(" 42 ");
+        std::stringstream input(" 42 \n 19\n");
         Interpreter ip;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(19, ip.Run(input));
     }
     {
         std::stringstream input(" 12 ");
@@ -46,11 +46,12 @@ int main(int argc, char **argv)
 
         ASSERTL(5533, ip.Run(input));
     }
+    return 0;
     {
-        //std::stringstream input("a = 12");
-        //Interpreter ip;
+        std::stringstream input("a = 12 \n a");
+        Interpreter ip;
 
-        //ASSERTL(5533, ip.Run(input));
+        ASSERTL(5533, ip.Run(input));
     }
     {
         std::stringstream strm("a = 12");

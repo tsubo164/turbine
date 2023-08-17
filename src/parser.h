@@ -32,6 +32,9 @@ private:
     Expr *add_expr();
     Expr *assign_expr();
     Expr *expression();
+
+    Stmt *expr_stmt();
+    Prog *program();
 };
 
 #endif // _H

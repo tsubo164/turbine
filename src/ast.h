@@ -2,6 +2,7 @@
 #define AST_H
 
 #include <memory>
+#include <vector>
 #include "bytecode.h"
 
 struct Node {
@@ -47,6 +48,32 @@ struct AssignExpr : public Expr {
     AssignExpr(Expr *l, Expr *r) : lval(l), rval(r) {}
     std::unique_ptr<Expr> lval;
     std::unique_ptr<Expr> rval;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
+struct Stmt : public Node {
+};
+
+struct ExprStmt : public Stmt {
+    ExprStmt(Expr *e) : expr(e) {}
+    std::unique_ptr<Expr> expr;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
+struct Prog: public Node {
+    Prog() {}
+    ~Prog()
+    {
+        for (auto stmt: stmts)
+            delete stmt;
+    }
+    std::vector<Stmt*> stmts;
 
     long Eval() const override final;
     void Print(int depth) const override final;

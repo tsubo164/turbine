@@ -21,5 +21,7 @@ Int Interpreter::Run(std::istream &input)
     //vm_.EnablePrintStack(true);
     vm_.Run(code_);
 
+    tree_->Print();
+
     return vm_.StackTopInt();
 }

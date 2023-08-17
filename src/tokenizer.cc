@@ -29,31 +29,45 @@ TokenKind Tokenizer::Get(Token &tok)
         // number
         if (isdigit(ch)) {
             scan_number(ch, tok);
-            break;
+            return tok.kind;
         }
 
         if (ch == '=') {
             tok.kind = TK::Equal;
-            break;
+            return tok.kind;
         }
 
         if (ch == '+') {
             tok.kind = TK::Plus;
-            break;
+            return tok.kind;
         }
 
         // word
         if (isalpha(ch)) {
             scan_word(ch, tok);
-            break;
+            return tok.kind;
+        }
+
+        if (ch == '\n') {
+            tok.kind = TK::NewLine;
+            return tok.kind;
         }
 
         if (ch == EOF) {
             tok.kind = TK::Eof;
-            break;
+            return tok.kind;
         }
+
+        // skip
+        if (ch == ' ' || ch == '\t' || ch == '\v') {
+            continue;
+        }
+
+        tok.kind = TK::Unknown;
+        return tok.kind;
     }
 
+    tok.kind = TK::Eof;
     return tok.kind;
 }
 

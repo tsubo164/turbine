@@ -46,6 +46,19 @@ void AssignExpr::Print(int depth) const
     rval->Print(depth + 1);
 }
 
+void ExprStmt::Print(int depth) const
+{
+    print_node("ExprStmt", depth);
+    expr->Print(depth + 1);
+}
+
+void Prog::Print(int depth) const
+{
+    print_node("Prog", depth);
+    for (const auto stmt: stmts)
+        stmt->Print(depth + 1);
+}
+
 // Eval
 long IntNumExpr::Eval() const
 {
@@ -67,6 +80,19 @@ long AddExpr::Eval() const
 long AssignExpr::Eval() const
 {
     return rval->Eval();
+}
+
+long ExprStmt::Eval() const
+{
+    return expr->Eval();
+}
+
+long Prog::Eval() const
+{
+    long ret = 0;
+    for (const auto stmt: stmts)
+        ret = stmt->Eval();
+    return ret;
 }
 
 // Gen
@@ -99,6 +125,18 @@ void AssignExpr::Gen(Bytecode &code) const
     rval->Gen(code);
     const int id = lval->Eval();
     code.StoreLocal(id);
+}
+
+
+void ExprStmt::Gen(Bytecode &code) const
+{
+    expr->Gen(code);
+}
+
+void Prog::Gen(Bytecode &code) const
+{
+    for (const auto stmt: stmts)
+        stmt->Gen(code);
 }
 
 void DeleteTree(Node *tree)

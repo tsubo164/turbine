@@ -4,7 +4,7 @@ Node *Parser::ParseStream(std::istream &stream)
 {
     tokenizer_.SetInput(stream);
 
-    return expression();
+    return program();
 }
 
 const Token *Parser::gettok()
@@ -47,7 +47,8 @@ Expr *Parser::primary_expr()
         return new IdentExpr(tok->str_id);
 
     default:
-        // ??
+        printf("error: unexpected token: %d\n", tok->kind);
+        exit(1);
         return nullptr;
     }
 }
@@ -92,4 +93,34 @@ Expr *Parser::assign_expr()
 Expr *Parser::expression()
 {
     return assign_expr();
+}
+
+Stmt *Parser::expr_stmt()
+{
+    ExprStmt *stmt = new ExprStmt(expression());
+
+    // expect ==============
+    const Token *tok = gettok();
+    if (tok->kind != TK::NewLine && tok->kind != TK::Eof) {
+        printf("expect new line or eof%d\n", tok->kind);
+        exit(1);
+    }
+
+    return stmt;
+}
+
+Prog *Parser::program()
+{
+    Prog *prog = new Prog;
+
+    for (;;) {
+        // peek ==============
+        const Token *tok = gettok();
+        if (tok->kind == TK::Eof)
+            return prog;
+        ungettok();
+
+        Stmt *stmt = expr_stmt();
+        prog->stmts.push_back(stmt);
+    }
 }

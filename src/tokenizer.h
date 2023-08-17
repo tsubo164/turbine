@@ -7,13 +7,15 @@
 
 enum class TokenKind {
     Eof = -1,
+    Unknown = 0,
     IntNum,
     Ident,
     If,
     Equal,
     Plus,
-    Unknown,
+    NewLine,
 };
+
 using TK = enum TokenKind;
 
 struct Token {
