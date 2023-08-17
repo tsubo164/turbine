@@ -19,7 +19,7 @@ void Tokenizer::SetInput(std::istream &stream)
     stream_ = &stream;
 }
 
-TokenKind Tokenizer::Get(Token &tok)
+void Tokenizer::Get(Token &tok)
 {
     tok = {};
 
@@ -29,33 +29,33 @@ TokenKind Tokenizer::Get(Token &tok)
         // number
         if (isdigit(ch)) {
             scan_number(ch, tok);
-            return tok.kind;
+            return;
         }
 
         if (ch == '=') {
             tok.kind = TK::Equal;
-            return tok.kind;
+            return;
         }
 
         if (ch == '+') {
             tok.kind = TK::Plus;
-            return tok.kind;
+            return;
         }
 
         // word
         if (isalpha(ch)) {
             scan_word(ch, tok);
-            return tok.kind;
+            return;
         }
 
         if (ch == '\n') {
             tok.kind = TK::NewLine;
-            return tok.kind;
+            return;
         }
 
         if (ch == EOF) {
             tok.kind = TK::Eof;
-            return tok.kind;
+            return;
         }
 
         // skip
@@ -64,11 +64,10 @@ TokenKind Tokenizer::Get(Token &tok)
         }
 
         tok.kind = TK::Unknown;
-        return tok.kind;
+        return;
     }
 
     tok.kind = TK::Eof;
-    return tok.kind;
 }
 
 TokenKind Tokenizer::scan_number(int first_char, Token &tok)

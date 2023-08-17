@@ -30,7 +30,7 @@ public:
     ~Tokenizer() {}
 
     void SetInput(std::istream &stream);
-    TokenKind Get(Token &tok);
+    void Get(Token &tok);
 
 private:
     std::istream *stream_ = nullptr;
