@@ -73,6 +73,7 @@ struct Prog: public Node {
         for (auto stmt: stmts)
             delete stmt;
     }
+    void AddStmt(Stmt *stmt) { stmts.push_back(stmt); }
     std::vector<Stmt*> stmts;
 
     long Eval() const override final;

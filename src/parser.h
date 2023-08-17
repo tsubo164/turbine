@@ -27,6 +27,11 @@ private:
     const Token *gettok();
     void ungettok();
 
+    //
+    TokenKind peek();
+    void expect(TokenKind kind);
+    void expect_one_of(TokenKind kind0, TokenKind kind1);
+
     // expressions
     Expr *primary_expr();
     Expr *add_expr();

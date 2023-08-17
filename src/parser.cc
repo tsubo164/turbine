@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <iostream>
 
 Node *Parser::ParseStream(std::istream &stream)
 {
@@ -32,6 +33,32 @@ void Parser::ungettok()
         currtok_ = ENDTOK;
     else
         currtok_--;
+}
+
+TokenKind Parser::peek()
+{
+    const Token *tok = gettok();
+    TokenKind kind = tok->kind;
+    ungettok();
+    return kind;
+}
+
+void Parser::expect(TokenKind kind)
+{
+    const Token *tok = gettok();
+    if (tok->kind != kind) {
+        std::cout << "unexpected token: " << static_cast<int>(tok->kind) << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void Parser::expect_one_of(TokenKind kind0, TokenKind kind1)
+{
+    const Token *tok = gettok();
+    if (tok->kind != kind0 && tok->kind != kind1) {
+        std::cerr << "unexpected token: " << static_cast<int>(tok->kind) << std::endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
 Expr *Parser::primary_expr()
@@ -99,12 +126,7 @@ Stmt *Parser::expr_stmt()
 {
     ExprStmt *stmt = new ExprStmt(expression());
 
-    // expect ==============
-    const Token *tok = gettok();
-    if (tok->kind != TK::NewLine && tok->kind != TK::Eof) {
-        printf("expect new line or eof%d\n", tok->kind);
-        exit(1);
-    }
+    expect_one_of(TK::NewLine, TK::Eof);
 
     return stmt;
 }
@@ -114,13 +136,16 @@ Prog *Parser::program()
     Prog *prog = new Prog;
 
     for (;;) {
-        // peek ==============
-        const Token *tok = gettok();
-        if (tok->kind == TK::Eof)
-            return prog;
-        ungettok();
+        const TokenKind next = peek();
 
-        Stmt *stmt = expr_stmt();
-        prog->stmts.push_back(stmt);
+        if (next == TK::If) {
+            //prog->AddStmt(if_stmt());
+            //continue;
+        }
+
+        if (next == TK::Eof)
+            return prog;
+
+        prog->AddStmt(expr_stmt());
     }
 }
