@@ -84,6 +84,11 @@ void VM::push_int(Int val)
     push(obj);
 }
 
+Object VM::get_local(int id) const
+{
+    return stack_[bp_ + 1 + id];
+}
+
 void VM::set_local(int id, Object obj)
 {
     stack_[bp_ + 1 + id] = obj;
@@ -133,15 +138,15 @@ void VM::run()
 
         case OP_LOADLOCAL:
             {
-                Object obj;
-                obj.ival = fetch_byte();
+                const Int id = fetch_byte();
+                const Object obj = get_local(id);
                 push(obj);
             }
             break;
 
         case OP_STORELOCAL:
             {
-                const Int id  = fetch_byte();
+                const Int id = fetch_byte();
                 const Object obj = pop();
                 set_local(id, obj);
             }

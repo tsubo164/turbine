@@ -18,7 +18,7 @@ libtest.out: libtest.o test.o ../src/libmds.a
 	$(CC) -o $@ $^
 
 %.o:%.cc
-	$(CC) -std=c++14 -c $<
+	$(CC) -std=c++14 -g -c $<
 
 ../src/libmds.a: ../src/*.h ../src/*cc
 	make -C ../src

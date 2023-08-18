@@ -11,7 +11,10 @@ Node *Parser::ParseStream(std::istream &stream)
 const Token *Parser::gettok()
 {
     if (currtok_ != headtok_) {
-        currtok_++;
+        if (currtok_ == ENDTOK)
+            currtok_ = 0;
+        else
+            currtok_++;
         return &token_buf_[currtok_];
     }
     else {
@@ -38,7 +41,7 @@ void Parser::ungettok()
 TokenKind Parser::peek()
 {
     const Token *tok = gettok();
-    TokenKind kind = tok->kind;
+    const TokenKind kind = tok->kind;
     ungettok();
     return kind;
 }
@@ -65,19 +68,17 @@ Expr *Parser::primary_expr()
 {
     const Token *tok = gettok();
 
-    switch (tok->kind) {
-
-    case TK::IntNum:
+    if (tok->kind == TK::IntNum) {
         return new IntNumExpr(tok->ival);
-
-    case TK::Ident:
-        return new IdentExpr(tok->str_id);
-
-    default:
-        printf("error: unexpected token: %d\n", tok->kind);
-        exit(1);
-        return nullptr;
     }
+
+    if (tok->kind == TK::Ident) {
+        return new IdentExpr(tok->str_id);
+    }
+
+    std::cerr << "unexpected token: " << static_cast<int>(tok->kind) << std::endl;
+    exit(EXIT_FAILURE);
+    return nullptr;
 }
 
 Expr *Parser::add_expr()

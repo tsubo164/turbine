@@ -11,6 +11,12 @@
 int main(int argc, char **argv)
 {
     {
+        std::stringstream input("  id = 114 \n  id + 11");
+        Interpreter ip;
+
+        ASSERTL(125, ip.Run(input));
+    }
+    {
         std::stringstream input(" 42 \n 19\n");
         Interpreter ip;
 
@@ -29,7 +35,7 @@ int main(int argc, char **argv)
         ASSERTL(42, ip.Run(input));
     }
     {
-        std::stringstream input("  id + 114 ");
+        std::stringstream input("  id = 0 \n  id + 114");
         Interpreter ip;
 
         ASSERTL(114, ip.Run(input));
@@ -46,12 +52,11 @@ int main(int argc, char **argv)
 
         ASSERTL(5533, ip.Run(input));
     }
-    return 0;
     {
         std::stringstream input("a = 12 \n a");
         Interpreter ip;
 
-        ASSERTL(5533, ip.Run(input));
+        ASSERTL(12, ip.Run(input));
     }
     {
         std::stringstream strm("a = 12");

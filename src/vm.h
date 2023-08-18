@@ -53,6 +53,7 @@ private:
     void push_int( Int val );
     Int pop_int();
 
+    Object get_local(int id) const;
     void set_local(int id, Object obj);
     bool is_eoc() const;
 };
