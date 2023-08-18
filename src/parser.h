@@ -18,12 +18,15 @@ private:
     Tokenizer tokenizer_;
 
     // token buffer
-    static constexpr int BUFSIZE = 8;
-    static constexpr int ENDTOK = BUFSIZE - 1;
-    std::array<Token,BUFSIZE> token_buf_;
-    int currtok_ = 0;
-    int headtok_ = 0;
+    std::array<Token,8> tokbuf_;
+    Token *curr_  = &tokbuf_[0];
+    Token *head_  = &tokbuf_[0];
+    Token *begin_ = &tokbuf_[0];
+    Token *end_   = &tokbuf_[tokbuf_.size()-1];
 
+    // token get
+    Token *next() const;
+    Token *prev() const;
     const Token *gettok();
     void ungettok();
 

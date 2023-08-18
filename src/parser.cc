@@ -8,34 +8,39 @@ Node *Parser::ParseStream(std::istream &stream)
     return program();
 }
 
+Token *Parser::next() const
+{
+    if (curr_ == end_)
+        return begin_;
+    else
+        return curr_ + 1;
+}
+
+Token *Parser::prev() const
+{
+    if (curr_ == begin_)
+        return end_;
+    else
+        return curr_ - 1;
+}
+
 const Token *Parser::gettok()
 {
-    if (currtok_ != headtok_) {
-        if (currtok_ == ENDTOK)
-            currtok_ = 0;
-        else
-            currtok_++;
-        return &token_buf_[currtok_];
+    if (curr_ != head_) {
+        curr_ = next();
+        return curr_;
     }
     else {
-        if (currtok_ == ENDTOK)
-            currtok_ = 0;
-        else
-            currtok_++;
-
-        tokenizer_.Get(token_buf_[currtok_]);
-        headtok_ = currtok_;
-
-        return &token_buf_[currtok_];
+        curr_ = next();
+        tokenizer_.Get(curr_);
+        head_ = curr_;
+        return curr_;
     }
 }
 
 void Parser::ungettok()
 {
-    if (currtok_ == 0)
-        currtok_ = ENDTOK;
-    else
-        currtok_--;
+    curr_ = prev();
 }
 
 TokenKind Parser::peek()

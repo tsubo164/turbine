@@ -19,9 +19,9 @@ void Tokenizer::SetInput(std::istream &stream)
     stream_ = &stream;
 }
 
-void Tokenizer::Get(Token &tok)
+void Tokenizer::Get(Token *tok)
 {
-    tok = {};
+    *tok = {};
 
     while (!stream_->eof()) {
         const int ch = stream_->get();
@@ -33,12 +33,12 @@ void Tokenizer::Get(Token &tok)
         }
 
         if (ch == '=') {
-            tok.kind = TK::Equal;
+            tok->kind = TK::Equal;
             return;
         }
 
         if (ch == '+') {
-            tok.kind = TK::Plus;
+            tok->kind = TK::Plus;
             return;
         }
 
@@ -49,12 +49,12 @@ void Tokenizer::Get(Token &tok)
         }
 
         if (ch == '\n') {
-            tok.kind = TK::NewLine;
+            tok->kind = TK::NewLine;
             return;
         }
 
         if (ch == EOF) {
-            tok.kind = TK::Eof;
+            tok->kind = TK::Eof;
             return;
         }
 
@@ -63,14 +63,14 @@ void Tokenizer::Get(Token &tok)
             continue;
         }
 
-        tok.kind = TK::Unknown;
+        tok->kind = TK::Unknown;
         return;
     }
 
-    tok.kind = TK::Eof;
+    tok->kind = TK::Eof;
 }
 
-TokenKind Tokenizer::scan_number(int first_char, Token &tok)
+TokenKind Tokenizer::scan_number(int first_char, Token *tok)
 {
     static char buf[256] = {'\0'};
     char *pbuf = buf;
@@ -84,13 +84,13 @@ TokenKind Tokenizer::scan_number(int first_char, Token &tok)
     pbuf = buf;
 
     char *end = nullptr;
-    tok.ival = strtol(buf, &end, 10);
-    tok.kind = TK::IntNum;
+    tok->ival = strtol(buf, &end, 10);
+    tok->kind = TK::IntNum;
 
-    return tok.kind;
+    return tok->kind;
 }
 
-TokenKind Tokenizer::scan_word(int first_char, Token &tok)
+TokenKind Tokenizer::scan_word(int first_char, Token *tok)
 {
     strbuf_.clear();
 
@@ -99,9 +99,9 @@ TokenKind Tokenizer::scan_word(int first_char, Token &tok)
     }
     stream_->unget();
 
-    tok.kind = keyword_or_identifier(strbuf_);
-    if (tok.kind == TK::Ident)
-        tok.str_id = strtable_.Insert(strbuf_);
+    tok->kind = keyword_or_identifier(strbuf_);
+    if (tok->kind == TK::Ident)
+        tok->str_id = strtable_.Insert(strbuf_);
 
-    return tok.kind;
+    return tok->kind;
 }

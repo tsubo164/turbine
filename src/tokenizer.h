@@ -30,15 +30,15 @@ public:
     ~Tokenizer() {}
 
     void SetInput(std::istream &stream);
-    void Get(Token &tok);
+    void Get(Token *tok);
 
 private:
     std::istream *stream_ = nullptr;
     StringTable &strtable_;
     std::string strbuf_;
 
-    TokenKind scan_number(int first_char, Token &tok);
-    TokenKind scan_word(int first_char, Token &tok);
+    TokenKind scan_number(int first_char, Token *tok);
+    TokenKind scan_word(int first_char, Token *tok);
 };
 
 #endif // _H
