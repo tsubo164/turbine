@@ -14,7 +14,7 @@ DEPS := $(addsuffix .d, $(SRCS))
 
 all: $(MDS)
 
-$(OBJS): %.o: %.cc
+$(OBJS): %.o: %.cpp
 	$(CC) $(CFLAGS) -o $@ $<
 
 $(MDS): $(OBJS)
@@ -26,7 +26,7 @@ clean:
 test: $(MDS)
 	$(MAKE) -C tests $@
 
-$(DEPS): %.d: %.cc
+$(DEPS): %.d: %.cpp
 	$(CC) $(INCLUDE) -c -MM $< > $@
 
 ifneq "$(MAKECMDGOALS)" "clean"

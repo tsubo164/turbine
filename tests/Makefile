@@ -17,16 +17,16 @@ libtest: libtest.out
 libtest.out: libtest.o test.o ../src/libmds.a
 	$(CC) -o $@ $^
 
-%.o:%.cc
+%.o:%.cpp
 	$(CC) -std=c++14 -g -c $<
 
-../src/libmds.a: ../src/*.h ../src/*cc
+../src/libmds.a: ../src/*.h ../src/*.cpp
 	make -C ../src
 
 clean:
 	$(RM) $(TARGETS) *.o *.d *.out
 
-$(DEPS): %.d: %.cc
+$(DEPS): %.d: %.cpp
 	$(CC) $(INCLUDE) -c -MM $< > $@
 
 ifneq "$(MAKECMDGOALS)" "clean"
