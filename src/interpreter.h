@@ -16,6 +16,8 @@ public:
 
     Int Run(std::istream &input);
 
+    void EnablePrintTree(bool enable);
+
 private:
     StringTable string_table_;
     Scope scope_;
@@ -24,6 +26,8 @@ private:
     Node *tree_ = nullptr;
     Bytecode code_;
     VM vm_;
+
+    bool print_tree_ = false;
 };
 
 #endif // _H

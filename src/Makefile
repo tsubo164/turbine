@@ -7,24 +7,34 @@ RM      := rm -f
 SRCS    := ast bytecode codegen interpreter parser scope string_table \
            tokenizer vm
 
-.PHONY: clean
+.PHONY: all clean run
 
-MDS  := libmds.a
+MDS  := mds
+MDSA := libmds.a
 OBJS := $(addsuffix .o, $(SRCS))
-DEPS := $(addsuffix .d, $(SRCS))
+DEPS := $(addsuffix .d, $(SRCS)) main.d
 
 all: $(MDS)
+
+run: $(MDS)
+	./$(MDS)
 
 $(OBJS): %.o: %.cpp
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(MDS): $(OBJS)
+main.o: main.cpp
+	$(CC) $(CFLAGS) -o $@ $<
+
+$(MDS): main.o $(MDSA)
+	$(CC) -o $@ $^
+
+$(MDSA): $(OBJS)
 	$(AR) -r $@ $^
 
 clean:
-	$(RM) $(MDS) *.o *.d
+	$(RM) $(MDS) $(MDSA) *.o *.d
 
-test: $(MDS)
+test: $(MDSA)
 	$(MAKE) -C tests $@
 
 $(DEPS): %.d: %.cpp

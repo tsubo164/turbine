@@ -5,6 +5,9 @@ MAKE := make
 all:
 		$(MAKE) -C src
 
+run:
+		$(MAKE) -C src $@
+
 test:
 		$(MAKE) -C tests $@
 
