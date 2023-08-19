@@ -14,6 +14,9 @@ Int Interpreter::Run(std::istream &input)
     // Parse
     tree_ = parser_.ParseStream(input);
 
+    if (scope_.GetVariableCount() > 0)
+        code_.AllocateLocal(scope_.GetVariableCount());
+
     // Bytecode
     GenerateCode(tree_, code_);
 
@@ -21,7 +24,7 @@ Int Interpreter::Run(std::istream &input)
     //vm_.EnablePrintStack(true);
     vm_.Run(code_);
 
-    tree_->Print();
+    //tree_->Print();
 
     return vm_.StackTopInt();
 }

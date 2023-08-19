@@ -5,6 +5,7 @@
 #include "../src/bytecode.h"
 #include "../src/codegen.h"
 #include "../src/parser.h"
+#include "../src/scope.h"
 #include "../src/vm.h"
 #include "../src/interpreter.h"
 
@@ -53,77 +54,22 @@ int main(int argc, char **argv)
         ASSERTL(5533, ip.Run(input));
     }
     {
+        std::stringstream input("20+22");
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
+    }
+    {
         std::stringstream input("a = 12 \n a");
         Interpreter ip;
 
         ASSERTL(12, ip.Run(input));
     }
     {
-        std::stringstream strm("a = 12");
-        StringTable string_table;
-        Parser parser(string_table);
+        std::stringstream input("a = 11");
+        Interpreter ip;
 
-        Node *tree = parser.ParseStream(strm);
-
-        ASSERTL(12, tree->Eval());
-
-        DeleteTree(tree);
-    }
-    {
-        std::stringstream strm("20+22");
-        StringTable string_table;
-        Parser parser(string_table);
-
-        Node *tree = parser.ParseStream(strm);
-        Bytecode code;
-        GenerateCode(tree, code);
-
-        ASSERTI(6, code.Size());
-
-        ASSERTI(OP_LOADB, code.Read(0));
-        ASSERTI(20, code.Read(1));
-        ASSERTI(OP_LOADB, code.Read(2));
-        ASSERTI(22, code.Read(3));
-        ASSERTI(OP_ADD, code.Read(4));
-        ASSERTI(OP_EOC, code.Read(5));
-
-        DeleteTree(tree);
-    }
-    {
-        std::stringstream strm("20+22");
-        StringTable string_table;
-        Parser parser(string_table);
-
-        Node *tree = parser.ParseStream(strm);
-        Bytecode code;
-        GenerateCode(tree, code);
-
-        VM vm;
-        vm.Run(code);
-
-        ASSERTL(42, vm.StackTopInt());
-
-        DeleteTree(tree);
-    }
-    {
-        std::stringstream strm(" a =   11");
-        StringTable string_table;
-        Parser parser(string_table);
-
-        Node *tree = parser.ParseStream(strm);
-        Bytecode code;
-
-        code.AllocateLocal(1); // XXX TMP
-        GenerateCode(tree, code);
-        code.Print();
-
-        VM vm;
-        vm.EnablePrintStack(true);
-        vm.Run(code);
-
-        ASSERTL(11, vm.StackTopInt());
-
-        DeleteTree(tree);
+        ASSERTL(11, ip.Run(input));
     }
 
     if (GetTestCount() <= 1)

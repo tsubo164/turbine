@@ -78,6 +78,9 @@ Expr *Parser::primary_expr()
     }
 
     if (tok->kind == TK::Ident) {
+        if (!scope_->FindVarialbe(tok->str_id)) {
+            scope_->DefineVariable(tok->str_id);
+        }
         return new IdentExpr(tok->str_id);
     }
 
