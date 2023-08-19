@@ -66,9 +66,9 @@ struct ExprStmt : public Stmt {
     void Gen(Bytecode &code) const override final;
 };
 
-struct Prog: public Node {
-    Prog() {}
-    ~Prog()
+struct FuncDef : public Node {
+    FuncDef() {}
+    ~FuncDef()
     {
         for (auto stmt: stmts)
             delete stmt;
@@ -81,6 +81,13 @@ struct Prog: public Node {
     void Gen(Bytecode &code) const override final;
 };
 
-void DeleteTree(Node *tree);
+struct Prog: public Node {
+    void AddFuncDef(FuncDef *func) { funcs.push_back(func); }
+    std::vector<FuncDef*> funcs;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
 
 #endif // _H

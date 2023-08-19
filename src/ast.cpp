@@ -52,11 +52,18 @@ void ExprStmt::Print(int depth) const
     expr->Print(depth + 1);
 }
 
+void FuncDef::Print(int depth) const
+{
+    print_node("FuncDef", depth);
+    for (const auto stmt: stmts)
+        stmt->Print(depth + 1);
+}
+
 void Prog::Print(int depth) const
 {
     print_node("Prog", depth);
-    for (const auto stmt: stmts)
-        stmt->Print(depth + 1);
+    for (const auto func: funcs)
+        func->Print(depth + 1);
 }
 
 // Eval
@@ -87,11 +94,19 @@ long ExprStmt::Eval() const
     return expr->Eval();
 }
 
-long Prog::Eval() const
+long FuncDef::Eval() const
 {
     long ret = 0;
     for (const auto stmt: stmts)
         ret = stmt->Eval();
+    return ret;
+}
+
+long Prog::Eval() const
+{
+    long ret = 0;
+    for (const auto func: funcs)
+        ret = func->Eval();
     return ret;
 }
 
@@ -133,13 +148,14 @@ void ExprStmt::Gen(Bytecode &code) const
     expr->Gen(code);
 }
 
-void Prog::Gen(Bytecode &code) const
+void FuncDef::Gen(Bytecode &code) const
 {
     for (const auto stmt: stmts)
         stmt->Gen(code);
 }
 
-void DeleteTree(Node *tree)
+void Prog::Gen(Bytecode &code) const
 {
-    delete tree;
+    for (const auto func: funcs)
+        func->Gen(code);
 }

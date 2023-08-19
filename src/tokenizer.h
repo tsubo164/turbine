@@ -13,6 +13,7 @@ enum class TokenKind {
     If,
     Equal,
     Plus,
+    Hash1,
     NewLine,
 };
 

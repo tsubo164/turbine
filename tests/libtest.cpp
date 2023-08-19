@@ -12,61 +12,61 @@
 int main(int argc, char **argv)
 {
     {
-        std::stringstream input("  id = 114 \n  id + 11");
+        std::stringstream input(" # main\n id = 114 \n  id + 11");
         Interpreter ip;
 
         ASSERTL(125, ip.Run(input));
     }
     {
-        std::stringstream input(" 42 \n 19\n");
+        std::stringstream input("# main\n 42 \n 19\n");
         Interpreter ip;
 
         ASSERTL(19, ip.Run(input));
     }
     {
-        std::stringstream input(" 12 ");
+        std::stringstream input(" # main\n12 ");
         Interpreter ip;
 
         ASSERTL(12, ip.Run(input));
     }
     {
-        std::stringstream input("  39 + 3 ");
+        std::stringstream input(" # main\n 39 + 3 ");
         Interpreter ip;
 
         ASSERTL(42, ip.Run(input));
     }
     {
-        std::stringstream input("  id = 0 \n  id + 114");
+        std::stringstream input(" # main\n id = 0 \n  id + 114");
         Interpreter ip;
 
         ASSERTL(114, ip.Run(input));
     }
     {
-        std::stringstream input("  3129 + 1293 ");
+        std::stringstream input(" # main\n 3129 + 1293 ");
         Interpreter ip;
 
         ASSERTL(4422, ip.Run(input));
     }
     {
-        std::stringstream input("  3129 + 1293+1111");
+        std::stringstream input(" # main\n 3129 + 1293+1111");
         Interpreter ip;
 
         ASSERTL(5533, ip.Run(input));
     }
     {
-        std::stringstream input("20+22");
+        std::stringstream input("# main\n20+22");
         Interpreter ip;
 
         ASSERTL(42, ip.Run(input));
     }
     {
-        std::stringstream input("a = 12 \n a");
+        std::stringstream input("# main\na = 12 \n a");
         Interpreter ip;
 
         ASSERTL(12, ip.Run(input));
     }
     {
-        std::stringstream input("a = 11");
+        std::stringstream input("# main\na = 11");
         Interpreter ip;
 
         ASSERTL(11, ip.Run(input));

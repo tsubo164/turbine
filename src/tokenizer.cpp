@@ -48,6 +48,11 @@ void Tokenizer::Get(Token *tok)
             return;
         }
 
+        if (ch == '#') {
+            tok->kind = TK::Hash1;
+            return;
+        }
+
         if (ch == '\n') {
             tok->kind = TK::NewLine;
             return;

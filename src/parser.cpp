@@ -140,10 +140,15 @@ Stmt *Parser::expr_stmt()
     return stmt;
 }
 
-Prog *Parser::program()
+FuncDef *Parser::func_def()
 {
-    Prog *prog = new Prog;
+    expect(TK::Hash1);
+    expect(TK::Ident);
+    expect_one_of(TK::NewLine, TK::Eof);
 
+    FuncDef *func = new FuncDef();
+
+    // stmt list
     for (;;) {
         const TokenKind next = peek();
 
@@ -153,8 +158,20 @@ Prog *Parser::program()
         }
 
         if (next == TK::Eof)
-            return prog;
+            return func;
 
-        prog->AddStmt(expr_stmt());
+        func->AddStmt(expr_stmt());
     }
+
+    return func;
+}
+
+Prog *Parser::program()
+{
+    Prog *prog = new Prog;
+
+    FuncDef *func = func_def();
+    prog->AddFuncDef(func);
+
+    return prog;
 }
