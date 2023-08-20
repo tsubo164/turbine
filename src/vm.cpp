@@ -1,13 +1,5 @@
 #include "vm.h"
 
-VM::VM()
-{
-}
-
-VM::~VM()
-{
-}
-
 void VM::set_ip(Int ip)
 {
     ip_ = ip;

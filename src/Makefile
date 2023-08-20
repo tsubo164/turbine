@@ -9,7 +9,7 @@ SRCS    := ast bytecode codegen interpreter parser scope string_table \
 
 .PHONY: all clean run
 
-MDS  := mds
+MDS  := ../mds
 MDSA := libmds.a
 OBJS := $(addsuffix .o, $(SRCS))
 DEPS := $(addsuffix .d, $(SRCS)) main.d
@@ -17,7 +17,7 @@ DEPS := $(addsuffix .d, $(SRCS)) main.d
 all: $(MDS)
 
 run: $(MDS)
-	./$(MDS)
+	$(MDS) ./input.md
 
 $(OBJS): %.o: %.cpp
 	$(CC) $(CFLAGS) -o $@ $<

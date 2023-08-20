@@ -14,9 +14,11 @@ public:
     Interpreter();
     ~Interpreter();
 
-    Int Run(std::istream &input);
+    Int Run(std::istream &stream);
 
     void EnablePrintTree(bool enable);
+    void EnablePrintBytecode(bool enable);
+    void EnablePrintStack(bool enable);
 
 private:
     StringTable string_table_;
@@ -28,6 +30,8 @@ private:
     VM vm_;
 
     bool print_tree_ = false;
+    bool print_bytecode_ = false;
+    bool print_stack_ = false;
 };
 
 #endif // _H

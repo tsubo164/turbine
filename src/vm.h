@@ -12,8 +12,8 @@ struct Object {
 
 class VM {
 public:
-    VM();
-    ~VM();
+    VM() {}
+    ~VM() {}
 
     void Run(const Bytecode &code );
 
