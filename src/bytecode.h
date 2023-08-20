@@ -18,6 +18,7 @@ enum Opcode {
     OP_ALLOC,
 
     OP_ADD,
+    OP_EQ,
     OP_EOC,
 };
 
@@ -32,6 +33,7 @@ public:
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
     void AddInt();
+    void EqualInt();
     void End();
 
     const Byte *Data() const;

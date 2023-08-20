@@ -15,6 +15,7 @@ const char *OpcodeString(Byte op)
     O(OP_ALLOC);
 
     O(OP_ADD);
+    O(OP_EQ);
 
     O(OP_EOC);
     default: return "???";
@@ -67,6 +68,11 @@ void Bytecode::AllocateLocal(Byte count)
 void Bytecode::AddInt()
 {
     bytes_.push_back(OP_ADD);
+}
+
+void Bytecode::EqualInt()
+{
+    bytes_.push_back(OP_EQ);
 }
 
 void Bytecode::End()

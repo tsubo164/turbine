@@ -24,7 +24,7 @@ void Tokenizer::Get(Token *tok)
     *tok = {};
 
     while (!stream_->eof()) {
-        const int ch = stream_->get();
+        int ch = stream_->get();
 
         // number
         if (isdigit(ch)) {
@@ -33,7 +33,15 @@ void Tokenizer::Get(Token *tok)
         }
 
         if (ch == '=') {
-            tok->kind = TK::Equal;
+            ch = stream_->get();
+
+            if (ch == '=') {
+                tok->kind = TK::Equal2;
+            }
+            else {
+                stream_->unget();
+                tok->kind = TK::Equal;
+            }
             return;
         }
 

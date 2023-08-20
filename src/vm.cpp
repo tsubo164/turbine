@@ -167,6 +167,14 @@ void VM::run()
             }
             break;
 
+        case OP_EQ:
+            {
+                const Int val1 = pop_int();
+                const Int val0 = pop_int();
+                push_int(val0 == val1);
+            }
+            break;
+
         case OP_EOC:
             brk = true;
             break;

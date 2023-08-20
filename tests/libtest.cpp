@@ -71,6 +71,24 @@ int main(int argc, char **argv)
 
         ASSERTL(11, ip.Run(input));
     }
+    {
+        std::stringstream input("# main\n12 == 11");
+        Interpreter ip;
+
+        ASSERTL(0, ip.Run(input));
+    }
+    {
+        std::stringstream input("# main\n42 == 42");
+        Interpreter ip;
+
+        ASSERTL(1, ip.Run(input));
+    }
+    {
+        std::stringstream input("# main\n  a = 39\n a == 39");
+        Interpreter ip;
+
+        ASSERTL(1, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

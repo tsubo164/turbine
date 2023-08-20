@@ -44,6 +44,16 @@ struct AddExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
+struct EqualExpr : public Expr {
+    EqualExpr(Expr *l, Expr *r) : lhs(l), rhs(r) {}
+    std::unique_ptr<Expr> lhs;
+    std::unique_ptr<Expr> rhs;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct AssignExpr : public Expr {
     AssignExpr(Expr *l, Expr *r) : lval(l), rval(r) {}
     std::unique_ptr<Expr> lval;

@@ -12,6 +12,7 @@ enum class TokenKind {
     Ident,
     If,
     Equal,
+    Equal2,
     Plus,
     Hash1,
     NewLine,

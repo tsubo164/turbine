@@ -41,6 +41,7 @@ private:
     // expressions
     Expr *primary_expr();
     Expr *add_expr();
+    Expr *equal_expr();
     Expr *assign_expr();
     Expr *expression();
 

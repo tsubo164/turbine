@@ -109,10 +109,28 @@ Expr *Parser::add_expr()
     }
 }
 
+Expr *Parser::equal_expr()
+{
+    Expr *tree = add_expr();
+
+    for (;;) {
+        const Token *tok = gettok();
+
+        if (tok->kind == TK::Equal2) {
+            tree = new EqualExpr(tree, add_expr());
+            continue;
+        }
+        else {
+            ungettok();
+            return tree;
+        }
+    }
+}
+
 // assign = equality ("=" assign)?
 Expr *Parser::assign_expr()
 {
-    Expr *tree = add_expr();
+    Expr *tree = equal_expr();
     const Token *tok = gettok();
 
     switch (tok->kind) {

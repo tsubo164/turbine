@@ -39,6 +39,13 @@ void AddExpr::Print(int depth) const
     rhs->Print(depth + 1);
 }
 
+void EqualExpr::Print(int depth) const
+{
+    print_node("EqualExpr", depth);
+    lhs->Print(depth + 1);
+    rhs->Print(depth + 1);
+}
+
 void AssignExpr::Print(int depth) const
 {
     print_node("AssignExpr", depth);
@@ -78,6 +85,13 @@ long IdentExpr::Eval() const
 }
 
 long AddExpr::Eval() const
+{
+    const long l = lhs->Eval();
+    const long r = rhs->Eval();
+    return l + r;
+}
+
+long EqualExpr::Eval() const
 {
     const long l = lhs->Eval();
     const long r = rhs->Eval();
@@ -132,6 +146,13 @@ void AddExpr::Gen(Bytecode &code) const
     lhs->Gen(code);
     rhs->Gen(code);
     code.AddInt();
+}
+
+void EqualExpr::Gen(Bytecode &code) const
+{
+    lhs->Gen(code);
+    rhs->Gen(code);
+    code.EqualInt();
 }
 
 void AssignExpr::Gen(Bytecode &code) const
