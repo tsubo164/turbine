@@ -42,6 +42,7 @@ private:
     // read byte code
     Int read_byte(Int index) const;
     Int fetch_byte();
+    Int fetch_word();
     Int fetch_int();
 
     // stack

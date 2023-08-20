@@ -5,6 +5,7 @@
 #include <vector>
 
 using Byte = uint8_t;
+using Word = uint16_t;
 using Int = int64_t;
 using Float = double;
 
@@ -15,11 +16,15 @@ enum Opcode {
     OP_LOADI,
     OP_LOADLOCAL,
     OP_STORELOCAL,
+
     OP_ALLOC,
+    OP_CALL,
     OP_RET,
 
     OP_ADD,
     OP_EQ,
+
+    OP_EXIT,
     OP_EOC,
 };
 
@@ -33,13 +38,16 @@ public:
     void LoadLocal(Byte id);
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
-    void Return(Byte argc);
+    void CallFunction(Word index);
+    void Return();
     void AddInt();
     void EqualInt();
+    void Exit();
     void End();
 
     const Byte *Data() const;
     Int Read(Int index) const;
+    Int ReadWord(Int index) const;
     Int Size() const;
 
     void Print() const;

@@ -12,9 +12,10 @@ int main()
     std::stringstream input(src);
     Interpreter ip;
 
-    ip.EnablePrintTree(true);
+    //ip.EnablePrintTree(true);
 
-    std::cout << "ret: " << ip.Run(input) << std::endl;
+    const int ret = ip.Run(input);
+    std::cout << "ret: " << ret << std::endl;
 
     return 0;
 }

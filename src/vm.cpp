@@ -36,6 +36,20 @@ Int VM::fetch_byte()
     return read_byte(ip_++);
 }
 
+Int VM::fetch_word()
+{
+    constexpr int SIZE = sizeof(Word);
+    Byte buf[SIZE] = {0};
+
+    for ( int i = 0; i < SIZE; i++ )
+        buf[i] = static_cast<Byte>(fetch_byte());
+
+    Word ret = 0;
+    std::memcpy(&ret, buf, SIZE);
+
+    return ret;
+}
+
 Int VM::fetch_int()
 {
     constexpr int SIZE = sizeof(Int);
@@ -111,10 +125,11 @@ void VM::run()
     bool brk = false;
 
     while (!is_eoc() && !brk) {
+        const Int old_ip = ip_;
         const Int op = fetch_byte();
 
         if (print_stack_) {
-            printf("%s\n", OpcodeString(op));
+            printf("[%6lld] %s\n", old_ip, OpcodeString(op));
             PrintStack();
         }
 
@@ -159,6 +174,35 @@ void VM::run()
             }
             break;
 
+        case OP_CALL:
+            {
+                const Int addr  = fetch_word();
+
+                // call
+                push_int(ip_);
+                set_ip(addr);
+
+                // prologue
+                push_int(bp_);
+                set_bp(sp_);
+            }
+            break;
+
+        case OP_RET:
+            {
+                //const Int argc = fetch_byte();
+                const Object ret_obj = top();
+
+                // epilogue
+                set_sp(bp_);
+                set_bp(pop_int());
+                set_ip(pop_int());
+
+                //set_sp(sp_ - argc);
+                push(ret_obj);
+            }
+            break;
+
         case OP_ADD:
             {
                 const Int val1 = pop_int();
@@ -175,6 +219,7 @@ void VM::run()
             }
             break;
 
+        case OP_EXIT:
         case OP_EOC:
             brk = true;
             break;

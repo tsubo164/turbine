@@ -19,6 +19,9 @@ Int Interpreter::Run(std::istream &input)
         return 0;
     }
 
+    code_.CallFunction(4);
+    code_.Exit();
+
     if (scope_.GetVariableCount() > 0)
         code_.AllocateLocal(scope_.GetVariableCount());
 

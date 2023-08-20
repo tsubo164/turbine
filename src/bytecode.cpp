@@ -1,5 +1,6 @@
 #include "bytecode.h"
 #include <iostream>
+#include <iomanip>
 #include <cstring>
 
 const char *OpcodeString(Byte op)
@@ -12,12 +13,15 @@ const char *OpcodeString(Byte op)
     O(OP_LOADI);
     O(OP_LOADLOCAL);
     O(OP_STORELOCAL);
+
     O(OP_ALLOC);
+    O(OP_CALL);
     O(OP_RET);
 
     O(OP_ADD);
     O(OP_EQ);
 
+    O(OP_EXIT);
     O(OP_EOC);
     default: return "???";
     }
@@ -66,10 +70,15 @@ void Bytecode::AllocateLocal(Byte count)
     bytes_.push_back(count);
 }
 
-void Bytecode::Return(Byte argc)
+void Bytecode::CallFunction(Word index)
+{
+    bytes_.push_back(OP_CALL);
+    push_back<Word>(bytes_, index);
+}
+
+void Bytecode::Return()
 {
     bytes_.push_back(OP_RET);
-    bytes_.push_back(argc);
 }
 
 void Bytecode::AddInt()
@@ -80,6 +89,11 @@ void Bytecode::AddInt()
 void Bytecode::EqualInt()
 {
     bytes_.push_back(OP_EQ);
+}
+
+void Bytecode::Exit()
+{
+    bytes_.push_back(OP_EXIT);
 }
 
 void Bytecode::End()
@@ -100,6 +114,23 @@ Int Bytecode::Read(Int index) const
     return bytes_[index];
 }
 
+Int Bytecode::ReadWord(Int index) const
+{
+    if (index < 0 || index >= Size())
+        return 0;
+
+    constexpr int SIZE = sizeof(Word);
+    Byte buf[SIZE] = {0};
+
+    for ( int i = 0; i < SIZE; i++ )
+        buf[i] = static_cast<Byte>(Read(index + i));
+
+    Word ret = 0;
+    std::memcpy(&ret, buf, SIZE);
+
+    return ret;
+}
+
 Int Bytecode::Size() const
 {
     return bytes_.size();
@@ -111,6 +142,8 @@ void Bytecode::Print() const
     int index = 0;
 
     while (index < Size() && !brk) {
+        std::cout << "[" << std::setw(6) << index << "] ";
+
         const int op = Read(index++);
 
         switch (op) {
@@ -134,11 +167,24 @@ void Bytecode::Print() const
             std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
             break;
 
+        case OP_CALL:
+            std::cout << OpcodeString(op) << " $" << ReadWord(index) << std::endl;
+            index += 2;
+            break;
+
         case OP_RET:
-            std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            std::cout << OpcodeString(op) << std::endl;
             break;
 
         case OP_ADD:
+            std::cout << OpcodeString(op) << std::endl;
+            break;
+
+        case OP_EQ:
+            std::cout << OpcodeString(op) << std::endl;
+            break;
+
+        case OP_EXIT:
             std::cout << OpcodeString(op) << std::endl;
             break;
 

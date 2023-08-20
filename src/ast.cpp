@@ -177,8 +177,7 @@ void AssignExpr::Gen(Bytecode &code) const
 void ReturnStmt::Gen(Bytecode &code) const
 {
     expr->Gen(code);
-    // const int argc = ...;
-    //code.Return(argc);
+    code.Return();
 }
 
 void ExprStmt::Gen(Bytecode &code) const
