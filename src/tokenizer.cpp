@@ -3,6 +3,7 @@
 
 static const std::unordered_map<std::string, TokenKind> keywords = {
     {"if", TK::If},
+    {"return", TK::Return},
 };
 
 static TokenKind keyword_or_identifier(const std::string &word)

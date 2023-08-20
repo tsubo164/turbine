@@ -53,6 +53,12 @@ void AssignExpr::Print(int depth) const
     rval->Print(depth + 1);
 }
 
+void ReturnStmt::Print(int depth) const
+{
+    print_node("ReturnStmt", depth);
+    expr->Print(depth + 1);
+}
+
 void ExprStmt::Print(int depth) const
 {
     print_node("ExprStmt", depth);
@@ -101,6 +107,11 @@ long EqualExpr::Eval() const
 long AssignExpr::Eval() const
 {
     return rval->Eval();
+}
+
+long ReturnStmt::Eval() const
+{
+    return expr->Eval();
 }
 
 long ExprStmt::Eval() const
@@ -163,6 +174,12 @@ void AssignExpr::Gen(Bytecode &code) const
     code.StoreLocal(id);
 }
 
+void ReturnStmt::Gen(Bytecode &code) const
+{
+    expr->Gen(code);
+    // const int argc = ...;
+    //code.Return(argc);
+}
 
 void ExprStmt::Gen(Bytecode &code) const
 {

@@ -16,6 +16,12 @@ struct Node {
 struct Expr : public Node {
 };
 
+struct NullExpr : public Expr {
+    long Eval() const override final { return 0; }
+    void Print(int depth) const override final {}
+    void Gen(Bytecode &code) const override final {}
+};
+
 struct IntNumExpr : public Expr {
     IntNumExpr(long val) : ival(val) {}
     long ival;
@@ -65,6 +71,16 @@ struct AssignExpr : public Expr {
 };
 
 struct Stmt : public Node {
+};
+
+struct ReturnStmt : public Stmt {
+    ReturnStmt() : expr(new NullExpr()) {}
+    ReturnStmt(Expr *e) : expr(e) {}
+    std::unique_ptr<Expr> expr;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
 };
 
 struct ExprStmt : public Stmt {

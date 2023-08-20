@@ -13,6 +13,7 @@ const char *OpcodeString(Byte op)
     O(OP_LOADLOCAL);
     O(OP_STORELOCAL);
     O(OP_ALLOC);
+    O(OP_RET);
 
     O(OP_ADD);
     O(OP_EQ);
@@ -63,6 +64,12 @@ void Bytecode::AllocateLocal(Byte count)
 {
     bytes_.push_back(OP_ALLOC);
     bytes_.push_back(count);
+}
+
+void Bytecode::Return(Byte argc)
+{
+    bytes_.push_back(OP_RET);
+    bytes_.push_back(argc);
 }
 
 void Bytecode::AddInt()
@@ -124,6 +131,10 @@ void Bytecode::Print() const
             break;
 
         case OP_ALLOC:
+            std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            break;
+
+        case OP_RET:
             std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
             break;
 

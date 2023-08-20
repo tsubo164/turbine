@@ -4,7 +4,7 @@
 
 int main()
 {
-    std::string src = "# main\n  id = 114 \n  id + 11\n  42 == 42";
+    std::string src = "# main\n  id = 114 \n  id + 11\n  return\n  42 == 42\n  return 13";
 
     std::cout << "==========================" <<std::endl;
     std::cout << "\"" << src << "\"" << std::endl;
@@ -12,7 +12,7 @@ int main()
     std::stringstream input(src);
     Interpreter ip;
 
-    //ip.EnablePrintTree(true);
+    ip.EnablePrintTree(true);
 
     std::cout << "ret: " << ip.Run(input) << std::endl;
 

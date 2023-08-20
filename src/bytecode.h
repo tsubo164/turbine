@@ -16,6 +16,7 @@ enum Opcode {
     OP_LOADLOCAL,
     OP_STORELOCAL,
     OP_ALLOC,
+    OP_RET,
 
     OP_ADD,
     OP_EQ,
@@ -32,6 +33,7 @@ public:
     void LoadLocal(Byte id);
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
+    void Return(Byte argc);
     void AddInt();
     void EqualInt();
     void End();

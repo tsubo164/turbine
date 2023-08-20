@@ -45,7 +45,9 @@ private:
     Expr *assign_expr();
     Expr *expression();
 
+    Stmt *ret_stmt();
     Stmt *expr_stmt();
+    Stmt *statement();
     FuncDef *func_def();
 
     Prog *program();

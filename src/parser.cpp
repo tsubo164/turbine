@@ -149,13 +149,45 @@ Expr *Parser::expression()
     return assign_expr();
 }
 
+Stmt *Parser::ret_stmt()
+{
+    expect(TK::Return);
+
+    ReturnStmt *stmt = nullptr;
+    const TokenKind next = peek();
+
+    if (next == TK::NewLine || next == TK::Eof) {
+        stmt = new ReturnStmt();
+        // TODO cosume()?
+        gettok();
+    }
+    else {
+        stmt = new ReturnStmt(expression());
+        expect_one_of(TK::NewLine, TK::Eof);
+    }
+
+    return stmt;
+}
+
 Stmt *Parser::expr_stmt()
 {
     ExprStmt *stmt = new ExprStmt(expression());
-
     expect_one_of(TK::NewLine, TK::Eof);
 
     return stmt;
+}
+
+Stmt *Parser::statement()
+{
+    const TokenKind next = peek();
+
+    if (next == TK::Return) {
+        expect(TK::Return);
+        return new ReturnStmt(expression());
+    }
+    else {
+        return expr_stmt();
+    }
 }
 
 FuncDef *Parser::func_def()
@@ -171,14 +203,20 @@ FuncDef *Parser::func_def()
         const TokenKind next = peek();
 
         if (next == TK::If) {
-            //prog->AddStmt(if_stmt());
+            //func->AddStmt(if_stmt());
             //continue;
         }
-
-        if (next == TK::Eof)
+        else if (next == TK::Return) {
+            func->AddStmt(ret_stmt());
+            continue;
+        }
+        else if (next == TK::Eof) {
             return func;
-
-        func->AddStmt(expr_stmt());
+        }
+        else {
+            func->AddStmt(expr_stmt());
+            continue;
+        }
     }
 
     return func;
