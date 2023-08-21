@@ -10,7 +10,7 @@ void Scope::DefineVariable(int name)
     vars_.insert({name, new Variable(name)});
 }
 
-Variable *Scope::FindVarialbe(int name) const
+Variable *Scope::FindVariable(int name) const
 {
     const auto it = vars_.find(name);
     if (it != vars_.end()) {
@@ -23,4 +23,31 @@ Variable *Scope::FindVarialbe(int name) const
 int Scope::GetVariableCount() const
 {
     return vars_.size();
+}
+
+Function *Scope::DefineFunction(int name)
+{
+    const auto it = funcs_.find(name);
+    if (it != funcs_.end()) {
+        return nullptr;
+    }
+
+    Function *func = new Function(name);
+    funcs_.insert({name, func});
+    return func;
+}
+
+Function *Scope::FindFunction(int name) const
+{
+    const auto it = funcs_.find(name);
+    if (it != funcs_.end()) {
+        return it->second;
+    }
+
+    return nullptr;
+}
+
+int Scope::GetFunctionCount() const
+{
+    return funcs_.size();
 }

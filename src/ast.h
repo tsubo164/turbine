@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "bytecode.h"
+#include "scope.h"
 
 struct Node {
     Node() {}
@@ -101,6 +102,7 @@ struct FuncDef : public Node {
     }
     void AddStmt(Stmt *stmt) { stmts.push_back(stmt); }
     std::vector<Stmt*> stmts;
+    Function *func = nullptr;
 
     long Eval() const override final;
     void Print(int depth) const override final;

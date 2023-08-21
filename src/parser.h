@@ -34,6 +34,7 @@ private:
     void ungettok();
 
     //
+    const Token *curtok() const;
     TokenKind peek();
     void expect(TokenKind kind);
     void expect_one_of(TokenKind kind0, TokenKind kind1);

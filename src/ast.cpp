@@ -187,6 +187,13 @@ void ExprStmt::Gen(Bytecode &code) const
 
 void FuncDef::Gen(Bytecode &code) const
 {
+    // func name label
+    code.Label(19);
+
+    // local vars
+    if (func->scope->GetVariableCount() > 0)
+        code.AllocateLocal(func->scope->GetVariableCount());
+
     for (const auto stmt: stmts)
         stmt->Gen(code);
 }

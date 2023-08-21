@@ -43,6 +43,11 @@ void Parser::ungettok()
     curr_ = prev();
 }
 
+const Token *Parser::curtok() const
+{
+    return curr_;
+}
+
 TokenKind Parser::peek()
 {
     const Token *tok = gettok();
@@ -78,7 +83,7 @@ Expr *Parser::primary_expr()
     }
 
     if (tok->kind == TK::Ident) {
-        if (!scope_->FindVarialbe(tok->str_id)) {
+        if (!scope_->FindVariable(tok->str_id)) {
             scope_->DefineVariable(tok->str_id);
         }
         return new IdentExpr(tok->str_id);
@@ -194,32 +199,42 @@ FuncDef *Parser::func_def()
 {
     expect(TK::Hash1);
     expect(TK::Ident);
+
+    const Token *tok = curtok();
+    Function *func = scope_->DefineFunction(tok->str_id);
+    if (!func) {
+        std::cerr << "error: re-defined function" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+    func->scope = scope_;
+
     expect_one_of(TK::NewLine, TK::Eof);
 
-    FuncDef *func = new FuncDef();
+    FuncDef *fdef = new FuncDef();
+    fdef->func = func;
 
-    // stmt list
+    // stmt_list
     for (;;) {
         const TokenKind next = peek();
 
         if (next == TK::If) {
-            //func->AddStmt(if_stmt());
+            //fdef->AddStmt(if_stmt());
             //continue;
         }
         else if (next == TK::Return) {
-            func->AddStmt(ret_stmt());
+            fdef->AddStmt(ret_stmt());
             continue;
         }
         else if (next == TK::Eof) {
-            return func;
+            return fdef;
         }
         else {
-            func->AddStmt(expr_stmt());
+            fdef->AddStmt(expr_stmt());
             continue;
         }
     }
 
-    return func;
+    return fdef;
 }
 
 Prog *Parser::program()

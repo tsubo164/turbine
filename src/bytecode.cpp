@@ -76,6 +76,18 @@ void Bytecode::CallFunction(Word index)
     push_back<Word>(bytes_, index);
 }
 
+void Bytecode::Label(Int name)
+{
+    const auto it = name_to_index_.find(name);
+    if (it != name_to_index_.end()) {
+        std::cerr << "error: re-defined label" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    const Int next_index = bytes_.size();
+    name_to_index_.insert({name, next_index});
+}
+
 void Bytecode::Return()
 {
     bytes_.push_back(OP_RET);

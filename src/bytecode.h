@@ -1,6 +1,7 @@
 #ifndef BYTECODE_H
 #define BYTECODE_H
 
+#include <unordered_map>
 #include <cstdint>
 #include <vector>
 
@@ -39,6 +40,7 @@ public:
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
     void CallFunction(Word index);
+    void Label(Int name);
     void Return();
     void AddInt();
     void EqualInt();
@@ -53,6 +55,7 @@ public:
     void Print() const;
 private:
     std::vector<Byte> bytes_;
+    std::unordered_map<Int,Int> name_to_index_;
 };
 
 const char *OpcodeString(Byte op);
