@@ -1,6 +1,6 @@
 #include "scope.h"
 
-void Scope::DefineVariable(int name)
+void Scope::DefineVariable(const char *name)
 {
     const auto found = vars_.find(name);
     if (found != vars_.end()) {
@@ -10,7 +10,7 @@ void Scope::DefineVariable(int name)
     vars_.insert({name, new Variable(name)});
 }
 
-Variable *Scope::FindVariable(int name) const
+Variable *Scope::FindVariable(const char *name) const
 {
     const auto it = vars_.find(name);
     if (it != vars_.end()) {
@@ -25,7 +25,7 @@ int Scope::GetVariableCount() const
     return vars_.size();
 }
 
-Function *Scope::DefineFunction(int name)
+Function *Scope::DefineFunction(const char *name)
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {
@@ -37,7 +37,7 @@ Function *Scope::DefineFunction(int name)
     return func;
 }
 
-Function *Scope::FindFunction(int name) const
+Function *Scope::FindFunction(const char *name) const
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {

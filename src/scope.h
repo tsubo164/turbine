@@ -6,13 +6,13 @@
 class Scope;
 
 struct Variable {
-    Variable(int name_id) : name(name_id) {}
-    int name;
+    Variable(const char *name_) : name(name_) {}
+    const char *name;
 };
 
 struct Function {
-    Function(int name_id) : name(name_id) {}
-    int name;
+    Function(const char *name_) : name(name_) {}
+    const char *name;
     Scope *scope = nullptr;
 };
 
@@ -21,17 +21,17 @@ public:
     Scope() {}
     ~Scope() {}
 
-    void DefineVariable(int name);
-    Variable *FindVariable(int name) const;
+    void DefineVariable(const char *name);
+    Variable *FindVariable(const char *name) const;
     int GetVariableCount() const;
 
-    Function *DefineFunction(int name);
-    Function *FindFunction(int name) const;
+    Function *DefineFunction(const char *name);
+    Function *FindFunction(const char *name) const;
     int GetFunctionCount() const;
 
 private:
-    std::map<int,Variable*> vars_;
-    std::map<int,Function*> funcs_;
+    std::map<const char*,Variable*> vars_;
+    std::map<const char*,Function*> funcs_;
 };
 
 #endif // _H

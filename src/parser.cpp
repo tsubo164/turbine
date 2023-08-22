@@ -83,10 +83,10 @@ Expr *Parser::primary_expr()
     }
 
     if (tok->kind == TK::Ident) {
-        if (!scope_->FindVariable(tok->str_id)) {
-            scope_->DefineVariable(tok->str_id);
+        if (!scope_->FindVariable(tok->sval)) {
+            scope_->DefineVariable(tok->sval);
         }
-        return new IdentExpr(tok->str_id);
+        return new IdentExpr(tok->sval);
     }
 
     std::cerr << "unexpected token: " << static_cast<int>(tok->kind) << std::endl;
@@ -201,7 +201,7 @@ FuncDef *Parser::func_def()
     expect(TK::Ident);
 
     const Token *tok = curtok();
-    Function *func = scope_->DefineFunction(tok->str_id);
+    Function *func = scope_->DefineFunction(tok->sval);
     if (!func) {
         std::cerr << "error: re-defined function" << std::endl;
         std::exit(EXIT_FAILURE);

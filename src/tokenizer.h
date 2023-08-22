@@ -24,7 +24,7 @@ using TK = enum TokenKind;
 struct Token {
     TokenKind kind = TK::Unknown;
     long ival = 0;
-    int str_id = 0;
+    SharedStr sval {};
 };
 
 class Tokenizer {
@@ -36,7 +36,7 @@ public:
     void Get(Token *tok);
 
 private:
-    std::istream *stream_ = nullptr;
+    std::istream *stream_ {};
     StringTable &strtable_;
     std::string strbuf_;
 

@@ -115,7 +115,7 @@ TokenKind Tokenizer::scan_word(int first_char, Token *tok)
 
     tok->kind = keyword_or_identifier(strbuf_);
     if (tok->kind == TK::Ident)
-        tok->str_id = strtable_.Insert(strbuf_);
+        tok->sval = strtable_.Insert(strbuf_);
 
     return tok->kind;
 }

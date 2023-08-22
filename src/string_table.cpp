@@ -8,24 +8,26 @@ StringTable::StringTable()
 
 StringTable::~StringTable()
 {
+    for (auto key: cstrset_)
+        delete key;
 }
 
-int StringTable::Insert(const std::string &name)
+const char *duplicate(const char *s)
 {
-    const auto found = map_.find(name);
-    if (found != map_.end())
-        return found->second;
+    const size_t size = std::strlen(s) + 1;
+    char *str = new char[size];
+    std::memcpy(str, s, size);
+    return str;
+};
 
-    map_.insert({name, id_});
-    vec_.push_back(name);
-
-    return id_++;
-}
-
-const std::string &StringTable::Lookup(int id) const
+SharedStr StringTable::Insert(const std::string &str)
 {
-    if (id < 0 || id >= static_cast<int>(vec_.size()))
-        return vec_[0];
+    const auto it = cstrset_.find(str.c_str());
+    if (it != cstrset_.end())
+        return *it;
 
-    return vec_[id];
+    const char *key = duplicate(str.c_str());
+    cstrset_.insert(key);
+
+    return key;
 }

@@ -67,7 +67,8 @@ void ExprStmt::Print(int depth) const
 
 void FuncDef::Print(int depth) const
 {
-    print_node("FuncDef", depth);
+    print_node("FuncDef", depth, false);
+    std::cout << func->name << std::endl;
     for (const auto stmt: stmts)
         stmt->Print(depth + 1);
 }
