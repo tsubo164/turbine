@@ -17,6 +17,12 @@ Scope *Scope::GetParent() const
     return parent_;
 }
 
+Scope *Scope::GetLastChild() const
+{
+    const int last = children_.size() - 1;
+    return children_[last];
+}
+
 void Scope::DefineVariable(const char *name)
 {
     const auto found = vars_.find(name);

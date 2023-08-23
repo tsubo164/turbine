@@ -195,49 +195,57 @@ Stmt *Parser::statement()
     }
 }
 
-FuncDef *Parser::func_def()
+BlockStmt *Parser::block_stmt()
 {
-    expect(TK::Hash1);
-    expect(TK::Ident);
-
-    const Token *tok = curtok();
-    Function *func = scope_->DefineFunction(tok->sval);
-    if (!func) {
-        std::cerr << "error: re-defined function" << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-    // switch to child scope
+    BlockStmt *block = new BlockStmt();
     scope_ = scope_->OpenChild();
 
-    func->scope = scope_;
-
-    expect_one_of(TK::NewLine, TK::Eof);
-
-    FuncDef *fdef = new FuncDef();
-    fdef->func = func;
-
-    // stmt_list
     for (;;) {
         const TokenKind next = peek();
 
         if (next == TK::If) {
-            //fdef->AddStmt(if_stmt());
+            //block->AddStatement(if_stmt());
             //continue;
         }
         else if (next == TK::Return) {
-            fdef->AddStmt(ret_stmt());
+            block->AddStatement(ret_stmt());
             continue;
         }
         else if (next == TK::Eof) {
             break;
         }
         else {
-            fdef->AddStmt(expr_stmt());
+            block->AddStatement(expr_stmt());
             continue;
         }
     }
 
     scope_ = scope_->Close();
+    return block;
+}
+
+FuncDef *Parser::func_def()
+{
+    expect(TK::Hash1);
+    expect(TK::Ident);
+
+    // func name
+    const Token *tok = curtok();
+    Function *func = scope_->DefineFunction(tok->sval);
+    if (!func) {
+        std::cerr << "error: re-defined function" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    // func = arg_list(func);
+    expect_one_of(TK::NewLine, TK::Eof);
+
+    // func body
+    BlockStmt *block = block_stmt();
+    FuncDef *fdef = new FuncDef(func, block);
+
+    // TODO TMP last child scope
+    func->scope = scope_->GetLastChild();
 
     return fdef;
 }

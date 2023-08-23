@@ -53,6 +53,13 @@ void AssignExpr::Print(int depth) const
     rval->Print(depth + 1);
 }
 
+void BlockStmt::Print(int depth) const
+{
+    print_node("BlockStmt", depth);
+    for (const auto stmt: stmts)
+        stmt->Print(depth + 1);
+}
+
 void ReturnStmt::Print(int depth) const
 {
     print_node("ReturnStmt", depth);
@@ -69,8 +76,7 @@ void FuncDef::Print(int depth) const
 {
     print_node("FuncDef", depth, false);
     std::cout << func->name << std::endl;
-    for (const auto stmt: stmts)
-        stmt->Print(depth + 1);
+    block->Print(depth + 1);
 }
 
 void Prog::Print(int depth) const
@@ -110,6 +116,14 @@ long AssignExpr::Eval() const
     return rval->Eval();
 }
 
+long BlockStmt::Eval() const
+{
+    long ret = 0;
+    for (const auto stmt: stmts)
+        ret = stmt->Eval();
+    return ret;
+}
+
 long ReturnStmt::Eval() const
 {
     return expr->Eval();
@@ -122,10 +136,7 @@ long ExprStmt::Eval() const
 
 long FuncDef::Eval() const
 {
-    long ret = 0;
-    for (const auto stmt: stmts)
-        ret = stmt->Eval();
-    return ret;
+    return block->Eval();
 }
 
 long Prog::Eval() const
@@ -175,6 +186,12 @@ void AssignExpr::Gen(Bytecode &code) const
     code.StoreLocal(id);
 }
 
+void BlockStmt::Gen(Bytecode &code) const
+{
+    for (const auto stmt: stmts)
+        stmt->Gen(code);
+}
+
 void ReturnStmt::Gen(Bytecode &code) const
 {
     expr->Gen(code);
@@ -195,8 +212,7 @@ void FuncDef::Gen(Bytecode &code) const
     if (func->scope->GetVariableCount() > 0)
         code.AllocateLocal(func->scope->GetVariableCount());
 
-    for (const auto stmt: stmts)
-        stmt->Gen(code);
+    block->Gen(code);
 }
 
 void Prog::Gen(Bytecode &code) const

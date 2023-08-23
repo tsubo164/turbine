@@ -74,6 +74,21 @@ struct AssignExpr : public Expr {
 struct Stmt : public Node {
 };
 
+struct BlockStmt : public Stmt {
+    BlockStmt() {}
+    ~BlockStmt()
+    {
+        for (auto stmt: stmts)
+            delete stmt;
+    }
+    void AddStatement(Stmt *stmt) { stmts.push_back(stmt); }
+    std::vector<Stmt*> stmts;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct ReturnStmt : public Stmt {
     ReturnStmt() : expr(new NullExpr()) {}
     ReturnStmt(Expr *e) : expr(e) {}
@@ -94,15 +109,10 @@ struct ExprStmt : public Stmt {
 };
 
 struct FuncDef : public Node {
-    FuncDef() {}
-    ~FuncDef()
-    {
-        for (auto stmt: stmts)
-            delete stmt;
-    }
-    void AddStmt(Stmt *stmt) { stmts.push_back(stmt); }
-    std::vector<Stmt*> stmts;
+    FuncDef(Function *f, BlockStmt *b) : func(f), block(b) {}
+    ~FuncDef() {}
     Function *func = nullptr;
+    std::unique_ptr<BlockStmt> block;
 
     long Eval() const override final;
     void Print(int depth) const override final;

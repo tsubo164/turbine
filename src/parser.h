@@ -48,6 +48,7 @@ private:
 
     Stmt *ret_stmt();
     Stmt *expr_stmt();
+    BlockStmt *block_stmt();
     Stmt *statement();
     FuncDef *func_def();
 

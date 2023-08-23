@@ -26,6 +26,7 @@ public:
     Scope *OpenChild();
     Scope *Close() const;
     Scope *GetParent() const;
+    Scope *GetLastChild() const;
 
     void DefineVariable(const char *name);
     Variable *FindVariable(const char *name) const;
