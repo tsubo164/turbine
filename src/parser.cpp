@@ -60,7 +60,7 @@ void Parser::expect(TokenKind kind)
 {
     const Token *tok = gettok();
     if (tok->kind != kind) {
-        std::cout << "unexpected token: " << static_cast<int>(tok->kind) << std::endl;
+        std::cerr << "error: unexpected token: " << static_cast<int>(tok->kind) << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -69,7 +69,7 @@ void Parser::expect_one_of(TokenKind kind0, TokenKind kind1)
 {
     const Token *tok = gettok();
     if (tok->kind != kind0 && tok->kind != kind1) {
-        std::cerr << "unexpected token: " << static_cast<int>(tok->kind) << std::endl;
+        std::cerr << "error: unexpected token: " << static_cast<int>(tok->kind) << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -85,13 +85,12 @@ Expr *Parser::primary_expr()
     if (tok->kind == TK::Ident) {
         Variable *var = scope_->FindVariable(tok->sval);
         if (!var) {
-            // should be error. keep going for now
-            var = scope_->DefineVariable(tok->sval);
+            std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
         }
         return new IdentExpr(var);
     }
 
-    std::cerr << "unexpected token: " << static_cast<int>(tok->kind) << std::endl;
+    std::cerr << "error: unexpected token: " << static_cast<int>(tok->kind) << std::endl;
     exit(EXIT_FAILURE);
     return nullptr;
 }
@@ -184,17 +183,17 @@ Stmt *Parser::expr_stmt()
     return stmt;
 }
 
-Stmt *Parser::statement()
+// var_decl = - ident int newline
+Variable *Parser::var_decl()
 {
-    const TokenKind next = peek();
+    expect(TK::Minus);
+    expect(TK::Ident);
+    const Token *tok = curtok();
+    Variable *var = scope_->DefineVariable(tok->sval);
+    expect(TK::Int);
+    expect(TK::NewLine);
 
-    if (next == TK::Return) {
-        expect(TK::Return);
-        return new ReturnStmt(expression());
-    }
-    else {
-        return expr_stmt();
-    }
+    return var;
 }
 
 BlockStmt *Parser::block_stmt()
@@ -205,7 +204,11 @@ BlockStmt *Parser::block_stmt()
     for (;;) {
         const TokenKind next = peek();
 
-        if (next == TK::If) {
+        if (next == TK::Minus) {
+            var_decl();
+            continue;
+        }
+        else if (next == TK::If) {
             //block->AddStatement(if_stmt());
             //continue;
         }
@@ -235,7 +238,7 @@ FuncDef *Parser::func_def()
     const Token *tok = curtok();
     Function *func = scope_->DefineFunction(tok->sval);
     if (!func) {
-        std::cerr << "error: re-defined function" << std::endl;
+        std::cerr << "error: re-defined function: '" << tok->sval << "'" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 

@@ -10,10 +10,14 @@ enum class TokenKind {
     Unknown = 0,
     IntNum,
     Ident,
+
     Equal,
     Equal2,
     Plus,
+    Minus,
     Hash1,
+
+    Int,
     If,
     Return,
     NewLine,

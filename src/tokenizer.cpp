@@ -2,6 +2,7 @@
 #include <unordered_map>
 
 static const std::unordered_map<std::string, TokenKind> keywords = {
+    {"int", TK::Int},
     {"if", TK::If},
     {"return", TK::Return},
 };
@@ -48,6 +49,11 @@ void Tokenizer::Get(Token *tok)
 
         if (ch == '+') {
             tok->kind = TK::Plus;
+            return;
+        }
+
+        if (ch == '-') {
+            tok->kind = TK::Minus;
             return;
         }
 

@@ -1,4 +1,6 @@
 # main
+    - id int
+    - a int
     id = 114
     id + 11
     a = id

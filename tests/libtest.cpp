@@ -12,7 +12,7 @@
 int main(int argc, char **argv)
 {
     {
-        std::stringstream input(" # main\n id = 114 \n  id + 11");
+        std::stringstream input(" # main\n - id int\n id = 114 \n  id + 11");
         Interpreter ip;
 
         ASSERTL(125, ip.Run(input));
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         ASSERTL(42, ip.Run(input));
     }
     {
-        std::stringstream input(" # main\n id = 0 \n  id + 114");
+        std::stringstream input(" # main\n - id int\nid = 0 \n  id + 114");
         Interpreter ip;
 
         ASSERTL(114, ip.Run(input));
@@ -60,13 +60,13 @@ int main(int argc, char **argv)
         ASSERTL(42, ip.Run(input));
     }
     {
-        std::stringstream input("# main\na = 12 \n a");
+        std::stringstream input("# main\n- a int\na = 12 \n a");
         Interpreter ip;
 
         ASSERTL(12, ip.Run(input));
     }
     {
-        std::stringstream input("# main\na = 11");
+        std::stringstream input("# main\n- a int\na = 11");
         Interpreter ip;
 
         ASSERTL(11, ip.Run(input));
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
         ASSERTL(1, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n  a = 39\n a == 39");
+        std::stringstream input("# main\n - a int\n a = 39\n a == 39");
         Interpreter ip;
 
         ASSERTL(1, ip.Run(input));
