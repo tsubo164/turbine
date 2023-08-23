@@ -29,7 +29,7 @@ void IntNumExpr::Print(int depth) const
 void IdentExpr::Print(int depth) const
 {
     print_node("IdentExpr", depth, false);
-    std::cout << name << std::endl;
+    std::cout << var->name << " @" << var->id << std::endl;
 }
 
 void AddExpr::Print(int depth) const
@@ -161,7 +161,7 @@ void IntNumExpr::Gen(Bytecode &code) const
 
 void IdentExpr::Gen(Bytecode &code) const
 {
-    code.LoadLocal(0);
+    code.LoadLocal(var->id);
 }
 
 void AddExpr::Gen(Bytecode &code) const
@@ -182,7 +182,9 @@ void AssignExpr::Gen(Bytecode &code) const
 {
     // rval first
     rval->Gen(code);
-    const int id = lval->Eval();
+    // TODO remove dynamic_cast
+    IdentExpr *ident = dynamic_cast<IdentExpr*>(lval.get());
+    const int id = ident->var->id;
     code.StoreLocal(id);
 }
 

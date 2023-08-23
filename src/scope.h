@@ -3,12 +3,14 @@
 
 #include <vector>
 #include <map>
+#include "string_table.h"
 
 class Scope;
 
 struct Variable {
-    Variable(const char *name_) : name(name_) {}
-    const char *name;
+    Variable(SharedStr name_, int id_) : name(name_), id(id_) {}
+    SharedStr name;
+    int id;
 };
 
 struct Function {
@@ -28,7 +30,7 @@ public:
     Scope *GetParent() const;
     Scope *GetLastChild() const;
 
-    void DefineVariable(const char *name);
+    Variable *DefineVariable(const char *name);
     Variable *FindVariable(const char *name) const;
     int GetVariableCount() const;
 

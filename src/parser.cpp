@@ -83,10 +83,12 @@ Expr *Parser::primary_expr()
     }
 
     if (tok->kind == TK::Ident) {
-        if (!scope_->FindVariable(tok->sval)) {
-            scope_->DefineVariable(tok->sval);
+        Variable *var = scope_->FindVariable(tok->sval);
+        if (!var) {
+            // should be error. keep going for now
+            var = scope_->DefineVariable(tok->sval);
         }
-        return new IdentExpr(tok->sval);
+        return new IdentExpr(var);
     }
 
     std::cerr << "unexpected token: " << static_cast<int>(tok->kind) << std::endl;
