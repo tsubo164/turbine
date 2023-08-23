@@ -7,6 +7,7 @@
 int main(int argc, char **argv)
 {
     bool print_tree = false;
+    bool print_symbols = false;
     bool print_bytecode = false;
     bool print_stack = false;
     std::string filename = "";
@@ -16,6 +17,9 @@ int main(int argc, char **argv)
 
         if (arg == "--print-tree" || arg == "-t") {
             print_tree = true;
+        }
+        else if (arg == "--print-symbols" || arg == "-y") {
+            print_symbols = true;
         }
         else if (arg == "--print-bytecode" || arg == "-b") {
             print_bytecode = true;
@@ -46,6 +50,7 @@ int main(int argc, char **argv)
 
     Interpreter ip;
     ip.EnablePrintTree(print_tree);
+    ip.EnablePrintSymbols(print_symbols);
     ip.EnablePrintBytecode(print_bytecode);
     ip.EnablePrintStack(print_stack);
 

@@ -19,9 +19,9 @@ struct Function {
 
 class Scope {
 public:
-    Scope() : parent_(nullptr) {}
-    Scope(Scope *parent) : parent_(parent) {}
-    ~Scope() {}
+    Scope();
+    Scope(Scope *parent);
+    ~Scope();
 
     Scope *OpenChild();
     Scope *Close() const;
@@ -36,6 +36,7 @@ public:
     Function *FindFunction(const char *name) const;
     int GetFunctionCount() const;
 
+    void Print(int depth = 0) const;
 private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;

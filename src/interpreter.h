@@ -17,6 +17,7 @@ public:
     Int Run(std::istream &stream);
 
     void EnablePrintTree(bool enable);
+    void EnablePrintSymbols(bool enable);
     void EnablePrintBytecode(bool enable);
     void EnablePrintStack(bool enable);
 
@@ -30,6 +31,7 @@ private:
     VM vm_;
 
     bool print_tree_ = false;
+    bool print_symbols_ = false;
     bool print_bytecode_ = false;
     bool print_stack_ = false;
 };

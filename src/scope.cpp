@@ -1,4 +1,19 @@
 #include "scope.h"
+#include <iostream>
+
+Scope::Scope() : parent_(nullptr)
+{
+}
+
+Scope::Scope(Scope *parent) : parent_(parent)
+{
+}
+
+Scope::~Scope()
+{
+    for (auto child: children_)
+        delete child;
+}
 
 Scope *Scope::OpenChild()
 {
@@ -73,4 +88,19 @@ Function *Scope::FindFunction(const char *name) const
 int Scope::GetFunctionCount() const
 {
     return funcs_.size();
+}
+
+void Scope::Print(int depth) const
+{
+    const std::string header = std::string(depth * 2, ' ') + std::to_string(depth) + ". ";
+
+    for (auto it: funcs_) {
+        std::cout << header << "[func] " << it.second->name << std::endl;
+    }
+    for (auto it: vars_) {
+        std::cout << header << "[var] " << it.second->name << std::endl;
+    }
+
+    for (auto child: children_)
+        child->Print(depth + 1);
 }
