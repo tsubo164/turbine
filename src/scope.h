@@ -1,6 +1,7 @@
 #ifndef SCOPE_H
 #define SCOPE_H
 
+#include <vector>
 #include <map>
 
 class Scope;
@@ -18,8 +19,13 @@ struct Function {
 
 class Scope {
 public:
-    Scope() {}
+    Scope() : parent_(nullptr) {}
+    Scope(Scope *parent) : parent_(parent) {}
     ~Scope() {}
+
+    Scope *OpenChild();
+    Scope *Close() const;
+    Scope *GetParent() const;
 
     void DefineVariable(const char *name);
     Variable *FindVariable(const char *name) const;
@@ -30,6 +36,9 @@ public:
     int GetFunctionCount() const;
 
 private:
+    Scope *parent_ = nullptr;
+    std::vector<Scope*> children_;
+
     std::map<const char*,Variable*> vars_;
     std::map<const char*,Function*> funcs_;
 };

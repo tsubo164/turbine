@@ -1,5 +1,22 @@
 #include "scope.h"
 
+Scope *Scope::OpenChild()
+{
+    Scope *child = new Scope(this);
+    children_.push_back(child);
+    return child;
+}
+
+Scope *Scope::Close() const
+{
+    return GetParent();
+}
+
+Scope *Scope::GetParent() const
+{
+    return parent_;
+}
+
 void Scope::DefineVariable(const char *name)
 {
     const auto found = vars_.find(name);

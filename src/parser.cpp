@@ -206,6 +206,9 @@ FuncDef *Parser::func_def()
         std::cerr << "error: re-defined function" << std::endl;
         std::exit(EXIT_FAILURE);
     }
+    // switch to child scope
+    scope_ = scope_->OpenChild();
+
     func->scope = scope_;
 
     expect_one_of(TK::NewLine, TK::Eof);
@@ -226,13 +229,15 @@ FuncDef *Parser::func_def()
             continue;
         }
         else if (next == TK::Eof) {
-            return fdef;
+            break;
         }
         else {
             fdef->AddStmt(expr_stmt());
             continue;
         }
     }
+
+    scope_ = scope_->Close();
 
     return fdef;
 }
