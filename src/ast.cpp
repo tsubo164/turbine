@@ -189,7 +189,7 @@ void ExprStmt::Gen(Bytecode &code) const
 void FuncDef::Gen(Bytecode &code) const
 {
     // func name label
-    code.Label(19);
+    code.Label(func->name);
 
     // local vars
     if (func->scope->GetVariableCount() > 0)

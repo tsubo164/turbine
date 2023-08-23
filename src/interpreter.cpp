@@ -18,7 +18,7 @@ Int Interpreter::Run(std::istream &stream)
         tree_->Print();
 
     // Generate bytecode
-    code_.CallFunction(4);
+    code_.CallFunction(string_table_.Insert("main"));
     code_.Exit();
 
     GenerateCode(tree_, code_);

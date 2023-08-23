@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <cstdint>
 #include <vector>
+#include "string_table.h"
 
 using Byte = uint8_t;
 using Word = uint16_t;
@@ -39,8 +40,8 @@ public:
     void LoadLocal(Byte id);
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
-    void CallFunction(Word index);
-    void Label(Int name);
+    void CallFunction(SharedStr name);
+    void Label(SharedStr name);
     void Return();
     void AddInt();
     void EqualInt();
@@ -55,7 +56,8 @@ public:
     void Print() const;
 private:
     std::vector<Byte> bytes_;
-    std::unordered_map<Int,Int> name_to_index_;
+    std::unordered_map<SharedStr,Int> name_to_index_;
+    std::unordered_map<Int,SharedStr> backpatch_index_;
 };
 
 const char *OpcodeString(Byte op);

@@ -36,8 +36,20 @@ void push_back(std::vector<Byte> &bytes, T operand)
 
     std::memcpy(buf, &operand, SIZE);
 
-    for ( int i = 0; i < SIZE; i++ )
+    for (int i = 0; i < SIZE; i++)
         bytes.push_back(buf[i]);
+}
+
+template<typename T>
+void write(std::vector<Byte> &bytes, Int index, T operand)
+{
+    constexpr int SIZE = sizeof(T);
+    Byte buf[SIZE] = {0};
+
+    std::memcpy(buf, &operand, SIZE);
+
+    for (int i = 0; i < SIZE; i++)
+        bytes[index + i] = buf[i];
 }
 
 void Bytecode::LoadByte(Byte byte)
@@ -70,13 +82,24 @@ void Bytecode::AllocateLocal(Byte count)
     bytes_.push_back(count);
 }
 
-void Bytecode::CallFunction(Word index)
+void Bytecode::CallFunction(SharedStr name)
 {
+    Int index = -1;
+    const auto it = name_to_index_.find(name);
+    if (it != name_to_index_.end()) {
+        index = it->second;
+    }
+    else {
+        // backpatch to the next to call instruction
+        const Int next_index = bytes_.size() + 1;
+        backpatch_index_.insert({next_index, name});
+    }
+
     bytes_.push_back(OP_CALL);
     push_back<Word>(bytes_, index);
 }
 
-void Bytecode::Label(Int name)
+void Bytecode::Label(SharedStr name)
 {
     const auto it = name_to_index_.find(name);
     if (it != name_to_index_.end()) {
@@ -111,6 +134,13 @@ void Bytecode::Exit()
 void Bytecode::End()
 {
     bytes_.push_back(OP_EOC);
+
+    for (auto pair: backpatch_index_) {
+        const SharedStr name = pair.second;
+        const Int index = pair.first;
+        const Int func_addr = name_to_index_[name];
+        write<Word>(bytes_, index, func_addr);
+    }
 }
 
 const Byte *Bytecode::Data() const
