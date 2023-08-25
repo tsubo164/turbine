@@ -6,6 +6,7 @@
 # main
     - id int
     - a int
+    return seven()
     id = 114
 	id + 11
     a = id

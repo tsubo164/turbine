@@ -41,6 +41,15 @@ struct IdentExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
+struct FuncCallExpr : public Expr {
+    FuncCallExpr(Function *func_) : func(func_) {}
+    const Function *func;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct AddExpr : public Expr {
     AddExpr(Expr *l, Expr *r) : lhs(l), rhs(r) {}
     std::unique_ptr<Expr> lhs;

@@ -84,11 +84,24 @@ Expr *Parser::primary_expr()
     }
 
     if (tok->kind == TK::Ident) {
-        Variable *var = scope_->FindVariable(tok->sval);
-        if (!var) {
-            std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
+        if (peek() == TK::LeftParenthesis) {
+            Function *func = scope_->FindFunction(tok->sval);
+            if (!func) {
+                std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            expect(TK::LeftParenthesis);
+            expect(TK::RightParenthesis);
+            return new FuncCallExpr(func);
         }
-        return new IdentExpr(var);
+        else {
+            Variable *var = scope_->FindVariable(tok->sval);
+            if (!var) {
+                std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            return new IdentExpr(var);
+        }
     }
 
     std::cerr << "error: unexpected token: " << static_cast<int>(tok->kind) << std::endl;

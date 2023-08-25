@@ -32,6 +32,12 @@ void IdentExpr::Print(int depth) const
     std::cout << var->name << " @" << var->id << std::endl;
 }
 
+void FuncCallExpr::Print(int depth) const
+{
+    print_node("FuncCallExpr", depth, false);
+    std::cout << func->name << std::endl;
+}
+
 void AddExpr::Print(int depth) const
 {
     print_node("AddExpr", depth);
@@ -93,6 +99,11 @@ long IntNumExpr::Eval() const
 }
 
 long IdentExpr::Eval() const
+{
+    return 0;
+}
+
+long FuncCallExpr::Eval() const
 {
     return 0;
 }
@@ -162,6 +173,11 @@ void IntNumExpr::Gen(Bytecode &code) const
 void IdentExpr::Gen(Bytecode &code) const
 {
     code.LoadLocal(var->id);
+}
+
+void FuncCallExpr::Gen(Bytecode &code) const
+{
+    code.CallFunction(func->name);
 }
 
 void AddExpr::Gen(Bytecode &code) const

@@ -22,6 +22,8 @@ enum class TokenKind {
     If,
     Return,
 
+    LeftParenthesis,
+    RightParenthesis,
     BlockBegin,
     BlockEnd,
     NewLine,

@@ -85,6 +85,9 @@ Function *Scope::FindFunction(const char *name) const
         return it->second;
     }
 
+    if (GetParent())
+        return GetParent()->FindFunction(name);
+
     return nullptr;
 }
 
