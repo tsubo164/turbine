@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <stack>
 #include "string_table.h"
 
 enum class TokenKind {
@@ -15,15 +16,20 @@ enum class TokenKind {
     Equal2,
     Plus,
     Minus,
-    Hash1,
+    Hash,
 
     Int,
     If,
     Return,
+
+    BlockBegin,
+    BlockEnd,
     NewLine,
 };
 
 using TK = enum TokenKind;
+
+std::ostream &operator<<(std::ostream &os, TokenKind kind);
 
 struct Token {
     TokenKind kind = TK::Unknown;
@@ -33,8 +39,8 @@ struct Token {
 
 class Tokenizer {
 public:
-    Tokenizer(StringTable &string_table) : strtable_(string_table) {}
-    ~Tokenizer() {}
+    Tokenizer(StringTable &string_table);
+    ~Tokenizer();
 
     void SetInput(std::istream &stream);
     void Get(Token *tok);
@@ -44,8 +50,13 @@ private:
     StringTable &strtable_;
     std::string strbuf_;
 
+    std::stack <int>indent_stack_;
+    int unread_blockend_ = 0;
+    bool is_line_begin_ = true;
+
     TokenKind scan_number(int first_char, Token *tok);
     TokenKind scan_word(int first_char, Token *tok);
+    int scan_indent();
 };
 
 #endif // _H

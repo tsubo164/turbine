@@ -60,7 +60,8 @@ void Parser::expect(TokenKind kind)
 {
     const Token *tok = gettok();
     if (tok->kind != kind) {
-        std::cerr << "error: unexpected token: " << static_cast<int>(tok->kind) << std::endl;
+        std::cerr << "error: unexpected token: " << tok->kind << std::endl;
+        std::cerr << "         expected token: " << kind << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -200,6 +201,7 @@ BlockStmt *Parser::block_stmt()
 {
     BlockStmt *block = new BlockStmt();
     scope_ = scope_->OpenChild();
+    expect(TK::BlockBegin);
 
     for (;;) {
         const TokenKind next = peek();
@@ -216,6 +218,9 @@ BlockStmt *Parser::block_stmt()
             block->AddStatement(ret_stmt());
             continue;
         }
+        else if (next == TK::BlockEnd) {
+            break;
+        }
         else if (next == TK::Eof) {
             break;
         }
@@ -225,13 +230,14 @@ BlockStmt *Parser::block_stmt()
         }
     }
 
+    expect(TK::BlockEnd);
     scope_ = scope_->Close();
     return block;
 }
 
 FuncDef *Parser::func_def()
 {
-    expect(TK::Hash1);
+    expect(TK::Hash);
     expect(TK::Ident);
 
     // func name
@@ -259,8 +265,21 @@ Prog *Parser::program()
 {
     Prog *prog = new Prog;
 
-    FuncDef *func = func_def();
-    prog->AddFuncDef(func);
+    for (;;) {
+        const TokenKind next = peek();
+
+        if (next == TK::Hash) {
+            prog->AddFuncDef(func_def());
+            continue;
+        }
+        else if (next == TK::Eof) {
+            break;
+        }
+        else {
+            std::cerr << "error: unexpected token: " << static_cast<int>(next) << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
 
     return prog;
 }

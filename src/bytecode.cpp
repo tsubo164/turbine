@@ -23,7 +23,11 @@ const char *OpcodeString(Byte op)
 
     O(OP_EXIT);
     O(OP_EOC);
-    default: return "???";
+    default:
+        std::cerr << "Opcode: " << static_cast<int>(op)
+            << " not in OpcodeString()" << std::endl;
+        std::exit(EXIT_FAILURE);
+        return nullptr;
     }
 #undef O
 }

@@ -16,6 +16,52 @@ static TokenKind keyword_or_identifier(const std::string &word)
     return TK::Ident;
 }
 
+static const char *tok_kind_string(TokenKind kind)
+{
+#define T(kind) case TK::kind: return #kind;
+    switch (kind) {
+    T(Eof);
+    T(Unknown);
+    T(IntNum);
+    T(Ident);
+
+    T(Equal);
+    T(Equal2);
+    T(Plus);
+    T(Minus);
+    T(Hash);
+
+    T(Int);
+    T(If);
+    T(Return);
+
+    T(BlockBegin);
+    T(BlockEnd);
+    T(NewLine);
+    default:
+        std::cerr << "TokenKind: " << static_cast<int>(kind)
+            << " not in tok_kind_string()" << std::endl;
+        std::exit(EXIT_FAILURE);
+        return nullptr;
+    }
+#undef T
+}
+
+std::ostream &operator<<(std::ostream &os, TokenKind kind)
+{
+    return os << tok_kind_string(kind);
+}
+
+Tokenizer::Tokenizer(StringTable &string_table) : strtable_(string_table)
+{
+    indent_stack_.push(0);
+    is_line_begin_ = true;
+}
+
+Tokenizer::~Tokenizer()
+{
+}
+
 void Tokenizer::SetInput(std::istream &stream)
 {
     stream_ = &stream;
@@ -24,6 +70,30 @@ void Tokenizer::SetInput(std::istream &stream)
 void Tokenizer::Get(Token *tok)
 {
     *tok = {};
+
+    if (is_line_begin_) {
+        is_line_begin_ = false;
+
+        const int indent = scan_indent();
+        if (indent > indent_stack_.top()) {
+            indent_stack_.push(indent);
+            tok->kind = TK::BlockBegin;
+            return;
+        }
+        else if (indent < indent_stack_.top()) {
+            unread_blockend_ = 0;
+            while (indent < indent_stack_.top()) {
+                indent_stack_.pop();
+                if (indent == indent_stack_.top()) {
+                    tok->kind = TK::BlockEnd;
+                    return;
+                }
+                unread_blockend_++;
+            }
+            std::cerr << "mismatch outer indent" << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+    }
 
     while (!stream_->eof()) {
         int ch = stream_->get();
@@ -64,12 +134,13 @@ void Tokenizer::Get(Token *tok)
         }
 
         if (ch == '#') {
-            tok->kind = TK::Hash1;
+            tok->kind = TK::Hash;
             return;
         }
 
         if (ch == '\n') {
             tok->kind = TK::NewLine;
+            is_line_begin_ = true;
             return;
         }
 
@@ -124,4 +195,33 @@ TokenKind Tokenizer::scan_word(int first_char, Token *tok)
         tok->sval = strtable_.Insert(strbuf_);
 
     return tok->kind;
+}
+
+int Tokenizer::scan_indent()
+{
+    int indent = 0;
+
+    for (;;) {
+        const int ch = stream_->get();
+
+        if (ch == ' ' || ch == '\v' || ch == '\f') {
+            indent++;
+            continue;
+        }
+        else if (ch == '\t') {
+            indent += 4;
+            continue;
+        }
+        else if (ch == '\n') {
+            // blank line, move to next line
+            indent = 0;
+            continue;
+        }
+        else {
+            stream_->unget();
+            break;
+        }
+    }
+
+    return indent;
 }

@@ -1,8 +1,13 @@
+# seven
+    return 7
+
+# bar
+    return 3
 # main
     - id int
     - a int
     id = 114
-    id + 11
+	id + 11
     a = id
     a + 141
     return

@@ -98,13 +98,13 @@ void Scope::Print(int depth) const
     const std::string header = std::string(depth * 2, ' ') + std::to_string(depth) + ". ";
 
     for (auto it: funcs_) {
-        std::cout << header << "[func] " << it.second->name << std::endl;
+        const Function *func = it.second;
+        std::cout << header << "[func] " << func->name << std::endl;
+        func->scope->Print(depth + 1);
     }
+
     for (auto it: vars_) {
         const Variable *var = it.second;
         std::cout << header << "[var] " << var->name << " @" << var->id << std::endl;
     }
-
-    for (auto child: children_)
-        child->Print(depth + 1);
 }
