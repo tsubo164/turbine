@@ -12,86 +12,86 @@
 int main(int argc, char **argv)
 {
     {
-        std::stringstream input("# main\n - id int\n id = 114 \n id + 11\n");
+        std::stringstream input("# main() int\n - id int\n id = 114 \n id + 11\n");
         Interpreter ip;
 
         ASSERTL(125, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n 42 \n 19\n");
+        std::stringstream input("# main() int\n 42 \n 19\n");
         Interpreter ip;
 
         ASSERTL(19, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n 12 \n");
+        std::stringstream input("# main() int\n 12 \n");
         Interpreter ip;
 
         ASSERTL(12, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n 39 + 3 \n");
+        std::stringstream input("# main() int\n 39 + 3 \n");
         Interpreter ip;
 
         ASSERTL(42, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n - id int\n id = 0 \n id + 114\n");
+        std::stringstream input("# main() int\n - id int\n id = 0 \n id + 114\n");
         Interpreter ip;
 
         ASSERTL(114, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n 3129 + 1293 \n");
+        std::stringstream input("# main() int\n 3129 + 1293 \n");
         Interpreter ip;
 
         ASSERTL(4422, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n 3129 + 1293+1111\n");
+        std::stringstream input("# main() int\n 3129 + 1293+1111\n");
         Interpreter ip;
 
         ASSERTL(5533, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n 20+22\n");
+        std::stringstream input("# main() int\n 20+22\n");
         Interpreter ip;
 
         ASSERTL(42, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n - a int\n a = 12 \n a\n");
+        std::stringstream input("# main() int\n - a int\n a = 12 \n a\n");
         Interpreter ip;
 
         ASSERTL(12, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n - a int\n a = 11\n");
+        std::stringstream input("# main() int\n - a int\n a = 11\n");
         Interpreter ip;
 
         ASSERTL(11, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n 12 == 11\n");
+        std::stringstream input("# main() int\n 12 == 11\n");
         Interpreter ip;
 
         ASSERTL(0, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n 42 == 42\n");
+        std::stringstream input("# main() int\n 42 == 42\n");
         Interpreter ip;
 
         ASSERTL(1, ip.Run(input));
     }
     {
-        std::stringstream input("# main\n - a int\n a = 39\n a == 39\n");
+        std::stringstream input("# main() int  \n - a int\n a = 39\n a == 39\n");
         Interpreter ip;
 
         ASSERTL(1, ip.Run(input));
     }
     {
         std::stringstream input(
-            "# main\n"
+            "# main() int\n"
             "    - a int\n"
             "    a = 39\n"
             "    a == 39\n"
@@ -101,17 +101,31 @@ int main(int argc, char **argv)
 
         ASSERTL(1, ip.Run(input));
     }
-
     {
         std::stringstream input(
-            "# seven\n"
+            "# seven() int\n"
             "    return 7\n"
-            "# main\n"
+            "# main() int\n"
             "    return seven()\n"
             );
         Interpreter ip;
 
         ASSERTL(7, ip.Run(input));
+    }
+    {
+        std::stringstream input(
+            "# seven() int\n"
+            "    return 7\n"
+            "\n"
+            "# add(x int, y int) int\n"
+            "    return x + y\n"
+            "\n"
+            "# main() int\n"
+            "    return seven() + 35\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
     }
 
     if (GetTestCount() <= 1)

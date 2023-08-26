@@ -17,6 +17,7 @@ enum Opcode {
     OP_LOADB,
     OP_LOADI,
     OP_LOADLOCAL,
+    OP_LOADARG,
     OP_STORELOCAL,
 
     OP_ALLOC,
@@ -38,6 +39,7 @@ public:
     void LoadByte(Byte byte);
     void LoadInt(Int integer);
     void LoadLocal(Byte id);
+    void LoadArgument(Byte id);
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
     void CallFunction(SharedStr name);

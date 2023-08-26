@@ -35,6 +35,7 @@ static const char *tok_kind_string(TokenKind kind)
     T(If);
     T(Return);
 
+    T(Comma);
     T(LeftParenthesis);
     T(RightParenthesis);
     T(BlockBegin);
@@ -126,6 +127,11 @@ void Tokenizer::Get(Token *tok)
 
         if (ch == '-') {
             tok->kind = TK::Minus;
+            return;
+        }
+
+        if (ch == ',') {
+            tok->kind = TK::Comma;
             return;
         }
 

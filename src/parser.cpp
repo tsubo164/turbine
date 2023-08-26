@@ -66,15 +66,6 @@ void Parser::expect(TokenKind kind)
     }
 }
 
-void Parser::expect_one_of(TokenKind kind0, TokenKind kind1)
-{
-    const Token *tok = gettok();
-    if (tok->kind != kind0 && tok->kind != kind1) {
-        std::cerr << "error: unexpected token: " << static_cast<int>(tok->kind) << std::endl;
-        exit(EXIT_FAILURE);
-    }
-}
-
 Expr *Parser::primary_expr()
 {
     const Token *tok = gettok();
@@ -96,11 +87,17 @@ Expr *Parser::primary_expr()
         }
         else {
             Variable *var = scope_->FindVariable(tok->sval);
-            if (!var) {
-                std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
-                exit(EXIT_FAILURE);
+            if (var) {
+                return new IdentExpr(var);
             }
-            return new IdentExpr(var);
+            Argument *arg = func_->FindArgument(tok->sval);
+            if (arg) {
+                return new ArgExpr(arg);
+            }
+
+            std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
+            exit(EXIT_FAILURE);
+            return nullptr;
         }
     }
 
@@ -183,7 +180,7 @@ Stmt *Parser::ret_stmt()
     }
     else {
         stmt = new ReturnStmt(expression());
-        expect_one_of(TK::NewLine, TK::Eof);
+        expect(TK::NewLine);
     }
 
     return stmt;
@@ -192,7 +189,7 @@ Stmt *Parser::ret_stmt()
 Stmt *Parser::expr_stmt()
 {
     ExprStmt *stmt = new ExprStmt(expression());
-    expect_one_of(TK::NewLine, TK::Eof);
+    expect(TK::NewLine);
 
     return stmt;
 }
@@ -234,9 +231,6 @@ BlockStmt *Parser::block_stmt()
         else if (next == TK::BlockEnd) {
             break;
         }
-        else if (next == TK::Eof) {
-            break;
-        }
         else {
             block->AddStatement(expr_stmt());
             continue;
@@ -246,6 +240,30 @@ BlockStmt *Parser::block_stmt()
     expect(TK::BlockEnd);
     scope_ = scope_->Close();
     return block;
+}
+
+Function *Parser::param_list(Function *func)
+{
+    expect(TK::LeftParenthesis);
+
+    for (;;) {
+        if (peek() != TK::Ident)
+            break;
+
+        expect(TK::Ident);
+        const Token *tok = curtok();
+        func->DefineArgument(tok->sval);
+
+        expect(TK::Int);
+
+        if (peek() == TK::RightParenthesis)
+            break;
+
+        expect(TK::Comma);
+    }
+
+    expect(TK::RightParenthesis);
+    return func;
 }
 
 FuncDef *Parser::func_def()
@@ -261,11 +279,15 @@ FuncDef *Parser::func_def()
         std::exit(EXIT_FAILURE);
     }
 
-    // func = arg_list(func);
-    expect_one_of(TK::NewLine, TK::Eof);
+    func = param_list(func);
+    expect(TK::Int);
+
+    expect(TK::NewLine);
 
     // func body
+    func_ = func;
     BlockStmt *block = block_stmt();
+    func_ = nullptr;
     FuncDef *fdef = new FuncDef(func, block);
 
     // TODO TMP last child scope

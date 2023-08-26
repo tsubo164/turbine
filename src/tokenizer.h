@@ -22,6 +22,7 @@ enum class TokenKind {
     If,
     Return,
 
+    Comma,
     LeftParenthesis,
     RightParenthesis,
     BlockBegin,

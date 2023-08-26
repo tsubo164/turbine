@@ -13,10 +13,25 @@ struct Variable {
     int id;
 };
 
+struct Argument {
+    Argument(SharedStr name_, int id_) : name(name_), id(id_) {}
+    SharedStr name;
+    int id;
+};
+
 struct Function {
-    Function(const char *name_) : name(name_) {}
-    const char *name;
+    Function(SharedStr name_) : name(name_) {}
+    SharedStr name;
     Scope *scope = nullptr;
+
+    Argument *DefineArgument(SharedStr name);
+    Argument *FindArgument(SharedStr name) const;
+    int GetArgumentCount() const;
+
+    void Print(int depth) const;
+
+private:
+    std::map<SharedStr,Argument*> args_;
 };
 
 class Scope {

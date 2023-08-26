@@ -95,6 +95,11 @@ Object VM::get_local(int id) const
     return stack_[bp_ + 1 + id];
 }
 
+Object VM::get_arg(int id) const
+{
+    return stack_[bp_ - 2 - id];
+}
+
 void VM::set_local(int id, Object obj)
 {
     stack_[bp_ + 1 + id] = obj;
@@ -147,6 +152,14 @@ void VM::run()
             {
                 const Int id = fetch_byte();
                 const Object obj = get_local(id);
+                push(obj);
+            }
+            break;
+
+        case OP_LOADARG:
+            {
+                const Int id = fetch_byte();
+                const Object obj = get_arg(id);
                 push(obj);
             }
             break;

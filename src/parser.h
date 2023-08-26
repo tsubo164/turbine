@@ -10,7 +10,7 @@
 class Parser {
 public:
     Parser(StringTable &string_table, Scope &scope)
-        : tokenizer_(string_table), scope_(&scope) {}
+        : tokenizer_(string_table), scope_(&scope), func_(nullptr) {}
     ~Parser() {}
 
     Node *ParseStream(std::istream &sstrm);
@@ -19,6 +19,7 @@ public:
 private:
     Tokenizer tokenizer_;
     Scope *scope_;
+    Function *func_;
 
     // token buffer
     std::array<Token,8> tokbuf_;
@@ -37,7 +38,6 @@ private:
     const Token *curtok() const;
     TokenKind peek();
     void expect(TokenKind kind);
-    void expect_one_of(TokenKind kind0, TokenKind kind1);
 
     // expressions
     Expr *primary_expr();
@@ -50,6 +50,7 @@ private:
     Stmt *expr_stmt();
     Variable *var_decl();
     BlockStmt *block_stmt();
+    Function *param_list(Function *func);
     FuncDef *func_def();
 
     Prog *program();

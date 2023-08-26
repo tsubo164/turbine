@@ -55,6 +55,7 @@ private:
     Int pop_int();
 
     Object get_local(int id) const;
+    Object get_arg(int id) const;
     void set_local(int id, Object obj);
     bool is_eoc() const;
 };
