@@ -9,19 +9,20 @@
 enum class TokenKind {
     Eof = -1,
     Unknown = 0,
+    // factor
     IntNum,
     Ident,
-
+    // operator
     Equal,
     Equal2,
     Plus,
     Minus,
     Hash,
-
+    // keyword
     Int,
     If,
     Return,
-
+    // separator
     Comma,
     LeftParenthesis,
     RightParenthesis,
@@ -49,10 +50,12 @@ public:
     void Get(Token *tok);
 
 private:
+    // stream
     std::istream *stream_ {};
     StringTable &strtable_;
     std::string strbuf_;
 
+    // indent
     std::stack <int>indent_stack_;
     int unread_blockend_ = 0;
     bool is_line_begin_ = true;

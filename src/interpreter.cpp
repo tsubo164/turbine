@@ -1,4 +1,6 @@
 #include "interpreter.h"
+#include "tokenizer.h"
+#include <iostream>
 
 Interpreter::Interpreter()
 {
@@ -11,6 +13,11 @@ Interpreter::~Interpreter()
 
 Int Interpreter::Run(std::istream &stream)
 {
+    // Print token
+    if (print_token_) {
+        return print_token(stream);
+    }
+
     // Compile source
     tree_ = parser_.ParseStream(stream);
 
@@ -46,6 +53,11 @@ Int Interpreter::Run(std::istream &stream)
     return ret;
 }
 
+void Interpreter::EnablePrintToken(bool enable)
+{
+    print_token_ = enable;
+}
+
 void Interpreter::EnablePrintTree(bool enable)
 {
     print_tree_ = enable;
@@ -64,4 +76,49 @@ void Interpreter::EnablePrintBytecode(bool enable)
 void Interpreter::EnablePrintStack(bool enable)
 {
     print_stack_ = enable;
+}
+
+int Interpreter::print_token(std::istream &stream) const
+{
+    StringTable string_table;
+    Tokenizer tokenizer(string_table);
+
+    tokenizer.SetInput(stream);
+    Token token;
+    Token *tok = &token;
+    int indent = 0;
+    bool bol = true;
+
+    std::cout << "## token" << std::endl;
+
+    for (;;) {
+        tokenizer.Get(tok);
+
+        if (tok->kind == TK::BlockBegin)
+            indent++;
+        else if (tok->kind == TK::BlockEnd)
+            indent--;
+        else
+            std::cout << tok->kind;
+
+        if (bol) {
+            bol = false;
+            for (int i = 0; i < indent; i++)
+                std::cout << "....";
+        }
+
+        if (tok->kind == TK::NewLine) {
+            std::cout << std::endl;
+            bol = true;
+        }
+        else if (tok->kind != TK::BlockBegin && tok->kind != TK::BlockEnd) {
+            std::cout << ' ';
+        }
+
+        if (tok->kind == TK::Eof)
+            break;
+    }
+    std::cout << std::endl;
+
+    return 0;
 }

@@ -18,36 +18,35 @@ static TokenKind keyword_or_identifier(const std::string &word)
 
 static const char *tok_kind_string(TokenKind kind)
 {
-#define T(kind) case TK::kind: return #kind;
     switch (kind) {
-    T(Eof);
-    T(Unknown);
-    T(IntNum);
-    T(Ident);
+    case TK::Eof: return "EOF";
+    case TK::Unknown: return "Unknown";
+    case TK::IntNum: return "IntNum";
+    case TK::Ident: return "Ident";
 
-    T(Equal);
-    T(Equal2);
-    T(Plus);
-    T(Minus);
-    T(Hash);
+    case TK::Equal: return "=";
+    case TK::Equal2: return "==";
+    case TK::Plus: return "+";
+    case TK::Minus: return "-";
+    case TK::Hash: return "#";
 
-    T(Int);
-    T(If);
-    T(Return);
+    case TK::Int: return "int";
+    case TK::If: return "if";
+    case TK::Return: return "return";
 
-    T(Comma);
-    T(LeftParenthesis);
-    T(RightParenthesis);
-    T(BlockBegin);
-    T(BlockEnd);
-    T(NewLine);
+    case TK::Comma: return ",";
+    case TK::LeftParenthesis: return "(";
+    case TK::RightParenthesis: return ")";
+    case TK::BlockBegin: return "BlockBegin";
+    case TK::BlockEnd: return "BlockEnd";
+    case TK::NewLine: return "\\n";
+
     default:
         std::cerr << "TokenKind: " << static_cast<int>(kind)
             << " not in tok_kind_string()" << std::endl;
         std::exit(EXIT_FAILURE);
         return nullptr;
     }
-#undef T
 }
 
 std::ostream &operator<<(std::ostream &os, TokenKind kind)
