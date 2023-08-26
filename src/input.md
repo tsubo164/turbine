@@ -1,8 +1,6 @@
-# seven() int
-    return 7
-
-# add(x int, y int) int
-    return x + y
-
 # main() int
-    return seven() + add(30, 5)
+    - a int
+    a = 42
+    if a == 42
+        return 11
+    return 22

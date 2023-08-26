@@ -62,7 +62,8 @@ private:
 
     TokenKind scan_number(int first_char, Token *tok);
     TokenKind scan_word(int first_char, Token *tok);
-    int scan_indent();
+    TokenKind scan_indent(Token *tok);
+    int count_indent();
 };
 
 #endif // _H

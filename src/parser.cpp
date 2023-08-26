@@ -60,8 +60,8 @@ void Parser::expect(TokenKind kind)
 {
     const Token *tok = gettok();
     if (tok->kind != kind) {
-        std::cerr << "error: unexpected token: " << tok->kind << std::endl;
-        std::cerr << "         expected token: " << kind << std::endl;
+        std::cerr << "error: unexpected token: '" << tok->kind << "'" << std::endl;
+        std::cerr << "         expected token: '" << kind << "'" << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -123,7 +123,7 @@ Expr *Parser::primary_expr()
         }
     }
 
-    std::cerr << "error: unexpected token: " << static_cast<int>(tok->kind) << std::endl;
+    std::cerr << "error: unexpected token: '" << tok->kind << "'" << std::endl;
     exit(EXIT_FAILURE);
     return nullptr;
 }
@@ -243,10 +243,10 @@ BlockStmt *Parser::block_stmt()
             var_decl();
             continue;
         }
-        else if (next == TK::If) {
-            //block->AddStatement(if_stmt());
-            //continue;
-        }
+        //else if (next == TK::If) {
+        //    block->AddStatement(if_stmt());
+        //    continue;
+        //}
         else if (next == TK::Return) {
             block->AddStatement(ret_stmt());
             continue;
@@ -334,7 +334,7 @@ Prog *Parser::program()
             break;
         }
         else {
-            std::cerr << "error: unexpected token: " << static_cast<int>(next) << std::endl;
+            std::cerr << "error: unexpected token: '" << next << "'" << std::endl;
             exit(EXIT_FAILURE);
         }
     }

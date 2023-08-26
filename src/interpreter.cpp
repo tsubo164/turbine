@@ -98,8 +98,6 @@ int Interpreter::print_token(std::istream &stream) const
             indent++;
         else if (tok->kind == TK::BlockEnd)
             indent--;
-        else
-            std::cout << tok->kind;
 
         if (bol) {
             bol = false;
@@ -108,11 +106,11 @@ int Interpreter::print_token(std::istream &stream) const
         }
 
         if (tok->kind == TK::NewLine) {
-            std::cout << std::endl;
+            std::cout << tok->kind << std::endl;
             bol = true;
         }
         else if (tok->kind != TK::BlockBegin && tok->kind != TK::BlockEnd) {
-            std::cout << ' ';
+            std::cout << tok->kind << ' ';
         }
 
         if (tok->kind == TK::Eof)

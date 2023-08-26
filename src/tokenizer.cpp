@@ -76,25 +76,9 @@ void Tokenizer::Get(Token *tok)
     if (is_line_begin_) {
         is_line_begin_ = false;
 
-        const int indent = scan_indent();
-        if (indent > indent_stack_.top()) {
-            indent_stack_.push(indent);
-            tok->kind = TK::BlockBegin;
+        const TokenKind kind = scan_indent(tok);
+        if (kind == TK::BlockBegin || kind == TK::BlockEnd)
             return;
-        }
-        else if (indent < indent_stack_.top()) {
-            unread_blockend_ = 0;
-            while (indent < indent_stack_.top()) {
-                indent_stack_.pop();
-                if (indent == indent_stack_.top()) {
-                    tok->kind = TK::BlockEnd;
-                    return;
-                }
-                unread_blockend_++;
-            }
-            std::cerr << "mismatch outer indent" << std::endl;
-            std::exit(EXIT_FAILURE);
-        }
     }
 
     while (!stream_->eof()) {
@@ -214,7 +198,7 @@ TokenKind Tokenizer::scan_word(int first_char, Token *tok)
     return tok->kind;
 }
 
-int Tokenizer::scan_indent()
+int Tokenizer::count_indent()
 {
     int indent = 0;
 
@@ -241,4 +225,31 @@ int Tokenizer::scan_indent()
     }
 
     return indent;
+}
+
+TokenKind Tokenizer::scan_indent(Token *tok)
+{
+    const int indent = count_indent();
+
+    if (indent > indent_stack_.top()) {
+        indent_stack_.push(indent);
+        tok->kind = TK::BlockBegin;
+        return tok->kind;
+    }
+    else if (indent < indent_stack_.top()) {
+        unread_blockend_ = 0;
+        while (indent < indent_stack_.top()) {
+            indent_stack_.pop();
+            if (indent == indent_stack_.top()) {
+                tok->kind = TK::BlockEnd;
+                return tok->kind;
+            }
+            unread_blockend_++;
+        }
+        std::cerr << "mismatch outer indent" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+    else {
+        return tok->kind;
+    }
 }
