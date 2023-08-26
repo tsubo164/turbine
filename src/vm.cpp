@@ -195,7 +195,7 @@ void VM::run()
 
         case OP_RET:
             {
-                //const Int argc = fetch_byte();
+                const Int argc = fetch_byte();
                 const Object ret_obj = top();
 
                 // epilogue
@@ -203,7 +203,7 @@ void VM::run()
                 set_bp(pop_int());
                 set_ip(pop_int());
 
-                //set_sp(sp_ - argc);
+                set_sp(sp_ - argc);
                 push(ret_obj);
             }
             break;

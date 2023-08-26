@@ -40,6 +40,7 @@ private:
     void expect(TokenKind kind);
 
     // expressions
+    FuncCallExpr *arg_list(FuncCallExpr *fcall);
     Expr *primary_expr();
     Expr *add_expr();
     Expr *equal_expr();

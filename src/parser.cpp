@@ -66,6 +66,29 @@ void Parser::expect(TokenKind kind)
     }
 }
 
+FuncCallExpr *Parser::arg_list(FuncCallExpr *fcall)
+{
+    expect(TK::LeftParenthesis);
+
+    for (;;) {
+        if (peek() == TK::RightParenthesis)
+            break;
+
+        fcall->AddArgument(expression());
+
+        if (peek() == TK::Comma) {
+            gettok();
+            continue;
+        }
+        else {
+            break;
+        }
+    }
+
+    expect(TK::RightParenthesis);
+    return fcall;
+}
+
 Expr *Parser::primary_expr()
 {
     const Token *tok = gettok();
@@ -81,9 +104,8 @@ Expr *Parser::primary_expr()
                 std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            expect(TK::LeftParenthesis);
-            expect(TK::RightParenthesis);
-            return new FuncCallExpr(func);
+            FuncCallExpr *fcall = new FuncCallExpr(func);
+            return arg_list(fcall);
         }
         else {
             Variable *var = scope_->FindVariable(tok->sval);
@@ -172,14 +194,15 @@ Stmt *Parser::ret_stmt()
 
     ReturnStmt *stmt = nullptr;
     const TokenKind next = peek();
+    const int argc = func_->GetArgumentCount();
 
     if (next == TK::NewLine || next == TK::Eof) {
-        stmt = new ReturnStmt();
+        stmt = new ReturnStmt(argc);
         // TODO cosume()?
         gettok();
     }
     else {
-        stmt = new ReturnStmt(expression());
+        stmt = new ReturnStmt(expression(), argc);
         expect(TK::NewLine);
     }
 

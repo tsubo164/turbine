@@ -5,4 +5,4 @@
     return x + y
 
 # main() int
-    return seven() + 35
+    return seven() + add(30, 5)

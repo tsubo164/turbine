@@ -122,9 +122,10 @@ void Bytecode::Label(SharedStr name)
     name_to_index_.insert({name, next_index});
 }
 
-void Bytecode::Return()
+void Bytecode::Return(Byte argc)
 {
     bytes_.push_back(OP_RET);
+    bytes_.push_back(argc);
 }
 
 void Bytecode::AddInt()
@@ -230,7 +231,7 @@ void Bytecode::Print() const
             break;
 
         case OP_RET:
-            std::cout << OpcodeString(op) << std::endl;
+            std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
             break;
 
         case OP_ADD:

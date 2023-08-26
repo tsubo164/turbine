@@ -42,6 +42,8 @@ void FuncCallExpr::Print(int depth) const
 {
     print_node("FuncCallExpr", depth, false);
     std::cout << func->name << std::endl;
+    for (auto arg: args)
+        arg->Print(depth + 1);
 }
 
 void AddExpr::Print(int depth) const
@@ -193,6 +195,8 @@ void ArgExpr::Gen(Bytecode &code) const
 
 void FuncCallExpr::Gen(Bytecode &code) const
 {
+    for (auto it = args.rbegin(); it != args.rend(); ++it)
+        (*it)->Gen(code);
     code.CallFunction(func->name);
 }
 
@@ -229,7 +233,7 @@ void BlockStmt::Gen(Bytecode &code) const
 void ReturnStmt::Gen(Bytecode &code) const
 {
     expr->Gen(code);
-    code.Return();
+    code.Return(argc);
 }
 
 void ExprStmt::Gen(Bytecode &code) const

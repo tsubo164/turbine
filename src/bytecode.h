@@ -44,7 +44,7 @@ public:
     void AllocateLocal(Byte count);
     void CallFunction(SharedStr name);
     void Label(SharedStr name);
-    void Return();
+    void Return(Byte argc);
     void AddInt();
     void EqualInt();
     void Exit();

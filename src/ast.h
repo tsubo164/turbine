@@ -52,6 +52,8 @@ struct ArgExpr : public Expr {
 
 struct FuncCallExpr : public Expr {
     FuncCallExpr(Function *func_) : func(func_) {}
+    void AddArgument(Expr *expr) { args.push_back(expr); }
+    std::vector<Expr*> args;
     const Function *func;
 
     long Eval() const override final;
@@ -108,9 +110,10 @@ struct BlockStmt : public Stmt {
 };
 
 struct ReturnStmt : public Stmt {
-    ReturnStmt() : expr(new NullExpr()) {}
-    ReturnStmt(Expr *e) : expr(e) {}
+    ReturnStmt(int argc_) : expr(new NullExpr()), argc(argc_) {}
+    ReturnStmt(Expr *e, int argc_) : expr(e), argc(argc_) {}
     std::unique_ptr<Expr> expr;
+    int argc;
 
     long Eval() const override final;
     void Print(int depth) const override final;
