@@ -142,6 +142,32 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
+    {
+        std::stringstream input(
+            "# main() int\n"
+            "    - a int\n"
+            "    a = 42\n"
+            "    if a == 12\n"
+            "        return 11\n"
+            "    return 22\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(22, ip.Run(input));
+    }
+    {
+        std::stringstream input(
+            "# main() int\n"
+            "    - a int\n"
+            "    a = 42\n"
+            "    if a == 42\n"
+            "        return 11\n"
+            "    return 22\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(11, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

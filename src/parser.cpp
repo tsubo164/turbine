@@ -66,24 +66,28 @@ void Parser::expect(TokenKind kind)
     }
 }
 
+bool Parser::consume(TokenKind kind)
+{
+    if (peek() == kind) {
+        gettok();
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 FuncCallExpr *Parser::arg_list(FuncCallExpr *fcall)
 {
     expect(TK::LeftParenthesis);
 
-    for (;;) {
-        if (peek() == TK::RightParenthesis)
-            break;
+    if (consume(TK::RightParenthesis))
+        return fcall;
 
+    do {
         fcall->AddArgument(expression());
-
-        if (peek() == TK::Comma) {
-            gettok();
-            continue;
-        }
-        else {
-            break;
-        }
     }
+    while (consume(TK::Comma));
 
     expect(TK::RightParenthesis);
     return fcall;
@@ -108,6 +112,7 @@ Expr *Parser::primary_expr()
             return arg_list(fcall);
         }
         else {
+            // TODO need to correct. arg may be found in the middle of var scope chain.
             Variable *var = scope_->FindVariable(tok->sval);
             if (var) {
                 return new IdentExpr(var);
@@ -188,18 +193,29 @@ Expr *Parser::expression()
     return assign_expr();
 }
 
+Stmt *Parser::if_stmt()
+{
+    char buf[16] = {'\0'};
+    std::sprintf(buf, ".L%X", label_id_++);
+    const SharedStr label = string_table_.Insert(buf);
+
+    expect(TK::If);
+    Expr *cond = expression();
+    expect(TK::NewLine);
+
+    BlockStmt *then = block_stmt();
+    return new IfStmt(label, cond, then);
+}
+
 Stmt *Parser::ret_stmt()
 {
     expect(TK::Return);
 
-    ReturnStmt *stmt = nullptr;
-    const TokenKind next = peek();
     const int argc = func_->GetArgumentCount();
+    ReturnStmt *stmt = nullptr;
 
-    if (next == TK::NewLine || next == TK::Eof) {
+    if (consume(TK::NewLine)) {
         stmt = new ReturnStmt(argc);
-        // TODO cosume()?
-        gettok();
     }
     else {
         stmt = new ReturnStmt(expression(), argc);
@@ -243,10 +259,10 @@ BlockStmt *Parser::block_stmt()
             var_decl();
             continue;
         }
-        //else if (next == TK::If) {
-        //    block->AddStatement(if_stmt());
-        //    continue;
-        //}
+        else if (next == TK::If) {
+            block->AddStatement(if_stmt());
+            continue;
+        }
         else if (next == TK::Return) {
             block->AddStatement(ret_stmt());
             continue;
@@ -269,21 +285,17 @@ Function *Parser::param_list(Function *func)
 {
     expect(TK::LeftParenthesis);
 
-    for (;;) {
-        if (peek() != TK::Ident)
-            break;
+    if (consume(TK::RightParenthesis))
+        return func;
 
+    do {
         expect(TK::Ident);
         const Token *tok = curtok();
         func->DefineArgument(tok->sval);
 
         expect(TK::Int);
-
-        if (peek() == TK::RightParenthesis)
-            break;
-
-        expect(TK::Comma);
     }
+    while (consume(TK::Comma));
 
     expect(TK::RightParenthesis);
     return func;

@@ -74,6 +74,14 @@ void BlockStmt::Print(int depth) const
         stmt->Print(depth + 1);
 }
 
+void IfStmt::Print(int depth) const
+{
+    print_node("IfStmt", depth, false);
+    std::cout << label << std::endl;
+    cond->Print(depth + 1);
+    then->Print(depth + 1);
+}
+
 void ReturnStmt::Print(int depth) const
 {
     print_node("ReturnStmt", depth);
@@ -146,6 +154,11 @@ long BlockStmt::Eval() const
     for (const auto stmt: stmts)
         ret = stmt->Eval();
     return ret;
+}
+
+long IfStmt::Eval() const
+{
+    return cond->Eval();
 }
 
 long ReturnStmt::Eval() const
@@ -228,6 +241,14 @@ void BlockStmt::Gen(Bytecode &code) const
 {
     for (const auto stmt: stmts)
         stmt->Gen(code);
+}
+
+void IfStmt::Gen(Bytecode &code) const
+{
+    cond->Gen(code);
+    code.JumpIfZero(label);
+    then->Gen(code);
+    code.Label(label);
 }
 
 void ReturnStmt::Gen(Bytecode &code) const

@@ -5,21 +5,25 @@
 #include "tokenizer.h"
 #include "scope.h"
 #include "ast.h"
+#include <cstdint>
 #include <array>
 
 class Parser {
 public:
     Parser(StringTable &string_table, Scope &scope)
-        : tokenizer_(string_table), scope_(&scope), func_(nullptr) {}
+        : string_table_(string_table), tokenizer_(string_table),
+        scope_(&scope), func_(nullptr) {}
     ~Parser() {}
 
     Node *ParseStream(std::istream &sstrm);
     void SetStringTable();
 
 private:
+    StringTable &string_table_;
     Tokenizer tokenizer_;
     Scope *scope_;
     Function *func_;
+    uint32_t label_id_ = 0;
 
     // token buffer
     std::array<Token,8> tokbuf_;
@@ -38,8 +42,9 @@ private:
     const Token *curtok() const;
     TokenKind peek();
     void expect(TokenKind kind);
+    bool consume(TokenKind kind);
 
-    // expressions
+    // expression
     FuncCallExpr *arg_list(FuncCallExpr *fcall);
     Expr *primary_expr();
     Expr *add_expr();
@@ -47,6 +52,8 @@ private:
     Expr *assign_expr();
     Expr *expression();
 
+    // statement
+    Stmt *if_stmt();
     Stmt *ret_stmt();
     Stmt *expr_stmt();
     Variable *var_decl();

@@ -23,6 +23,7 @@ enum Opcode {
     OP_ALLOC,
     OP_CALL,
     OP_RET,
+    OP_JEQ,
 
     OP_ADD,
     OP_EQ,
@@ -43,6 +44,7 @@ public:
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
     void CallFunction(SharedStr name);
+    void JumpIfZero(SharedStr label);
     void Label(SharedStr name);
     void Return(Byte argc);
     void AddInt();

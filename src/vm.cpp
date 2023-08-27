@@ -208,6 +208,16 @@ void VM::run()
             }
             break;
 
+        case OP_JEQ:
+            {
+                const Int addr = fetch_word();
+                const Object cond = top();
+
+                if (cond.ival == 0)
+                    set_ip(addr);
+            }
+            break;
+
         case OP_ADD:
             {
                 const Int val1 = pop_int();

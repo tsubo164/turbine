@@ -2,6 +2,12 @@
 #include "tokenizer.h"
 #include <iostream>
 
+static void print_header(const char *title)
+{
+    std::cout << "## " << title << std::endl;
+    std::cout << "---" << std::endl;
+}
+
 Interpreter::Interpreter()
 {
 }
@@ -22,12 +28,12 @@ Int Interpreter::Run(std::istream &stream)
     tree_ = parser_.ParseStream(stream);
 
     if (print_tree_) {
-        std::cout << "### tree" << std::endl;
+        print_header("tree");
         tree_->Print();
     }
 
     if (print_symbols_) {
-        std::cout << "### symbols" << std::endl;
+        print_header("symbol");
         scope_.Print();
     }
 
@@ -38,7 +44,7 @@ Int Interpreter::Run(std::istream &stream)
     GenerateCode(tree_, code_);
 
     if (print_bytecode_) {
-        std::cout << "### bytecode" << std::endl;
+        print_header("bytecode");
         code_.Print();
     }
 
@@ -89,7 +95,7 @@ int Interpreter::print_token(std::istream &stream) const
     int indent = 0;
     bool bol = true;
 
-    std::cout << "## token" << std::endl;
+    print_header("token");
 
     for (;;) {
         tokenizer.Get(tok);

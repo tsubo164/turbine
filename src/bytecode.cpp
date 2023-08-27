@@ -18,6 +18,7 @@ const char *OpcodeString(Byte op)
     O(OP_ALLOC);
     O(OP_CALL);
     O(OP_RET);
+    O(OP_JEQ);
 
     O(OP_ADD);
     O(OP_EQ);
@@ -107,6 +108,23 @@ void Bytecode::CallFunction(SharedStr name)
     }
 
     bytes_.push_back(OP_CALL);
+    push_back<Word>(bytes_, index);
+}
+
+void Bytecode::JumpIfZero(SharedStr label)
+{
+    Int index = -1;
+    const auto it = name_to_index_.find(label);
+    if (it != name_to_index_.end()) {
+        index = it->second;
+    }
+    else {
+        // backpatch to the next to call instruction
+        const Int next_index = bytes_.size() + 1;
+        backpatch_index_.insert({next_index, label});
+    }
+
+    bytes_.push_back(OP_JEQ);
     push_back<Word>(bytes_, index);
 }
 
@@ -232,6 +250,11 @@ void Bytecode::Print() const
 
         case OP_RET:
             std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            break;
+
+        case OP_JEQ:
+            std::cout << OpcodeString(op) << " $" << ReadWord(index) << std::endl;
+            index += 2;
             break;
 
         case OP_ADD:

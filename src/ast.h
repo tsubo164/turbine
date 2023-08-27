@@ -109,6 +109,19 @@ struct BlockStmt : public Stmt {
     void Gen(Bytecode &code) const override final;
 };
 
+struct IfStmt : public Stmt {
+    IfStmt(SharedStr label_, Expr *cond_, BlockStmt *then_)
+        : label(label_), cond(cond_), then(then_) {}
+    SharedStr label;
+    std::unique_ptr<Expr> cond;
+    std::unique_ptr<BlockStmt> then;
+    std::unique_ptr<BlockStmt> els;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct ReturnStmt : public Stmt {
     ReturnStmt(int argc_) : expr(new NullExpr()), argc(argc_) {}
     ReturnStmt(Expr *e, int argc_) : expr(e), argc(argc_) {}
