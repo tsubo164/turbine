@@ -48,7 +48,7 @@ void push_back(std::vector<Byte> &bytes, T operand)
 }
 
 template<typename T>
-void write(std::vector<Byte> &bytes, Int index, T operand)
+void write(std::vector<Byte> &bytes, Int addr, T operand)
 {
     constexpr int SIZE = sizeof(T);
     Byte buf[SIZE] = {0};
@@ -56,7 +56,7 @@ void write(std::vector<Byte> &bytes, Int index, T operand)
     std::memcpy(buf, &operand, SIZE);
 
     for (int i = 0; i < SIZE; i++)
-        bytes[index + i] = buf[i];
+        bytes[addr + i] = buf[i];
 }
 
 void Bytecode::LoadByte(Byte byte)
@@ -97,49 +97,49 @@ void Bytecode::AllocateLocal(Byte count)
 
 void Bytecode::CallFunction(Int label)
 {
-    Int index = -1;
-    const auto it = label_to_index_.find(label);
-    if (it != label_to_index_.end()) {
-        index = it->second;
+    Int addr = -1;
+    const auto it = label_to_addr_.find(label);
+    if (it != label_to_addr_.end()) {
+        addr = it->second;
     }
     else {
         // backpatch to the next to call instruction
         const Int next_addr = bytes_.size() + 1;
-        backpatch_index_.insert({next_addr, label});
+        backpatch_addr_.emplace_back(next_addr, label);
     }
 
     bytes_.push_back(OP_CALL);
-    push_back<Word>(bytes_, index);
+    push_back<Word>(bytes_, addr);
 }
 
-Int Bytecode::JumpIfZero(Int index)
+Int Bytecode::JumpIfZero(Int addr)
 {
     bytes_.push_back(OP_JEQ);
-    const Int operand_index = bytes_.size();
-    push_back<Word>(bytes_, index);
+    const Int operand_addr = bytes_.size();
+    push_back<Word>(bytes_, addr);
 
-    return operand_index;
+    return operand_addr;
 }
 
-Int Bytecode::Jump(Int index)
+Int Bytecode::Jump(Int addr)
 {
     bytes_.push_back(OP_JMP);
-    const Int operand_index = bytes_.size();
-    push_back<Word>(bytes_, index);
+    const Int operand_addr = bytes_.size();
+    push_back<Word>(bytes_, addr);
 
-    return operand_index;
+    return operand_addr;
 }
 
 void Bytecode::Label(Int label)
 {
-    const auto it = label_to_index_.find(label);
-    if (it != label_to_index_.end()) {
+    const auto it = label_to_addr_.find(label);
+    if (it != label_to_addr_.end()) {
         std::cerr << "error: re-defined label: " << label << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
-    const Int next_index = bytes_.size();
-    label_to_index_.insert({label, next_index});
+    const Int next_addr = bytes_.size();
+    label_to_addr_.insert({label, next_addr});
 }
 
 void Bytecode::Return(Byte argc)
@@ -167,19 +167,17 @@ void Bytecode::End()
 {
     bytes_.push_back(OP_EOC);
 
-    for (auto pair: backpatch_index_) {
-        const Int label = pair.second;
-        const Int index = pair.first;
-        const Int func_addr = label_to_index_[label];
-        write<Word>(bytes_, index, func_addr);
+    for (const auto &patch: backpatch_addr_) {
+        const Int func_addr = label_to_addr_[patch.label];
+        write<Word>(bytes_, patch.addr, func_addr);
     }
 }
 
-void Bytecode::BackPatch(Int operand_index)
+void Bytecode::BackPatch(Int operand_addr)
 {
     Int current_addr = bytes_.size();
 
-    write<Word>(bytes_, operand_index, current_addr);
+    write<Word>(bytes_, operand_addr, current_addr);
 }
 
 const Byte *Bytecode::Data() const
@@ -187,24 +185,24 @@ const Byte *Bytecode::Data() const
     return &bytes_[0];
 }
 
-Int Bytecode::Read(Int index) const
+Int Bytecode::Read(Int addr) const
 {
-    if (index < 0 || index >= Size())
+    if (addr < 0 || addr >= Size())
         return OP_NOP;
 
-    return bytes_[index];
+    return bytes_[addr];
 }
 
-Int Bytecode::ReadWord(Int index) const
+Int Bytecode::ReadWord(Int addr) const
 {
-    if (index < 0 || index >= Size())
+    if (addr < 0 || addr >= Size())
         return 0;
 
     constexpr int SIZE = sizeof(Word);
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(Read(index + i));
+        buf[i] = static_cast<Byte>(Read(addr + i));
 
     Word ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -220,12 +218,12 @@ Int Bytecode::Size() const
 void Bytecode::Print() const
 {
     bool brk = false;
-    int index = 0;
+    int addr = 0;
 
-    while (index < Size() && !brk) {
-        std::cout << "[" << std::setw(6) << index << "] ";
+    while (addr < Size() && !brk) {
+        std::cout << "[" << std::setw(6) << addr << "] ";
 
-        const int op = Read(index++);
+        const int op = Read(addr++);
 
         switch (op) {
         case OP_NOP:
@@ -233,42 +231,42 @@ void Bytecode::Print() const
             break;
 
         case OP_LOADB:
-            std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            std::cout << OpcodeString(op) << " $" << Read(addr++) << std::endl;
             break;
 
         case OP_LOADLOCAL:
-            std::cout << OpcodeString(op) << " @" << Read(index++) << std::endl;
+            std::cout << OpcodeString(op) << " @" << Read(addr++) << std::endl;
             break;
 
         case OP_LOADARG:
-            std::cout << OpcodeString(op) << " @" << Read(index++) << std::endl;
+            std::cout << OpcodeString(op) << " @" << Read(addr++) << std::endl;
             break;
 
         case OP_STORELOCAL:
-            std::cout << OpcodeString(op) << " @" << Read(index++) << std::endl;
+            std::cout << OpcodeString(op) << " @" << Read(addr++) << std::endl;
             break;
 
         case OP_ALLOC:
-            std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            std::cout << OpcodeString(op) << " $" << Read(addr++) << std::endl;
             break;
 
         case OP_CALL:
-            std::cout << OpcodeString(op) << " $" << ReadWord(index) << std::endl;
-            index += 2;
+            std::cout << OpcodeString(op) << " $" << ReadWord(addr) << std::endl;
+            addr += 2;
             break;
 
         case OP_RET:
-            std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            std::cout << OpcodeString(op) << " $" << Read(addr++) << std::endl;
             break;
 
         case OP_JMP:
-            std::cout << OpcodeString(op) << " $" << ReadWord(index) << std::endl;
-            index += 2;
+            std::cout << OpcodeString(op) << " $" << ReadWord(addr) << std::endl;
+            addr += 2;
             break;
 
         case OP_JEQ:
-            std::cout << OpcodeString(op) << " $" << ReadWord(index) << std::endl;
-            index += 2;
+            std::cout << OpcodeString(op) << " $" << ReadWord(addr) << std::endl;
+            addr += 2;
             break;
 
         case OP_ADD:
@@ -289,8 +287,7 @@ void Bytecode::Print() const
             break;
 
         default:
-            std::cerr << "Opcode: " << static_cast<int>(op)
-                << " not in Bytecode::Print()" << std::endl;
+            std::cerr << "Opcode: " << " not in Bytecode::Print()" << std::endl;
             std::exit(EXIT_FAILURE);
             break;
         }

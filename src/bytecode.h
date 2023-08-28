@@ -45,28 +45,34 @@ public:
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
     void CallFunction(Int label);
-    // jump instructions return the index of bytes
-    // where the destination index is stored.
-    Int Jump(Int index);
-    Int JumpIfZero(Int index);
+    // jump instructions return the address
+    // where the destination address is stored.
+    Int Jump(Int addr);
+    Int JumpIfZero(Int addr);
     void Label(Int label);
     void Return(Byte argc);
     void AddInt();
     void EqualInt();
     void Exit();
     void End();
-    void BackPatch(Int operand_index);
+    void BackPatch(Int operand_addr);
 
     const Byte *Data() const;
-    Int Read(Int index) const;
-    Int ReadWord(Int index) const;
+    Int Read(Int addr) const;
+    Int ReadWord(Int addr) const;
     Int Size() const;
 
     void Print() const;
+
 private:
     std::vector<Byte> bytes_;
-    std::unordered_map<Int,Int> label_to_index_;
-    std::unordered_map<Int,Int> backpatch_index_;
+    std::unordered_map<Int,Int> label_to_addr_;
+    struct Patch {
+        Patch(Int a, Int l) : addr(a), label(l) {}
+        Int addr = 0;  // address to patch
+        Int label = 0; // label to jump to
+    };
+    std::vector<Patch> backpatch_addr_;
 };
 
 const char *OpcodeString(Byte op);
