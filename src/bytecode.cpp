@@ -18,6 +18,7 @@ const char *OpcodeString(Byte op)
     O(OP_ALLOC);
     O(OP_CALL);
     O(OP_RET);
+    O(OP_JMP);
     O(OP_JEQ);
 
     O(OP_ADD);
@@ -94,50 +95,51 @@ void Bytecode::AllocateLocal(Byte count)
     bytes_.push_back(count);
 }
 
-void Bytecode::CallFunction(SharedStr name)
+void Bytecode::CallFunction(Int label)
 {
     Int index = -1;
-    const auto it = name_to_index_.find(name);
-    if (it != name_to_index_.end()) {
+    const auto it = label_to_index_.find(label);
+    if (it != label_to_index_.end()) {
         index = it->second;
     }
     else {
         // backpatch to the next to call instruction
-        const Int next_index = bytes_.size() + 1;
-        backpatch_index_.insert({next_index, name});
+        const Int next_addr = bytes_.size() + 1;
+        backpatch_index_.insert({next_addr, label});
     }
 
     bytes_.push_back(OP_CALL);
     push_back<Word>(bytes_, index);
 }
 
-void Bytecode::JumpIfZero(SharedStr label)
+Int Bytecode::JumpIfZero(Int index)
 {
-    Int index = -1;
-    const auto it = name_to_index_.find(label);
-    if (it != name_to_index_.end()) {
-        index = it->second;
-    }
-    else {
-        // backpatch to the next to call instruction
-        const Int next_index = bytes_.size() + 1;
-        backpatch_index_.insert({next_index, label});
-    }
-
     bytes_.push_back(OP_JEQ);
+    const Int operand_index = bytes_.size();
     push_back<Word>(bytes_, index);
+
+    return operand_index;
 }
 
-void Bytecode::Label(SharedStr name)
+Int Bytecode::Jump(Int index)
 {
-    const auto it = name_to_index_.find(name);
-    if (it != name_to_index_.end()) {
-        std::cerr << "error: re-defined label" << std::endl;
+    bytes_.push_back(OP_JMP);
+    const Int operand_index = bytes_.size();
+    push_back<Word>(bytes_, index);
+
+    return operand_index;
+}
+
+void Bytecode::Label(Int label)
+{
+    const auto it = label_to_index_.find(label);
+    if (it != label_to_index_.end()) {
+        std::cerr << "error: re-defined label: " << label << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
     const Int next_index = bytes_.size();
-    name_to_index_.insert({name, next_index});
+    label_to_index_.insert({label, next_index});
 }
 
 void Bytecode::Return(Byte argc)
@@ -166,11 +168,18 @@ void Bytecode::End()
     bytes_.push_back(OP_EOC);
 
     for (auto pair: backpatch_index_) {
-        const SharedStr name = pair.second;
+        const Int label = pair.second;
         const Int index = pair.first;
-        const Int func_addr = name_to_index_[name];
+        const Int func_addr = label_to_index_[label];
         write<Word>(bytes_, index, func_addr);
     }
+}
+
+void Bytecode::BackPatch(Int operand_index)
+{
+    Int current_addr = bytes_.size();
+
+    write<Word>(bytes_, operand_index, current_addr);
 }
 
 const Byte *Bytecode::Data() const
@@ -250,6 +259,11 @@ void Bytecode::Print() const
 
         case OP_RET:
             std::cout << OpcodeString(op) << " $" << Read(index++) << std::endl;
+            break;
+
+        case OP_JMP:
+            std::cout << OpcodeString(op) << " $" << ReadWord(index) << std::endl;
+            index += 2;
             break;
 
         case OP_JEQ:

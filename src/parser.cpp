@@ -195,16 +195,19 @@ Expr *Parser::expression()
 
 Stmt *Parser::if_stmt()
 {
-    char buf[16] = {'\0'};
-    std::sprintf(buf, ".L%X", label_id_++);
-    const SharedStr label = string_table_.Insert(buf);
-
     expect(TK::If);
     Expr *cond = expression();
     expect(TK::NewLine);
 
     BlockStmt *then = block_stmt();
-    return new IfStmt(label, cond, then);
+    BlockStmt *els = nullptr;
+
+    if (consume(TK::Else)) {
+        expect(TK::NewLine);
+        els = block_stmt();
+    }
+
+    return new IfStmt(cond, then, els);
 }
 
 Stmt *Parser::ret_stmt()

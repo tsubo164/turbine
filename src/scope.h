@@ -20,8 +20,9 @@ struct Argument {
 };
 
 struct Function {
-    Function(SharedStr name_) : name(name_) {}
+    Function(SharedStr name_, int id_) : name(name_), id(id_) {}
     SharedStr name;
+    int id;
     Scope *scope = nullptr;
 
     Argument *DefineArgument(SharedStr name);

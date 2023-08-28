@@ -76,10 +76,11 @@ void BlockStmt::Print(int depth) const
 
 void IfStmt::Print(int depth) const
 {
-    print_node("IfStmt", depth, false);
-    std::cout << label << std::endl;
+    print_node("IfStmt", depth);
     cond->Print(depth + 1);
     then->Print(depth + 1);
+    if (els)
+        els->Print(depth + 1);
 }
 
 void ReturnStmt::Print(int depth) const
@@ -210,7 +211,7 @@ void FuncCallExpr::Gen(Bytecode &code) const
 {
     for (auto it = args.rbegin(); it != args.rend(); ++it)
         (*it)->Gen(code);
-    code.CallFunction(func->name);
+    code.CallFunction(func->id);
 }
 
 void AddExpr::Gen(Bytecode &code) const
@@ -245,10 +246,24 @@ void BlockStmt::Gen(Bytecode &code) const
 
 void IfStmt::Gen(Bytecode &code) const
 {
+    Int jiz = 0;
+    Int jmp = 0;
+
+    // cond
     cond->Gen(code);
-    code.JumpIfZero(label);
+    jiz = code.JumpIfZero(-1);
+
+    // true
     then->Gen(code);
-    code.Label(label);
+    if (els)
+        jmp = code.Jump(-1);
+
+    // false
+    code.BackPatch(jiz);
+    if (els) {
+        els->Gen(code);
+        code.BackPatch(jmp);
+    }
 }
 
 void ReturnStmt::Gen(Bytecode &code) const
@@ -265,7 +280,7 @@ void ExprStmt::Gen(Bytecode &code) const
 void FuncDef::Gen(Bytecode &code) const
 {
     // func name label
-    code.Label(func->name);
+    code.Label(func->id);
 
     // local vars
     if (func->scope->GetVariableCount() > 0)

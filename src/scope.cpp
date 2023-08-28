@@ -117,7 +117,8 @@ Function *Scope::DefineFunction(const char *name)
         return nullptr;
     }
 
-    Function *func = new Function(name);
+    const int next_id = funcs_.size();
+    Function *func = new Function(name, next_id);
     funcs_.insert({name, func});
     return func;
 }

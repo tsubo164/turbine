@@ -23,6 +23,7 @@ enum Opcode {
     OP_ALLOC,
     OP_CALL,
     OP_RET,
+    OP_JMP,
     OP_JEQ,
 
     OP_ADD,
@@ -43,14 +44,18 @@ public:
     void LoadArgument(Byte id);
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
-    void CallFunction(SharedStr name);
-    void JumpIfZero(SharedStr label);
-    void Label(SharedStr name);
+    void CallFunction(Int label);
+    // jump instructions return the index of bytes
+    // where the destination index is stored.
+    Int Jump(Int index);
+    Int JumpIfZero(Int index);
+    void Label(Int label);
     void Return(Byte argc);
     void AddInt();
     void EqualInt();
     void Exit();
     void End();
+    void BackPatch(Int operand_index);
 
     const Byte *Data() const;
     Int Read(Int index) const;
@@ -60,8 +65,8 @@ public:
     void Print() const;
 private:
     std::vector<Byte> bytes_;
-    std::unordered_map<SharedStr,Int> name_to_index_;
-    std::unordered_map<Int,SharedStr> backpatch_index_;
+    std::unordered_map<Int,Int> label_to_index_;
+    std::unordered_map<Int,Int> backpatch_index_;
 };
 
 const char *OpcodeString(Byte op);

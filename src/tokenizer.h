@@ -21,6 +21,7 @@ enum class TokenKind {
     // keyword
     Int,
     If,
+    Else,
     Return,
     // separator
     Comma,

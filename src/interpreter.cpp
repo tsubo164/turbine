@@ -38,7 +38,13 @@ Int Interpreter::Run(std::istream &stream)
     }
 
     // Generate bytecode
-    code_.CallFunction(string_table_.Insert("main"));
+    Function *main_func = scope_.FindFunction(string_table_.Insert("main"));
+    if (!main_func) {
+        // TODO error
+    }
+    //const int main_func = parser_.GetMainFunctionLabel();
+    //code_.CallFunction(main_func);
+    code_.CallFunction(main_func->id);
     code_.Exit();
 
     GenerateCode(tree_, code_);

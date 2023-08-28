@@ -110,9 +110,10 @@ struct BlockStmt : public Stmt {
 };
 
 struct IfStmt : public Stmt {
-    IfStmt(SharedStr label_, Expr *cond_, BlockStmt *then_)
-        : label(label_), cond(cond_), then(then_) {}
-    SharedStr label;
+    IfStmt(Expr *cond_, BlockStmt *then_)
+        : cond(cond_), then(then_), els(nullptr) {}
+    IfStmt(Expr *cond_, BlockStmt *then_, BlockStmt *els_)
+        : cond(cond_), then(then_), els(els_) {}
     std::unique_ptr<Expr> cond;
     std::unique_ptr<BlockStmt> then;
     std::unique_ptr<BlockStmt> els;

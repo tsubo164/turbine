@@ -168,6 +168,36 @@ int main(int argc, char **argv)
 
         ASSERTL(11, ip.Run(input));
     }
+    {
+        std::stringstream input(
+            "# main() int\n"
+            "    - a int\n"
+            "    a = 42\n"
+            "    if a == 42\n"
+            "        return 1\n"
+            "    else\n"
+            "        return 0\n"
+            "    return 33\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(1, ip.Run(input));
+    }
+    {
+        std::stringstream input(
+            "# main() int\n"
+            "    - a int\n"
+            "    a = 42\n"
+            "    if a == 41\n"
+            "        return 1\n"
+            "    else\n"
+            "        return 0\n"
+            "    return 33\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(0, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
