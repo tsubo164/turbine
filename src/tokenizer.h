@@ -17,6 +17,7 @@ enum class TokenKind {
     Equal2,
     Plus,
     Minus,
+    Slash,
     Hash,
     // keyword
     Int,
@@ -61,10 +62,11 @@ private:
     int unread_blockend_ = 0;
     bool is_line_begin_ = true;
 
-    TokenKind scan_number(int first_char, Token *tok);
-    TokenKind scan_word(int first_char, Token *tok);
-    TokenKind scan_indent(Token *tok);
+    void scan_number(int first_char, Token *tok);
+    void scan_word(int first_char, Token *tok);
     int count_indent();
+    TokenKind scan_indent(Token *tok);
+    void scan_line_comment();
 };
 
 #endif // _H

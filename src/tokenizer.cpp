@@ -29,6 +29,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::Equal2: return "==";
     case TK::Plus: return "+";
     case TK::Minus: return "-";
+    case TK::Slash: return "/";
     case TK::Hash: return "#";
 
     case TK::Int: return "int";
@@ -115,6 +116,20 @@ void Tokenizer::Get(Token *tok)
             return;
         }
 
+        if (ch == '/') {
+            ch = stream_->get();
+
+            if (ch == '/') {
+                scan_line_comment();
+                continue;
+            }
+            else {
+                stream_->unget();
+                tok->kind = TK::Slash;
+            }
+            return;
+        }
+
         if (ch == ',') {
             tok->kind = TK::Comma;
             return;
@@ -164,7 +179,7 @@ void Tokenizer::Get(Token *tok)
     tok->kind = TK::Eof;
 }
 
-TokenKind Tokenizer::scan_number(int first_char, Token *tok)
+void Tokenizer::scan_number(int first_char, Token *tok)
 {
     static char buf[256] = {'\0'};
     char *pbuf = buf;
@@ -180,11 +195,9 @@ TokenKind Tokenizer::scan_number(int first_char, Token *tok)
     char *end = nullptr;
     tok->ival = strtol(buf, &end, 10);
     tok->kind = TK::IntNum;
-
-    return tok->kind;
 }
 
-TokenKind Tokenizer::scan_word(int first_char, Token *tok)
+void Tokenizer::scan_word(int first_char, Token *tok)
 {
     strbuf_.clear();
 
@@ -196,8 +209,6 @@ TokenKind Tokenizer::scan_word(int first_char, Token *tok)
     tok->kind = keyword_or_identifier(strbuf_);
     if (tok->kind == TK::Ident)
         tok->sval = strtable_.Insert(strbuf_);
-
-    return tok->kind;
 }
 
 int Tokenizer::count_indent()
@@ -207,7 +218,18 @@ int Tokenizer::count_indent()
     for (;;) {
         const int ch = stream_->get();
 
-        if (ch == ' ' || ch == '\v' || ch == '\f') {
+        if (ch == '/') {
+            // indent + line comment => next line
+            if (stream_->peek() == '/') {
+                scan_line_comment();
+                continue;
+            }
+            else {
+                stream_->unget();
+                break;
+            }
+        }
+        else if (ch == ' ' || ch == '\v' || ch == '\f') {
             indent++;
             continue;
         }
@@ -216,7 +238,7 @@ int Tokenizer::count_indent()
             continue;
         }
         else if (ch == '\n') {
-            // blank line, move to next line
+            // blank line => next line
             indent = 0;
             continue;
         }
@@ -253,5 +275,17 @@ TokenKind Tokenizer::scan_indent(Token *tok)
     }
     else {
         return tok->kind;
+    }
+}
+
+void Tokenizer::scan_line_comment()
+{
+    for (;;) {
+        const int ch = stream_->get();
+
+        if (ch == '\n') {
+            stream_->unget();
+            break;
+        }
     }
 }
