@@ -240,6 +240,19 @@ int main(int argc, char **argv)
 
         ASSERTL(7, ip.Run(input));
     }
+    {
+        std::stringstream input(
+            "# upper(s string) string\n"
+            "    return s\n"
+            "\n"
+            "# main() int\n"
+            "    - s string\n"
+            "    return 33\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(33, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

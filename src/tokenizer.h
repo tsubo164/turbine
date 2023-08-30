@@ -24,6 +24,7 @@ enum class TokenKind {
     If,
     Else,
     Return,
+    String,
     // separator
     Comma,
     LeftParenthesis,

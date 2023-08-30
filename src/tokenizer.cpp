@@ -6,6 +6,7 @@ static const std::unordered_map<std::string, TokenKind> keywords = {
     {"if", TK::If},
     {"else", TK::Else},
     {"return", TK::Return},
+    {"string", TK::String},
 };
 
 static TokenKind keyword_or_identifier(const std::string &word)
@@ -36,6 +37,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::If: return "if";
     case TK::Else: return "else";
     case TK::Return: return "return";
+    case TK::String: return "string";
 
     case TK::Comma: return ",";
     case TK::LeftParenthesis: return "(";

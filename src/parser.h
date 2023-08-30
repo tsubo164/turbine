@@ -54,6 +54,9 @@ private:
     Stmt *expr_stmt();
     Variable *var_decl();
     BlockStmt *block_stmt();
+
+    //
+    void type();
     Function *param_list(Function *func);
     FuncDef *func_def();
 

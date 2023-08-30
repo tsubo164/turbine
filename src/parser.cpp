@@ -243,7 +243,7 @@ Variable *Parser::var_decl()
     expect(TK::Ident);
     const Token *tok = curtok();
     Variable *var = scope_->DefineVariable(tok->sval);
-    expect(TK::Int);
+    type();
     expect(TK::NewLine);
 
     return var;
@@ -284,6 +284,20 @@ BlockStmt *Parser::block_stmt()
     return block;
 }
 
+void Parser::type()
+{
+    if (consume(TK::Int))
+        return;
+
+    if (consume(TK::String))
+        return;
+
+    const Token *tok = gettok();
+
+    std::cerr << "error: not a type name: '" << tok->kind << "'" << std::endl;
+    std::exit(EXIT_FAILURE);
+}
+
 Function *Parser::param_list(Function *func)
 {
     expect(TK::LeftParenthesis);
@@ -296,7 +310,7 @@ Function *Parser::param_list(Function *func)
         const Token *tok = curtok();
         func->DefineArgument(tok->sval);
 
-        expect(TK::Int);
+        type();
     }
     while (consume(TK::Comma));
 
@@ -318,7 +332,7 @@ FuncDef *Parser::func_def()
     }
 
     func = param_list(func);
-    expect(TK::Int);
+    type();
 
     expect(TK::NewLine);
 
