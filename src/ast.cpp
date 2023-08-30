@@ -279,8 +279,7 @@ void ExprStmt::Gen(Bytecode &code) const
 
 void FuncDef::Gen(Bytecode &code) const
 {
-    // func name label
-    code.Label(func->id);
+    code.RegisterFunction(func->id, func->GetArgumentCount());
 
     // local vars
     if (func->scope->GetVariableCount() > 0)

@@ -15,7 +15,7 @@ public:
     VM() {}
     ~VM() {}
 
-    void Run(const Bytecode &code );
+    void Run(const Bytecode &code);
 
     Int StackTopInt() const;
     void PrintStack() const;
@@ -23,7 +23,7 @@ public:
 
 private:
     std::vector<Object> stack_ = {{0}};
-    const Byte *code_ = nullptr;
+    const Bytecode *code_ = nullptr;
 
     Int eoc_ = 0; // end of code
     Int ip_ = 0; // instruction pointer

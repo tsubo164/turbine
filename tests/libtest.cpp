@@ -218,6 +218,28 @@ int main(int argc, char **argv)
 
         ASSERTL(1, ip.Run(input));
     }
+    {
+        std::stringstream input(
+            "// if statement\n"
+            "// line comment at beginning of line\n"
+            "# seven() int\n"
+            "    return 7\n"
+            "\n"
+            "# main() int\n"
+            "    - a int\n"
+            "  // comment with incorrect indetation\n"
+            "    a = 42 // comment after vaid statement\n"
+            "    if a == 42\n"
+            "        return seven()\n"
+            "    else\n"
+            "        return 0\n"
+            "    // comment with the same indetation\n"
+            "    return 33\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(7, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

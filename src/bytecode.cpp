@@ -59,6 +59,21 @@ void write(std::vector<Byte> &bytes, Int addr, T operand)
         bytes[addr + i] = buf[i];
 }
 
+template<typename T>
+T read(const std::vector<Byte> &bytes, Int addr)
+{
+    constexpr int SIZE = sizeof(T);
+    Byte buf[SIZE] = {0};
+
+    for (int i = 0; i < SIZE; i++)
+        buf[i] = bytes[addr + i];
+
+    T ret {};
+    std::memcpy(&ret, buf, SIZE);
+
+    return ret;
+}
+
 void Bytecode::LoadByte(Byte byte)
 {
     bytes_.push_back(OP_LOADB);
@@ -95,27 +110,16 @@ void Bytecode::AllocateLocal(Byte count)
     bytes_.push_back(count);
 }
 
-void Bytecode::CallFunction(Int label)
+void Bytecode::CallFunction(Word func_index)
 {
-    Int addr = -1;
-    const auto it = label_to_addr_.find(label);
-    if (it != label_to_addr_.end()) {
-        addr = it->second;
-    }
-    else {
-        // backpatch to the next to call instruction
-        const Int next_addr = bytes_.size() + 1;
-        backpatch_addr_.emplace_back(next_addr, label);
-    }
-
     bytes_.push_back(OP_CALL);
-    push_back<Word>(bytes_, addr);
+    push_back<Word>(bytes_, func_index);
 }
 
 Int Bytecode::JumpIfZero(Int addr)
 {
     bytes_.push_back(OP_JEQ);
-    const Int operand_addr = bytes_.size();
+    const Int operand_addr = Size();
     push_back<Word>(bytes_, addr);
 
     return operand_addr;
@@ -124,22 +128,10 @@ Int Bytecode::JumpIfZero(Int addr)
 Int Bytecode::Jump(Int addr)
 {
     bytes_.push_back(OP_JMP);
-    const Int operand_addr = bytes_.size();
+    const Int operand_addr = Size();
     push_back<Word>(bytes_, addr);
 
     return operand_addr;
-}
-
-void Bytecode::Label(Int label)
-{
-    const auto it = label_to_addr_.find(label);
-    if (it != label_to_addr_.end()) {
-        std::cerr << "error: re-defined label: " << label << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    const Int next_addr = bytes_.size();
-    label_to_addr_.insert({label, next_addr});
 }
 
 void Bytecode::Return(Byte argc)
@@ -166,48 +158,60 @@ void Bytecode::Exit()
 void Bytecode::End()
 {
     bytes_.push_back(OP_EOC);
-
-    for (const auto &patch: backpatch_addr_) {
-        const Int func_addr = label_to_addr_[patch.label];
-        write<Word>(bytes_, patch.addr, func_addr);
-    }
 }
 
 void Bytecode::BackPatch(Int operand_addr)
 {
-    Int current_addr = bytes_.size();
-
+    const Int current_addr = Size();
     write<Word>(bytes_, operand_addr, current_addr);
 }
 
-const Byte *Bytecode::Data() const
+Int Bytecode::GetFunctionAddress(Word func_index) const
 {
-    return &bytes_[0];
+    if (func_index >= funcs_.size()) {
+        std::cerr << "internal error: function index out of range: "
+            << func_index << ", function count: " << funcs_.size() << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    return funcs_[func_index].addr;
 }
 
-Int Bytecode::Read(Int addr) const
+void Bytecode::RegisterFunction(Word func_index, Byte argc)
 {
-    if (addr < 0 || addr >= Size())
-        return OP_NOP;
+    const Word next_index = funcs_.size();
+
+    if (func_index != next_index) {
+        std::cerr << "error: function func_index " << func_index
+            << " and next index " << next_index
+            << " should match" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    const Int next_addr = Size();
+    funcs_.emplace_back(func_index, argc, next_addr);
+}
+
+Byte Bytecode::Read(Int addr) const
+{
+    if (addr < 0 || addr >= Size()) {
+        std::cerr << "internal error: address out of range: " << addr
+            << ", bytecode size: " << Size() << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
 
     return bytes_[addr];
 }
 
-Int Bytecode::ReadWord(Int addr) const
+Word Bytecode::ReadWord(Int addr) const
 {
-    if (addr < 0 || addr >= Size())
-        return 0;
+    if (addr < 0 || addr >= Size()) {
+        std::cerr << "internal error: address out of range: " << addr
+            << ", bytecode size: " << Size() << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
 
-    constexpr int SIZE = sizeof(Word);
-    Byte buf[SIZE] = {0};
-
-    for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(Read(addr + i));
-
-    Word ret = 0;
-    std::memcpy(&ret, buf, SIZE);
-
-    return ret;
+    return read<Word>(bytes_, addr);
 }
 
 Int Bytecode::Size() const
@@ -215,8 +219,30 @@ Int Bytecode::Size() const
     return bytes_.size();
 }
 
+static void print_op(int op)
+{
+    std::cout << OpcodeString(op) << std::endl;
+}
+
+static void print_op_immediate(int op, Int immediate, bool end_line = true)
+{
+    std::cout << OpcodeString(op)<< " $" << immediate;
+
+    if (end_line)
+        std::cout << std::endl;
+}
+
+static void print_op_address(int op, Int address)
+{
+    std::cout << OpcodeString(op)<< " @" << address << std::endl;
+}
+
 void Bytecode::Print() const
 {
+    // function info
+    for (const auto &func: funcs_)
+        std::cout << "* function id: " << func.id << " @" << func.addr << std::endl;
+
     bool brk = false;
     int addr = 0;
 
@@ -231,58 +257,59 @@ void Bytecode::Print() const
             break;
 
         case OP_LOADB:
-            std::cout << OpcodeString(op) << " $" << Read(addr++) << std::endl;
+            print_op_immediate(op, Read(addr++));
             break;
 
         case OP_LOADLOCAL:
-            std::cout << OpcodeString(op) << " @" << Read(addr++) << std::endl;
+            print_op_address(op, Read(addr++));
             break;
 
         case OP_LOADARG:
-            std::cout << OpcodeString(op) << " @" << Read(addr++) << std::endl;
+            print_op_address(op, Read(addr++));
             break;
 
         case OP_STORELOCAL:
-            std::cout << OpcodeString(op) << " @" << Read(addr++) << std::endl;
+            print_op_address(op, Read(addr++));
             break;
 
         case OP_ALLOC:
-            std::cout << OpcodeString(op) << " $" << Read(addr++) << std::endl;
+            print_op_immediate(op, Read(addr++));
             break;
 
         case OP_CALL:
-            std::cout << OpcodeString(op) << " $" << ReadWord(addr) << std::endl;
+            print_op_immediate(op, ReadWord(addr), false);
+            std::cout << " = @" << GetFunctionAddress(ReadWord(addr)) << std::endl;
             addr += 2;
             break;
 
         case OP_RET:
-            std::cout << OpcodeString(op) << " $" << Read(addr++) << std::endl;
+            print_op_immediate(op, Read(addr++));
             break;
 
         case OP_JMP:
-            std::cout << OpcodeString(op) << " $" << ReadWord(addr) << std::endl;
+            print_op_immediate(op, ReadWord(addr));
             addr += 2;
             break;
 
         case OP_JEQ:
-            std::cout << OpcodeString(op) << " $" << ReadWord(addr) << std::endl;
+            print_op_immediate(op, ReadWord(addr));
             addr += 2;
             break;
 
         case OP_ADD:
-            std::cout << OpcodeString(op) << std::endl;
+            print_op(op);
             break;
 
         case OP_EQ:
-            std::cout << OpcodeString(op) << std::endl;
+            print_op(op);
             break;
 
         case OP_EXIT:
-            std::cout << OpcodeString(op) << std::endl;
+            print_op(op);
             break;
 
         case OP_EOC:
-            std::cout << OpcodeString(op) << std::endl;
+            print_op(op);
             brk = true;
             break;
 

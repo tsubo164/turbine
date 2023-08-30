@@ -13,43 +13,45 @@ using Float = double;
 
 enum Opcode {
     OP_NOP = 0,
-
+    // local and arg
     OP_LOADB,
     OP_LOADI,
     OP_LOADLOCAL,
     OP_LOADARG,
     OP_STORELOCAL,
-
+    // jump and function
     OP_ALLOC,
     OP_CALL,
     OP_RET,
     OP_JMP,
     OP_JEQ,
-
+    // arithmetic
     OP_ADD,
     OP_EQ,
-
+    // exit
     OP_EXIT,
     OP_EOC,
 };
+
+const char *OpcodeString(Byte op);
 
 class Bytecode {
 public:
     Bytecode() {}
     ~Bytecode() {}
 
+    // emit opcode and operand
     void LoadByte(Byte byte);
     void LoadInt(Int integer);
     void LoadLocal(Byte id);
     void LoadArgument(Byte id);
     void StoreLocal(Byte id);
     void AllocateLocal(Byte count);
-    void CallFunction(Int label);
+    void CallFunction(Word func_index);
     // jump instructions return the address
     // where the destination address is stored.
     Int Jump(Int addr);
     Int JumpIfZero(Int addr);
-    void Label(Int label);
     void Return(Byte argc);
     void AddInt();
     void EqualInt();
@@ -57,24 +59,28 @@ public:
     void End();
     void BackPatch(Int operand_addr);
 
-    const Byte *Data() const;
-    Int Read(Int addr) const;
-    Int ReadWord(Int addr) const;
+    // functions
+    Int GetFunctionAddress(Word func_index) const;
+    void RegisterFunction(Word func_index, Byte argc);
+
+    // read/write
+    Byte Read(Int addr) const;
+    Word ReadWord(Int addr) const;
     Int Size() const;
 
+    // print
     void Print() const;
 
 private:
     std::vector<Byte> bytes_;
-    std::unordered_map<Int,Int> label_to_addr_;
-    struct Patch {
-        Patch(Int a, Int l) : addr(a), label(l) {}
-        Int addr = 0;  // address to patch
-        Int label = 0; // label to jump to
-    };
-    std::vector<Patch> backpatch_addr_;
-};
 
-const char *OpcodeString(Byte op);
+    struct Function {
+        Function(Word id_, Byte argc_, Int addr_) : id(id_), argc(argc_), addr(addr_) {}
+        Word id = 0;
+        Byte argc = 0;
+        Int addr = 0;
+    };
+    std::vector<Function> funcs_;
+};
 
 #endif // _H

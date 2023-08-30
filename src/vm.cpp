@@ -20,7 +20,7 @@ void VM::set_bp(Int bp)
 
 Int VM::read_byte(Int index) const
 {
-    return code_[index];
+    return code_->Read(index);
 }
 
 Int VM::fetch_byte()
@@ -112,7 +112,7 @@ bool VM::is_eoc() const
 
 void VM::Run(const Bytecode &code)
 {
-    code_ = code.Data();
+    code_ = &code;
     eoc_ = code.Size();
     run();
 }
@@ -181,7 +181,8 @@ void VM::run()
 
         case OP_CALL:
             {
-                const Int addr  = fetch_word();
+                const Word func_index = fetch_word();
+                const Int addr = code_->GetFunctionAddress(func_index);
 
                 // call
                 push_int(ip_);
