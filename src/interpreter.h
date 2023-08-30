@@ -16,7 +16,7 @@ public:
 
     Int Run(std::istream &stream);
 
-    void EnablePrintToken(bool enable);
+    void EnablePrintToken(bool enable, bool raw);
     void EnablePrintTree(bool enable);
     void EnablePrintSymbols(bool enable);
     void EnablePrintBytecode(bool enable);
@@ -32,6 +32,7 @@ private:
     VM vm_;
 
     bool print_token_ = false;
+    bool print_token_raw_ = false;
     bool print_tree_ = false;
     bool print_symbols_ = false;
     bool print_bytecode_ = false;

@@ -64,9 +64,10 @@ Int Interpreter::Run(std::istream &stream)
     return ret;
 }
 
-void Interpreter::EnablePrintToken(bool enable)
+void Interpreter::EnablePrintToken(bool enable, bool raw)
 {
     print_token_ = enable;
+    print_token_raw_ = raw;
 }
 
 void Interpreter::EnablePrintTree(bool enable)
@@ -105,23 +106,32 @@ int Interpreter::print_token(std::istream &stream) const
     for (;;) {
         tokenizer.Get(tok);
 
-        if (tok->kind == TK::BlockBegin)
-            indent++;
-        else if (tok->kind == TK::BlockEnd)
-            indent--;
-
-        if (bol) {
-            bol = false;
-            for (int i = 0; i < indent; i++)
-                std::cout << "....";
-        }
-
-        if (tok->kind == TK::NewLine) {
+        if (print_token_raw_) {
             std::cout << tok->kind << std::endl;
-            bol = true;
         }
-        else if (tok->kind != TK::BlockBegin && tok->kind != TK::BlockEnd) {
-            std::cout << tok->kind << ' ';
+        else {
+            if (tok->kind == TK::BlockBegin) {
+                indent++;
+                continue;
+            }
+            else if (tok->kind == TK::BlockEnd) {
+                indent--;
+                continue;
+            }
+
+            if (bol) {
+                bol = false;
+                for (int i = 0; i < indent; i++)
+                    std::cout << "....";
+            }
+
+            if (tok->kind == TK::NewLine) {
+                std::cout << tok->kind << std::endl;
+                bol = true;
+            }
+            else if (tok->kind != TK::BlockBegin && tok->kind != TK::BlockEnd) {
+                std::cout << tok->kind << ' ';
+            }
         }
 
         if (tok->kind == TK::Eof)

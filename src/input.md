@@ -1,6 +1,16 @@
-# upper(s string) string
-    return s
+# seven() int
+    return 7
 
 # main() int
-    - s string
+    - a int
+    a = 42
+    if a == 42
+        - b int
+        b = 13
+
+        if  b == 13
+            - c int
+            c = 9
+
+    //b = 4 // error
     return 33

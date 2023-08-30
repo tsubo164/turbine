@@ -7,6 +7,7 @@
 int main(int argc, char **argv)
 {
     bool print_token = false;
+    bool print_token_raw = false;
     bool print_tree = false;
     bool print_symbols = false;
     bool print_bytecode = false;
@@ -18,6 +19,10 @@ int main(int argc, char **argv)
 
         if (arg == "--print-token" || arg == "-k") {
             print_token = true;
+        }
+        else if (arg == "--print-token-raw" || arg == "-K") {
+            print_token = true;
+            print_token_raw = true;
         }
         else if (arg == "--print-tree" || arg == "-t") {
             print_tree = true;
@@ -53,7 +58,7 @@ int main(int argc, char **argv)
     }
 
     Interpreter ip;
-    ip.EnablePrintToken(print_token);
+    ip.EnablePrintToken(print_token, print_token_raw);
     ip.EnablePrintTree(print_tree);
     ip.EnablePrintSymbols(print_symbols);
     ip.EnablePrintBytecode(print_bytecode);

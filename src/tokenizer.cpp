@@ -78,6 +78,12 @@ void Tokenizer::Get(Token *tok)
 {
     *tok = {};
 
+    if (unread_blockend_ > 0) {
+        unread_blockend_--;
+        tok->kind = TK::BlockEnd;
+        return;
+    }
+
     if (is_line_begin_) {
         is_line_begin_ = false;
 
@@ -258,24 +264,32 @@ TokenKind Tokenizer::scan_indent(Token *tok)
     const int indent = count_indent();
 
     if (indent > indent_stack_.top()) {
+        // push indent
         indent_stack_.push(indent);
         tok->kind = TK::BlockBegin;
         return tok->kind;
     }
     else if (indent < indent_stack_.top()) {
+        // pop indents until it matches current
         unread_blockend_ = 0;
+
         while (indent < indent_stack_.top()) {
             indent_stack_.pop();
+
             if (indent == indent_stack_.top()) {
                 tok->kind = TK::BlockEnd;
                 return tok->kind;
             }
+
             unread_blockend_++;
         }
+
+        // no indent matches current
         std::cerr << "mismatch outer indent" << std::endl;
         std::exit(EXIT_FAILURE);
     }
     else {
+        // no indent change
         return tok->kind;
     }
 }

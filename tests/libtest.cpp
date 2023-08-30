@@ -253,6 +253,29 @@ int main(int argc, char **argv)
 
         ASSERTL(33, ip.Run(input));
     }
+    {
+        std::stringstream input(
+            "# seven() int\n"
+            "    return 7\n"
+            "\n"
+            "# main() int\n"
+            "    - a int\n"
+            "    a = 42\n"
+            "    if a == 42\n"
+            "        - b int\n"
+            "        b = 13\n"
+            "\n"
+            "        if  b == 13\n"
+            "            - c int\n"
+            "            c = 9\n"
+            "\n"
+            "    //b = 4 // error\n"
+            "    return 31\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(31, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
