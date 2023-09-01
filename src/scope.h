@@ -54,6 +54,9 @@ public:
     Function *FindFunction(const char *name) const;
     int GetFunctionCount() const;
 
+    Variable *DeclareParameter(SharedStr name);
+    int GetParameterCount() const;
+
     void Print(int depth = 0) const;
 private:
     Scope *parent_ = nullptr;
@@ -61,6 +64,7 @@ private:
 
     std::map<const char*,Variable*> vars_;
     std::map<const char*,Function*> funcs_;
+    std::map<const char*,Variable*> params_;
 };
 
 #endif // _H

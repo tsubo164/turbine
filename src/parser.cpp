@@ -308,7 +308,9 @@ Function *Parser::param_list(Function *func)
     do {
         expect(TK::Ident);
         const Token *tok = curtok();
-        func->DefineArgument(tok->sval);
+        //func->DefineArgument(tok->sval);
+        // *******************
+        scope_->DeclareParameter(tok->sval);
 
         type();
     }

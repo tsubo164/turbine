@@ -63,6 +63,12 @@ Scope *Scope::OpenChild()
 {
     Scope *child = new Scope(this);
     children_.push_back(child);
+
+    if (!params_.empty()) {
+        // move params into function body scope
+        std::swap(params_, child->vars_);
+    }
+
     return child;
 }
 
@@ -101,6 +107,9 @@ Variable *Scope::FindVariable(const char *name) const
     if (it != vars_.end()) {
         return it->second;
     }
+
+    if (GetParent())
+        return GetParent()->FindVariable(name);
 
     return nullptr;
 }
@@ -141,6 +150,24 @@ int Scope::GetFunctionCount() const
     return funcs_.size();
 }
 
+Variable *Scope::DeclareParameter(SharedStr name)
+{
+    const auto found = params_.find(name);
+    if (found != params_.end()) {
+        return nullptr;
+    }
+
+    const int next_id = params_.size();
+    Variable *var = new Variable(name, next_id);
+    params_.insert({name, var});
+    return var;
+}
+
+int Scope::GetParameterCount() const
+{
+    return params_.size();
+}
+
 void Function::Print(int depth) const
 {
     const std::string header = std::string(depth * 2, ' ') + std::to_string(depth) + ". ";
@@ -150,9 +177,6 @@ void Function::Print(int depth) const
         const Argument *arg = it.second;
         std::cout << header << "[arg] " << arg->name << " @" << arg->id << std::endl;
     }
-
-    // vars (body)
-    scope->Print(depth);
 }
 
 void Scope::Print(int depth) const
@@ -168,5 +192,9 @@ void Scope::Print(int depth) const
     for (auto it: vars_) {
         const Variable *var = it.second;
         std::cout << header << "[var] " << var->name << " @" << var->id << std::endl;
+    }
+
+    for (auto child: children_) {
+        child->Print(depth + 1);
     }
 }
