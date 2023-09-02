@@ -1,53 +1,9 @@
 #include "scope.h"
 #include <iostream>
 
-template<typename T>
-T *define_symbol(std::map<SharedStr,T*> &map, SharedStr name)
-{
-    const auto found = map.find(name);
-    if (found != map.end()) {
-        return nullptr;
-    }
-    const int next_id = map.size();
-    T *ent = new T(name, next_id);
-    map.insert({name, ent});
-    return ent;
-}
-
-template<typename T>
-T *find_symbol(const std::map<SharedStr,T*> &map, SharedStr name)
-{
-    const auto it = map.find(name);
-    if (it != map.end()) {
-        return it->second;
-    }
-    return nullptr;
-}
-
-template<typename T>
-int symbol_count(const std::map<SharedStr,T*> &map)
-{
-    return map.size();
-}
-
 Function::Function(SharedStr name_, int id_, Scope *parent_)
     : name(name_), id(id_), scope(new Scope(parent_))
 {
-}
-
-Argument *Function::DefineArgument(SharedStr name)
-{
-    return define_symbol(args_, name);
-}
-
-Argument *Function::FindArgument(SharedStr name) const
-{
-    return find_symbol(args_, name);
-}
-
-int Function::GetArgumentCount() const
-{
-    return symbol_count(args_);
 }
 
 Scope::Scope()
@@ -170,31 +126,26 @@ int Scope::GetParameterCount() const
     return params_.size();
 }
 
-void Function::Print(int depth) const
-{
-    const std::string header = std::string(depth * 2, ' ') + std::to_string(depth) + ". ";
-
-    // args
-    for (auto it: args_) {
-        const Argument *arg = it.second;
-        std::cout << header << "[arg] " << arg->name << " @" << arg->id << std::endl;
-    }
-
-    scope->Print(depth);
-}
-
 void Scope::Print(int depth) const
 {
-    const std::string header = std::string(depth * 2, ' ') + std::to_string(depth) + ". ";
+    const std::string header =
+        std::string(depth * 2, ' ') +
+        std::to_string(depth) + ". ";
 
     for (auto it: funcs_) {
         const Function *func = it.second;
-        std::cout << header << "[func] " << func->name << std::endl;
-        func->Print(depth + 1);
+
+        std::cout << header <<
+            "[func] " << func->name << std::endl;
+
+        func->scope->Print(depth + 1);
     }
 
     for (auto it: vars_) {
         const Variable *var = it.second;
-        std::cout << header << "[var] " << var->name << " @" << var->id << std::endl;
+
+        std::cout << header <<
+            "[var] " << var->name <<
+            " @" << var->id << std::endl;
     }
 }

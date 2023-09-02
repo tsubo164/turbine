@@ -12,7 +12,6 @@ const char *OpcodeString(Byte op)
     O(OP_LOADB);
     O(OP_LOADI);
     O(OP_LOADLOCAL);
-    O(OP_LOADARG);
     O(OP_STORELOCAL);
 
     O(OP_ALLOC);
@@ -89,12 +88,6 @@ void Bytecode::LoadInt(Int integer)
 void Bytecode::LoadLocal(Byte id)
 {
     bytes_.push_back(OP_LOADLOCAL);
-    bytes_.push_back(id);
-}
-
-void Bytecode::LoadArgument(Byte id)
-{
-    bytes_.push_back(OP_LOADARG);
     bytes_.push_back(id);
 }
 
@@ -273,10 +266,6 @@ void Bytecode::Print() const
             break;
 
         case OP_LOADLOCAL:
-            print_op_address(op, Read(addr++));
-            break;
-
-        case OP_LOADARG:
             print_op_address(op, Read(addr++));
             break;
 

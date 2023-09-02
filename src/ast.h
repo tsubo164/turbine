@@ -41,15 +41,6 @@ struct IdentExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
-struct ArgExpr : public Expr {
-    ArgExpr(Argument *arg_) : arg(arg_) {}
-    const Argument *arg;
-
-    long Eval() const override final;
-    void Print(int depth) const override final;
-    void Gen(Bytecode &code) const override final;
-};
-
 struct FuncCallExpr : public Expr {
     FuncCallExpr(Function *func_) : func(func_) {}
     void AddArgument(Expr *expr) { args.push_back(expr); }

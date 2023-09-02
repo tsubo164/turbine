@@ -13,12 +13,6 @@ struct Variable {
     int id;
 };
 
-struct Argument {
-    Argument(SharedStr name_, int id_) : name(name_), id(id_) {}
-    SharedStr name;
-    int id;
-};
-
 struct Function {
     Function(SharedStr name_, int id_, Scope *parent_);
     SharedStr name;
@@ -26,15 +20,6 @@ struct Function {
 
     std::unique_ptr<Scope> scope;
     int argc = 0;
-
-    Argument *DefineArgument(SharedStr name);
-    Argument *FindArgument(SharedStr name) const;
-    int GetArgumentCount() const;
-
-    void Print(int depth) const;
-
-private:
-    std::map<SharedStr,Argument*> args_;
 };
 
 class Scope {

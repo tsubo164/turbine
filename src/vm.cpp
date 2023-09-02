@@ -172,14 +172,6 @@ void VM::run()
             }
             break;
 
-        case OP_LOADARG:
-            {
-                const Int id = fetch_byte();
-                const Object obj = get_arg(id);
-                push(obj);
-            }
-            break;
-
         case OP_STORELOCAL:
             {
                 const Int id = fetch_byte();
