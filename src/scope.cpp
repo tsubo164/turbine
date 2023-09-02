@@ -52,7 +52,7 @@ Scope *Scope::GetLastChild() const
     return children_[last];
 }
 
-Variable *Scope::DefineVariable(const char *name)
+Var *Scope::DefineVariable(const char *name)
 {
     const auto found = vars_.find(name);
     if (found != vars_.end()) {
@@ -60,12 +60,12 @@ Variable *Scope::DefineVariable(const char *name)
     }
 
     const int next_id = vars_.size();
-    Variable *var = new Variable(name, next_id);
+    Var *var = new Var(name, next_id);
     vars_.insert({name, var});
     return var;
 }
 
-Variable *Scope::FindVariable(const char *name) const
+Var *Scope::FindVariable(const char *name) const
 {
     const auto it = vars_.find(name);
     if (it != vars_.end()) {
@@ -114,7 +114,7 @@ int Scope::GetFunctionCount() const
     return funcs_.size();
 }
 
-Variable *Scope::DeclareParameter(SharedStr name)
+Var *Scope::DeclareParameter(SharedStr name)
 {
     const auto found = params_.find(name);
     if (found != params_.end()) {
@@ -122,7 +122,7 @@ Variable *Scope::DeclareParameter(SharedStr name)
     }
 
     const int next_id = params_.size();
-    Variable *var = new Variable(name, next_id);
+    Var *var = new Var(name, next_id);
     params_.insert({name, var});
     return var;
 }
@@ -148,7 +148,7 @@ void Scope::Print(int depth) const
     }
 
     for (auto it: vars_) {
-        const Variable *var = it.second;
+        const Var *var = it.second;
 
         std::cout << header <<
             "[var] " << var->name <<

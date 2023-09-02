@@ -56,7 +56,7 @@ private:
     Stmt *if_stmt();
     Stmt *ret_stmt();
     Stmt *expr_stmt();
-    Variable *var_decl();
+    Var *var_decl();
     BlockStmt *block_stmt();
 
     //

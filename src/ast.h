@@ -33,8 +33,8 @@ struct IntNumExpr : public Expr {
 };
 
 struct IdentExpr : public Expr {
-    IdentExpr(Variable *var_) : var(var_) {}
-    const Variable *var;
+    IdentExpr(Var *var_) : var(var_) {}
+    const Var *var;
 
     long Eval() const override final;
     void Print(int depth) const override final;

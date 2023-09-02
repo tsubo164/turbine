@@ -127,7 +127,7 @@ Expr *Parser::primary_expr()
             return arg_list(fcall);
         }
         else {
-            Variable *var = scope_->FindVariable(tok->sval);
+            Var *var = scope_->FindVariable(tok->sval);
             if (var) {
                 return new IdentExpr(var);
             }
@@ -252,7 +252,7 @@ Stmt *Parser::expr_stmt()
 }
 
 // var_decl = - ident int newline
-Variable *Parser::var_decl()
+Var *Parser::var_decl()
 {
     expect(TK::Minus);
     expect(TK::Ident);
@@ -266,7 +266,7 @@ Variable *Parser::var_decl()
         std::exit(EXIT_FAILURE);
     }
 
-    Variable *var = scope_->DefineVariable(tok->sval);
+    Var *var = scope_->DefineVariable(tok->sval);
     type();
     expect(TK::NewLine);
 
