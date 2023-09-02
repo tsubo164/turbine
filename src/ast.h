@@ -42,10 +42,10 @@ struct IdentExpr : public Expr {
 };
 
 struct FuncCallExpr : public Expr {
-    FuncCallExpr(FuncObj *func_) : func(func_) {}
+    FuncCallExpr(Func *func_) : func(func_) {}
     void AddArgument(Expr *expr) { args.push_back(expr); }
     std::vector<Expr*> args;
-    const FuncObj *func;
+    const Func *func;
 
     long Eval() const override final;
     void Print(int depth) const override final;
@@ -135,9 +135,9 @@ struct ExprStmt : public Stmt {
 };
 
 struct FuncDef : public Node {
-    FuncDef(FuncObj *f, BlockStmt *b) : func(f), block(b) {}
+    FuncDef(Func *f, BlockStmt *b) : func(f), block(b) {}
     ~FuncDef() {}
-    FuncObj *func = nullptr;
+    Func *func = nullptr;
     std::unique_ptr<BlockStmt> block;
 
     long Eval() const override final;

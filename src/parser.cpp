@@ -77,7 +77,7 @@ bool Parser::consume(TokenKind kind)
     }
 }
 
-void Parser::enter_scope(FuncObj *func)
+void Parser::enter_scope(Func *func)
 {
     if (func) {
         scope_ = func->scope.get();
@@ -118,7 +118,7 @@ Expr *Parser::primary_expr()
 
     if (tok->kind == TK::Ident) {
         if (peek() == TK::LeftParenthesis) {
-            FuncObj *func = scope_->FindFunction(tok->sval);
+            Func *func = scope_->FindFunction(tok->sval);
             if (!func) {
                 std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
                 exit(EXIT_FAILURE);
@@ -320,7 +320,7 @@ void Parser::type()
     std::exit(EXIT_FAILURE);
 }
 
-void Parser::param_list(FuncObj *func)
+void Parser::param_list(Func *func)
 {
     expect(TK::LeftParenthesis);
 
@@ -346,7 +346,7 @@ FuncDef *Parser::func_def()
 
     // func name
     const Token *tok = curtok();
-    FuncObj *func = scope_->DefineFunction(tok->sval);
+    Func *func = scope_->DefineFunction(tok->sval);
     if (!func) {
         std::cerr << "error: re-defined function: '" << tok->sval << "'" << std::endl;
         std::exit(EXIT_FAILURE);

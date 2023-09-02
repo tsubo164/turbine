@@ -1,12 +1,12 @@
 #include "scope.h"
 #include <iostream>
 
-FuncObj::FuncObj(SharedStr name_, int id_, Scope *parent_)
+Func::Func(SharedStr name_, int id_, Scope *parent_)
     : name(name_), id(id_), scope(new Scope(parent_))
 {
 }
 
-void FuncObj::DeclParam(SharedStr name)
+void Func::DeclParam(SharedStr name)
 {
     scope->DefineVariable(name);
     argc++;
@@ -46,12 +46,6 @@ Scope *Scope::GetParent() const
     return parent_;
 }
 
-Scope *Scope::GetLastChild() const
-{
-    const int last = children_.size() - 1;
-    return children_[last];
-}
-
 Var *Scope::DefineVariable(const char *name)
 {
     const auto found = vars_.find(name);
@@ -83,7 +77,7 @@ int Scope::GetVariableCount() const
     return vars_.size();
 }
 
-FuncObj *Scope::DefineFunction(const char *name)
+Func *Scope::DefineFunction(const char *name)
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {
@@ -91,12 +85,12 @@ FuncObj *Scope::DefineFunction(const char *name)
     }
 
     const int next_id = funcs_.size();
-    FuncObj *func = new FuncObj(name, next_id, this);
+    Func *func = new Func(name, next_id, this);
     funcs_.insert({name, func});
     return func;
 }
 
-FuncObj *Scope::FindFunction(const char *name) const
+Func *Scope::FindFunction(const char *name) const
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {
@@ -139,7 +133,7 @@ void Scope::Print(int depth) const
         std::to_string(depth) + ". ";
 
     for (auto it: funcs_) {
-        const FuncObj *func = it.second;
+        const Func *func = it.second;
 
         std::cout << header <<
             "[func] " << func->name << std::endl;

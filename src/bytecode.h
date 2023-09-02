@@ -73,13 +73,14 @@ public:
 private:
     std::vector<Byte> bytes_;
 
-    struct Function {
-        Function(Word id_, Byte argc_, Int addr_) : id(id_), argc(argc_), addr(addr_) {}
+    struct FuncInfo {
+        FuncInfo(Word id_, Byte argc_, Int addr_)
+            : id(id_), argc(argc_), addr(addr_) {}
         Word id = 0;
         Byte argc = 0;
         Int addr = 0;
     };
-    std::vector<Function> funcs_;
+    std::vector<FuncInfo> funcs_;
 };
 
 #endif // _H

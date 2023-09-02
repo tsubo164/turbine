@@ -14,8 +14,8 @@ struct Var {
     int id;
 };
 
-struct FuncObj {
-    FuncObj(SharedStr name_, int id_, Scope *parent_);
+struct Func {
+    Func(SharedStr name_, int id_, Scope *parent_);
     SharedStr name;
     int id;
 
@@ -34,14 +34,13 @@ public:
     Scope *OpenChild();
     Scope *Close() const;
     Scope *GetParent() const;
-    Scope *GetLastChild() const;
 
     Var *DefineVariable(const char *name);
     Var *FindVariable(const char *name) const;
     int GetVariableCount() const;
 
-    FuncObj *DefineFunction(const char *name);
-    FuncObj *FindFunction(const char *name) const;
+    Func *DefineFunction(const char *name);
+    Func *FindFunction(const char *name) const;
     int GetFunctionCount() const;
 
     Var *DeclareParameter(SharedStr name);
@@ -53,7 +52,7 @@ private:
     std::vector<Scope*> children_;
 
     std::map<const char*,Var*> vars_;
-    std::map<const char*,FuncObj*> funcs_;
+    std::map<const char*,Func*> funcs_;
     std::map<const char*,Var*> params_;
 };
 

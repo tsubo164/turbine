@@ -19,7 +19,7 @@ public:
 private:
     Tokenizer tokenizer_;
     Scope *scope_;
-    FuncObj *func_;
+    Func *func_;
 
     // token buffer
     std::array<Token,8> tokbuf_;
@@ -41,7 +41,7 @@ private:
     bool consume(TokenKind kind);
 
     // scope
-    void enter_scope(FuncObj *func = nullptr);
+    void enter_scope(Func *func = nullptr);
     void leave_scope();
 
     // expression
@@ -61,7 +61,7 @@ private:
 
     //
     void type();
-    void param_list(FuncObj *func);
+    void param_list(Func *func);
     FuncDef *func_def();
 
     Prog *program();
