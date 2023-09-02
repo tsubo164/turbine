@@ -13,13 +13,15 @@ struct Variable {
     int id;
 };
 
-struct Function {
-    Function(SharedStr name_, int id_, Scope *parent_);
+struct FuncObj {
+    FuncObj(SharedStr name_, int id_, Scope *parent_);
     SharedStr name;
     int id;
 
     std::unique_ptr<Scope> scope;
     int argc = 0;
+
+    void DeclParam(SharedStr name);
 };
 
 class Scope {
@@ -37,8 +39,8 @@ public:
     Variable *FindVariable(const char *name) const;
     int GetVariableCount() const;
 
-    Function *DefineFunction(const char *name);
-    Function *FindFunction(const char *name) const;
+    FuncObj *DefineFunction(const char *name);
+    FuncObj *FindFunction(const char *name) const;
     int GetFunctionCount() const;
 
     Variable *DeclareParameter(SharedStr name);
@@ -50,7 +52,7 @@ private:
     std::vector<Scope*> children_;
 
     std::map<const char*,Variable*> vars_;
-    std::map<const char*,Function*> funcs_;
+    std::map<const char*,FuncObj*> funcs_;
     std::map<const char*,Variable*> params_;
 };
 

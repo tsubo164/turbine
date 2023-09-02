@@ -1,9 +1,15 @@
 #include "scope.h"
 #include <iostream>
 
-Function::Function(SharedStr name_, int id_, Scope *parent_)
+FuncObj::FuncObj(SharedStr name_, int id_, Scope *parent_)
     : name(name_), id(id_), scope(new Scope(parent_))
 {
+}
+
+void FuncObj::DeclParam(SharedStr name)
+{
+    scope->DefineVariable(name);
+    argc++;
 }
 
 Scope::Scope()
@@ -77,7 +83,7 @@ int Scope::GetVariableCount() const
     return vars_.size();
 }
 
-Function *Scope::DefineFunction(const char *name)
+FuncObj *Scope::DefineFunction(const char *name)
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {
@@ -85,12 +91,12 @@ Function *Scope::DefineFunction(const char *name)
     }
 
     const int next_id = funcs_.size();
-    Function *func = new Function(name, next_id, this);
+    FuncObj *func = new FuncObj(name, next_id, this);
     funcs_.insert({name, func});
     return func;
 }
 
-Function *Scope::FindFunction(const char *name) const
+FuncObj *Scope::FindFunction(const char *name) const
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {
@@ -133,7 +139,7 @@ void Scope::Print(int depth) const
         std::to_string(depth) + ". ";
 
     for (auto it: funcs_) {
-        const Function *func = it.second;
+        const FuncObj *func = it.second;
 
         std::cout << header <<
             "[func] " << func->name << std::endl;
