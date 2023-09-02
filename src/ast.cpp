@@ -279,11 +279,11 @@ void ExprStmt::Gen(Bytecode &code) const
 
 void FuncDef::Gen(Bytecode &code) const
 {
-    code.RegisterFunction(func->id, func->GetArgumentCount());
+    code.RegisterFunction(func->id, func->argc);
 
     // local vars
     if (func->scope->GetVariableCount() > 0)
-        code.AllocateLocal(func->scope->GetVariableCount());
+        code.AllocateLocal(func->scope->GetVariableCount() - func->argc);
 
     block->Gen(code);
 }

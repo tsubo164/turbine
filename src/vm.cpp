@@ -90,6 +90,22 @@ void VM::push_int(Int val)
     push(obj);
 }
 
+void VM::push_call(Call call)
+{
+    if (call_sp_ == callstack_.size() - 1) {
+        callstack_.push_back(call);
+        call_sp_++;
+    }
+    else {
+        callstack_[++call_sp_] = call;
+    }
+}
+
+Call VM::pop_call()
+{
+    return callstack_[call_sp_--];
+}
+
 Object VM::get_local(int id) const
 {
     return stack_[bp_ + 1 + id];
@@ -182,15 +198,16 @@ void VM::run()
         case OP_CALL:
             {
                 const Word func_index = fetch_word();
-                const Int addr = code_->GetFunctionAddress(func_index);
+                const Int func_addr = code_->GetFunctionAddress(func_index);
 
-                // call
-                push_int(ip_);
-                set_ip(addr);
+                Call call;
+                call.argc = code_->GetFunctionArgCount(func_index);
+                call.return_ip = ip_;
+                call.return_bp = bp_;
+                push_call(call);
 
-                // prologue
-                push_int(bp_);
-                set_bp(sp_);
+                set_ip(func_addr);
+                set_bp(sp_ - call.argc);
             }
             break;
 
@@ -199,12 +216,10 @@ void VM::run()
                 const Int argc = fetch_byte();
                 const Object ret_obj = top();
 
-                // epilogue
+                const Call call = pop_call();
+                set_ip(call.return_ip);
                 set_sp(bp_);
-                set_bp(pop_int());
-                set_ip(pop_int());
-
-                set_sp(sp_ - argc);
+                set_bp(call.return_bp);
                 push(ret_obj);
             }
             break;

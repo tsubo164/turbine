@@ -30,6 +30,11 @@ int symbol_count(const std::map<SharedStr,T*> &map)
     return map.size();
 }
 
+Function::Function(SharedStr name_, int id_, Scope *parent_)
+    : name(name_), id(id_), scope(new Scope(parent_))
+{
+}
+
 Argument *Function::DefineArgument(SharedStr name)
 {
     return define_symbol(args_, name);
@@ -45,11 +50,13 @@ int Function::GetArgumentCount() const
     return symbol_count(args_);
 }
 
-Scope::Scope() : parent_(nullptr)
+Scope::Scope()
+    : parent_(nullptr)
 {
 }
 
-Scope::Scope(Scope *parent) : parent_(parent)
+Scope::Scope(Scope *parent)
+    : parent_(parent)
 {
 }
 
@@ -63,11 +70,6 @@ Scope *Scope::OpenChild()
 {
     Scope *child = new Scope(this);
     children_.push_back(child);
-
-    if (!params_.empty()) {
-        // move params into function body scope
-        std::swap(params_, child->vars_);
-    }
 
     return child;
 }
@@ -127,7 +129,7 @@ Function *Scope::DefineFunction(const char *name)
     }
 
     const int next_id = funcs_.size();
-    Function *func = new Function(name, next_id);
+    Function *func = new Function(name, next_id, this);
     funcs_.insert({name, func});
     return func;
 }
@@ -177,6 +179,8 @@ void Function::Print(int depth) const
         const Argument *arg = it.second;
         std::cout << header << "[arg] " << arg->name << " @" << arg->id << std::endl;
     }
+
+    scope->Print(depth);
 }
 
 void Scope::Print(int depth) const
@@ -192,9 +196,5 @@ void Scope::Print(int depth) const
     for (auto it: vars_) {
         const Variable *var = it.second;
         std::cout << header << "[var] " << var->name << " @" << var->id << std::endl;
-    }
-
-    for (auto child: children_) {
-        child->Print(depth + 1);
     }
 }

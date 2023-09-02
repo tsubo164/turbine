@@ -40,6 +40,10 @@ private:
     void expect(TokenKind kind);
     bool consume(TokenKind kind);
 
+    // scope
+    void enter_scope(Function *func = nullptr);
+    void leave_scope();
+
     // expression
     FuncCallExpr *arg_list(FuncCallExpr *fcall);
     Expr *primary_expr();
@@ -57,7 +61,7 @@ private:
 
     //
     void type();
-    Function *param_list(Function *func);
+    void param_list(Function *func);
     FuncDef *func_def();
 
     Prog *program();

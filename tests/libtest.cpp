@@ -276,6 +276,21 @@ int main(int argc, char **argv)
 
         ASSERTL(31, ip.Run(input));
     }
+    {
+        std::stringstream input(
+            "# seven() int\n"
+            "    return 7\n"
+            "\n"
+            "# add(x int, y int) int\n"
+            "    return x + y\n"
+            "\n"
+            "# main() int\n"
+            "    return seven() + add(30, 5)\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

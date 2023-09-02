@@ -10,6 +10,13 @@ struct Object {
     };
 };
 
+struct Call {
+    int func_index = 0;
+    int argc = 0;
+    Int return_ip = 0;
+    Int return_bp = 0;
+};
+
 class VM {
 public:
     VM() {}
@@ -29,6 +36,9 @@ private:
     Int ip_ = 0; // instruction pointer
     Int sp_ = 0; // stack pointer
     Int bp_ = 0; // base pointer
+
+    std::vector<Call> callstack_ = {{0}};
+    int call_sp_ = 0;
 
     bool print_stack_ = false;
 
@@ -53,6 +63,9 @@ private:
     // stack helper
     void push_int( Int val );
     Int pop_int();
+
+    void push_call(Call call);
+    Call pop_call();
 
     Object get_local(int id) const;
     Object get_arg(int id) const;

@@ -61,6 +61,7 @@ public:
 
     // functions
     Int GetFunctionAddress(Word func_index) const;
+    Int GetFunctionArgCount(Word func_index) const;
     void RegisterFunction(Word func_index, Byte argc);
 
     // read/write

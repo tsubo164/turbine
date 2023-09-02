@@ -77,6 +77,21 @@ bool Parser::consume(TokenKind kind)
     }
 }
 
+void Parser::enter_scope(Function *func)
+{
+    if (func) {
+        scope_ = func->scope.get();
+    }
+    else {
+        scope_ = scope_->OpenChild();
+    }
+}
+
+void Parser::leave_scope()
+{
+    scope_ = scope_->Close();
+}
+
 FuncCallExpr *Parser::arg_list(FuncCallExpr *fcall)
 {
     expect(TK::LeftParenthesis);
@@ -112,14 +127,9 @@ Expr *Parser::primary_expr()
             return arg_list(fcall);
         }
         else {
-            // TODO need to correct. arg may be found in the middle of var scope chain.
             Variable *var = scope_->FindVariable(tok->sval);
             if (var) {
                 return new IdentExpr(var);
-            }
-            Argument *arg = func_->FindArgument(tok->sval);
-            if (arg) {
-                return new ArgExpr(arg);
             }
 
             std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
@@ -199,12 +209,17 @@ Stmt *Parser::if_stmt()
     Expr *cond = expression();
     expect(TK::NewLine);
 
+    enter_scope();
     BlockStmt *then = block_stmt();
-    BlockStmt *els = nullptr;
+    leave_scope();
 
+    BlockStmt *els = nullptr;
     if (consume(TK::Else)) {
         expect(TK::NewLine);
+
+        enter_scope();
         els = block_stmt();
+        leave_scope();
     }
 
     return new IfStmt(cond, then, els);
@@ -214,7 +229,7 @@ Stmt *Parser::ret_stmt()
 {
     expect(TK::Return);
 
-    const int argc = func_->GetArgumentCount();
+    const int argc = func_->argc;
     ReturnStmt *stmt = nullptr;
 
     if (consume(TK::NewLine)) {
@@ -241,7 +256,16 @@ Variable *Parser::var_decl()
 {
     expect(TK::Minus);
     expect(TK::Ident);
+
     const Token *tok = curtok();
+    if (scope_->FindVariable(tok->sval)) {
+        std::cerr
+            << "error: re-defined variable: '"
+            << tok->sval << "'"
+            << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
     Variable *var = scope_->DefineVariable(tok->sval);
     type();
     expect(TK::NewLine);
@@ -252,7 +276,6 @@ Variable *Parser::var_decl()
 BlockStmt *Parser::block_stmt()
 {
     BlockStmt *block = new BlockStmt();
-    scope_ = scope_->OpenChild();
     expect(TK::BlockBegin);
 
     for (;;) {
@@ -280,7 +303,6 @@ BlockStmt *Parser::block_stmt()
     }
 
     expect(TK::BlockEnd);
-    scope_ = scope_->Close();
     return block;
 }
 
@@ -298,26 +320,25 @@ void Parser::type()
     std::exit(EXIT_FAILURE);
 }
 
-Function *Parser::param_list(Function *func)
+void Parser::param_list(Function *func)
 {
     expect(TK::LeftParenthesis);
 
     if (consume(TK::RightParenthesis))
-        return func;
+        return;
 
     do {
         expect(TK::Ident);
         const Token *tok = curtok();
-        //func->DefineArgument(tok->sval);
-        // *******************
-        scope_->DeclareParameter(tok->sval);
 
+        func->scope->DefineVariable(tok->sval);
         type();
+
+        func->argc++;
     }
     while (consume(TK::Comma));
 
     expect(TK::RightParenthesis);
-    return func;
 }
 
 FuncDef *Parser::func_def()
@@ -333,19 +354,18 @@ FuncDef *Parser::func_def()
         std::exit(EXIT_FAILURE);
     }
 
-    func = param_list(func);
+    param_list(func);
     type();
 
     expect(TK::NewLine);
 
     // func body
     func_ = func;
+    enter_scope(func);
     BlockStmt *block = block_stmt();
+    leave_scope();
     func_ = nullptr;
     FuncDef *fdef = new FuncDef(func, block);
-
-    // TODO TMP last child scope
-    func->scope = scope_->GetLastChild();
 
     return fdef;
 }

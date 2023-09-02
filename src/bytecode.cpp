@@ -177,12 +177,24 @@ Int Bytecode::GetFunctionAddress(Word func_index) const
     return funcs_[func_index].addr;
 }
 
+Int Bytecode::GetFunctionArgCount(Word func_index) const
+{
+    if (func_index >= funcs_.size()) {
+        std::cerr << "internal error: function index out of range: "
+            << func_index << ", function count: " << funcs_.size() << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    return funcs_[func_index].argc;
+}
+
 void Bytecode::RegisterFunction(Word func_index, Byte argc)
 {
     const Word next_index = funcs_.size();
 
     if (func_index != next_index) {
-        std::cerr << "error: function func_index " << func_index
+        std::cerr << "error: "
+            << "function func_index " << func_index
             << " and next index " << next_index
             << " should match" << std::endl;
         std::exit(EXIT_FAILURE);

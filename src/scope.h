@@ -20,10 +20,12 @@ struct Argument {
 };
 
 struct Function {
-    Function(SharedStr name_, int id_) : name(name_), id(id_) {}
+    Function(SharedStr name_, int id_, Scope *parent_);
     SharedStr name;
     int id;
-    Scope *scope = nullptr;
+
+    std::unique_ptr<Scope> scope;
+    int argc = 0;
 
     Argument *DefineArgument(SharedStr name);
     Argument *FindArgument(SharedStr name) const;
