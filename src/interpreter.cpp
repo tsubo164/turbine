@@ -38,7 +38,7 @@ Int Interpreter::Run(std::istream &stream)
     }
 
     // Generate bytecode
-    Func *main_func = scope_.FindFunction(string_table_.Insert("main"));
+    Func *main_func = scope_.FindFunc(string_table_.Insert("main"));
     if (!main_func) {
         std::cerr << "'main' function not found" << std::endl;
         std::exit(EXIT_FAILURE);

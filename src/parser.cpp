@@ -118,7 +118,7 @@ Expr *Parser::primary_expr()
 
     if (tok->kind == TK::Ident) {
         if (peek() == TK::LeftParenthesis) {
-            Func *func = scope_->FindFunction(tok->sval);
+            Func *func = scope_->FindFunc(tok->sval);
             if (!func) {
                 std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
                 exit(EXIT_FAILURE);
@@ -127,7 +127,7 @@ Expr *Parser::primary_expr()
             return arg_list(fcall);
         }
         else {
-            Var *var = scope_->FindVariable(tok->sval);
+            Var *var = scope_->FindVar(tok->sval);
             if (var) {
                 return new IdentExpr(var);
             }
@@ -229,7 +229,7 @@ Stmt *Parser::ret_stmt()
 {
     expect(TK::Return);
 
-    const int argc = func_->argc;
+    const int argc = func_->ParamCount();
     ReturnStmt *stmt = nullptr;
 
     if (consume(TK::NewLine)) {
@@ -258,7 +258,7 @@ Var *Parser::var_decl()
     expect(TK::Ident);
 
     const Token *tok = curtok();
-    if (scope_->FindVariable(tok->sval)) {
+    if (scope_->FindVar(tok->sval)) {
         std::cerr
             << "error: re-defined variable: '"
             << tok->sval << "'"
@@ -266,7 +266,7 @@ Var *Parser::var_decl()
         std::exit(EXIT_FAILURE);
     }
 
-    Var *var = scope_->DefineVariable(tok->sval);
+    Var *var = scope_->DefineVar(tok->sval);
     type();
     expect(TK::NewLine);
 
@@ -331,7 +331,7 @@ void Parser::param_list(Func *func)
         expect(TK::Ident);
         const Token *tok = curtok();
 
-        func->DeclParam(tok->sval);
+        func->DeclareParam(tok->sval);
         type();
     }
     while (consume(TK::Comma));
@@ -346,7 +346,7 @@ FuncDef *Parser::func_def()
 
     // func name
     const Token *tok = curtok();
-    Func *func = scope_->DefineFunction(tok->sval);
+    Func *func = scope_->DefineFunc(tok->sval);
     if (!func) {
         std::cerr << "error: re-defined function: '" << tok->sval << "'" << std::endl;
         std::exit(EXIT_FAILURE);

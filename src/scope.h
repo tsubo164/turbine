@@ -11,18 +11,22 @@ struct Var {
     Var(SharedStr name_, int id_)
         : name(name_), id(id_) {}
     SharedStr name;
-    int id;
+    const int id;
 };
 
 struct Func {
     Func(SharedStr name_, int id_, Scope *parent_);
     SharedStr name;
-    int id;
+    const int id;
 
     std::unique_ptr<Scope> scope;
-    int argc = 0;
 
-    void DeclParam(SharedStr name);
+    void DeclareParam(SharedStr name);
+    int ParamCount() const;
+    int VarCount() const;
+
+private:
+    int nparams_ = 0;
 };
 
 class Scope {
@@ -33,27 +37,24 @@ public:
 
     Scope *OpenChild();
     Scope *Close() const;
-    Scope *GetParent() const;
+    Scope *Parent() const;
+    bool HasParent() const;
 
-    Var *DefineVariable(const char *name);
-    Var *FindVariable(const char *name) const;
-    int GetVariableCount() const;
+    Var *DefineVar(const char *name);
+    Var *FindVar(const char *name) const;
+    int VarCount() const;
 
-    Func *DefineFunction(const char *name);
-    Func *FindFunction(const char *name) const;
-    int GetFunctionCount() const;
-
-    Var *DeclareParameter(SharedStr name);
-    int GetParameterCount() const;
+    Func *DefineFunc(const char *name);
+    Func *FindFunc(const char *name) const;
 
     void Print(int depth = 0) const;
+
 private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;
 
     std::map<const char*,Var*> vars_;
     std::map<const char*,Func*> funcs_;
-    std::map<const char*,Var*> params_;
 };
 
 #endif // _H

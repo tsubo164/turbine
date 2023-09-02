@@ -6,10 +6,20 @@ Func::Func(SharedStr name_, int id_, Scope *parent_)
 {
 }
 
-void Func::DeclParam(SharedStr name)
+void Func::DeclareParam(SharedStr name)
 {
-    scope->DefineVariable(name);
-    argc++;
+    scope->DefineVar(name);
+    nparams_++;
+}
+
+int Func::ParamCount() const
+{
+    return nparams_;
+}
+
+int Func::VarCount() const
+{
+    return scope->VarCount() - ParamCount();
 }
 
 Scope::Scope()
@@ -38,15 +48,20 @@ Scope *Scope::OpenChild()
 
 Scope *Scope::Close() const
 {
-    return GetParent();
+    return Parent();
 }
 
-Scope *Scope::GetParent() const
+Scope *Scope::Parent() const
 {
     return parent_;
 }
 
-Var *Scope::DefineVariable(const char *name)
+bool Scope::HasParent() const
+{
+    return Parent();
+}
+
+Var *Scope::DefineVar(const char *name)
 {
     const auto found = vars_.find(name);
     if (found != vars_.end()) {
@@ -59,25 +74,25 @@ Var *Scope::DefineVariable(const char *name)
     return var;
 }
 
-Var *Scope::FindVariable(const char *name) const
+Var *Scope::FindVar(const char *name) const
 {
     const auto it = vars_.find(name);
     if (it != vars_.end()) {
         return it->second;
     }
 
-    if (GetParent())
-        return GetParent()->FindVariable(name);
+    if (HasParent())
+        return Parent()->FindVar(name);
 
     return nullptr;
 }
 
-int Scope::GetVariableCount() const
+int Scope::VarCount() const
 {
     return vars_.size();
 }
 
-Func *Scope::DefineFunction(const char *name)
+Func *Scope::DefineFunc(const char *name)
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {
@@ -90,40 +105,17 @@ Func *Scope::DefineFunction(const char *name)
     return func;
 }
 
-Func *Scope::FindFunction(const char *name) const
+Func *Scope::FindFunc(const char *name) const
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {
         return it->second;
     }
 
-    if (GetParent())
-        return GetParent()->FindFunction(name);
+    if (HasParent())
+        return Parent()->FindFunc(name);
 
     return nullptr;
-}
-
-int Scope::GetFunctionCount() const
-{
-    return funcs_.size();
-}
-
-Var *Scope::DeclareParameter(SharedStr name)
-{
-    const auto found = params_.find(name);
-    if (found != params_.end()) {
-        return nullptr;
-    }
-
-    const int next_id = params_.size();
-    Var *var = new Var(name, next_id);
-    params_.insert({name, var});
-    return var;
-}
-
-int Scope::GetParameterCount() const
-{
-    return params_.size();
 }
 
 void Scope::Print(int depth) const
