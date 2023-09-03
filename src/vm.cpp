@@ -205,10 +205,9 @@ void VM::run()
 
         case OP_RET:
             {
-                const Int argc = fetch_byte();
                 const Object ret_obj = top();
-
                 const Call call = pop_call();
+
                 set_ip(call.return_ip);
                 set_sp(bp_);
                 set_bp(call.return_bp);

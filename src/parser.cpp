@@ -229,14 +229,13 @@ Stmt *Parser::ret_stmt()
 {
     expect(TK::Return);
 
-    const int argc = func_->ParamCount();
     ReturnStmt *stmt = nullptr;
 
     if (consume(TK::NewLine)) {
-        stmt = new ReturnStmt(argc);
+        stmt = new ReturnStmt();
     }
     else {
-        stmt = new ReturnStmt(expression(), argc);
+        stmt = new ReturnStmt(expression());
         expect(TK::NewLine);
     }
 
@@ -358,14 +357,11 @@ FuncDef *Parser::func_def()
     expect(TK::NewLine);
 
     // func body
-    func_ = func;
     enter_scope(func);
     BlockStmt *block = block_stmt();
     leave_scope();
-    func_ = nullptr;
-    FuncDef *fdef = new FuncDef(func, block);
 
-    return fdef;
+    return new FuncDef(func, block);
 }
 
 Prog *Parser::program()
@@ -377,6 +373,10 @@ Prog *Parser::program()
 
         if (next == TK::Hash) {
             prog->AddFuncDef(func_def());
+            continue;
+        }
+        else if (next == TK::Minus) {
+            var_decl();
             continue;
         }
         else if (next == TK::Eof) {

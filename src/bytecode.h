@@ -50,7 +50,7 @@ public:
     // where the destination address is stored.
     Int Jump(Int addr);
     Int JumpIfZero(Int addr);
-    void Return(Byte argc);
+    void Return();
     void AddInt();
     void EqualInt();
     void Exit();

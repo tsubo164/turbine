@@ -11,7 +11,7 @@
 class Parser {
 public:
     Parser(StringTable &string_table, Scope &scope)
-        : tokenizer_(string_table), scope_(&scope), func_(nullptr) {}
+        : tokenizer_(string_table), scope_(&scope) {}
     ~Parser() {}
 
     Node *ParseStream(std::istream &sstrm);
@@ -19,7 +19,6 @@ public:
 private:
     Tokenizer tokenizer_;
     Scope *scope_;
-    Func *func_;
 
     // token buffer
     std::array<Token,8> tokbuf_;

@@ -115,10 +115,9 @@ struct IfStmt : public Stmt {
 };
 
 struct ReturnStmt : public Stmt {
-    ReturnStmt(int argc_) : expr(new NullExpr()), argc(argc_) {}
-    ReturnStmt(Expr *e, int argc_) : expr(e), argc(argc_) {}
+    ReturnStmt() : expr(new NullExpr()) {}
+    ReturnStmt(Expr *e) : expr(e) {}
     std::unique_ptr<Expr> expr;
-    int argc;
 
     long Eval() const override final;
     void Print(int depth) const override final;

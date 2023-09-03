@@ -124,6 +124,14 @@ void Scope::Print(int depth) const
         std::string(depth * 2, ' ') +
         std::to_string(depth) + ". ";
 
+    for (auto it: vars_) {
+        const Var *var = it.second;
+
+        std::cout << header <<
+            "[var] " << var->name <<
+            " @" << var->id << std::endl;
+    }
+
     for (auto it: funcs_) {
         const Func *func = it.second;
 
@@ -131,13 +139,5 @@ void Scope::Print(int depth) const
             "[func] " << func->name << std::endl;
 
         func->scope->Print(depth + 1);
-    }
-
-    for (auto it: vars_) {
-        const Var *var = it.second;
-
-        std::cout << header <<
-            "[var] " << var->name <<
-            " @" << var->id << std::endl;
     }
 }

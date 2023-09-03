@@ -127,10 +127,9 @@ Int Bytecode::Jump(Int addr)
     return operand_addr;
 }
 
-void Bytecode::Return(Byte argc)
+void Bytecode::Return()
 {
     bytes_.push_back(OP_RET);
-    bytes_.push_back(argc);
 }
 
 void Bytecode::AddInt()

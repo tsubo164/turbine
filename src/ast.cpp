@@ -253,7 +253,7 @@ void IfStmt::Gen(Bytecode &code) const
 void ReturnStmt::Gen(Bytecode &code) const
 {
     expr->Gen(code);
-    code.Return(argc);
+    code.Return();
 }
 
 void ExprStmt::Gen(Bytecode &code) const

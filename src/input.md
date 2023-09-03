@@ -1,3 +1,5 @@
+- gvar int
+
 # seven() int
     return 7
 
