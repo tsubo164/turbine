@@ -92,7 +92,7 @@ struct BlockStmt : public Stmt {
         for (auto stmt: stmts)
             delete stmt;
     }
-    void AddStatement(Stmt *stmt) { stmts.push_back(stmt); }
+    void AddStmt(Stmt *stmt) { stmts.push_back(stmt); }
     std::vector<Stmt*> stmts;
 
     long Eval() const override final;
@@ -145,8 +145,12 @@ struct FuncDef : public Node {
 };
 
 struct Prog: public Node {
+    Prog(Scope *sc) : scope(sc) {}
     void AddFuncDef(FuncDef *func) { funcs.push_back(func); }
     std::vector<FuncDef*> funcs;
+    const Scope *scope;
+    // TODO remove this
+    const Func *main_func = nullptr;
 
     long Eval() const override final;
     void Print(int depth) const override final;

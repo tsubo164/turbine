@@ -1,4 +1,5 @@
 #include "vm.h"
+#include <iostream>
 
 void VM::set_ip(Int ip)
 {
@@ -111,14 +112,19 @@ Object VM::get_local(int id) const
     return stack_[bp_ + 1 + id];
 }
 
-Object VM::get_arg(int id) const
+Object VM::get_global(int id) const
 {
-    return stack_[bp_ - 2 - id];
+    return stack_[1 + id];
 }
 
 void VM::set_local(int id, Object obj)
 {
     stack_[bp_ + 1 + id] = obj;
+}
+
+void VM::set_global(int id, Object obj)
+{
+    stack_[1 + id] = obj;
 }
 
 bool VM::is_eoc() const
@@ -172,11 +178,27 @@ void VM::run()
             }
             break;
 
+        case OP_LOADGLOBAL:
+            {
+                const Int id = fetch_word();
+                const Object obj = get_global(id);
+                push(obj);
+            }
+            break;
+
         case OP_STORELOCAL:
             {
                 const Int id = fetch_byte();
                 const Object obj = pop();
                 set_local(id, obj);
+            }
+            break;
+
+        case OP_STOREGLOBAL:
+            {
+                const Int id = fetch_word();
+                const Object obj = pop();
+                set_global(id, obj);
             }
             break;
 
@@ -247,7 +269,12 @@ void VM::run()
             break;
 
         case OP_NOP:
+            break;
+
         default:
+            std::cerr << "Opcode: '" << OpcodeString(op) <<
+                "' not in VM::run()" << std::endl;
+            std::exit(EXIT_FAILURE);
             break;
         }
     }

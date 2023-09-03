@@ -285,18 +285,18 @@ BlockStmt *Parser::block_stmt()
             continue;
         }
         else if (next == TK::If) {
-            block->AddStatement(if_stmt());
+            block->AddStmt(if_stmt());
             continue;
         }
         else if (next == TK::Return) {
-            block->AddStatement(ret_stmt());
+            block->AddStmt(ret_stmt());
             continue;
         }
         else if (next == TK::BlockEnd) {
             break;
         }
         else {
-            block->AddStatement(expr_stmt());
+            block->AddStmt(expr_stmt());
             continue;
         }
     }
@@ -366,26 +366,32 @@ FuncDef *Parser::func_def()
 
 Prog *Parser::program()
 {
-    Prog *prog = new Prog;
+    Prog *prog = new Prog(scope_);
 
     for (;;) {
         const TokenKind next = peek();
 
         if (next == TK::Hash) {
-            prog->AddFuncDef(func_def());
+            FuncDef *fdef = func_def();
+
+            if (!strcmp(fdef->func->name, "main"))
+                prog->main_func = fdef->func;
+
+            prog->AddFuncDef(fdef);
             continue;
         }
-        else if (next == TK::Minus) {
+
+        if (next == TK::Minus) {
             var_decl();
             continue;
         }
-        else if (next == TK::Eof) {
+
+        if (next == TK::Eof) {
             break;
         }
-        else {
-            std::cerr << "error: unexpected token: '" << next << "'" << std::endl;
-            exit(EXIT_FAILURE);
-        }
+
+        std::cerr << "error: unexpected token: '" << next << "'" << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     return prog;

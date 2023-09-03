@@ -292,6 +292,34 @@ int main(int argc, char **argv)
         ASSERTL(42, ip.Run(input));
     }
 
+    {
+        std::stringstream input(
+            "- gcount int\n"
+            "- gvar int\n"
+            "\n"
+            "# seven() int\n"
+            "    gvar = 119\n"
+            "    return 7\n"
+            "\n"
+            "# add(x int, y int) int\n"
+            "    return x + y\n"
+            "\n"
+            "//# add int\n"
+            "//    - x int\n"
+            "//    - y int\n"
+            "//      * test string\n"
+            "//      return x + y\n"
+            "\n"
+            "# main() int\n"
+            "    seven()\n"
+            "    return gvar\n"
+            "    return seven() + add(30, 5)\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(119, ip.Run(input));
+    }
+
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
     else if (GetTestCount() > 1)

@@ -38,14 +38,6 @@ Int Interpreter::Run(std::istream &stream)
     }
 
     // Generate bytecode
-    Func *main_func = scope_.FindFunc(string_table_.Insert("main"));
-    if (!main_func) {
-        std::cerr << "'main' function not found" << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-    code_.CallFunction(main_func->id);
-    code_.Exit();
-
     GenerateCode(tree_, code_);
 
     if (print_bytecode_) {

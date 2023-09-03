@@ -17,7 +17,9 @@ enum Opcode {
     OP_LOADB,
     OP_LOADI,
     OP_LOADLOCAL,
+    OP_LOADGLOBAL,
     OP_STORELOCAL,
+    OP_STOREGLOBAL,
     // jump and function
     OP_ALLOC,
     OP_CALL,
@@ -43,7 +45,9 @@ public:
     void LoadByte(Byte byte);
     void LoadInt(Int integer);
     void LoadLocal(Byte id);
+    void LoadGlobal(Word id);
     void StoreLocal(Byte id);
+    void StoreGlobal(Word id);
     void AllocateLocal(Byte count);
     void CallFunction(Word func_index);
     // jump instructions return the address

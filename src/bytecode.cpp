@@ -12,7 +12,9 @@ const char *OpcodeString(Byte op)
     O(OP_LOADB);
     O(OP_LOADI);
     O(OP_LOADLOCAL);
+    O(OP_LOADGLOBAL);
     O(OP_STORELOCAL);
+    O(OP_STOREGLOBAL);
 
     O(OP_ALLOC);
     O(OP_CALL);
@@ -91,10 +93,22 @@ void Bytecode::LoadLocal(Byte id)
     bytes_.push_back(id);
 }
 
+void Bytecode::LoadGlobal(Word id)
+{
+    bytes_.push_back(OP_LOADGLOBAL);
+    push_back<Word>(bytes_, id);
+}
+
 void Bytecode::StoreLocal(Byte id)
 {
     bytes_.push_back(OP_STORELOCAL);
     bytes_.push_back(id);
+}
+
+void Bytecode::StoreGlobal(Word id)
+{
+    bytes_.push_back(OP_STOREGLOBAL);
+    push_back<Word>(bytes_, id);
 }
 
 void Bytecode::AllocateLocal(Byte count)
@@ -268,8 +282,18 @@ void Bytecode::Print() const
             print_op_address(op, Read(addr++));
             break;
 
+        case OP_LOADGLOBAL:
+            print_op_address(op, ReadWord(addr));
+            addr += 2;
+            break;
+
         case OP_STORELOCAL:
             print_op_address(op, Read(addr++));
+            break;
+
+        case OP_STOREGLOBAL:
+            print_op_address(op, ReadWord(addr));
+            addr += 2;
             break;
 
         case OP_ALLOC:
@@ -283,7 +307,7 @@ void Bytecode::Print() const
             break;
 
         case OP_RET:
-            print_op_immediate(op, Read(addr++));
+            print_op(op);
             break;
 
         case OP_JMP:

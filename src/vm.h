@@ -68,8 +68,9 @@ private:
     Call pop_call();
 
     Object get_local(int id) const;
-    Object get_arg(int id) const;
+    Object get_global(int id) const;
     void set_local(int id, Object obj);
+    void set_global(int id, Object obj);
     bool is_eoc() const;
 };
 

@@ -61,6 +61,11 @@ bool Scope::HasParent() const
     return Parent();
 }
 
+bool Scope::IsGlobal() const
+{
+    return !Parent();
+}
+
 Var *Scope::DefineVar(const char *name)
 {
     const auto found = vars_.find(name);
@@ -69,7 +74,7 @@ Var *Scope::DefineVar(const char *name)
     }
 
     const int next_id = vars_.size();
-    Var *var = new Var(name, next_id);
+    Var *var = new Var(name, next_id, IsGlobal());
     vars_.insert({name, var});
     return var;
 }

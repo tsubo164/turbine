@@ -188,7 +188,10 @@ void IntNumExpr::Gen(Bytecode &code) const
 
 void IdentExpr::Gen(Bytecode &code) const
 {
-    code.LoadLocal(var->id);
+    if (var->is_global)
+        code.LoadGlobal(var->id);
+    else
+        code.LoadLocal(var->id);
 }
 
 void FuncCallExpr::Gen(Bytecode &code) const
@@ -219,7 +222,11 @@ void AssignExpr::Gen(Bytecode &code) const
     // TODO remove dynamic_cast
     IdentExpr *ident = dynamic_cast<IdentExpr*>(lval.get());
     const int id = ident->var->id;
-    code.StoreLocal(id);
+
+    if (ident->var->is_global)
+        code.StoreGlobal(id);
+    else
+        code.StoreLocal(id);
 }
 
 void BlockStmt::Gen(Bytecode &code) const
@@ -274,6 +281,20 @@ void FuncDef::Gen(Bytecode &code) const
 
 void Prog::Gen(Bytecode &code) const
 {
+    if (!main_func) {
+        std::cerr << "'main' function not found" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    // global vars
+    if (scope->VarCount() > 0)
+        code.AllocateLocal(scope->VarCount());
+
+    // call main
+    code.CallFunction(main_func->id);
+    code.Exit();
+
+    // global funcs
     for (const auto func: funcs)
         func->Gen(code);
 }

@@ -8,10 +8,11 @@
 class Scope;
 
 struct Var {
-    Var(SharedStr name_, int id_)
-        : name(name_), id(id_) {}
+    Var(SharedStr name_, int ID, bool global)
+        : name(name_), id(ID), is_global(global) {}
     SharedStr name;
     const int id;
+    const bool is_global;
 };
 
 struct Func {
@@ -39,6 +40,7 @@ public:
     Scope *Close() const;
     Scope *Parent() const;
     bool HasParent() const;
+    bool IsGlobal() const;
 
     Var *DefineVar(const char *name);
     Var *FindVar(const char *name) const;
