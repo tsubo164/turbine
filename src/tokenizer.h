@@ -19,6 +19,7 @@ enum class TokenKind {
     Minus,
     Slash,
     Hash,
+    Hash2,
     // keyword
     Int,
     If,

@@ -87,6 +87,11 @@ void Parser::enter_scope(Func *func)
     }
 }
 
+void Parser::enter_scope(Clss *clss)
+{
+    scope_ = clss->scope;
+}
+
 void Parser::leave_scope()
 {
     scope_ = scope_->Close();
@@ -272,6 +277,51 @@ Var *Parser::var_decl()
     return var;
 }
 
+Fld *Parser::field_decl()
+{
+    expect(TK::Minus);
+    expect(TK::Ident);
+
+    const Token *tok = curtok();
+    if (scope_->FindFild(tok->sval)) {
+        std::cerr
+            << "error: re-defined variable: '"
+            << tok->sval << "'"
+            << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    Fld *fld = scope_->DefineFild(tok->sval);
+    type();
+    expect(TK::NewLine);
+
+    return fld;
+}
+
+Clss *Parser::class_decl()
+{
+    expect(TK::Hash2);
+    expect(TK::Ident);
+
+    // class name
+    const Token *tok = curtok();
+    Clss *clss = scope_->DefineClss(tok->sval);
+    if (!clss) {
+        std::cerr << "error: re-defined class: '" << tok->sval << "'" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    expect(TK::NewLine);
+    enter_scope(clss);
+    expect(TK::BlockBegin);
+    field_list(clss);
+    expect(TK::BlockEnd);
+    leave_scope();
+
+    return nullptr;
+    //return new ClasDef(clss);
+}
+
 BlockStmt *Parser::block_stmt()
 {
     BlockStmt *block = new BlockStmt();
@@ -319,6 +369,21 @@ Type *Parser::type()
     std::exit(EXIT_FAILURE);
 
     return nullptr;
+}
+
+void Parser::field_list(Clss *clss)
+{
+    expect(TK::Minus);
+
+    do {
+        expect(TK::Ident);
+        const Token *tok = curtok();
+
+        clss->DeclareFild(tok->sval);
+        type();
+        expect(TK::NewLine);
+    }
+    while (consume(TK::Minus));
 }
 
 void Parser::param_list(Func *func)
@@ -381,6 +446,11 @@ Prog *Parser::program()
                 prog->main_func = fdef->func;
 
             prog->AddFuncDef(fdef);
+            continue;
+        }
+
+        if (next == TK::Hash2) {
+            class_decl();
             continue;
         }
 

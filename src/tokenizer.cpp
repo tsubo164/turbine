@@ -32,6 +32,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::Minus: return "-";
     case TK::Slash: return "/";
     case TK::Hash: return "#";
+    case TK::Hash2: return "##";
 
     case TK::Int: return "int";
     case TK::If: return "if";
@@ -160,7 +161,15 @@ void Tokenizer::Get(Token *tok)
         }
 
         if (ch == '#') {
-            tok->kind = TK::Hash;
+            ch = stream_->get();
+
+            if (ch == '#') {
+                tok->kind = TK::Hash2;
+            }
+            else {
+                stream_->unget();
+                tok->kind = TK::Hash;
+            }
             return;
         }
 

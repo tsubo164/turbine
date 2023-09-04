@@ -42,6 +42,7 @@ private:
 
     // scope
     void enter_scope(Func *func = nullptr);
+    void enter_scope(Clss *clss);
     void leave_scope();
 
     // expression
@@ -56,11 +57,14 @@ private:
     Stmt *if_stmt();
     Stmt *ret_stmt();
     Stmt *expr_stmt();
-    Var *var_decl();
     BlockStmt *block_stmt();
 
     //
     Type *type();
+    Var *var_decl();
+    Fld *field_decl();
+    Clss *class_decl();
+    void field_list(Clss *clss);
     void param_list(Func *func);
     FuncDef *func_def();
 
