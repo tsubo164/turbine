@@ -145,4 +145,8 @@ void Scope::Print(int depth) const
 
         func->scope->Print(depth + 1);
     }
+
+    for (auto scope: children_) {
+        scope->Print(depth + 1);
+    }
 }

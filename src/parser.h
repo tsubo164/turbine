@@ -4,6 +4,7 @@
 #include "string_table.h"
 #include "tokenizer.h"
 #include "scope.h"
+#include "type.h"
 #include "ast.h"
 #include <cstdint>
 #include <array>
@@ -59,7 +60,7 @@ private:
     BlockStmt *block_stmt();
 
     //
-    void type();
+    Type *type();
     void param_list(Func *func);
     FuncDef *func_def();
 

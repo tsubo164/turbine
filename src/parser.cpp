@@ -305,18 +305,20 @@ BlockStmt *Parser::block_stmt()
     return block;
 }
 
-void Parser::type()
+Type *Parser::type()
 {
     if (consume(TK::Int))
-        return;
+        return new Type(TY::Integer);
 
     if (consume(TK::String))
-        return;
+        return new Type(TY::String);
 
     const Token *tok = gettok();
 
     std::cerr << "error: not a type name: '" << tok->kind << "'" << std::endl;
     std::exit(EXIT_FAILURE);
+
+    return nullptr;
 }
 
 void Parser::param_list(Func *func)

@@ -1,12 +1,9 @@
-- gcount int
-- gvar int
-
-# seven() int
-    gvar = 119
-    return 7
-
-# add(x int, y int) int
-    return x + y
+# foo(x int) int
+    if x == 10
+        - y int
+        y = 23
+        x = y
+    return x + 3
 
 //# add int
 //    - x int
@@ -15,6 +12,4 @@
 //      return x + y
 
 # main() int
-    seven()
-    return gvar
-    return seven() + add(30, 5)
+    return foo(10)
