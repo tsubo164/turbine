@@ -291,7 +291,6 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
-
     {
         std::stringstream input(
             "- gcount int\n"
@@ -318,6 +317,31 @@ int main(int argc, char **argv)
         Interpreter ip;
 
         ASSERTL(119, ip.Run(input));
+    }
+    {
+        std::stringstream input(
+            "# foo(x int) int\n"
+            "    return 19\n"
+            "    if x == 10\n"
+            "        - y int\n"
+            "        y = 23\n"
+            "        x = y\n"
+            "    return x + 3\n"
+            "\n"
+            "//# add int\n"
+            "//    - x int\n"
+            "//    - y int\n"
+            "//      * test string\n"
+            "//      return x + y\n"
+            "# add (x int, y int) int\n"
+            "    return x + y\n"
+            "\n"
+            "# main() int\n"
+            "    return foo(10) + add(20 + 3)\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
     }
 
     if (GetTestCount() <= 1)

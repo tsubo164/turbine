@@ -80,7 +80,7 @@ bool Parser::consume(TokenKind kind)
 void Parser::enter_scope(Func *func)
 {
     if (func) {
-        scope_ = func->scope.get();
+        scope_ = func->scope;
     }
     else {
         scope_ = scope_->OpenChild();
@@ -353,14 +353,15 @@ FuncDef *Parser::func_def()
         std::exit(EXIT_FAILURE);
     }
 
+    enter_scope(func);
+
     param_list(func);
     type();
-
     expect(TK::NewLine);
 
     // func body
-    enter_scope(func);
     BlockStmt *block = block_stmt();
+
     leave_scope();
 
     return new FuncDef(func, block);

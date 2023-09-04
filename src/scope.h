@@ -8,19 +8,19 @@
 class Scope;
 
 struct Var {
-    Var(SharedStr name_, int ID, bool global)
-        : name(name_), id(ID), is_global(global) {}
+    Var(SharedStr Name, int ID, bool global)
+        : name(Name), id(ID), is_global(global) {}
     SharedStr name;
     const int id;
     const bool is_global;
 };
 
 struct Func {
-    Func(SharedStr name_, int id_, Scope *parent_);
+    Func(SharedStr Name, int ID, Scope *sc)
+        : name(Name), id(ID), scope(sc) {}
     SharedStr name;
     const int id;
-
-    std::unique_ptr<Scope> scope;
+    Scope *scope;
 
     void DeclareParam(SharedStr name);
     int ParamCount() const;
@@ -54,6 +54,7 @@ public:
 private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;
+    const Func *func_;
 
     std::map<const char*,Var*> vars_;
     std::map<const char*,Func*> funcs_;

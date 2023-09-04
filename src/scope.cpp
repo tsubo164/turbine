@@ -1,11 +1,6 @@
 #include "scope.h"
 #include <iostream>
 
-Func::Func(SharedStr name_, int id_, Scope *parent_)
-    : name(name_), id(id_), scope(new Scope(parent_))
-{
-}
-
 void Func::DeclareParam(SharedStr name)
 {
     scope->DefineVar(name);
@@ -100,13 +95,16 @@ int Scope::VarCount() const
 Func *Scope::DefineFunc(const char *name)
 {
     const auto it = funcs_.find(name);
-    if (it != funcs_.end()) {
+    if (it != funcs_.end())
         return nullptr;
-    }
+
+    Scope *func_scope = OpenChild();
 
     const int next_id = funcs_.size();
-    Func *func = new Func(name, next_id, this);
+    Func *func = new Func(name, next_id, func_scope);
     funcs_.insert({name, func});
+
+    func_scope->func_ = func;
     return func;
 }
 
@@ -137,16 +135,12 @@ void Scope::Print(int depth) const
             " @" << var->id << std::endl;
     }
 
-    for (auto it: funcs_) {
-        const Func *func = it.second;
-
-        std::cout << header <<
-            "[func] " << func->name << std::endl;
-
-        func->scope->Print(depth + 1);
-    }
-
     for (auto scope: children_) {
+
+        if (scope->func_)
+            std::cout << header <<
+                "[func] " << scope->func_->name << std::endl;
+
         scope->Print(depth + 1);
     }
 }
