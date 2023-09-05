@@ -24,7 +24,7 @@ struct NullExpr : public Expr {
 };
 
 struct IntNumExpr : public Expr {
-    IntNumExpr(long val) : ival(val) {}
+    IntNumExpr(long n) : ival(n) {}
     long ival;
 
     long Eval() const override final;
@@ -33,7 +33,7 @@ struct IntNumExpr : public Expr {
 };
 
 struct IdentExpr : public Expr {
-    IdentExpr(Var *var_) : var(var_) {}
+    IdentExpr(Var *v) : var(v) {}
     const Var *var;
 
     long Eval() const override final;
@@ -41,9 +41,19 @@ struct IdentExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
-struct FuncCallExpr : public Expr {
-    FuncCallExpr(Func *func_) : func(func_) {}
-    void AddArgument(Expr *expr) { args.push_back(expr); }
+struct SelectExpr : public Expr {
+    SelectExpr(Expr *i, Expr *f) : inst(i), fld(f) {}
+    Expr *inst;
+    Expr *fld;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
+struct CallExpr : public Expr {
+    CallExpr(Func *f) : func(f) {}
+    void AddArg(Expr *e) { args.push_back(e); }
     std::vector<Expr*> args;
     const Func *func;
 

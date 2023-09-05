@@ -31,6 +31,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::Plus: return "+";
     case TK::Minus: return "-";
     case TK::Slash: return "/";
+    case TK::Period: return ".";
     case TK::Hash: return "#";
     case TK::Hash2: return "##";
 
@@ -136,6 +137,11 @@ void Tokenizer::Get(Token *tok)
                 stream_->unget();
                 tok->kind = TK::Slash;
             }
+            return;
+        }
+
+        if (ch == '.') {
+            tok->kind = TK::Period;
             return;
         }
 

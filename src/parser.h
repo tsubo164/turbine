@@ -46,7 +46,7 @@ private:
     void leave_scope();
 
     // expression
-    FuncCallExpr *arg_list(FuncCallExpr *fcall);
+    CallExpr *arg_list(CallExpr *fcall);
     Expr *primary_expr();
     Expr *add_expr();
     Expr *equal_expr();

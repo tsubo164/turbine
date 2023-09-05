@@ -18,6 +18,7 @@ enum class TokenKind {
     Plus,
     Minus,
     Slash,
+    Period,
     Hash,
     Hash2,
     // keyword

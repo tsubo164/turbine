@@ -32,9 +32,18 @@ void IdentExpr::Print(int depth) const
     std::cout << var->name << " @" << var->id << std::endl;
 }
 
-void FuncCallExpr::Print(int depth) const
+void SelectExpr::Print(int depth) const
 {
-    print_node("FuncCallExpr", depth, false);
+    print_node("SelectExpr", depth);
+    inst->Print(depth + 1);
+    fld->Print(depth + 1);
+    //print_node("SelectExpr", depth, false);
+    //std::cout << var->name << " @" << var->id << std::endl;
+}
+
+void CallExpr::Print(int depth) const
+{
+    print_node("CallExpr", depth, false);
     std::cout << func->name << std::endl;
     for (auto arg: args)
         arg->Print(depth + 1);
@@ -114,7 +123,12 @@ long IdentExpr::Eval() const
     return 0;
 }
 
-long FuncCallExpr::Eval() const
+long SelectExpr::Eval() const
+{
+    return 0;
+}
+
+long CallExpr::Eval() const
 {
     return 0;
 }
@@ -194,7 +208,11 @@ void IdentExpr::Gen(Bytecode &code) const
         code.LoadLocal(var->id);
 }
 
-void FuncCallExpr::Gen(Bytecode &code) const
+void SelectExpr::Gen(Bytecode &code) const
+{
+}
+
+void CallExpr::Gen(Bytecode &code) const
 {
     for (auto it = args.rbegin(); it != args.rend(); ++it)
         (*it)->Gen(code);

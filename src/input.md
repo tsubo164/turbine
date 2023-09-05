@@ -2,8 +2,10 @@
   - x int
   - y int
 
-# add(x int, y int) int
-  return x + y
+- pt Point
+
+# add(a int, b int) int
+  return a + b
 
 //# add int
 //    - x int
@@ -14,4 +16,6 @@
 //        return x + y
 
 # main() int
-    return add(20 + 3)
+    pt.x = 2
+    //pt.y = 3
+    return 0

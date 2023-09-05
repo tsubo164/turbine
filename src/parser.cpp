@@ -97,55 +97,79 @@ void Parser::leave_scope()
     scope_ = scope_->Close();
 }
 
-FuncCallExpr *Parser::arg_list(FuncCallExpr *fcall)
+CallExpr *Parser::arg_list(CallExpr *call)
 {
     expect(TK::LeftParenthesis);
 
     if (consume(TK::RightParenthesis))
-        return fcall;
+        return call;
 
     do {
-        fcall->AddArgument(expression());
+        call->AddArg(expression());
     }
     while (consume(TK::Comma));
 
     expect(TK::RightParenthesis);
-    return fcall;
+    return call;
 }
 
+// primary_expr =
+//     IntNum |
+//     primary_expr selector
 Expr *Parser::primary_expr()
 {
-    const Token *tok = gettok();
-
-    if (tok->kind == TK::IntNum) {
+    if (consume(TK::IntNum)) {
+        const Token *tok = curtok();
         return new IntNumExpr(tok->ival);
     }
 
-    if (tok->kind == TK::Ident) {
-        if (peek() == TK::LeftParenthesis) {
-            Func *func = scope_->FindFunc(tok->sval);
-            if (!func) {
-                std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
-                exit(EXIT_FAILURE);
+    Expr *expr = nullptr;
+
+    for (;;) {
+        const Token *tok = gettok();
+
+        if (tok->kind == TK::Ident) {
+            if (peek() == TK::LeftParenthesis) {
+                Func *func = scope_->FindFunc(tok->sval);
+                if (!func) {
+                    std::cerr << "error: undefined identifier: '" <<
+                        tok->sval << "'" << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+
+                CallExpr *call = new CallExpr(func);
+                expr = arg_list(call);
             }
-            FuncCallExpr *fcall = new FuncCallExpr(func);
-            return arg_list(fcall);
+            else {
+                Var *var = scope_->FindVar(tok->sval);
+                if (!var) {
+                    std::cerr << "error: undefined identifier: '" <<
+                        tok->sval << "'" << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+
+                expr = new IdentExpr(var);
+            }
+            continue;
+        }
+        else if (tok->kind == TK::Period) {
+            expect(TK::Ident);
+            tok = curtok();
+
+            //Var *var = scope_->FindVar(tok->sval);
+            //std::cout << "'" << tok->sval << "'" << std::endl;
+
+            //Expr *ident = new IdentExpr(var);
+            //expr = new SelectExpr(expr, ident);
+            continue;
         }
         else {
-            Var *var = scope_->FindVar(tok->sval);
-            if (var) {
-                return new IdentExpr(var);
-            }
-
-            std::cerr << "error: undefined identifier: '" << tok->sval << "'" << std::endl;
-            exit(EXIT_FAILURE);
-            return nullptr;
+            ungettok();
+            return expr;
         }
     }
 
-    std::cerr << "error: unexpected token: '" << tok->kind << "'" << std::endl;
-    exit(EXIT_FAILURE);
-    return nullptr;
+    return expr;
 }
 
 Expr *Parser::add_expr()
@@ -362,6 +386,13 @@ Type *Parser::type()
 
     if (consume(TK::String))
         return new Type(TY::String);
+
+    if (consume(TK::Ident)) {
+        //const Token *tok = curtok();
+        //std::cout << "'" << tok->sval << "'" << std::endl;
+        //Clss *clss = scope_->FindClss(tok->sval);
+        return new Type(TY::Integer);
+    }
 
     const Token *tok = gettok();
 
