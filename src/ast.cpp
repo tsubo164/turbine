@@ -32,13 +32,17 @@ void IdentExpr::Print(int depth) const
     std::cout << var->name << " @" << var->id << std::endl;
 }
 
+void FieldExpr::Print(int depth) const
+{
+    print_node("FieldExpr", depth, false);
+    std::cout << fld->name << " @" << fld->id << std::endl;
+}
+
 void SelectExpr::Print(int depth) const
 {
     print_node("SelectExpr", depth);
     inst->Print(depth + 1);
     fld->Print(depth + 1);
-    //print_node("SelectExpr", depth, false);
-    //std::cout << var->name << " @" << var->id << std::endl;
 }
 
 void CallExpr::Print(int depth) const
@@ -123,6 +127,11 @@ long IdentExpr::Eval() const
     return 0;
 }
 
+long FieldExpr::Eval() const
+{
+    return 0;
+}
+
 long SelectExpr::Eval() const
 {
     return 0;
@@ -188,6 +197,16 @@ long Prog::Eval() const
     return ret;
 }
 
+// Addr
+int IdentExpr::Addr() const
+{
+    return var->id;
+    //if (ident->var->is_global)
+    //    code.StoreGlobal(id);
+    //else
+    //    code.StoreLocal(id);
+}
+
 // Gen
 void IntNumExpr::Gen(Bytecode &code) const
 {
@@ -206,6 +225,11 @@ void IdentExpr::Gen(Bytecode &code) const
         code.LoadGlobal(var->id);
     else
         code.LoadLocal(var->id);
+}
+
+void FieldExpr::Gen(Bytecode &code) const
+{
+    //code.LoadLocal(fld->id);
 }
 
 void SelectExpr::Gen(Bytecode &code) const
@@ -245,6 +269,8 @@ void AssignExpr::Gen(Bytecode &code) const
         code.StoreGlobal(id);
     else
         code.StoreLocal(id);
+
+    //const int index = lval->Addr();
 }
 
 void BlockStmt::Gen(Bytecode &code) const
@@ -306,7 +332,7 @@ void Prog::Gen(Bytecode &code) const
 
     // global vars
     if (scope->VarCount() > 0)
-        code.AllocateLocal(scope->VarCount());
+        code.AllocateLocal(scope->VarSize());
 
     // call main
     code.CallFunction(main_func->id);

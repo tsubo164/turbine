@@ -6,6 +6,8 @@
 #include "bytecode.h"
 #include "scope.h"
 
+struct Type;
+
 struct Node {
     Node() {}
     virtual ~Node() {}
@@ -15,6 +17,9 @@ struct Node {
 };
 
 struct Expr : public Node {
+    const Type *type = nullptr;
+
+    virtual int Addr() const { return -1; }
 };
 
 struct NullExpr : public Expr {
@@ -33,12 +38,25 @@ struct IntNumExpr : public Expr {
 };
 
 struct IdentExpr : public Expr {
-    IdentExpr(Var *v) : var(v) {}
+    IdentExpr(const Var *v) : var(v) { type = var->type; }
     const Var *var;
 
     long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+
+    int Addr() const override;
+};
+
+struct FieldExpr : public Expr {
+    FieldExpr(const Field *f) : fld(f) { type = fld->type; }
+    const Field *fld;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+
+    int Addr() const override { return fld->id; }
 };
 
 struct SelectExpr : public Expr {

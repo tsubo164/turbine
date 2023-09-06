@@ -5,6 +5,7 @@
 #include <map>
 #include "string_table.h"
 
+struct Type;
 class Scope;
 
 struct Var {
@@ -13,6 +14,8 @@ struct Var {
     SharedStr name;
     const int id;
     const bool is_global;
+
+    Type *type = nullptr;
 };
 
 struct Func {
@@ -36,7 +39,10 @@ struct Fld {
 
     SharedStr name;
     const int id;
+
+    Type *type = nullptr;
 };
+typedef Fld Field;
 
 struct Clss {
     Clss(SharedStr Name, int ID, Scope *sc)
@@ -46,12 +52,16 @@ struct Clss {
     const int id;
     Scope *scope;
 
-    void DeclareFild(SharedStr name);
-    int FildCount() const;
+    void DeclareField(SharedStr name);
+    Field *FindField(const char *name) const;
+    int FieldCount() const;
+
+    int Size() const;
 
 private:
     int nflds_ = 0;
 };
+typedef Clss Class;
 
 class Scope {
 public:
@@ -70,8 +80,8 @@ public:
     int VarCount() const;
 
     Fld *DefineFild(const char *name);
-    Fld *FindFild(const char *name) const;
-    int FildCount() const;
+    Fld *FindField(const char *name) const;
+    int FieldCount() const;
 
     Func *DefineFunc(const char *name);
     Func *FindFunc(const char *name) const;
@@ -79,13 +89,16 @@ public:
     Clss *DefineClss(const char *name);
     Clss *FindClss(const char *name) const;
 
+    int VarSize() const;
+    int FieldSize() const;
+
     void Print(int depth = 0) const;
 
 private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;
-    const Func *func_;
-    const Clss *clss_;
+    const Func *func_ = nullptr;
+    const Clss *clss_ = nullptr;
 
     std::map<const char*,Var*> vars_;
     std::map<const char*,Func*> funcs_;

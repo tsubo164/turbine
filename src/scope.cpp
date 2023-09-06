@@ -1,4 +1,5 @@
 #include "scope.h"
+#include "type.h"
 #include <iostream>
 
 // Func
@@ -19,15 +20,25 @@ int Func::VarCount() const
 }
 
 // Clss
-void Clss::DeclareFild(SharedStr name)
+void Clss::DeclareField(SharedStr name)
 {
     scope->DefineFild(name);
     nflds_++;
 }
 
-int Clss::FildCount() const
+Field *Clss::FindField(const char *name) const
+{
+    return scope->FindField(name);
+}
+
+int Clss::FieldCount() const
 {
     return nflds_;
+}
+
+int Class::Size() const
+{
+    return scope->FieldSize();
 }
 
 // Scope
@@ -119,7 +130,7 @@ Fld *Scope::DefineFild(const char *name)
     return fld;
 }
 
-Fld *Scope::FindFild(const char *name) const
+Fld *Scope::FindField(const char *name) const
 {
     const auto it = flds_.find(name);
     if (it != flds_.end()) {
@@ -127,12 +138,12 @@ Fld *Scope::FindFild(const char *name) const
     }
 
     if (HasParent())
-        return Parent()->FindFild(name);
+        return Parent()->FindField(name);
 
     return nullptr;
 }
 
-int Scope::FildCount() const
+int Scope::FieldCount() const
 {
     return flds_.size();
 }
@@ -192,6 +203,38 @@ Clss *Scope::FindClss(const char *name) const
         return Parent()->FindClss(name);
 
     return nullptr;
+}
+
+int Scope::VarSize() const
+{
+    int size = 0;
+
+    for (auto it: vars_) {
+        const Var *var = it.second;
+
+        if (var->type)
+            size += var->type->Size();
+        else
+            size += 1;
+    }
+
+    return size;
+}
+
+int Scope::FieldSize() const
+{
+    int size = 0;
+
+    for (auto it: flds_) {
+        const Fld *fld = it.second;
+
+        if (fld->type)
+            size += fld->type->Size();
+        else
+            size += 1;
+    }
+
+    return size;
 }
 
 void Scope::Print(int depth) const

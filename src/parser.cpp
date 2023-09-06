@@ -153,14 +153,23 @@ Expr *Parser::primary_expr()
             continue;
         }
         else if (tok->kind == TK::Period) {
+            // TODO FIX
+            if (!expr || !expr->type) {
+                std::cerr << "error: no type" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            if (expr->type->kind != TY::Class) {
+                std::cerr << "error: not a class type" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
             expect(TK::Ident);
             tok = curtok();
 
-            //Var *var = scope_->FindVar(tok->sval);
-            //std::cout << "'" << tok->sval << "'" << std::endl;
+            Fld *fld = expr->type->clss->FindField(tok->sval);
+            std::cout << "'" << fld->name << "'" << std::endl;
 
-            //Expr *ident = new IdentExpr(var);
-            //expr = new SelectExpr(expr, ident);
+            expr = new SelectExpr(expr, new FieldExpr(fld));
             continue;
         }
         else {
@@ -295,7 +304,7 @@ Var *Parser::var_decl()
     }
 
     Var *var = scope_->DefineVar(tok->sval);
-    type();
+    var->type = type();
     expect(TK::NewLine);
 
     return var;
@@ -307,7 +316,7 @@ Fld *Parser::field_decl()
     expect(TK::Ident);
 
     const Token *tok = curtok();
-    if (scope_->FindFild(tok->sval)) {
+    if (scope_->FindField(tok->sval)) {
         std::cerr
             << "error: re-defined variable: '"
             << tok->sval << "'"
@@ -388,10 +397,11 @@ Type *Parser::type()
         return new Type(TY::String);
 
     if (consume(TK::Ident)) {
-        //const Token *tok = curtok();
-        //std::cout << "'" << tok->sval << "'" << std::endl;
-        //Clss *clss = scope_->FindClss(tok->sval);
-        return new Type(TY::Integer);
+        const Token *tok = curtok();
+        Type *ty = new Type(TY::Class);
+        ty->clss = scope_->FindClss(tok->sval);
+        std::cout << "'" << tok->sval << "'" << std::endl;
+        return ty;
     }
 
     const Token *tok = gettok();
@@ -410,7 +420,7 @@ void Parser::field_list(Clss *clss)
         expect(TK::Ident);
         const Token *tok = curtok();
 
-        clss->DeclareFild(tok->sval);
+        clss->DeclareField(tok->sval);
         type();
         expect(TK::NewLine);
     }

@@ -16,6 +16,6 @@
 //        return x + y
 
 # main() int
-    pt.x = 2
+    //pt.x = 2
     //pt.y = 3
     return 0
