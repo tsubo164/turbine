@@ -1,4 +1,4 @@
-#include "tokenizer.h"
+#include "lexer.h"
 #include <unordered_map>
 
 static const std::unordered_map<std::string, TokenKind> keywords = {
@@ -11,10 +11,11 @@ static const std::unordered_map<std::string, TokenKind> keywords = {
 
 static TokenKind keyword_or_identifier(const std::string &word)
 {
-    const auto found = keywords.find(word);
-    if (found != keywords.end()) {
-        return found->second;
-    }
+    const auto it = keywords.find(word);
+
+    if (it != keywords.end())
+        return it->second;
+
     return TK::Ident;
 }
 
@@ -42,8 +43,8 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::String: return "string";
 
     case TK::Comma: return ",";
-    case TK::LeftParenthesis: return "(";
-    case TK::RightParenthesis: return ")";
+    case TK::LParen: return "(";
+    case TK::RParen: return ")";
     case TK::BlockBegin: return "BlockBegin";
     case TK::BlockEnd: return "BlockEnd";
     case TK::NewLine: return "\\n";
@@ -61,22 +62,42 @@ std::ostream &operator<<(std::ostream &os, TokenKind kind)
     return os << tok_kind_string(kind);
 }
 
-Tokenizer::Tokenizer(StringTable &string_table) : strtable_(string_table)
+Lexer::Lexer(StringTable &strtab) : strtable_(strtab)
 {
     indent_stack_.push(0);
     is_line_begin_ = true;
 }
 
-Tokenizer::~Tokenizer()
+Lexer::~Lexer()
 {
 }
 
-void Tokenizer::SetInput(std::istream &stream)
+void Lexer::SetInput(std::istream &stream)
 {
     stream_ = &stream;
 }
 
-void Tokenizer::Get(Token *tok)
+int Lexer::get()
+{
+    return stream_->get();
+}
+
+int Lexer::peek()
+{
+    return stream_->peek();
+}
+
+void Lexer::unget()
+{
+    stream_->unget();
+}
+
+bool Lexer::eof() const
+{
+    return stream_->eof();
+}
+
+void Lexer::Get(Token *tok)
 {
     *tok = {};
 
@@ -94,8 +115,8 @@ void Tokenizer::Get(Token *tok)
             return;
     }
 
-    while (!stream_->eof()) {
-        int ch = stream_->get();
+    while (!eof()) {
+        int ch = get();
 
         // number
         if (isdigit(ch)) {
@@ -104,13 +125,13 @@ void Tokenizer::Get(Token *tok)
         }
 
         if (ch == '=') {
-            ch = stream_->get();
+            ch = get();
 
             if (ch == '=') {
                 tok->kind = TK::Equal2;
             }
             else {
-                stream_->unget();
+                unget();
                 tok->kind = TK::Equal;
             }
             return;
@@ -127,14 +148,14 @@ void Tokenizer::Get(Token *tok)
         }
 
         if (ch == '/') {
-            ch = stream_->get();
+            ch = get();
 
             if (ch == '/') {
                 scan_line_comment();
                 continue;
             }
             else {
-                stream_->unget();
+                unget();
                 tok->kind = TK::Slash;
             }
             return;
@@ -151,12 +172,12 @@ void Tokenizer::Get(Token *tok)
         }
 
         if (ch == '(') {
-            tok->kind = TK::LeftParenthesis;
+            tok->kind = TK::LParen;
             return;
         }
 
         if (ch == ')') {
-            tok->kind = TK::RightParenthesis;
+            tok->kind = TK::RParen;
             return;
         }
 
@@ -167,13 +188,13 @@ void Tokenizer::Get(Token *tok)
         }
 
         if (ch == '#') {
-            ch = stream_->get();
+            ch = get();
 
             if (ch == '#') {
                 tok->kind = TK::Hash2;
             }
             else {
-                stream_->unget();
+                unget();
                 tok->kind = TK::Hash;
             }
             return;
@@ -202,53 +223,49 @@ void Tokenizer::Get(Token *tok)
     tok->kind = TK::Eof;
 }
 
-void Tokenizer::scan_number(int first_char, Token *tok)
-{
-    static char buf[256] = {'\0'};
-    char *pbuf = buf;
-
-    for (int ch = first_char; isdigit(ch); ch = stream_->get()) {
-        *pbuf++ = ch;
-    }
-    stream_->unget();
-
-    *pbuf = '\0';
-    pbuf = buf;
-
-    char *end = nullptr;
-    tok->ival = strtol(buf, &end, 10);
-    tok->kind = TK::IntNum;
-}
-
-void Tokenizer::scan_word(int first_char, Token *tok)
+void Lexer::scan_number(int first_char, Token *tok)
 {
     strbuf_.clear();
 
-    for (int ch = first_char; isalnum(ch) || ch == '_'; ch = stream_->get()) {
+    for (int ch = first_char; isdigit(ch); ch = get())
         strbuf_ += ch;
-    }
-    stream_->unget();
+
+    unget();
+
+    size_t pos = 0;
+    tok->ival = std::stol(strbuf_, &pos, 10);
+    tok->kind = TK::IntNum;
+}
+
+void Lexer::scan_word(int first_char, Token *tok)
+{
+    strbuf_.clear();
+
+    for (int ch = first_char; isalnum(ch) || ch == '_'; ch = get())
+        strbuf_ += ch;
+
+    unget();
 
     tok->kind = keyword_or_identifier(strbuf_);
     if (tok->kind == TK::Ident)
         tok->sval = strtable_.Insert(strbuf_);
 }
 
-int Tokenizer::count_indent()
+int Lexer::count_indent()
 {
     int indent = 0;
 
     for (;;) {
-        const int ch = stream_->get();
+        const int ch = get();
 
         if (ch == '/') {
             // indent + line comment => next line
-            if (stream_->peek() == '/') {
+            if (peek() == '/') {
                 scan_line_comment();
                 continue;
             }
             else {
-                stream_->unget();
+                unget();
                 break;
             }
         }
@@ -266,7 +283,7 @@ int Tokenizer::count_indent()
             continue;
         }
         else {
-            stream_->unget();
+            unget();
             break;
         }
     }
@@ -274,7 +291,7 @@ int Tokenizer::count_indent()
     return indent;
 }
 
-TokenKind Tokenizer::scan_indent(Token *tok)
+TokenKind Lexer::scan_indent(Token *tok)
 {
     const int indent = count_indent();
 
@@ -309,13 +326,13 @@ TokenKind Tokenizer::scan_indent(Token *tok)
     }
 }
 
-void Tokenizer::scan_line_comment()
+void Lexer::scan_line_comment()
 {
     for (;;) {
-        const int ch = stream_->get();
+        const int ch = get();
 
         if (ch == '\n') {
-            stream_->unget();
+            unget();
             break;
         }
     }

@@ -2,10 +2,10 @@
 #define INTERPRETER_H
 
 #include <istream>
-#include "tokenizer.h"
 #include "bytecode.h"
 #include "codegen.h"
 #include "parser.h"
+#include "lexer.h"
 #include "scope.h"
 #include "vm.h"
 

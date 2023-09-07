@@ -2,7 +2,7 @@
 #define PARSER_H
 
 #include "string_table.h"
-#include "tokenizer.h"
+#include "lexer.h"
 #include "scope.h"
 #include "type.h"
 #include "ast.h"
@@ -12,13 +12,13 @@
 class Parser {
 public:
     Parser(StringTable &string_table, Scope &scope)
-        : tokenizer_(string_table), scope_(&scope) {}
+        : lexer_(string_table), scope_(&scope) {}
     ~Parser() {}
 
     Node *ParseStream(std::istream &sstrm);
 
 private:
-    Tokenizer tokenizer_;
+    Lexer lexer_;
     Scope *scope_;
 
     // token buffer

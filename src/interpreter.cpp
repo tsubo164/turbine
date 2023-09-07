@@ -1,5 +1,5 @@
 #include "interpreter.h"
-#include "tokenizer.h"
+#include "lexer.h"
 #include <iostream>
 
 static void print_header(const char *title)
@@ -85,9 +85,9 @@ void Interpreter::EnablePrintStack(bool enable)
 int Interpreter::print_token(std::istream &stream) const
 {
     StringTable string_table;
-    Tokenizer tokenizer(string_table);
+    Lexer lexer(string_table);
 
-    tokenizer.SetInput(stream);
+    lexer.SetInput(stream);
     Token token;
     Token *tok = &token;
     int indent = 0;
@@ -96,7 +96,7 @@ int Interpreter::print_token(std::istream &stream) const
     print_header("token");
 
     for (;;) {
-        tokenizer.Get(tok);
+        lexer.Get(tok);
 
         if (print_token_raw_) {
             std::cout << tok->kind << std::endl;

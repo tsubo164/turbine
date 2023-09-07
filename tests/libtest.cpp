@@ -1,10 +1,10 @@
 #include <iostream>
 #include <sstream>
 #include "test.h"
-#include "../src/tokenizer.h"
 #include "../src/bytecode.h"
 #include "../src/codegen.h"
 #include "../src/parser.h"
+#include "../src/lexer.h"
 #include "../src/scope.h"
 #include "../src/vm.h"
 #include "../src/interpreter.h"

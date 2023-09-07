@@ -3,7 +3,7 @@
 
 Node *Parser::ParseStream(std::istream &stream)
 {
-    tokenizer_.SetInput(stream);
+    lexer_.SetInput(stream);
 
     return program();
 }
@@ -32,7 +32,7 @@ const Token *Parser::gettok()
     }
     else {
         curr_ = next();
-        tokenizer_.Get(curr_);
+        lexer_.Get(curr_);
         head_ = curr_;
         return curr_;
     }
@@ -99,9 +99,9 @@ void Parser::leave_scope()
 
 CallExpr *Parser::arg_list(CallExpr *call)
 {
-    expect(TK::LeftParenthesis);
+    expect(TK::LParen);
 
-    if (consume(TK::RightParenthesis))
+    if (consume(TK::RParen))
         return call;
 
     do {
@@ -109,7 +109,7 @@ CallExpr *Parser::arg_list(CallExpr *call)
     }
     while (consume(TK::Comma));
 
-    expect(TK::RightParenthesis);
+    expect(TK::RParen);
     return call;
 }
 
@@ -129,7 +129,7 @@ Expr *Parser::primary_expr()
         const Token *tok = gettok();
 
         if (tok->kind == TK::Ident) {
-            if (peek() == TK::LeftParenthesis) {
+            if (peek() == TK::LParen) {
                 Func *func = scope_->FindFunc(tok->sval);
                 if (!func) {
                     std::cerr << "error: undefined identifier: '" <<
@@ -427,9 +427,9 @@ void Parser::field_list(Class *clss)
 
 void Parser::param_list(Func *func)
 {
-    expect(TK::LeftParenthesis);
+    expect(TK::LParen);
 
-    if (consume(TK::RightParenthesis))
+    if (consume(TK::RParen))
         return;
 
     do {
@@ -441,7 +441,7 @@ void Parser::param_list(Func *func)
     }
     while (consume(TK::Comma));
 
-    expect(TK::RightParenthesis);
+    expect(TK::RParen);
 }
 
 FuncDef *Parser::func_def()

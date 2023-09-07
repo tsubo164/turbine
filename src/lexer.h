@@ -1,5 +1,5 @@
-#ifndef TOKENIZER_H
-#define TOKENIZER_H
+#ifndef LEXER_H
+#define LEXER_H
 
 #include <iostream>
 #include <string>
@@ -29,27 +29,26 @@ enum class TokenKind {
     String,
     // separator
     Comma,
-    LeftParenthesis,
-    RightParenthesis,
+    LParen,
+    RParen,
     BlockBegin,
     BlockEnd,
     NewLine,
 };
-
-using TK = enum TokenKind;
+using TK = TokenKind;
 
 std::ostream &operator<<(std::ostream &os, TokenKind kind);
 
 struct Token {
     TokenKind kind = TK::Unknown;
     long ival = 0;
-    SharedStr sval {};
+    const char *sval = nullptr;
 };
 
-class Tokenizer {
+class Lexer {
 public:
-    Tokenizer(StringTable &string_table);
-    ~Tokenizer();
+    Lexer(StringTable &strtab);
+    ~Lexer();
 
     void SetInput(std::istream &stream);
     void Get(Token *tok);
@@ -64,6 +63,11 @@ private:
     std::stack <int>indent_stack_;
     int unread_blockend_ = 0;
     bool is_line_begin_ = true;
+
+    int get();
+    int peek();
+    void unget();
+    bool eof() const;
 
     void scan_number(int first_char, Token *tok);
     void scan_word(int first_char, Token *tok);
