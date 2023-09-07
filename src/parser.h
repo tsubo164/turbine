@@ -42,7 +42,7 @@ private:
 
     // scope
     void enter_scope(Func *func = nullptr);
-    void enter_scope(Clss *clss);
+    void enter_scope(Class *clss);
     void leave_scope();
 
     // expression
@@ -62,9 +62,9 @@ private:
     //
     Type *type();
     Var *var_decl();
-    Fld *field_decl();
-    Clss *class_decl();
-    void field_list(Clss *clss);
+    Field *field_decl();
+    Class *class_decl();
+    void field_list(Class *clss);
     void param_list(Func *func);
     FuncDef *func_def();
 

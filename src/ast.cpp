@@ -201,10 +201,6 @@ long Prog::Eval() const
 int IdentExpr::Addr() const
 {
     return var->id;
-    //if (ident->var->is_global)
-    //    code.StoreGlobal(id);
-    //else
-    //    code.StoreLocal(id);
 }
 
 // Gen
@@ -234,6 +230,11 @@ void FieldExpr::Gen(Bytecode &code) const
 
 void SelectExpr::Gen(Bytecode &code) const
 {
+    const int index = Addr();
+    if (inst->IsGlobal())
+        code.LoadGlobal(index);
+    else
+        code.LoadLocal(index);
 }
 
 void CallExpr::Gen(Bytecode &code) const
@@ -261,16 +262,12 @@ void AssignExpr::Gen(Bytecode &code) const
 {
     // rval first
     rval->Gen(code);
-    // TODO remove dynamic_cast
-    IdentExpr *ident = dynamic_cast<IdentExpr*>(lval.get());
-    const int id = ident->var->id;
 
-    if (ident->var->is_global)
-        code.StoreGlobal(id);
+    const int index = lval->Addr();
+    if (lval->IsGlobal())
+        code.StoreGlobal(index);
     else
-        code.StoreLocal(id);
-
-    //const int index = lval->Addr();
+        code.StoreLocal(index);
 }
 
 void BlockStmt::Gen(Bytecode &code) const

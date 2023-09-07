@@ -5,7 +5,7 @@ CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors --std=c++14 -c
 RM      := rm -f
 
 SRCS    := ast bytecode codegen interpreter parser scope string_table \
-           tokenizer vm
+           tokenizer type vm
 
 .PHONY: all clean run
 

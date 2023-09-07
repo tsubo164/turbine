@@ -3,9 +3,10 @@
 #include <iostream>
 
 // Func
-void Func::DeclareParam(SharedStr name)
+void Func::DeclareParam(SharedStr name, const Type *type)
 {
-    scope->DefineVar(name);
+    Var *v = scope->DefineVar(name);
+    v->type = type;
     nparams_++;
 }
 
@@ -19,19 +20,20 @@ int Func::VarCount() const
     return scope->VarCount() - ParamCount();
 }
 
-// Clss
-void Clss::DeclareField(SharedStr name)
+// Class
+void Class::DeclareField(SharedStr name, const Type *type)
 {
-    scope->DefineFild(name);
+    Field *f = scope->DefineFild(name);
+    f->type = type;
     nflds_++;
 }
 
-Field *Clss::FindField(const char *name) const
+Field *Class::FindField(const char *name) const
 {
     return scope->FindField(name);
 }
 
-int Clss::FieldCount() const
+int Class::FieldCount() const
 {
     return nflds_;
 }
@@ -117,7 +119,7 @@ int Scope::VarCount() const
     return vars_.size();
 }
 
-Fld *Scope::DefineFild(const char *name)
+Field *Scope::DefineFild(const char *name)
 {
     const auto found = flds_.find(name);
     if (found != flds_.end()) {
@@ -125,12 +127,12 @@ Fld *Scope::DefineFild(const char *name)
     }
 
     const int next_id = flds_.size();
-    Fld *fld = new Fld(name, next_id);
+    Field *fld = new Field(name, next_id);
     flds_.insert({name, fld});
     return fld;
 }
 
-Fld *Scope::FindField(const char *name) const
+Field *Scope::FindField(const char *name) const
 {
     const auto it = flds_.find(name);
     if (it != flds_.end()) {
@@ -177,7 +179,7 @@ Func *Scope::FindFunc(const char *name) const
     return nullptr;
 }
 
-Clss *Scope::DefineClss(const char *name)
+Class *Scope::DefineClass(const char *name)
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end())
@@ -186,21 +188,21 @@ Clss *Scope::DefineClss(const char *name)
     Scope *clss_scope = OpenChild();
 
     const int next_id = clsses_.size();
-    Clss *clss = new Clss(name, next_id, clss_scope);
+    Class *clss = new Class(name, next_id, clss_scope);
     clsses_.insert({name, clss});
 
     clss_scope->clss_ = clss;
     return clss;
 }
 
-Clss *Scope::FindClss(const char *name) const
+Class *Scope::FindClass(const char *name) const
 {
     const auto it = clsses_.find(name);
     if (it != clsses_.end())
         return it->second;
 
     if (HasParent())
-        return Parent()->FindClss(name);
+        return Parent()->FindClass(name);
 
     return nullptr;
 }
@@ -211,11 +213,7 @@ int Scope::VarSize() const
 
     for (auto it: vars_) {
         const Var *var = it.second;
-
-        if (var->type)
-            size += var->type->Size();
-        else
-            size += 1;
+        size += var->type->Size();
     }
 
     return size;
@@ -226,12 +224,8 @@ int Scope::FieldSize() const
     int size = 0;
 
     for (auto it: flds_) {
-        const Fld *fld = it.second;
-
-        if (fld->type)
-            size += fld->type->Size();
-        else
-            size += 1;
+        const Field *fld = it.second;
+        size += fld->type->Size();
     }
 
     return size;
@@ -252,7 +246,7 @@ void Scope::Print(int depth) const
     }
 
     for (auto it: flds_) {
-        const Fld *fld = it.second;
+        const Field *fld = it.second;
 
         std::cout << header <<
             "[fld] " << fld->name <<

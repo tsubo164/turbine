@@ -16,6 +16,8 @@
 //        return x + y
 
 # main() int
-    //pt.x = 2
-    //pt.y = 3
-    return 0
+  - a int
+  pt.x = 2
+  pt.y = 3
+  a = pt.y
+  return pt.x + pt.y

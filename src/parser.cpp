@@ -87,7 +87,7 @@ void Parser::enter_scope(Func *func)
     }
 }
 
-void Parser::enter_scope(Clss *clss)
+void Parser::enter_scope(Class *clss)
 {
     scope_ = clss->scope;
 }
@@ -158,7 +158,7 @@ Expr *Parser::primary_expr()
                 std::cerr << "error: no type" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            if (expr->type->kind != TY::Class) {
+            if (expr->type->kind != TY::ClassType) {
                 std::cerr << "error: not a class type" << std::endl;
                 exit(EXIT_FAILURE);
             }
@@ -166,8 +166,7 @@ Expr *Parser::primary_expr()
             expect(TK::Ident);
             tok = curtok();
 
-            Fld *fld = expr->type->clss->FindField(tok->sval);
-            std::cout << "'" << fld->name << "'" << std::endl;
+            Field *fld = expr->type->clss->FindField(tok->sval);
 
             expr = new SelectExpr(expr, new FieldExpr(fld));
             continue;
@@ -310,7 +309,7 @@ Var *Parser::var_decl()
     return var;
 }
 
-Fld *Parser::field_decl()
+Field *Parser::field_decl()
 {
     expect(TK::Minus);
     expect(TK::Ident);
@@ -324,21 +323,21 @@ Fld *Parser::field_decl()
         std::exit(EXIT_FAILURE);
     }
 
-    Fld *fld = scope_->DefineFild(tok->sval);
-    type();
+    Field *fld = scope_->DefineFild(tok->sval);
+    fld->type = type();
     expect(TK::NewLine);
 
     return fld;
 }
 
-Clss *Parser::class_decl()
+Class *Parser::class_decl()
 {
     expect(TK::Hash2);
     expect(TK::Ident);
 
     // class name
     const Token *tok = curtok();
-    Clss *clss = scope_->DefineClss(tok->sval);
+    Class *clss = scope_->DefineClass(tok->sval);
     if (!clss) {
         std::cerr << "error: re-defined class: '" << tok->sval << "'" << std::endl;
         std::exit(EXIT_FAILURE);
@@ -398,9 +397,8 @@ Type *Parser::type()
 
     if (consume(TK::Ident)) {
         const Token *tok = curtok();
-        Type *ty = new Type(TY::Class);
-        ty->clss = scope_->FindClss(tok->sval);
-        std::cout << "'" << tok->sval << "'" << std::endl;
+        Type *ty = new Type(TY::ClassType);
+        ty->clss = scope_->FindClass(tok->sval);
         return ty;
     }
 
@@ -412,16 +410,16 @@ Type *Parser::type()
     return nullptr;
 }
 
-void Parser::field_list(Clss *clss)
+void Parser::field_list(Class *clss)
 {
     expect(TK::Minus);
 
     do {
         expect(TK::Ident);
         const Token *tok = curtok();
+        const char *name = tok->sval;
 
-        clss->DeclareField(tok->sval);
-        type();
+        clss->DeclareField(name, type());
         expect(TK::NewLine);
     }
     while (consume(TK::Minus));
@@ -437,9 +435,9 @@ void Parser::param_list(Func *func)
     do {
         expect(TK::Ident);
         const Token *tok = curtok();
+        const char *name = tok->sval;
 
-        func->DeclareParam(tok->sval);
-        type();
+        func->DeclareParam(name, type());
     }
     while (consume(TK::Comma));
 

@@ -1,30 +1,22 @@
 #ifndef TYPE_H
 #define TYPE_H
 
+struct Class;
+
 enum class TypeKind {
     Integer,
     String,
-    Class,
+    ClassType,
 };
-
 using TY = TypeKind;
 
-struct Clss;
-
 struct Type {
-    Type(TypeKind Kind) : kind(Kind) {}
+    Type(TypeKind k)
+        : kind(k), clss(nullptr) {}
     const TypeKind kind;
-    const Clss *clss;
+    const Class *clss;
 
-    int Size() const
-    {
-        if (kind == TY::Class) {
-            return clss->Size();
-        }
-        else {
-            return 1;
-        }
-    }
+    int Size() const;
 };
 
 #endif // _H

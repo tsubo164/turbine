@@ -343,6 +343,28 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
+    {
+        std::stringstream input(
+            "## Point\n"
+            "  - x int\n"
+            "  - y int\n"
+            "\n"
+            "- pt Point\n"
+            "\n"
+            "# add(a int, b int) int\n"
+            "  return a + b\n"
+            "\n"
+            "# main() int\n"
+            "  - a int\n"
+            "  pt.x = 2\n"
+            "  pt.y = 3\n"
+            "  a = pt.y\n"
+            "  return pt.x + pt.y\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(5, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

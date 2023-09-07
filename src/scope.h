@@ -5,27 +5,34 @@
 #include <map>
 #include "string_table.h"
 
+// Scope and objects that are managed by scope.
+// Objects are variables, functions, fields, classes.
+// Objects have ownership of their contents like type, children, etc.
+// and they are responsible for memory management.
+
 struct Type;
 class Scope;
 
 struct Var {
-    Var(SharedStr Name, int ID, bool global)
+    Var(const char *Name, int ID, bool global)
         : name(Name), id(ID), is_global(global) {}
-    SharedStr name;
+
+    const char *name;
     const int id;
     const bool is_global;
 
-    Type *type = nullptr;
+    const Type *type = nullptr;
 };
 
 struct Func {
-    Func(SharedStr Name, int ID, Scope *sc)
+    Func(const char *Name, int ID, Scope *sc)
         : name(Name), id(ID), scope(sc) {}
-    SharedStr name;
+
+    const char *name;
     const int id;
     Scope *scope;
 
-    void DeclareParam(SharedStr name);
+    void DeclareParam(const char *name, const Type *type);
     int ParamCount() const;
     int VarCount() const;
 
@@ -33,26 +40,25 @@ private:
     int nparams_ = 0;
 };
 
-struct Fld {
-    Fld(SharedStr Name, int ID)
+struct Field {
+    Field(const char *Name, int ID)
         : name(Name), id(ID) {}
 
-    SharedStr name;
+    const char *name;
     const int id;
 
-    Type *type = nullptr;
+    const Type *type = nullptr;
 };
-typedef Fld Field;
 
-struct Clss {
-    Clss(SharedStr Name, int ID, Scope *sc)
+struct Class {
+    Class(const char *Name, int ID, Scope *sc)
         : name(Name), id(ID), scope(sc) {}
 
-    SharedStr name;
+    const char *name;
     const int id;
     Scope *scope;
 
-    void DeclareField(SharedStr name);
+    void DeclareField(const char *name, const Type *type);
     Field *FindField(const char *name) const;
     int FieldCount() const;
 
@@ -61,7 +67,6 @@ struct Clss {
 private:
     int nflds_ = 0;
 };
-typedef Clss Class;
 
 class Scope {
 public:
@@ -79,15 +84,15 @@ public:
     Var *FindVar(const char *name) const;
     int VarCount() const;
 
-    Fld *DefineFild(const char *name);
-    Fld *FindField(const char *name) const;
+    Field *DefineFild(const char *name);
+    Field *FindField(const char *name) const;
     int FieldCount() const;
 
     Func *DefineFunc(const char *name);
     Func *FindFunc(const char *name) const;
 
-    Clss *DefineClss(const char *name);
-    Clss *FindClss(const char *name) const;
+    Class *DefineClass(const char *name);
+    Class *FindClass(const char *name) const;
 
     int VarSize() const;
     int FieldSize() const;
@@ -98,12 +103,12 @@ private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;
     const Func *func_ = nullptr;
-    const Clss *clss_ = nullptr;
+    const Class *clss_ = nullptr;
 
     std::map<const char*,Var*> vars_;
     std::map<const char*,Func*> funcs_;
-    std::map<const char*,Fld*> flds_;
-    std::map<const char*,Clss*> clsses_;
+    std::map<const char*,Field*> flds_;
+    std::map<const char*,Class*> clsses_;
 };
 
 #endif // _H

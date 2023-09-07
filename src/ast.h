@@ -20,6 +20,7 @@ struct Expr : public Node {
     const Type *type = nullptr;
 
     virtual int Addr() const { return -1; }
+    virtual bool IsGlobal() const { return false; }
 };
 
 struct NullExpr : public Expr {
@@ -46,6 +47,7 @@ struct IdentExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 
     int Addr() const override;
+    bool IsGlobal() const override { return var->is_global; }
 };
 
 struct FieldExpr : public Expr {
@@ -67,6 +69,9 @@ struct SelectExpr : public Expr {
     long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+
+    int Addr() const override { return inst->Addr() + fld->Addr(); }
+    bool IsGlobal() const override { return inst->IsGlobal(); }
 };
 
 struct CallExpr : public Expr {
