@@ -84,7 +84,7 @@ int Lexer::get()
 {
     prevx = pos_.x;
 
-    if (*(it_ - 1) == '\n') {
+    if (curr() == '\n') {
         pos_.x = 1;
         pos_.y++;
     }
@@ -104,7 +104,7 @@ void Lexer::unget()
 {
     it_--;
 
-    if (*(it_ - 1) == '\n') {
+    if (curr() == '\n') {
         pos_.x = prevx;
         prevx--;
         pos_.y--;
@@ -117,6 +117,14 @@ void Lexer::unget()
 bool Lexer::eof() const
 {
     return it_ == src_->end();
+}
+
+int Lexer::curr() const
+{
+    if (it_ == src_->begin())
+        return '\0';
+    else
+        return *(it_ - 1);
 }
 
 void Lexer::Get(Token *tok)
@@ -395,8 +403,8 @@ TokenKind Lexer::scan_indent(Token *tok)
         }
 
         // no indent matches current
-        std::cerr << "mismatch outer indent" << std::endl;
-        exit(EXIT_FAILURE);
+        Error("mismatch outer indent", *src_, pos_);
+        return tok->kind;
     }
     else {
         // no indent change

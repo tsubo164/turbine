@@ -75,6 +75,7 @@ private:
     int peek();
     void unget();
     bool eof() const;
+    int curr() const;
 
     void scan_number(Token *tok, Pos pos);
     void scan_word(Token *tok, Pos pos);
