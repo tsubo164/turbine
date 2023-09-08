@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "error.h"
 #include <unordered_map>
 #include <cstdlib>
 #include <cassert>
@@ -52,9 +53,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::NewLine: return "\\n";
 
     default:
-        std::cerr << "TokenKind: " << static_cast<int>(kind)
-            << " not in tok_kind_string()" << std::endl;
-        exit(EXIT_FAILURE);
+        ERROR_NO_CASE(kind);
         return nullptr;
     }
 }
