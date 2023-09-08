@@ -39,8 +39,14 @@ using TK = TokenKind;
 
 std::ostream &operator<<(std::ostream &os, TokenKind kind);
 
+struct Pos {
+    int x = 0, y = 1;
+};
+
 struct Token {
     TokenKind kind = TK::Unknown;
+    Pos pos;
+
     long ival = 0;
     std::string_view sval;
 };
@@ -57,6 +63,8 @@ private:
     // src text
     const std::string *src_ {};
     std::string::const_iterator it_;
+    Pos pos_;
+    int prevx = 0;
 
     // indent
     std::stack <int>indent_stack_;
@@ -68,8 +76,8 @@ private:
     void unget();
     bool eof() const;
 
-    void scan_number(Token *tok);
-    void scan_word(Token *tok);
+    void scan_number(Token *tok, Pos pos);
+    void scan_word(Token *tok, Pos pos);
     int count_indent();
     TokenKind scan_indent(Token *tok);
     void scan_line_comment();

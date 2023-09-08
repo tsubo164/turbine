@@ -1,6 +1,7 @@
 #include "interpreter.h"
 #include "lexer.h"
 #include <iostream>
+#include <iomanip>
 
 static void print_header(const char *title)
 {
@@ -98,7 +99,13 @@ int Interpreter::print_token(const std::string &src) const
         lexer.Get(tok);
 
         if (print_token_raw_) {
-            std::cout << tok->kind << std::endl;
+            std::cout << "(" <<
+                std::setw(4) << tok->pos.y << ", " <<
+                std::setw(3) << tok->pos.x << ") ";
+            std::cout << tok->kind;
+            if (tok->kind == TK::Ident)
+                std::cout << " (" << tok->sval << ")";
+            std::cout << std::endl;
         }
         else {
             if (tok->kind == TK::BlockBegin) {
