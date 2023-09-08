@@ -103,8 +103,14 @@ int Interpreter::print_token(const std::string &src) const
                 std::setw(4) << tok->pos.y << ", " <<
                 std::setw(3) << tok->pos.x << ") ";
             std::cout << tok->kind;
+
             if (tok->kind == TK::Ident)
                 std::cout << " (" << tok->sval << ")";
+            if (tok->kind == TK::IntNum)
+                std::cout << " (" << tok->ival << ")";
+            if (tok->kind == TK::FpNum)
+                std::cout << " (" << tok->fval << ")";
+
             std::cout << std::endl;
         }
         else {

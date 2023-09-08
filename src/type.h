@@ -5,6 +5,7 @@ struct Class;
 
 enum class TypeKind {
     Integer,
+    Float,
     String,
     ClassType,
 };

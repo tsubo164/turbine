@@ -35,6 +35,7 @@ private:
 
     //
     long tok_int() const;
+    double tok_float() const;
     std::string_view tok_str() const;
     TokenKind peek();
     void expect(TokenKind kind);

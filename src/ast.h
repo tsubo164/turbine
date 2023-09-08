@@ -38,6 +38,15 @@ struct IntNumExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
+struct FpNumExpr : public Expr {
+    FpNumExpr(double n) : fval(n) {}
+    double fval;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct IdentExpr : public Expr {
     IdentExpr(const Var *v) : var(v) { type = var->type; }
     const Var *var;

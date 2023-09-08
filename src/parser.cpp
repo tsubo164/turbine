@@ -48,6 +48,11 @@ long Parser::tok_int() const
     return curr_->ival;
 }
 
+double Parser::tok_float() const
+{
+    return curr_->fval;
+}
+
 std::string_view Parser::tok_str() const
 {
     return curr_->sval;
@@ -120,11 +125,15 @@ CallExpr *Parser::arg_list(CallExpr *call)
 
 // primary_expr =
 //     IntNum |
+//     FpNum |
 //     primary_expr selector
 Expr *Parser::primary_expr()
 {
     if (consume(TK::IntNum))
         return new IntNumExpr(tok_int());
+
+    if (consume(TK::FpNum))
+        return new FpNumExpr(tok_float());
 
     Expr *expr = nullptr;
 
@@ -390,6 +399,9 @@ Type *Parser::type()
 {
     if (consume(TK::Int))
         return new Type(TY::Integer);
+
+    if (consume(TK::Float))
+        return new Type(TY::Float);
 
     if (consume(TK::String))
         return new Type(TY::String);

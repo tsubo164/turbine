@@ -4,9 +4,6 @@
 
 - pt Point
 
-# add(a int, b int) int
-  return a + b
-
 //# add int
 //    - x int
 //    - y int
@@ -14,6 +11,9 @@
 //        if x < y
 //            print("No!")
 //        return x + y
+
+# pi() float
+  return 3.14
 
 # main() int
   - a int

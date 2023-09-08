@@ -11,6 +11,7 @@ enum class TokenKind {
     Unknown = 0,
     // factor
     IntNum,
+    FpNum,
     Ident,
     // operator
     Equal,
@@ -23,10 +24,11 @@ enum class TokenKind {
     Hash2,
     // keyword
     Int,
+    Float,
+    String,
     If,
     Else,
     Return,
-    String,
     // separator
     Comma,
     LParen,
@@ -48,7 +50,10 @@ struct Token {
     Pos pos;
 
     long ival = 0;
+    double fval = 0.0;
     std::string_view sval;
+
+    void set(TokenKind k, Pos p);
 };
 
 class Lexer {

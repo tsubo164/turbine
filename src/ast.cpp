@@ -26,6 +26,12 @@ void IntNumExpr::Print(int depth) const
     std::cout << ival << std::endl;
 }
 
+void FpNumExpr::Print(int depth) const
+{
+    print_node("FpNumExpr", depth, false);
+    std::cout << fval << std::endl;
+}
+
 void IdentExpr::Print(int depth) const
 {
     print_node("IdentExpr", depth, false);
@@ -122,6 +128,11 @@ long IntNumExpr::Eval() const
     return ival;
 }
 
+long FpNumExpr::Eval() const
+{
+    return fval;
+}
+
 long IdentExpr::Eval() const
 {
     return 0;
@@ -213,6 +224,11 @@ void IntNumExpr::Gen(Bytecode &code) const
         code.LoadByte(ival);
     else
         code.LoadInt(ival);
+}
+
+void FpNumExpr::Gen(Bytecode &code) const
+{
+    //code.LoadFloat(fval);
 }
 
 void IdentExpr::Gen(Bytecode &code) const
