@@ -1,6 +1,7 @@
 #ifndef SCOPE_H
 #define SCOPE_H
 
+#include <string_view>
 #include <vector>
 #include <map>
 #include "string_table.h"
@@ -14,10 +15,10 @@ struct Type;
 class Scope;
 
 struct Var {
-    Var(const char *Name, int ID, bool global)
+    Var(std::string_view Name, int ID, bool global)
         : name(Name), id(ID), is_global(global) {}
 
-    const char *name;
+    std::string_view name;
     const int id;
     const bool is_global;
 
@@ -25,14 +26,14 @@ struct Var {
 };
 
 struct Func {
-    Func(const char *Name, int ID, Scope *sc)
+    Func(std::string_view Name, int ID, Scope *sc)
         : name(Name), id(ID), scope(sc) {}
 
-    const char *name;
+    std::string_view name;
     const int id;
     Scope *scope;
 
-    void DeclareParam(const char *name, const Type *type);
+    void DeclareParam(std::string_view name, const Type *type);
     int ParamCount() const;
     int VarCount() const;
 
@@ -41,25 +42,25 @@ private:
 };
 
 struct Field {
-    Field(const char *Name, int ID)
+    Field(std::string_view Name, int ID)
         : name(Name), id(ID) {}
 
-    const char *name;
+    std::string_view name;
     const int id;
 
     const Type *type = nullptr;
 };
 
 struct Class {
-    Class(const char *Name, int ID, Scope *sc)
+    Class(std::string_view Name, int ID, Scope *sc)
         : name(Name), id(ID), scope(sc) {}
 
-    const char *name;
+    std::string_view name;
     const int id;
     Scope *scope;
 
-    void DeclareField(const char *name, const Type *type);
-    Field *FindField(const char *name) const;
+    void DeclareField(std::string_view name, const Type *type);
+    Field *FindField(std::string_view name) const;
     int FieldCount() const;
 
     int Size() const;
@@ -80,19 +81,19 @@ public:
     bool HasParent() const;
     bool IsGlobal() const;
 
-    Var *DefineVar(const char *name);
-    Var *FindVar(const char *name) const;
+    Var *DefineVar(std::string_view name);
+    Var *FindVar(std::string_view name) const;
     int VarCount() const;
 
-    Field *DefineFild(const char *name);
-    Field *FindField(const char *name) const;
+    Field *DefineFild(std::string_view name);
+    Field *FindField(std::string_view name) const;
     int FieldCount() const;
 
-    Func *DefineFunc(const char *name);
-    Func *FindFunc(const char *name) const;
+    Func *DefineFunc(std::string_view name);
+    Func *FindFunc(std::string_view name) const;
 
-    Class *DefineClass(const char *name);
-    Class *FindClass(const char *name) const;
+    Class *DefineClass(std::string_view name);
+    Class *FindClass(std::string_view name) const;
 
     int VarSize() const;
     int FieldSize() const;
@@ -105,10 +106,10 @@ private:
     const Func *func_ = nullptr;
     const Class *clss_ = nullptr;
 
-    std::map<const char*,Var*> vars_;
-    std::map<const char*,Func*> funcs_;
-    std::map<const char*,Field*> flds_;
-    std::map<const char*,Class*> clsses_;
+    std::map<std::string_view,Var*> vars_;
+    std::map<std::string_view,Func*> funcs_;
+    std::map<std::string_view,Field*> flds_;
+    std::map<std::string_view,Class*> clsses_;
 };
 
 #endif // _H

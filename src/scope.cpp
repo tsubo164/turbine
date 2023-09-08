@@ -3,7 +3,7 @@
 #include <iostream>
 
 // Func
-void Func::DeclareParam(SharedStr name, const Type *type)
+void Func::DeclareParam(std::string_view name, const Type *type)
 {
     Var *v = scope->DefineVar(name);
     v->type = type;
@@ -21,14 +21,14 @@ int Func::VarCount() const
 }
 
 // Class
-void Class::DeclareField(SharedStr name, const Type *type)
+void Class::DeclareField(std::string_view name, const Type *type)
 {
     Field *f = scope->DefineFild(name);
     f->type = type;
     nflds_++;
 }
 
-Field *Class::FindField(const char *name) const
+Field *Class::FindField(std::string_view name) const
 {
     return scope->FindField(name);
 }
@@ -88,7 +88,7 @@ bool Scope::IsGlobal() const
     return !Parent();
 }
 
-Var *Scope::DefineVar(const char *name)
+Var *Scope::DefineVar(std::string_view name)
 {
     const auto found = vars_.find(name);
     if (found != vars_.end()) {
@@ -101,7 +101,7 @@ Var *Scope::DefineVar(const char *name)
     return var;
 }
 
-Var *Scope::FindVar(const char *name) const
+Var *Scope::FindVar(std::string_view name) const
 {
     const auto it = vars_.find(name);
     if (it != vars_.end()) {
@@ -119,7 +119,7 @@ int Scope::VarCount() const
     return vars_.size();
 }
 
-Field *Scope::DefineFild(const char *name)
+Field *Scope::DefineFild(std::string_view name)
 {
     const auto found = flds_.find(name);
     if (found != flds_.end()) {
@@ -132,7 +132,7 @@ Field *Scope::DefineFild(const char *name)
     return fld;
 }
 
-Field *Scope::FindField(const char *name) const
+Field *Scope::FindField(std::string_view name) const
 {
     const auto it = flds_.find(name);
     if (it != flds_.end()) {
@@ -150,7 +150,7 @@ int Scope::FieldCount() const
     return flds_.size();
 }
 
-Func *Scope::DefineFunc(const char *name)
+Func *Scope::DefineFunc(std::string_view name)
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end())
@@ -166,7 +166,7 @@ Func *Scope::DefineFunc(const char *name)
     return func;
 }
 
-Func *Scope::FindFunc(const char *name) const
+Func *Scope::FindFunc(std::string_view name) const
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end()) {
@@ -179,7 +179,7 @@ Func *Scope::FindFunc(const char *name) const
     return nullptr;
 }
 
-Class *Scope::DefineClass(const char *name)
+Class *Scope::DefineClass(std::string_view name)
 {
     const auto it = funcs_.find(name);
     if (it != funcs_.end())
@@ -195,7 +195,7 @@ Class *Scope::DefineClass(const char *name)
     return clss;
 }
 
-Class *Scope::FindClass(const char *name) const
+Class *Scope::FindClass(std::string_view name) const
 {
     const auto it = clsses_.find(name);
     if (it != clsses_.end())

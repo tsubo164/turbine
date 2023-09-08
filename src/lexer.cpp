@@ -1,7 +1,7 @@
 #include "lexer.h"
 #include <unordered_map>
 
-static const std::unordered_map<std::string, TokenKind> keywords = {
+static const std::unordered_map<std::string_view, TokenKind> keywords = {
     {"int", TK::Int},
     {"if", TK::If},
     {"else", TK::Else},
@@ -9,7 +9,7 @@ static const std::unordered_map<std::string, TokenKind> keywords = {
     {"string", TK::String},
 };
 
-static TokenKind keyword_or_identifier(const std::string &word)
+static TokenKind keyword_or_identifier(std::string_view word)
 {
     const auto it = keywords.find(word);
 
@@ -184,7 +184,8 @@ void Lexer::Get(Token *tok)
 
         // word
         if (isalpha(ch)) {
-            scan_word(ch, tok);
+            unget();
+            scan_word(tok);
             return;
         }
 
@@ -238,18 +239,22 @@ void Lexer::scan_number(int first_char, Token *tok)
     tok->kind = TK::IntNum;
 }
 
-void Lexer::scan_word(int first_char, Token *tok)
+void Lexer::scan_word(Token *tok)
 {
-    strbuf_.clear();
+    auto start = it_;
+    int len = 0;
 
-    for (int ch = first_char; isalnum(ch) || ch == '_'; ch = get())
-        strbuf_ += ch;
-
+    for (int ch = get(); isalnum(ch) || ch == '_'; ch = get())
+        len++;
     unget();
 
-    tok->kind = keyword_or_identifier(strbuf_);
+    const std::string_view word(&(*start), len);
+
+    tok->kind = keyword_or_identifier(word);
     if (tok->kind == TK::Ident)
-        tok->sval = strtable_.Insert(strbuf_);
+        tok->sval = word;
+
+    strtable_.Insert("main");
 }
 
 int Lexer::count_indent()

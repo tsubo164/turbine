@@ -36,7 +36,7 @@ private:
 
     //
     long tok_int() const;
-    const char *tok_str() const;
+    std::string_view tok_str() const;
     TokenKind peek();
     void expect(TokenKind kind);
     bool consume(TokenKind kind);

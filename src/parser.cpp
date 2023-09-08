@@ -48,7 +48,7 @@ long Parser::tok_int() const
     return curr_->ival;
 }
 
-const char *Parser::tok_str() const
+std::string_view Parser::tok_str() const
 {
     return curr_->sval;
 }
@@ -414,7 +414,7 @@ void Parser::field_list(Class *clss)
 
     do {
         expect(TK::Ident);
-        const char *name = tok_str();
+        std::string_view name = tok_str();
 
         clss->DeclareField(name, type());
         expect(TK::NewLine);
@@ -431,7 +431,7 @@ void Parser::param_list(Func *func)
 
     do {
         expect(TK::Ident);
-        const char *name = tok_str();
+        std::string_view name = tok_str();
 
         func->DeclareParam(name, type());
     }
@@ -476,7 +476,7 @@ Prog *Parser::program()
         if (next == TK::Hash) {
             FuncDef *fdef = func_def();
 
-            if (!strcmp(fdef->func->name, "main"))
+            if (fdef->func->name == "main")
                 prog->main_func = fdef->func;
 
             prog->AddFuncDef(fdef);

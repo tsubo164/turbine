@@ -1,6 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include <string_view>
 #include <iostream>
 #include <string>
 #include <stack>
@@ -42,7 +43,7 @@ std::ostream &operator<<(std::ostream &os, TokenKind kind);
 struct Token {
     TokenKind kind = TK::Unknown;
     long ival = 0;
-    const char *sval = nullptr;
+    std::string_view sval;
 };
 
 class Lexer {
@@ -72,7 +73,7 @@ private:
     bool eof() const;
 
     void scan_number(int first_char, Token *tok);
-    void scan_word(int first_char, Token *tok);
+    void scan_word(Token *tok);
     int count_indent();
     TokenKind scan_indent(Token *tok);
     void scan_line_comment();
