@@ -54,8 +54,6 @@ public:
     void Get(Token *tok);
 
 private:
-    std::string strbuf_;
-
     // src text
     const std::string *src_ {};
     std::string::const_iterator it_;
@@ -70,7 +68,7 @@ private:
     void unget();
     bool eof() const;
 
-    void scan_number(int first_char, Token *tok);
+    void scan_number(Token *tok);
     void scan_word(Token *tok);
     int count_indent();
     TokenKind scan_indent(Token *tok);

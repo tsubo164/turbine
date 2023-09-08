@@ -1,5 +1,7 @@
 #include "lexer.h"
 #include <unordered_map>
+#include <cstdlib>
+#include <cassert>
 
 static const std::unordered_map<std::string_view, TokenKind> keywords = {
     {"int", TK::Int},
@@ -121,7 +123,8 @@ void Lexer::Get(Token *tok)
 
         // number
         if (isdigit(ch)) {
-            scan_number(ch, tok);
+            unget();
+            scan_number(tok);
             return;
         }
 
@@ -225,18 +228,22 @@ void Lexer::Get(Token *tok)
     tok->kind = TK::Eof;
 }
 
-void Lexer::scan_number(int first_char, Token *tok)
+void Lexer::scan_number(Token *tok)
 {
-    strbuf_.clear();
+    auto start = it_;
+    int len = 0;
 
-    for (int ch = first_char; isdigit(ch); ch = get())
-        strbuf_ += ch;
+    for (int ch = get(); isdigit(ch); ch = get())
+        len++;
 
     unget();
 
-    size_t pos = 0;
-    tok->ival = std::stol(strbuf_, &pos, 10);
+    char *end = nullptr;
+
+    tok->ival = std::strtol(&(*start), &end, 10);
     tok->kind = TK::IntNum;
+
+    assert(end && (len == (end - &(*start))));
 }
 
 static bool isword(int ch)
