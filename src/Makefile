@@ -4,8 +4,7 @@ OPT     := -g
 CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors --std=c++17 -c
 RM      := rm -f
 
-SRCS    := ast bytecode codegen interpreter lexer parser scope string_table \
-           type vm
+SRCS    := ast bytecode codegen interpreter lexer parser scope type vm
 
 .PHONY: all clean run
 

@@ -5,7 +5,6 @@
 #include <iostream>
 #include <string>
 #include <stack>
-#include "string_table.h"
 
 enum class TokenKind {
     Eof = -1,
@@ -48,14 +47,13 @@ struct Token {
 
 class Lexer {
 public:
-    Lexer(StringTable &strtab);
+    Lexer();
     ~Lexer();
 
     void SetInput(const std::string &src);
     void Get(Token *tok);
 
 private:
-    StringTable &strtable_;
     std::string strbuf_;
 
     // src text

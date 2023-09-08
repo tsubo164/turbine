@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <cstdint>
 #include <vector>
-#include "string_table.h"
 
 using Byte = uint8_t;
 using Word = uint16_t;

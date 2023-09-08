@@ -62,7 +62,7 @@ std::ostream &operator<<(std::ostream &os, TokenKind kind)
     return os << tok_kind_string(kind);
 }
 
-Lexer::Lexer(StringTable &strtab) : strtable_(strtab)
+Lexer::Lexer()
 {
     indent_stack_.push(0);
     is_line_begin_ = true;
@@ -239,13 +239,19 @@ void Lexer::scan_number(int first_char, Token *tok)
     tok->kind = TK::IntNum;
 }
 
+static bool isword(int ch)
+{
+    return isalnum(ch) || ch == '_';
+}
+
 void Lexer::scan_word(Token *tok)
 {
     auto start = it_;
     int len = 0;
 
-    for (int ch = get(); isalnum(ch) || ch == '_'; ch = get())
+    for (int ch = get(); isword(ch); ch = get())
         len++;
+
     unget();
 
     const std::string_view word(&(*start), len);
@@ -253,8 +259,6 @@ void Lexer::scan_word(Token *tok)
     tok->kind = keyword_or_identifier(word);
     if (tok->kind == TK::Ident)
         tok->sval = word;
-
-    strtable_.Insert("main");
 }
 
 int Lexer::count_indent()

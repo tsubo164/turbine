@@ -23,9 +23,8 @@ public:
     void EnablePrintStack(bool enable);
 
 private:
-    StringTable string_table_;
     Scope scope_;
-    Parser parser_ = {string_table_, scope_};
+    Parser parser_ {scope_};
 
     Node *tree_ = nullptr;
     Bytecode code_;

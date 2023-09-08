@@ -84,8 +84,7 @@ void Interpreter::EnablePrintStack(bool enable)
 
 int Interpreter::print_token(const std::string &src) const
 {
-    StringTable string_table;
-    Lexer lexer(string_table);
+    Lexer lexer;
 
     lexer.SetInput(src);
     Token token;

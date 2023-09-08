@@ -4,7 +4,6 @@
 #include <string_view>
 #include <vector>
 #include <map>
-#include "string_table.h"
 
 // Scope and objects that are managed by scope.
 // Objects are variables, functions, fields, classes.

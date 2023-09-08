@@ -1,7 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "string_table.h"
 #include "lexer.h"
 #include "scope.h"
 #include "type.h"
@@ -11,8 +10,8 @@
 
 class Parser {
 public:
-    Parser(StringTable &string_table, Scope &scope)
-        : lexer_(string_table), scope_(&scope) {}
+    Parser(Scope &scope)
+        : lexer_(), scope_(&scope) {}
     ~Parser() {}
 
     Node *Parse(const std::string &src);
