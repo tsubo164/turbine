@@ -364,6 +364,15 @@ int main(int argc, char **argv)
 
         ASSERTL(5, ip.Run(input));
     }
+    {
+        const std::string input(
+            "# main() int\n"
+            "  return 0xF + 0Xa\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(25, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

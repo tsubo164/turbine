@@ -54,7 +54,7 @@ static const char *tok_kind_string(TokenKind kind)
     default:
         std::cerr << "TokenKind: " << static_cast<int>(kind)
             << " not in tok_kind_string()" << std::endl;
-        std::exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
         return nullptr;
     }
 }
@@ -228,19 +228,37 @@ void Lexer::Get(Token *tok)
     tok->kind = TK::Eof;
 }
 
+static bool ishex(int ch)
+{
+    const int c = tolower(ch);
+
+    return c == 'x' ||
+        c == 'a' || c == 'b' || c == 'c' ||
+        c == 'd' || c == 'e' || c == 'f';
+}
+
+static bool isnum(int ch)
+{
+    return isdigit(ch) || ishex(ch);
+}
+
 void Lexer::scan_number(Token *tok)
 {
     auto start = it_;
+    int base = 10;
     int len = 0;
 
-    for (int ch = get(); isdigit(ch); ch = get())
+    for (int ch = get(); isnum(ch); ch = get()) {
+        if (ishex(ch))
+            base = 16;
         len++;
+    }
 
     unget();
 
     char *end = nullptr;
 
-    tok->ival = std::strtol(&(*start), &end, 10);
+    tok->ival = strtol(&(*start), &end, base);
     tok->kind = TK::IntNum;
 
     assert(end && (len == (end - &(*start))));
@@ -335,7 +353,7 @@ TokenKind Lexer::scan_indent(Token *tok)
 
         // no indent matches current
         std::cerr << "mismatch outer indent" << std::endl;
-        std::exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
     else {
         // no indent change
