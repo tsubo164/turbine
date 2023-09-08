@@ -43,9 +43,14 @@ void Parser::ungettok()
     curr_ = prev();
 }
 
-const Token *Parser::curtok() const
+long Parser::tok_int() const
 {
-    return curr_;
+    return curr_->ival;
+}
+
+const char *Parser::tok_str() const
+{
+    return curr_->sval;
 }
 
 TokenKind Parser::peek()
@@ -118,10 +123,8 @@ CallExpr *Parser::arg_list(CallExpr *call)
 //     primary_expr selector
 Expr *Parser::primary_expr()
 {
-    if (consume(TK::IntNum)) {
-        const Token *tok = curtok();
-        return new IntNumExpr(tok->ival);
-    }
+    if (consume(TK::IntNum))
+        return new IntNumExpr(tok_int());
 
     Expr *expr = nullptr;
 
@@ -164,9 +167,8 @@ Expr *Parser::primary_expr()
             }
 
             expect(TK::Ident);
-            tok = curtok();
 
-            Field *fld = expr->type->clss->FindField(tok->sval);
+            Field *fld = expr->type->clss->FindField(tok_str());
 
             expr = new SelectExpr(expr, new FieldExpr(fld));
             continue;
@@ -293,16 +295,15 @@ Var *Parser::var_decl()
     expect(TK::Minus);
     expect(TK::Ident);
 
-    const Token *tok = curtok();
-    if (scope_->FindVar(tok->sval)) {
+    if (scope_->FindVar(tok_str())) {
         std::cerr
             << "error: re-defined variable: '"
-            << tok->sval << "'"
+            << tok_str() << "'"
             << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
-    Var *var = scope_->DefineVar(tok->sval);
+    Var *var = scope_->DefineVar(tok_str());
     var->type = type();
     expect(TK::NewLine);
 
@@ -314,16 +315,15 @@ Field *Parser::field_decl()
     expect(TK::Minus);
     expect(TK::Ident);
 
-    const Token *tok = curtok();
-    if (scope_->FindField(tok->sval)) {
+    if (scope_->FindField(tok_str())) {
         std::cerr
             << "error: re-defined variable: '"
-            << tok->sval << "'"
+            << tok_str() << "'"
             << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
-    Field *fld = scope_->DefineFild(tok->sval);
+    Field *fld = scope_->DefineFild(tok_str());
     fld->type = type();
     expect(TK::NewLine);
 
@@ -336,10 +336,9 @@ Class *Parser::class_decl()
     expect(TK::Ident);
 
     // class name
-    const Token *tok = curtok();
-    Class *clss = scope_->DefineClass(tok->sval);
+    Class *clss = scope_->DefineClass(tok_str());
     if (!clss) {
-        std::cerr << "error: re-defined class: '" << tok->sval << "'" << std::endl;
+        std::cerr << "error: re-defined class: '" << tok_str() << "'" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
@@ -396,9 +395,8 @@ Type *Parser::type()
         return new Type(TY::String);
 
     if (consume(TK::Ident)) {
-        const Token *tok = curtok();
         Type *ty = new Type(TY::ClassType);
-        ty->clss = scope_->FindClass(tok->sval);
+        ty->clss = scope_->FindClass(tok_str());
         return ty;
     }
 
@@ -416,8 +414,7 @@ void Parser::field_list(Class *clss)
 
     do {
         expect(TK::Ident);
-        const Token *tok = curtok();
-        const char *name = tok->sval;
+        const char *name = tok_str();
 
         clss->DeclareField(name, type());
         expect(TK::NewLine);
@@ -434,8 +431,7 @@ void Parser::param_list(Func *func)
 
     do {
         expect(TK::Ident);
-        const Token *tok = curtok();
-        const char *name = tok->sval;
+        const char *name = tok_str();
 
         func->DeclareParam(name, type());
     }
@@ -450,10 +446,9 @@ FuncDef *Parser::func_def()
     expect(TK::Ident);
 
     // func name
-    const Token *tok = curtok();
-    Func *func = scope_->DefineFunc(tok->sval);
+    Func *func = scope_->DefineFunc(tok_str());
     if (!func) {
-        std::cerr << "error: re-defined function: '" << tok->sval << "'" << std::endl;
+        std::cerr << "error: re-defined function: '" << tok_str() << "'" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 

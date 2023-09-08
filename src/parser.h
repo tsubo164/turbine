@@ -35,7 +35,8 @@ private:
     void ungettok();
 
     //
-    const Token *curtok() const;
+    long tok_int() const;
+    const char *tok_str() const;
     TokenKind peek();
     void expect(TokenKind kind);
     bool consume(TokenKind kind);
