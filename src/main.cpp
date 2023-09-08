@@ -1,8 +1,23 @@
+#include <string_view>
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include "interpreter.h"
+
+std::string read_file(const std::string_view filename)
+{
+    std::ifstream ifs(filename);
+    if (!ifs)
+        return "";
+
+    std::string text;
+    std::string line;
+
+    while (getline(ifs, line))
+        text += line + '\n';
+
+    return text;
+}
 
 int main(int argc, char **argv)
 {
@@ -12,10 +27,10 @@ int main(int argc, char **argv)
     bool print_symbols = false;
     bool print_bytecode = false;
     bool print_stack = false;
-    std::string filename = "";
+    std::string_view filename;
 
     for (int i = 1; i < argc; i++) {
-        const std::string arg(argv[i]);
+        const std::string_view arg(argv[i]);
 
         if (arg == "--print-token" || arg == "-k") {
             print_token = true;
@@ -50,9 +65,9 @@ int main(int argc, char **argv)
         }
     }
 
-    std::ifstream stream(filename);
+    const std::string src = read_file(filename);
 
-    if (!stream) {
+    if (src.empty()) {
         std::cerr << "error: no such file: " << filename << std::endl;
         std::exit(EXIT_FAILURE);
     }
@@ -64,7 +79,7 @@ int main(int argc, char **argv)
     ip.EnablePrintBytecode(print_bytecode);
     ip.EnablePrintStack(print_stack);
 
-    const int ret = ip.Run(stream);
+    const int ret = ip.Run(src);
     if (!print_token && !print_tree && !print_bytecode && !print_symbols)
         std::cout << "ret: " << ret << std::endl;
 

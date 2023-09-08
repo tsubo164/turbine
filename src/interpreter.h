@@ -14,7 +14,7 @@ public:
     Interpreter();
     ~Interpreter();
 
-    Int Run(std::istream &stream);
+    Int Run(const std::string &src);
 
     void EnablePrintToken(bool enable, bool raw);
     void EnablePrintTree(bool enable);
@@ -37,7 +37,7 @@ private:
     bool print_symbols_ = false;
     bool print_bytecode_ = false;
     bool print_stack_ = false;
-    int print_token(std::istream &stream) const;
+    int print_token(const std::string &src) const;
 };
 
 #endif // _H

@@ -1,7 +1,7 @@
 CC      := g++
 AR      := ar
 OPT     := -g
-CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors --std=c++14 -c
+CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors --std=c++17 -c
 RM      := rm -f
 
 SRCS    := ast bytecode codegen interpreter lexer parser scope string_table \

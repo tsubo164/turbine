@@ -15,7 +15,7 @@ public:
         : lexer_(string_table), scope_(&scope) {}
     ~Parser() {}
 
-    Node *ParseStream(std::istream &sstrm);
+    Node *Parse(const std::string &src);
 
 private:
     Lexer lexer_;

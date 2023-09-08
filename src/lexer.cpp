@@ -72,29 +72,30 @@ Lexer::~Lexer()
 {
 }
 
-void Lexer::SetInput(std::istream &stream)
+void Lexer::SetInput(const std::string &src)
 {
-    stream_ = &stream;
+    src_ = &src;
+    it_ = src_->begin();
 }
 
 int Lexer::get()
 {
-    return stream_->get();
+    return *it_++;
 }
 
 int Lexer::peek()
 {
-    return stream_->peek();
+    return *it_;
 }
 
 void Lexer::unget()
 {
-    stream_->unget();
+    --it_;
 }
 
 bool Lexer::eof() const
 {
-    return stream_->eof();
+    return it_ == src_->end();
 }
 
 void Lexer::Get(Token *tok)

@@ -17,15 +17,15 @@ Interpreter::~Interpreter()
     delete tree_;
 }
 
-Int Interpreter::Run(std::istream &stream)
+Int Interpreter::Run(const std::string &src)
 {
     // Print token
     if (print_token_) {
-        return print_token(stream);
+        return print_token(src);
     }
 
     // Compile source
-    tree_ = parser_.ParseStream(stream);
+    tree_ = parser_.Parse(src);
 
     if (print_tree_) {
         print_header("tree");
@@ -82,12 +82,12 @@ void Interpreter::EnablePrintStack(bool enable)
     print_stack_ = enable;
 }
 
-int Interpreter::print_token(std::istream &stream) const
+int Interpreter::print_token(const std::string &src) const
 {
     StringTable string_table;
     Lexer lexer(string_table);
 
-    lexer.SetInput(stream);
+    lexer.SetInput(src);
     Token token;
     Token *tok = &token;
     int indent = 0;

@@ -50,14 +50,16 @@ public:
     Lexer(StringTable &strtab);
     ~Lexer();
 
-    void SetInput(std::istream &stream);
+    void SetInput(const std::string &src);
     void Get(Token *tok);
 
 private:
-    // stream
-    std::istream *stream_ {};
     StringTable &strtable_;
     std::string strbuf_;
+
+    // src text
+    const std::string *src_ {};
+    std::string::const_iterator it_;
 
     // indent
     std::stack <int>indent_stack_;

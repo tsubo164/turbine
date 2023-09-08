@@ -1,9 +1,9 @@
 #include "parser.h"
 #include <iostream>
 
-Node *Parser::ParseStream(std::istream &stream)
+Node *Parser::Parse(const std::string &src)
 {
-    lexer_.SetInput(stream);
+    lexer_.SetInput(src);
 
     return program();
 }
