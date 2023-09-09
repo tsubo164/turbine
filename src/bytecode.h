@@ -15,6 +15,7 @@ enum Opcode {
     // local and arg
     OP_LOADB,
     OP_LOADI,
+    OP_LOADF,
     OP_LOADLOCAL,
     OP_LOADGLOBAL,
     OP_STORELOCAL,
@@ -43,6 +44,7 @@ public:
     // emit opcode and operand
     void LoadByte(Byte byte);
     void LoadInt(Int integer);
+    void LoadFloat(Float fp);
     void LoadLocal(Byte id);
     void LoadGlobal(Word id);
     void StoreLocal(Byte id);
@@ -68,6 +70,8 @@ public:
     // read/write
     Byte Read(Int addr) const;
     Word ReadWord(Int addr) const;
+    Int ReadInt(Int addr) const;
+    Float ReadFloat(Int addr) const;
     Int Size() const;
 
     // print

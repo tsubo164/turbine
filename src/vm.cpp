@@ -57,6 +57,20 @@ Int VM::fetch_int()
     return ret;
 }
 
+Float VM::fetch_float()
+{
+    constexpr int SIZE = sizeof(Float);
+    Byte buf[SIZE] = {0};
+
+    for ( int i = 0; i < SIZE; i++ )
+        buf[i] = static_cast<Byte>(fetch_byte());
+
+    Float ret = 0;
+    std::memcpy(&ret, buf, SIZE);
+
+    return ret;
+}
+
 void VM::push(Object obj)
 {
     if (sp_ == stack_.size() - 1) {
@@ -166,6 +180,14 @@ void VM::run()
             {
                 Object obj;
                 obj.ival = fetch_int();
+                push(obj);
+            }
+            break;
+
+        case OP_LOADF:
+            {
+                Object obj;
+                obj.fval = fetch_float();
                 push(obj);
             }
             break;

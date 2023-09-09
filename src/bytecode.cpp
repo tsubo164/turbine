@@ -1,4 +1,5 @@
 #include "bytecode.h"
+#include "error.h"
 #include <iostream>
 #include <iomanip>
 #include <cstring>
@@ -11,6 +12,7 @@ const char *OpcodeString(Byte op)
 
     O(OP_LOADB);
     O(OP_LOADI);
+    O(OP_LOADF);
     O(OP_LOADLOCAL);
     O(OP_LOADGLOBAL);
     O(OP_STORELOCAL);
@@ -85,6 +87,12 @@ void Bytecode::LoadInt(Int integer)
 {
     bytes_.push_back(OP_LOADI);
     push_back<Int>(bytes_, integer);
+}
+
+void Bytecode::LoadFloat(Float fp)
+{
+    bytes_.push_back(OP_LOADF);
+    push_back<Float>(bytes_, fp);
 }
 
 void Bytecode::LoadLocal(Byte id)
@@ -212,24 +220,38 @@ void Bytecode::RegisterFunction(Word func_index, Byte argc)
 
 Byte Bytecode::Read(Int addr) const
 {
-    if (addr < 0 || addr >= Size()) {
-        std::cerr << "internal error: address out of range: " << addr
-            << ", bytecode size: " << Size() << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
+    if (addr < 0 || addr >= Size())
+        InternalError("address out of range: " + std::to_string(Size()),
+                __FILE__, __LINE__);
 
     return bytes_[addr];
 }
 
 Word Bytecode::ReadWord(Int addr) const
 {
-    if (addr < 0 || addr >= Size()) {
-        std::cerr << "internal error: address out of range: " << addr
-            << ", bytecode size: " << Size() << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
+    if (addr < 0 || addr >= Size())
+        InternalError("address out of range: " + std::to_string(Size()),
+                __FILE__, __LINE__);
 
     return read<Word>(bytes_, addr);
+}
+
+Int Bytecode::ReadInt(Int addr) const
+{
+    if (addr < 0 || addr >= Size())
+        InternalError("address out of range: " + std::to_string(Size()),
+                __FILE__, __LINE__);
+
+    return read<Int>(bytes_, addr);
+}
+
+Float Bytecode::ReadFloat(Int addr) const
+{
+    if (addr < 0 || addr >= Size())
+        InternalError("address out of range: " + std::to_string(Size()),
+                __FILE__, __LINE__);
+
+    return read<Float>(bytes_, addr);
 }
 
 Int Bytecode::Size() const
@@ -243,6 +265,14 @@ static void print_op(int op)
 }
 
 static void print_op_immediate(int op, Int immediate, bool end_line = true)
+{
+    std::cout << OpcodeString(op)<< " $" << immediate;
+
+    if (end_line)
+        std::cout << std::endl;
+}
+
+static void print_op_immediate_f(int op, Float immediate, bool end_line = true)
 {
     std::cout << OpcodeString(op)<< " $" << immediate;
 
@@ -276,6 +306,16 @@ void Bytecode::Print() const
 
         case OP_LOADB:
             print_op_immediate(op, Read(addr++));
+            break;
+
+        case OP_LOADI:
+            print_op_immediate(op, ReadInt(addr));
+            addr += 8;
+            break;
+
+        case OP_LOADF:
+            print_op_immediate_f(op, ReadFloat(addr));
+            addr += 8;
             break;
 
         case OP_LOADLOCAL:

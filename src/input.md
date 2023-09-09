@@ -1,8 +1,8 @@
-## Point
-  - x int
-  - y int
-
-- pt Point
+//## Point
+//  - x int
+//  - y int
+//
+//- pt Point
 
 //# add int
 //    - x int
@@ -12,12 +12,15 @@
 //            print("No!")
 //        return x + y
 
-# pi() float
-  return 3.14
-
 # main() int
-  - a int
-  pt.x = 2
-  pt.y = 3
-  a = pt.y
-  return pt.x + pt.y
+  - f float
+  f = 3.14
+  if f == 3.14
+    return 1
+  else
+    return 0
+//  - a int
+//  pt.x = 2
+//  pt.y = 3
+//  a = pt.y
+//  return pt.x + pt.y

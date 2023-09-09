@@ -228,7 +228,7 @@ void IntNumExpr::Gen(Bytecode &code) const
 
 void FpNumExpr::Gen(Bytecode &code) const
 {
-    //code.LoadFloat(fval);
+    code.LoadFloat(fval);
 }
 
 void IdentExpr::Gen(Bytecode &code) const

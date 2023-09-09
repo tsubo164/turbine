@@ -7,6 +7,7 @@
 struct Object {
     union {
         Int ival = 0;
+        Float fval;
     };
 };
 
@@ -54,6 +55,7 @@ private:
     Int fetch_byte();
     Int fetch_word();
     Int fetch_int();
+    Float fetch_float();
 
     // stack
     void push(Object obj);
