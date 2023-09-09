@@ -36,6 +36,6 @@ void Error(const std::string &msg, const std::string &src, Pos pos)
     }
     std::cout << std::endl;
 
-    std::cout << std::string(pos.x, ' ') << '^' << std::endl;
+    std::cout << std::string(pos.x - 1, ' ') << '^' << std::endl;
     exit(EXIT_FAILURE);
 }

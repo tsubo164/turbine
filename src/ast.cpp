@@ -55,6 +55,13 @@ void FpNumExpr::Print(int depth) const
         " " << type->kind << std::endl;
 }
 
+void StringLitExpr::Print(int depth) const
+{
+    print_node("StringLitExpr", depth, false);
+    std::cout << "\"" << sval << "\"" <<
+        " " << type->kind << std::endl;
+}
+
 void IdentExpr::Print(int depth) const
 {
     print_node("IdentExpr", depth, false);
@@ -164,6 +171,11 @@ long FpNumExpr::Eval() const
     return fval;
 }
 
+long StringLitExpr::Eval() const
+{
+    return 0;
+}
+
 long IdentExpr::Eval() const
 {
     return 0;
@@ -260,6 +272,11 @@ void IntNumExpr::Gen(Bytecode &code) const
 void FpNumExpr::Gen(Bytecode &code) const
 {
     code.LoadFloat(fval);
+}
+
+void StringLitExpr::Gen(Bytecode &code) const
+{
+    //code.LoadFloat(fval);
 }
 
 void IdentExpr::Gen(Bytecode &code) const

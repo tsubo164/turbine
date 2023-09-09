@@ -1,8 +1,10 @@
 #include "parser.h"
+#include "error.h"
 #include <iostream>
 
 Node *Parser::Parse(const std::string &src)
 {
+    src_ = &src;
     lexer_.SetInput(src);
 
     return program();
@@ -126,6 +128,7 @@ CallExpr *Parser::arg_list(CallExpr *call)
 // primary_expr =
 //     IntNum |
 //     FpNum |
+//     StringLit |
 //     primary_expr selector
 Expr *Parser::primary_expr()
 {
@@ -134,6 +137,9 @@ Expr *Parser::primary_expr()
 
     if (consume(TK::FpNum))
         return new FpNumExpr(tok_float(), new Type(TY::Float));
+
+    if (consume(TK::StringLit))
+        return new StringLitExpr(tok_str(), new Type(TY::String));
 
     Expr *expr = nullptr;
 
@@ -183,12 +189,15 @@ Expr *Parser::primary_expr()
             continue;
         }
         else {
+            if (!expr)
+                Error("Unknown token", *src_, tok->pos);
+
             ungettok();
             return expr;
         }
     }
 
-    return expr;
+    return nullptr;
 }
 
 Expr *Parser::add_expr()

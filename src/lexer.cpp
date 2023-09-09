@@ -30,6 +30,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::Unknown: return "Unknown";
     case TK::IntNum: return "IntNum";
     case TK::FpNum: return "FpNum";
+    case TK::StringLit: return "StringLit";
     case TK::Ident: return "Ident";
 
     case TK::Equal: return "=";
@@ -229,6 +230,12 @@ void Lexer::Get(Token *tok)
             return;
         }
 
+        // string
+        if (ch == '"') {
+            scan_string(tok, pos);
+            return;
+        }
+
         if (ch == '#') {
             ch = get();
 
@@ -258,7 +265,8 @@ void Lexer::Get(Token *tok)
             continue;
         }
 
-        tok->set(TK::Unknown, pos);
+        unget();
+        Error("unable to scan", *src_, pos_);
         return;
     }
 
@@ -352,6 +360,20 @@ void Lexer::scan_word(Token *tok, Pos pos)
         tok->sval = word;
 
     tok->set(kind, pos);
+}
+
+void Lexer::scan_string(Token *tok, Pos pos)
+{
+    auto start = it_;
+    int len = 0;
+
+    for (int ch = get(); ch != '"'; ch = get())
+        len++;
+
+    const std::string_view str_lit(&(*start), len);
+
+    tok->sval = str_lit;
+    tok->set(TK::StringLit, pos);
 }
 
 int Lexer::count_indent()

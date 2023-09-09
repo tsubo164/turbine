@@ -4,6 +4,12 @@
 //
 //- pt Point
 
+//# main() int
+//  pt.x = 2
+//  pt.y = 3
+//  a = pt.y
+//  return pt.x + pt.y
+
 //# add int
 //    - x int
 //    - y int
@@ -22,24 +28,7 @@
 //  ---
 //  - d int
 
-# seven() float
-  - a float
-  - b int
-  a = 3.0
-  b = 4
-  return a + b
-
 # main() int
-  - f float
-  - g float
-  f = 3.14
-  g = 0.86
-  if f + g == 4.0
-    return 1
-  else
-    return 0
-//  - a int
-//  pt.x = 2
-//  pt.y = 3
-//  a = pt.y
-//  return pt.x + pt.y
+  - str string
+  str = "Hello, World!"
+  return 0

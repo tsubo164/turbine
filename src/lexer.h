@@ -12,6 +12,7 @@ enum class TokenKind {
     // factor
     IntNum,
     FpNum,
+    StringLit,
     Ident,
     // operator
     Equal,
@@ -84,6 +85,7 @@ private:
 
     void scan_number(Token *tok, Pos pos);
     void scan_word(Token *tok, Pos pos);
+    void scan_string(Token *tok, Pos pos);
     int count_indent();
     TokenKind scan_indent(Token *tok);
     void scan_line_comment();

@@ -110,6 +110,8 @@ int Interpreter::print_token(const std::string &src) const
                 std::cout << " (" << tok->ival << ")";
             if (tok->kind == TK::FpNum)
                 std::cout << " (" << tok->fval << ")";
+            if (tok->kind == TK::StringLit)
+                std::cout << " (\"" << tok->sval << "\")";
 
             std::cout << std::endl;
         }
