@@ -12,6 +12,13 @@
 //            print("No!")
 //        return x + y
 
+# seven() float
+  - a float
+  - b int
+  a = 3.0
+  b = 4
+  return a + b
+
 # main() int
   - f float
   f = 3.14

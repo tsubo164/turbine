@@ -17,6 +17,7 @@ struct Node {
 };
 
 struct Expr : public Node {
+    Expr(const Type *t) : type(t) {}
     const Type *type = nullptr;
 
     virtual int Addr() const { return -1; }
@@ -24,13 +25,14 @@ struct Expr : public Node {
 };
 
 struct NullExpr : public Expr {
+    NullExpr();
     long Eval() const override final { return 0; }
     void Print(int depth) const override final {}
     void Gen(Bytecode &code) const override final {}
 };
 
 struct IntNumExpr : public Expr {
-    IntNumExpr(long n) : ival(n) {}
+    IntNumExpr(long n, const Type *t) : Expr(t), ival(n) {}
     long ival;
 
     long Eval() const override final;
@@ -39,7 +41,7 @@ struct IntNumExpr : public Expr {
 };
 
 struct FpNumExpr : public Expr {
-    FpNumExpr(double n) : fval(n) {}
+    FpNumExpr(double n, const Type *t) : Expr(t), fval(n) {}
     double fval;
 
     long Eval() const override final;
@@ -48,7 +50,7 @@ struct FpNumExpr : public Expr {
 };
 
 struct IdentExpr : public Expr {
-    IdentExpr(const Var *v) : var(v) { type = var->type; }
+    IdentExpr(const Var *v) : Expr(v->type), var(v) {}
     const Var *var;
 
     long Eval() const override final;
@@ -60,7 +62,7 @@ struct IdentExpr : public Expr {
 };
 
 struct FieldExpr : public Expr {
-    FieldExpr(const Field *f) : fld(f) { type = fld->type; }
+    FieldExpr(const Field *f) : Expr(f->type), fld(f) {}
     const Field *fld;
 
     long Eval() const override final;
@@ -71,7 +73,7 @@ struct FieldExpr : public Expr {
 };
 
 struct SelectExpr : public Expr {
-    SelectExpr(Expr *i, Expr *f) : inst(i), fld(f) {}
+    SelectExpr(Expr *i, Expr *f) : Expr(f->type), inst(i), fld(f) {}
     Expr *inst;
     Expr *fld;
 
@@ -84,7 +86,7 @@ struct SelectExpr : public Expr {
 };
 
 struct CallExpr : public Expr {
-    CallExpr(Func *f) : func(f) {}
+    CallExpr(Func *f) : Expr(f->type), func(f) {}
     void AddArg(Expr *e) { args.push_back(e); }
     std::vector<Expr*> args;
     const Func *func;
@@ -95,7 +97,7 @@ struct CallExpr : public Expr {
 };
 
 struct AddExpr : public Expr {
-    AddExpr(Expr *l, Expr *r) : lhs(l), rhs(r) {}
+    AddExpr(Expr *l, Expr *r);
     std::unique_ptr<Expr> lhs;
     std::unique_ptr<Expr> rhs;
 
@@ -105,7 +107,7 @@ struct AddExpr : public Expr {
 };
 
 struct EqualExpr : public Expr {
-    EqualExpr(Expr *l, Expr *r) : lhs(l), rhs(r) {}
+    EqualExpr(Expr *l, Expr *r);
     std::unique_ptr<Expr> lhs;
     std::unique_ptr<Expr> rhs;
 
@@ -115,7 +117,7 @@ struct EqualExpr : public Expr {
 };
 
 struct AssignExpr : public Expr {
-    AssignExpr(Expr *l, Expr *r) : lval(l), rval(r) {}
+    AssignExpr(Expr *l, Expr *r);
     std::unique_ptr<Expr> lval;
     std::unique_ptr<Expr> rval;
 

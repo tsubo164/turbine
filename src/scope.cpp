@@ -242,7 +242,8 @@ void Scope::Print(int depth) const
 
         std::cout << header <<
             "[var] " << var->name <<
-            " @" << var->id << std::endl;
+            " @" << var->id <<
+            " " << var->type->kind << std::endl;
     }
 
     for (auto it: flds_) {
@@ -250,7 +251,8 @@ void Scope::Print(int depth) const
 
         std::cout << header <<
             "[fld] " << fld->name <<
-            " @" << fld->id << std::endl;
+            " @" << fld->id <<
+            " " << fld->type->kind << std::endl;
     }
 
     for (auto scope: children_) {

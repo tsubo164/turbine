@@ -36,6 +36,8 @@ struct Func {
     int ParamCount() const;
     int VarCount() const;
 
+    const Type *type = nullptr;
+
 private:
     int nparams_ = 0;
 };

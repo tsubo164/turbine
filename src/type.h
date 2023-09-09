@@ -1,6 +1,8 @@
 #ifndef TYPE_H
 #define TYPE_H
 
+#include <iostream>
+
 struct Class;
 
 enum class TypeKind {
@@ -19,5 +21,9 @@ struct Type {
 
     int Size() const;
 };
+
+const Type *PromoteType(const Type *t1, const Type *t2);
+
+std::ostream &operator<<(std::ostream &os, TypeKind kind);
 
 #endif // _H

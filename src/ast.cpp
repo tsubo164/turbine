@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "type.h"
 #include <iostream>
 #include <limits>
 
@@ -19,29 +20,53 @@ static void print_node(const char *name, int depth, bool end_line = true)
         std::cout << ' ';
 }
 
+NullExpr::NullExpr()
+    : Expr(new Type(TY::Integer))
+{
+}
+
+AddExpr::AddExpr(Expr *l, Expr *r)
+    : Expr(PromoteType(l->type, r->type)), lhs(l), rhs(r)
+{
+}
+
+EqualExpr::EqualExpr(Expr *l, Expr *r)
+    : Expr(PromoteType(l->type, r->type)), lhs(l), rhs(r)
+{
+}
+
+AssignExpr::AssignExpr(Expr *l, Expr *r)
+    : Expr(PromoteType(l->type, r->type)), lval(l), rval(r)
+{
+}
+
 // Print
 void IntNumExpr::Print(int depth) const
 {
     print_node("IntNumExpr", depth, false);
-    std::cout << ival << std::endl;
+    std::cout << ival <<
+        " " << type->kind << std::endl;
 }
 
 void FpNumExpr::Print(int depth) const
 {
     print_node("FpNumExpr", depth, false);
-    std::cout << fval << std::endl;
+    std::cout << fval <<
+        " " << type->kind << std::endl;
 }
 
 void IdentExpr::Print(int depth) const
 {
     print_node("IdentExpr", depth, false);
-    std::cout << var->name << " @" << var->id << std::endl;
+    std::cout << var->name << " @" << var->id <<
+        " " << type->kind << std::endl;
 }
 
 void FieldExpr::Print(int depth) const
 {
     print_node("FieldExpr", depth, false);
-    std::cout << fld->name << " @" << fld->id << std::endl;
+    std::cout << fld->name << " @" << fld->id <<
+        " " << type->kind << std::endl;
 }
 
 void SelectExpr::Print(int depth) const
@@ -61,21 +86,27 @@ void CallExpr::Print(int depth) const
 
 void AddExpr::Print(int depth) const
 {
-    print_node("AddExpr", depth);
+    print_node("AddExpr", depth, false);
+    std::cout << type->kind << std::endl;
+
     lhs->Print(depth + 1);
     rhs->Print(depth + 1);
 }
 
 void EqualExpr::Print(int depth) const
 {
-    print_node("EqualExpr", depth);
+    print_node("EqualExpr", depth, false);
+    std::cout << type->kind << std::endl;
+
     lhs->Print(depth + 1);
     rhs->Print(depth + 1);
 }
 
 void AssignExpr::Print(int depth) const
 {
-    print_node("AssignExpr", depth);
+    print_node("AssignExpr", depth, false);
+    std::cout << type->kind << std::endl;
+
     lval->Print(depth + 1);
     rval->Print(depth + 1);
 }

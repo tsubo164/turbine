@@ -130,10 +130,10 @@ CallExpr *Parser::arg_list(CallExpr *call)
 Expr *Parser::primary_expr()
 {
     if (consume(TK::IntNum))
-        return new IntNumExpr(tok_int());
+        return new IntNumExpr(tok_int(), new Type(TY::Integer));
 
     if (consume(TK::FpNum))
-        return new FpNumExpr(tok_float());
+        return new FpNumExpr(tok_float(), new Type(TY::Float));
 
     Expr *expr = nullptr;
 
@@ -467,7 +467,7 @@ FuncDef *Parser::func_def()
     enter_scope(func);
 
     param_list(func);
-    type();
+    func->type = type();
     expect(TK::NewLine);
 
     // func body
