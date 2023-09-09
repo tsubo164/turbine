@@ -20,6 +20,11 @@ struct Type {
     const Class *clss;
 
     int Size() const;
+
+    bool IsInteger() const { return kind == TY::Integer; }
+    bool IsFloat() const { return kind == TY::Float; }
+    bool IsString() const { return kind == TY::String; }
+    bool IsClass() const { return kind == TY::ClassType; }
 };
 
 const Type *PromoteType(const Type *t1, const Type *t2);

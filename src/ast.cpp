@@ -31,7 +31,7 @@ AddExpr::AddExpr(Expr *l, Expr *r)
 }
 
 EqualExpr::EqualExpr(Expr *l, Expr *r)
-    : Expr(PromoteType(l->type, r->type)), lhs(l), rhs(r)
+    : Expr(new Type(TY::Integer)), lhs(l), rhs(r)
 {
 }
 
@@ -302,7 +302,13 @@ void EqualExpr::Gen(Bytecode &code) const
 {
     lhs->Gen(code);
     rhs->Gen(code);
-    code.EqualInt();
+
+    if (lhs->type->IsInteger())
+        code.EqualInt();
+    else if (lhs->type->IsFloat())
+        code.EqualFloat();
+    //else if (lhs->type->IsString())
+    //    code.EqualString();
 }
 
 void AssignExpr::Gen(Bytecode &code) const

@@ -98,6 +98,12 @@ Int VM::pop_int()
     return obj.ival;
 }
 
+Float VM::pop_float()
+{
+    const Object obj = pop();
+    return obj.fval;
+}
+
 void VM::push_int(Int val)
 {
     Object obj;
@@ -262,7 +268,7 @@ void VM::run()
         case OP_JEQ:
             {
                 const Int addr = fetch_word();
-                const Object cond = top();
+                const Object cond = pop();
 
                 if (cond.ival == 0)
                     set_ip(addr);
@@ -281,6 +287,15 @@ void VM::run()
             {
                 const Int val1 = pop_int();
                 const Int val0 = pop_int();
+                push_int(val0 == val1);
+            }
+            break;
+
+        case OP_EQF:
+            {
+                const Float val1 = pop_float();
+                const Float val0 = pop_float();
+                // TODO do fpnum comp
                 push_int(val0 == val1);
             }
             break;

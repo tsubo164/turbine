@@ -65,6 +65,7 @@ private:
     // stack helper
     void push_int( Int val );
     Int pop_int();
+    Float pop_float();
 
     void push_call(Call call);
     Call pop_call();

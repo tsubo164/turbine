@@ -29,6 +29,7 @@ enum Opcode {
     // arithmetic
     OP_ADD,
     OP_EQ,
+    OP_EQF,
     // exit
     OP_EXIT,
     OP_EOC,
@@ -58,6 +59,7 @@ public:
     void Return();
     void AddInt();
     void EqualInt();
+    void EqualFloat();
     void Exit();
     void End();
     void BackPatch(Int operand_addr);

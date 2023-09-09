@@ -367,6 +367,20 @@ int main(int argc, char **argv)
     {
         const std::string input(
             "# main() int\n"
+            "  - f float\n"
+            "  f = 3.14\n"
+            "  if f == 3.14\n"
+            "    return 1\n"
+            "  else\n"
+            "    return 0\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(1, ip.Run(input));
+    }
+    {
+        const std::string input(
+            "# main() int\n"
             "  return 0xF + 0Xa\n"
             );
         Interpreter ip;

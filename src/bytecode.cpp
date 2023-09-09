@@ -26,6 +26,7 @@ const char *OpcodeString(Byte op)
 
     O(OP_ADD);
     O(OP_EQ);
+    O(OP_EQF);
 
     O(OP_EXIT);
     O(OP_EOC);
@@ -162,6 +163,11 @@ void Bytecode::AddInt()
 void Bytecode::EqualInt()
 {
     bytes_.push_back(OP_EQ);
+}
+
+void Bytecode::EqualFloat()
+{
+    bytes_.push_back(OP_EQF);
 }
 
 void Bytecode::Exit()
@@ -365,6 +371,10 @@ void Bytecode::Print() const
             break;
 
         case OP_EQ:
+            print_op(op);
+            break;
+
+        case OP_EQF:
             print_op(op);
             break;
 
