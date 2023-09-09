@@ -28,6 +28,7 @@ enum Opcode {
     OP_JEQ,
     // arithmetic
     OP_ADD,
+    OP_ADDF,
     OP_EQ,
     OP_EQF,
     // exit
@@ -58,6 +59,7 @@ public:
     Int JumpIfZero(Int addr);
     void Return();
     void AddInt();
+    void AddFloat();
     void EqualInt();
     void EqualFloat();
     void Exit();

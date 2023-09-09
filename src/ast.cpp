@@ -295,7 +295,11 @@ void AddExpr::Gen(Bytecode &code) const
 {
     lhs->Gen(code);
     rhs->Gen(code);
-    code.AddInt();
+
+    if (type->IsInteger())
+        code.AddInt();
+    else if (type->IsFloat())
+        code.AddFloat();
 }
 
 void EqualExpr::Gen(Bytecode &code) const

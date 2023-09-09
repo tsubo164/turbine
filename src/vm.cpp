@@ -111,6 +111,13 @@ void VM::push_int(Int val)
     push(obj);
 }
 
+void VM::push_float(Float val)
+{
+    Object obj;
+    obj.fval = val;
+    push(obj);
+}
+
 void VM::push_call(Call call)
 {
     if (call_sp_ == callstack_.size() - 1) {
@@ -280,6 +287,14 @@ void VM::run()
                 const Int val1 = pop_int();
                 const Int val0 = pop_int();
                 push_int(val0 + val1);
+            }
+            break;
+
+        case OP_ADDF:
+            {
+                const Float val1 = pop_float();
+                const Float val0 = pop_float();
+                push_float(val0 + val1);
             }
             break;
 

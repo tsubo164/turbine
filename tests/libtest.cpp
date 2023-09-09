@@ -387,6 +387,22 @@ int main(int argc, char **argv)
 
         ASSERTL(25, ip.Run(input));
     }
+    {
+        const std::string input(
+            "# main() int\n"
+            "  - f float\n"
+            "  - g float\n"
+            "  f = 3.14\n"
+            "  g = 0.86\n"
+            "  if f + g == 4.0\n"
+            "    return 1\n"
+            "  else\n"
+            "    return 0\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(1, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

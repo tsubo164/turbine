@@ -63,7 +63,8 @@ private:
     Object top() const;
 
     // stack helper
-    void push_int( Int val );
+    void push_int(Int val);
+    void push_float(Float val);
     Int pop_int();
     Float pop_float();
 
