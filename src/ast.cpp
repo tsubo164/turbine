@@ -276,7 +276,8 @@ void FpNumExpr::Gen(Bytecode &code) const
 
 void StringLitExpr::Gen(Bytecode &code) const
 {
-    //code.LoadFloat(fval);
+    const Word id = code.RegisterConstString(sval);
+    code.LoadString(id);
 }
 
 void IdentExpr::Gen(Bytecode &code) const

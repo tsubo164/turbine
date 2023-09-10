@@ -71,6 +71,20 @@ Float VM::fetch_float()
     return ret;
 }
 
+Word VM::fetch_str()
+{
+    constexpr int SIZE = sizeof(Word);
+    Byte buf[SIZE] = {0};
+
+    for ( int i = 0; i < SIZE; i++ )
+        buf[i] = static_cast<Byte>(fetch_byte());
+
+    Word ret = 0;
+    std::memcpy(&ret, buf, SIZE);
+
+    return ret;
+}
+
 void VM::push(Object obj)
 {
     if (sp_ == stack_.size() - 1) {
@@ -201,6 +215,14 @@ void VM::run()
             {
                 Object obj;
                 obj.fval = fetch_float();
+                push(obj);
+            }
+            break;
+
+        case OP_LOADS:
+            {
+                Object obj;
+                obj.sval = fetch_str();
                 push(obj);
             }
             break;

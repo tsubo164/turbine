@@ -13,6 +13,7 @@ const char *OpcodeString(Byte op)
     O(OP_LOADB);
     O(OP_LOADI);
     O(OP_LOADF);
+    O(OP_LOADS);
     O(OP_LOADLOCAL);
     O(OP_LOADGLOBAL);
     O(OP_STORELOCAL);
@@ -95,6 +96,12 @@ void Bytecode::LoadFloat(Float fp)
 {
     bytes_.push_back(OP_LOADF);
     push_back<Float>(bytes_, fp);
+}
+
+void Bytecode::LoadString(Word id)
+{
+    bytes_.push_back(OP_LOADS);
+    push_back<Word>(bytes_, id);
 }
 
 void Bytecode::LoadLocal(Byte id)
@@ -230,6 +237,15 @@ void Bytecode::RegisterFunction(Word func_index, Byte argc)
     funcs_.emplace_back(func_index, argc, next_addr);
 }
 
+Int Bytecode::RegisterConstString(std::string_view str)
+{
+    const Word next_index = strings_.size();
+
+    strings_.emplace_back(str.data(), str.length());
+
+    return next_index;
+}
+
 Byte Bytecode::Read(Int addr) const
 {
     if (addr < 0 || addr >= Size())
@@ -278,7 +294,7 @@ static void print_op(int op)
 
 static void print_op_immediate(int op, Int immediate, bool end_line = true)
 {
-    std::cout << OpcodeString(op)<< " $" << immediate;
+    std::cout << OpcodeString(op) << " $" << immediate;
 
     if (end_line)
         std::cout << std::endl;
@@ -286,7 +302,18 @@ static void print_op_immediate(int op, Int immediate, bool end_line = true)
 
 static void print_op_immediate_f(int op, Float immediate, bool end_line = true)
 {
-    std::cout << OpcodeString(op)<< " $" << immediate;
+    std::cout << OpcodeString(op) << " $" << immediate;
+
+    if (end_line)
+        std::cout << std::endl;
+}
+
+static void print_op_immediate_s(int op, Word immediate, const std::string s,
+        bool end_line = true)
+{
+    std::cout << OpcodeString(op) <<
+        " $" << immediate <<
+        " = @\"" << s << "\"";
 
     if (end_line)
         std::cout << std::endl;
@@ -294,7 +321,7 @@ static void print_op_immediate_f(int op, Float immediate, bool end_line = true)
 
 static void print_op_address(int op, Int address)
 {
-    std::cout << OpcodeString(op)<< " @" << address << std::endl;
+    std::cout << OpcodeString(op) << " @" << address << std::endl;
 }
 
 void Bytecode::Print() const
@@ -328,6 +355,19 @@ void Bytecode::Print() const
         case OP_LOADF:
             print_op_immediate_f(op, ReadFloat(addr));
             addr += 8;
+            break;
+
+        case OP_LOADS:
+            {
+                const int index = ReadWord(addr);
+                if (index < 0 || index >= strings_.size())
+                    InternalError("index out of range: " +
+                            std::to_string(index),
+                            __FILE__, __LINE__);
+
+                print_op_immediate_s(op, ReadWord(addr), strings_[index]);
+                addr += 2;
+            }
             break;
 
         case OP_LOADLOCAL:

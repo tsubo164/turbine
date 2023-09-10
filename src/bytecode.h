@@ -2,8 +2,10 @@
 #define BYTECODE_H
 
 #include <unordered_map>
+#include <string_view>
 #include <cstdint>
 #include <vector>
+#include <string>
 
 using Byte = uint8_t;
 using Word = uint16_t;
@@ -16,6 +18,7 @@ enum Opcode {
     OP_LOADB,
     OP_LOADI,
     OP_LOADF,
+    OP_LOADS,
     OP_LOADLOCAL,
     OP_LOADGLOBAL,
     OP_STORELOCAL,
@@ -47,6 +50,7 @@ public:
     void LoadByte(Byte byte);
     void LoadInt(Int integer);
     void LoadFloat(Float fp);
+    void LoadString(Word id);
     void LoadLocal(Byte id);
     void LoadGlobal(Word id);
     void StoreLocal(Byte id);
@@ -70,6 +74,7 @@ public:
     Int GetFunctionAddress(Word func_index) const;
     Int GetFunctionArgCount(Word func_index) const;
     void RegisterFunction(Word func_index, Byte argc);
+    Int RegisterConstString(std::string_view str);
 
     // read/write
     Byte Read(Int addr) const;
@@ -83,6 +88,7 @@ public:
 
 private:
     std::vector<Byte> bytes_;
+    std::vector<std::string> strings_;
 
     struct FuncInfo {
         FuncInfo(Word id_, Byte argc_, Int addr_)

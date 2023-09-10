@@ -8,6 +8,7 @@ struct Object {
     union {
         Int ival = 0;
         Float fval;
+        Word sval;
     };
 };
 
@@ -56,6 +57,7 @@ private:
     Int fetch_word();
     Int fetch_int();
     Float fetch_float();
+    Word fetch_str();
 
     // stack
     void push(Object obj);
