@@ -349,6 +349,16 @@ void VM::run()
             }
             break;
 
+        case OP_EQS:
+            {
+                const Object val1 = pop();
+                const Object val0 = pop();
+                Object val;
+                val.ival = *val0.str == *val1.str;
+                push(val);
+            }
+            break;
+
         case OP_EXIT:
         case OP_EOC:
             brk = true;

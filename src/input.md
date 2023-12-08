@@ -35,4 +35,7 @@
   s0 = "Hello, "
   s1 = "World!"
   str = s0 + s1
-  return 0
+  if str == "Hello, World!"
+    return 42
+  else
+    return 0

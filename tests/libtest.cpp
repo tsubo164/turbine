@@ -403,6 +403,24 @@ int main(int argc, char **argv)
 
         ASSERTL(1, ip.Run(input));
     }
+    {
+        const std::string input(
+            "# main() int\n"
+            "  - s0 string\n"
+            "  - s1 string\n"
+            "  - str string\n"
+            "  s0 = \"Hello, \"\n"
+            "  s1 = \"World!\"\n"
+            "  str = s0 + s1\n"
+            "  if str == \"Hello, World!\"\n"
+            "    return 42\n"
+            "  else\n"
+            "    return 0\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

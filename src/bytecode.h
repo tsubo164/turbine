@@ -35,6 +35,7 @@ enum Opcode {
     OP_ADDS,
     OP_EQ,
     OP_EQF,
+    OP_EQS,
     // exit
     OP_EXIT,
     OP_EOC,
@@ -68,6 +69,7 @@ public:
     void AddString();
     void EqualInt();
     void EqualFloat();
+    void EqualString();
     void Exit();
     void End();
     void BackPatch(Int operand_addr);
