@@ -27,6 +27,7 @@ const char *OpcodeString(Byte op)
 
     O(OP_ADD);
     O(OP_ADDF);
+    O(OP_ADDS);
     O(OP_EQ);
     O(OP_EQF);
 
@@ -173,6 +174,11 @@ void Bytecode::AddFloat()
     bytes_.push_back(OP_ADDF);
 }
 
+void Bytecode::AddString()
+{
+    bytes_.push_back(OP_ADDS);
+}
+
 void Bytecode::EqualInt()
 {
     bytes_.push_back(OP_EQ);
@@ -244,6 +250,11 @@ Int Bytecode::RegisterConstString(std::string_view str)
     strings_.emplace_back(str.data(), str.length());
 
     return next_index;
+}
+
+const std::string &Bytecode::GetConstString(Word str_index) const
+{
+    return strings_[str_index];
 }
 
 Byte Bytecode::Read(Int addr) const
@@ -417,6 +428,10 @@ void Bytecode::Print() const
             break;
 
         case OP_ADDF:
+            print_op(op);
+            break;
+
+        case OP_ADDS:
             print_op(op);
             break;
 

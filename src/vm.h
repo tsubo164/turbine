@@ -8,7 +8,7 @@ struct Object {
     union {
         Int ival = 0;
         Float fval;
-        Word sval;
+        std::string *str;
     };
 };
 

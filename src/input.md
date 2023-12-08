@@ -29,6 +29,10 @@
 //  - d int
 
 # main() int
+  - s0 string
+  - s1 string
   - str string
-  str = "Hello, World!"
+  s0 = "Hello, "
+  s1 = "World!"
+  str = s0 + s1
   return 0

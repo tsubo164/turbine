@@ -318,6 +318,8 @@ void AddExpr::Gen(Bytecode &code) const
         code.AddInt();
     else if (type->IsFloat())
         code.AddFloat();
+    else if (type->IsString())
+        code.AddString();
 }
 
 void EqualExpr::Gen(Bytecode &code) const

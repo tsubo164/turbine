@@ -32,6 +32,7 @@ enum Opcode {
     // arithmetic
     OP_ADD,
     OP_ADDF,
+    OP_ADDS,
     OP_EQ,
     OP_EQF,
     // exit
@@ -64,6 +65,7 @@ public:
     void Return();
     void AddInt();
     void AddFloat();
+    void AddString();
     void EqualInt();
     void EqualFloat();
     void Exit();
@@ -75,6 +77,8 @@ public:
     Int GetFunctionArgCount(Word func_index) const;
     void RegisterFunction(Word func_index, Byte argc);
     Int RegisterConstString(std::string_view str);
+
+    const std::string &GetConstString(Word str_index) const;
 
     // read/write
     Byte Read(Int addr) const;

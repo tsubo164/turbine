@@ -221,8 +221,10 @@ void VM::run()
 
         case OP_LOADS:
             {
+                const Word id = fetch_str();
+                const std::string &s = code_->GetConstString(id);
                 Object obj;
-                obj.sval = fetch_str();
+                obj.str = new std::string(s);
                 push(obj);
             }
             break;
@@ -317,6 +319,16 @@ void VM::run()
                 const Float val1 = pop_float();
                 const Float val0 = pop_float();
                 push_float(val0 + val1);
+            }
+            break;
+
+        case OP_ADDS:
+            {
+                const Object val1 = pop();
+                const Object val0 = pop();
+                Object val;
+                val.str = new std::string(*val0.str + *val1.str);
+                push(val);
             }
             break;
 
