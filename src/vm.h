@@ -4,10 +4,10 @@
 #include <vector>
 #include "bytecode.h"
 
-struct Object {
+struct Value {
     union {
-        Int ival = 0;
-        Float fval;
+        Int inum = 0;
+        Float fpnum;
         std::string *str;
     };
 };
@@ -31,7 +31,7 @@ public:
     void EnablePrintStack(bool enable);
 
 private:
-    std::vector<Object> stack_ = {{0}};
+    std::vector<Value> stack_ = {{0}};
     const Bytecode *code_ = nullptr;
 
     Int eoc_ = 0; // end of code
@@ -60,9 +60,9 @@ private:
     Word fetch_str();
 
     // stack
-    void push(Object obj);
-    Object pop();
-    Object top() const;
+    void push(Value obj);
+    Value pop();
+    Value top() const;
 
     // stack helper
     void push_int(Int val);
@@ -73,10 +73,10 @@ private:
     void push_call(Call call);
     Call pop_call();
 
-    Object get_local(int id) const;
-    Object get_global(int id) const;
-    void set_local(int id, Object obj);
-    void set_global(int id, Object obj);
+    Value get_local(int id) const;
+    Value get_global(int id) const;
+    void set_local(int id, Value obj);
+    void set_global(int id, Value obj);
     bool is_eoc() const;
 };
 

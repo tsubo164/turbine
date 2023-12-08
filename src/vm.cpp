@@ -85,51 +85,51 @@ Word VM::fetch_str()
     return ret;
 }
 
-void VM::push(Object obj)
+void VM::push(Value val)
 {
     if (sp_ == stack_.size() - 1) {
-        stack_.push_back(obj);
+        stack_.push_back(val);
         sp_++;
     }
     else {
-        stack_[++sp_] = obj;
+        stack_[++sp_] = val;
     }
 }
 
-Object VM::pop()
+Value VM::pop()
 {
     return stack_[sp_--];
 }
 
-Object VM::top() const
+Value VM::top() const
 {
     return stack_[sp_];
 }
 
 Int VM::pop_int()
 {
-    const Object obj = pop();
-    return obj.ival;
+    const Value val = pop();
+    return val.inum;
 }
 
 Float VM::pop_float()
 {
-    const Object obj = pop();
-    return obj.fval;
+    const Value val = pop();
+    return val.fpnum;
 }
 
-void VM::push_int(Int val)
+void VM::push_int(Int inum)
 {
-    Object obj;
-    obj.ival = val;
-    push(obj);
+    Value val;
+    val.inum = inum;
+    push(val);
 }
 
-void VM::push_float(Float val)
+void VM::push_float(Float fpnum)
 {
-    Object obj;
-    obj.fval = val;
-    push(obj);
+    Value val;
+    val.fpnum = fpnum;
+    push(val);
 }
 
 void VM::push_call(Call call)
@@ -148,24 +148,24 @@ Call VM::pop_call()
     return callstack_[call_sp_--];
 }
 
-Object VM::get_local(int id) const
+Value VM::get_local(int id) const
 {
     return stack_[bp_ + 1 + id];
 }
 
-Object VM::get_global(int id) const
+Value VM::get_global(int id) const
 {
     return stack_[1 + id];
 }
 
-void VM::set_local(int id, Object obj)
+void VM::set_local(int id, Value val)
 {
-    stack_[bp_ + 1 + id] = obj;
+    stack_[bp_ + 1 + id] = val;
 }
 
-void VM::set_global(int id, Object obj)
+void VM::set_global(int id, Value val)
 {
-    stack_[1 + id] = obj;
+    stack_[1 + id] = val;
 }
 
 bool VM::is_eoc() const
@@ -197,25 +197,25 @@ void VM::run()
 
         case OP_LOADB:
             {
-                Object obj;
-                obj.ival = fetch_byte();
-                push(obj);
+                Value val;
+                val.inum = fetch_byte();
+                push(val);
             }
             break;
 
         case OP_LOADI:
             {
-                Object obj;
-                obj.ival = fetch_int();
-                push(obj);
+                Value val;
+                val.inum = fetch_int();
+                push(val);
             }
             break;
 
         case OP_LOADF:
             {
-                Object obj;
-                obj.fval = fetch_float();
-                push(obj);
+                Value val;
+                val.fpnum = fetch_float();
+                push(val);
             }
             break;
 
@@ -223,41 +223,41 @@ void VM::run()
             {
                 const Word id = fetch_str();
                 const std::string &s = code_->GetConstString(id);
-                Object obj;
-                obj.str = new std::string(s);
-                push(obj);
+                Value val;
+                val.str = new std::string(s);
+                push(val);
             }
             break;
 
         case OP_LOADLOCAL:
             {
                 const Int id = fetch_byte();
-                const Object obj = get_local(id);
-                push(obj);
+                const Value val = get_local(id);
+                push(val);
             }
             break;
 
         case OP_LOADGLOBAL:
             {
                 const Int id = fetch_word();
-                const Object obj = get_global(id);
-                push(obj);
+                const Value val = get_global(id);
+                push(val);
             }
             break;
 
         case OP_STORELOCAL:
             {
                 const Int id = fetch_byte();
-                const Object obj = pop();
-                set_local(id, obj);
+                const Value val = pop();
+                set_local(id, val);
             }
             break;
 
         case OP_STOREGLOBAL:
             {
                 const Int id = fetch_word();
-                const Object obj = pop();
-                set_global(id, obj);
+                const Value val = pop();
+                set_global(id, val);
             }
             break;
 
@@ -286,7 +286,7 @@ void VM::run()
 
         case OP_RET:
             {
-                const Object ret_obj = top();
+                const Value ret_obj = top();
                 const Call call = pop_call();
 
                 set_ip(call.return_ip);
@@ -299,9 +299,9 @@ void VM::run()
         case OP_JEQ:
             {
                 const Int addr = fetch_word();
-                const Object cond = pop();
+                const Value cond = pop();
 
-                if (cond.ival == 0)
+                if (cond.inum == 0)
                     set_ip(addr);
             }
             break;
@@ -324,9 +324,9 @@ void VM::run()
 
         case OP_ADDS:
             {
-                const Object val1 = pop();
-                const Object val0 = pop();
-                Object val;
+                const Value val1 = pop();
+                const Value val0 = pop();
+                Value val;
                 val.str = new std::string(*val0.str + *val1.str);
                 push(val);
             }
@@ -351,10 +351,10 @@ void VM::run()
 
         case OP_EQS:
             {
-                const Object val1 = pop();
-                const Object val0 = pop();
-                Object val;
-                val.ival = *val0.str == *val1.str;
+                const Value val1 = pop();
+                const Value val0 = pop();
+                Value val;
+                val.inum = *val0.str == *val1.str;
                 push(val);
             }
             break;
@@ -378,8 +378,8 @@ void VM::run()
 
 Int VM::StackTopInt() const
 {
-    const Object obj = top();
-    return obj.ival;
+    const Value val = top();
+    return val.inum;
 }
 
 void VM::PrintStack() const
@@ -397,7 +397,7 @@ void VM::PrintStack() const
             printf( "    " );
         }
 
-        printf( "|%4llu|", stack_[index].ival );
+        printf( "|%4llu|", stack_[index].inum );
 
         if ( index == bp_ )
         {
