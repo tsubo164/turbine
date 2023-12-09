@@ -272,7 +272,8 @@ void Scope::Print(int depth) const
 Func *FindBuiltinFunc(std::string_view name)
 {
     static std::vector<Func> builtins = {
-        {"print", 0, nullptr, true}
+        {"print", 0, nullptr, true},
+        {"exit",  1, nullptr, true},
     };
 
     for (auto &func: builtins) {

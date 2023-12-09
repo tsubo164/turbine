@@ -37,6 +37,7 @@
   str = s0 + s1
 
   print(str)
+  exit(11)
 
   if str == "Hello, World!"
     return 42

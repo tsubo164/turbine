@@ -293,6 +293,10 @@ void VM::run()
                     const Value val = pop();
                     std::cout << *val.str << std::endl;
                 }
+                else if (func_index == 1) {
+                    // builtin "exit" function
+                    brk = true;
+                }
             }
             break;
 
