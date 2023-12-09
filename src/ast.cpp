@@ -306,7 +306,7 @@ void CallExpr::Gen(Bytecode &code) const
 {
     for (auto it = args.rbegin(); it != args.rend(); ++it)
         (*it)->Gen(code);
-    code.CallFunction(func->id);
+    code.CallFunction(func->id, func->is_builtin);
 }
 
 void AddExpr::Gen(Bytecode &code) const
@@ -409,7 +409,7 @@ void Prog::Gen(Bytecode &code) const
         code.AllocateLocal(scope->VarSize());
 
     // call main
-    code.CallFunction(main_func->id);
+    code.CallFunction(main_func->id, main_func->is_builtin);
     code.Exit();
 
     // global funcs

@@ -284,6 +284,18 @@ void VM::run()
             }
             break;
 
+        case OP_CALL_BUILTIN:
+            {
+                const Byte func_index = fetch_byte();
+
+                if (func_index == 0) {
+                    // builtin "print" function
+                    const Value val = pop();
+                    std::cout << *val.str << std::endl;
+                }
+            }
+            break;
+
         case OP_RET:
             {
                 const Value ret_obj = top();

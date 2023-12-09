@@ -148,11 +148,14 @@ Expr *Parser::primary_expr()
 
         if (tok->kind == TK::Ident) {
             if (peek() == TK::LParen) {
-                Func *func = scope_->FindFunc(tok->sval);
+                Func *func = FindBuiltinFunc(tok->sval);
                 if (!func) {
-                    std::cerr << "error: undefined identifier: '" <<
-                        tok->sval << "'" << std::endl;
-                    exit(EXIT_FAILURE);
+                    func = scope_->FindFunc(tok->sval);
+                    if (!func) {
+                        std::cerr << "error: undefined identifier: '" <<
+                            tok->sval << "'" << std::endl;
+                        exit(EXIT_FAILURE);
+                    }
                 }
 
                 CallExpr *call = new CallExpr(func);

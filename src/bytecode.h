@@ -26,6 +26,7 @@ enum Opcode {
     // jump and function
     OP_ALLOC,
     OP_CALL,
+    OP_CALL_BUILTIN,
     OP_RET,
     OP_JMP,
     OP_JEQ,
@@ -58,7 +59,7 @@ public:
     void StoreLocal(Byte id);
     void StoreGlobal(Word id);
     void AllocateLocal(Byte count);
-    void CallFunction(Word func_index);
+    void CallFunction(Word func_index, bool builtin);
     // jump instructions return the address
     // where the destination address is stored.
     Int Jump(Int addr);

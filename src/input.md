@@ -35,6 +35,9 @@
   s0 = "Hello, "
   s1 = "World!"
   str = s0 + s1
+
+  print(str)
+
   if str == "Hello, World!"
     return 42
   else

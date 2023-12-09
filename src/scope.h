@@ -25,11 +25,12 @@ struct Var {
 };
 
 struct Func {
-    Func(std::string_view Name, int ID, Scope *sc)
-        : name(Name), id(ID), scope(sc) {}
+    Func(std::string_view Name, int ID, Scope *sc, bool builtin = false)
+        : name(Name), id(ID), is_builtin(builtin), scope(sc) {}
 
     std::string_view name;
     const int id;
+    const bool is_builtin;
     Scope *scope;
 
     void DeclareParam(std::string_view name, const Type *type);
@@ -91,6 +92,7 @@ public:
     int FieldCount() const;
 
     Func *DefineFunc(std::string_view name);
+    // TODO should return const Func *
     Func *FindFunc(std::string_view name) const;
 
     Class *DefineClass(std::string_view name);
@@ -112,5 +114,8 @@ private:
     std::map<std::string_view,Field*> flds_;
     std::map<std::string_view,Class*> clsses_;
 };
+
+// TODO should return const Func *
+Func *FindBuiltinFunc(std::string_view name);
 
 #endif // _H

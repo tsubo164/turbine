@@ -267,3 +267,18 @@ void Scope::Print(int depth) const
         scope->Print(depth + 1);
     }
 }
+
+// TODO should return const Func *
+Func *FindBuiltinFunc(std::string_view name)
+{
+    static std::vector<Func> builtins = {
+        {"print", 0, nullptr, true}
+    };
+
+    for (auto &func: builtins) {
+        if (name == func.name)
+            return &func;
+    }
+
+    return nullptr;
+}

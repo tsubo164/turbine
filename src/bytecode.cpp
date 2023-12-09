@@ -21,6 +21,7 @@ const char *OpcodeString(Byte op)
 
     O(OP_ALLOC);
     O(OP_CALL);
+    O(OP_CALL_BUILTIN);
     O(OP_RET);
     O(OP_JMP);
     O(OP_JEQ);
@@ -136,10 +137,16 @@ void Bytecode::AllocateLocal(Byte count)
     bytes_.push_back(count);
 }
 
-void Bytecode::CallFunction(Word func_index)
+void Bytecode::CallFunction(Word func_index, bool builtin)
 {
-    bytes_.push_back(OP_CALL);
-    push_back<Word>(bytes_, func_index);
+    if (builtin) {
+        bytes_.push_back(OP_CALL_BUILTIN);
+        push_back<Byte>(bytes_, func_index);
+    }
+    else {
+        bytes_.push_back(OP_CALL);
+        push_back<Word>(bytes_, func_index);
+    }
 }
 
 Int Bytecode::JumpIfZero(Int addr)
@@ -413,6 +420,10 @@ void Bytecode::Print() const
             print_op_immediate(op, ReadWord(addr), false);
             std::cout << " = @" << GetFunctionAddress(ReadWord(addr)) << std::endl;
             addr += 2;
+            break;
+
+        case OP_CALL_BUILTIN:
+            print_op_immediate(op, Read(addr++));
             break;
 
         case OP_RET:
