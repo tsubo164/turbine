@@ -406,6 +406,20 @@ int main(int argc, char **argv)
     {
         const std::string input(
             "# main() int\n"
+            "  - i int\n"
+            "  if 13 == 13\n"
+            "    i = 42\n"
+            "  else\n"
+            "    i = 99\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
+    }
+    {
+        const std::string input(
+            "# main() int\n"
             "  - s0 string\n"
             "  - s1 string\n"
             "  - str string\n"

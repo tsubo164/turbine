@@ -312,6 +312,13 @@ void VM::run()
             }
             break;
 
+        case OP_JMP:
+            {
+                const Int addr = fetch_word();
+                set_ip(addr);
+            }
+            break;
+
         case OP_JEQ:
             {
                 const Int addr = fetch_word();
