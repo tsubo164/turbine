@@ -12,34 +12,41 @@ using Word = uint16_t;
 using Int = int64_t;
 using Float = double;
 
+#define BYTECODE_LIST \
+    /* OPCODE        OPERAND_SIZE */\
+    /* ========================== */\
+    OP(OP_NOP,          OPERAND_NONE) \
+    /* local and arg */\
+    OP(OP_LOADB,        OPERAND_BYTE) \
+    OP(OP_LOADI,        OPERAND_QUAD) \
+    OP(OP_LOADF,        OPERAND_QUAD) \
+    OP(OP_LOADS,        OPERAND_WORD) \
+    OP(OP_LOADLOCAL,    OPERAND_BYTE) \
+    OP(OP_LOADGLOBAL,   OPERAND_WORD) \
+    OP(OP_STORELOCAL,   OPERAND_BYTE) \
+    OP(OP_STOREGLOBAL,  OPERAND_WORD) \
+    /* jump and function */\
+    OP(OP_ALLOC,        OPERAND_BYTE) \
+    OP(OP_CALL,         OPERAND_WORD) \
+    OP(OP_CALL_BUILTIN, OPERAND_BYTE) \
+    OP(OP_RET,          OPERAND_NONE) \
+    OP(OP_JMP,          OPERAND_WORD) \
+    OP(OP_JEQ,          OPERAND_WORD) \
+    /* arithmetic */\
+    OP(OP_ADD,          OPERAND_NONE) \
+    OP(OP_ADDF,         OPERAND_NONE) \
+    OP(OP_ADDS,         OPERAND_NONE) \
+    OP(OP_EQ,           OPERAND_NONE) \
+    OP(OP_EQF,          OPERAND_NONE) \
+    OP(OP_EQS,          OPERAND_NONE) \
+    /* exit */\
+    OP(OP_EXIT,         OPERAND_NONE) \
+    OP(OP_EOC,          OPERAND_NONE) \
+
 enum Opcode {
-    OP_NOP = 0,
-    // local and arg
-    OP_LOADB,
-    OP_LOADI,
-    OP_LOADF,
-    OP_LOADS,
-    OP_LOADLOCAL,
-    OP_LOADGLOBAL,
-    OP_STORELOCAL,
-    OP_STOREGLOBAL,
-    // jump and function
-    OP_ALLOC,
-    OP_CALL,
-    OP_CALL_BUILTIN,
-    OP_RET,
-    OP_JMP,
-    OP_JEQ,
-    // arithmetic
-    OP_ADD,
-    OP_ADDF,
-    OP_ADDS,
-    OP_EQ,
-    OP_EQF,
-    OP_EQS,
-    // exit
-    OP_EXIT,
-    OP_EOC,
+#define OP(opcode, operand_size) opcode,
+    BYTECODE_LIST
+#undef OP
 };
 
 const char *OpcodeString(Byte op);
@@ -105,6 +112,8 @@ private:
         Int addr = 0;
     };
     std::vector<FuncInfo> funcs_;
+
+    Int print_op(int op, int operand, Int address) const;
 };
 
 #endif // _H

@@ -36,6 +36,9 @@
   s1 = "World!"
   str = s0 + s1
 
+  - f float
+  f = 3.14159
+
   print(str)
   exit(11)
 

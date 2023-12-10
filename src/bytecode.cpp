@@ -6,42 +6,18 @@
 
 const char *OpcodeString(Byte op)
 {
-#define O(op) case op: return #op;
     switch (op) {
-    O(OP_NOP);
 
-    O(OP_LOADB);
-    O(OP_LOADI);
-    O(OP_LOADF);
-    O(OP_LOADS);
-    O(OP_LOADLOCAL);
-    O(OP_LOADGLOBAL);
-    O(OP_STORELOCAL);
-    O(OP_STOREGLOBAL);
+#define OP(opcode, operand_size) case opcode: return #opcode;
+    BYTECODE_LIST
+#undef OP
 
-    O(OP_ALLOC);
-    O(OP_CALL);
-    O(OP_CALL_BUILTIN);
-    O(OP_RET);
-    O(OP_JMP);
-    O(OP_JEQ);
-
-    O(OP_ADD);
-    O(OP_ADDF);
-    O(OP_ADDS);
-    O(OP_EQ);
-    O(OP_EQF);
-    O(OP_EQS);
-
-    O(OP_EXIT);
-    O(OP_EOC);
     default:
         std::cerr << "Opcode: " << static_cast<int>(op)
             << " not in OpcodeString()" << std::endl;
         std::exit(EXIT_FAILURE);
         return nullptr;
     }
-#undef O
 }
 
 template<typename T>
@@ -267,6 +243,11 @@ Int Bytecode::RegisterConstString(std::string_view str)
 
 const std::string &Bytecode::GetConstString(Word str_index) const
 {
+    if (str_index < 0 || str_index >= strings_.size()) {
+        InternalError("index out of range: " + std::to_string(str_index),
+                __FILE__, __LINE__);
+    }
+
     return strings_[str_index];
 }
 
@@ -311,41 +292,71 @@ Int Bytecode::Size() const
     return bytes_.size();
 }
 
-static void print_op(int op)
+enum OperandType {
+    OPERAND_NONE,
+    OPERAND_BYTE,
+    OPERAND_WORD,
+    OPERAND_QUAD,
+};
+
+Int Bytecode::print_op(int op, int operand, Int address) const
 {
-    std::cout << OpcodeString(op) << std::endl;
-}
+    const Int addr = address;
+    Int inc = 0;
+    std::string text = OpcodeString(op);
 
-static void print_op_immediate(int op, Int immediate, bool end_line = true)
-{
-    std::cout << OpcodeString(op) << " $" << immediate;
+    // remove prefix "OP_"
+    text = text.substr(text.find('_') + 1, std::string::npos);
 
-    if (end_line)
-        std::cout << std::endl;
-}
+    // padding spaces
+    if (operand != OPERAND_NONE)
+        text.append(12 - text.length(), ' ');
 
-static void print_op_immediate_f(int op, Float immediate, bool end_line = true)
-{
-    std::cout << OpcodeString(op) << " $" << immediate;
+    // append operand
+    switch (operand) {
 
-    if (end_line)
-        std::cout << std::endl;
-}
+    case OPERAND_BYTE:
+        text += " $" + std::to_string(static_cast<int>(Read(addr)));
+        inc = 1;
+        break;
 
-static void print_op_immediate_s(int op, Word immediate, const std::string s,
-        bool end_line = true)
-{
-    std::cout << OpcodeString(op) <<
-        " $" << immediate <<
-        " = @\"" << s << "\"";
+    case OPERAND_WORD:
+        text += " $" + std::to_string(ReadWord(addr));
+        inc = sizeof(Word);
+        break;
 
-    if (end_line)
-        std::cout << std::endl;
-}
+    case OPERAND_QUAD:
+        text += " $" + std::to_string(ReadInt(addr));
+        inc = sizeof(Int);
+        break;
+    }
 
-static void print_op_address(int op, Int address)
-{
-    std::cout << OpcodeString(op) << " @" << address << std::endl;
+    // add extra info
+    switch (op) {
+    case OP_LOADF:
+        text += " = " + std::to_string(ReadFloat(addr));
+        break;
+
+    case OP_LOADS:
+        text += " = \"" + GetConstString(ReadWord(addr)) + "\"";
+        break;
+
+    case OP_CALL:
+        text += " = @" + std::to_string(GetFunctionAddress(ReadWord(addr)));
+        break;
+
+    case OP_LOADLOCAL: case OP_LOADGLOBAL:
+    case OP_STORELOCAL: case OP_STOREGLOBAL:
+        {
+            const std::size_t found = text.find('$');
+            text[found] = '@';
+        }
+        break;
+    }
+
+    // output
+    std::cout << text << std::endl;
+    return addr + inc;
 }
 
 void Bytecode::Print() const
@@ -354,129 +365,27 @@ void Bytecode::Print() const
     for (const auto &func: funcs_)
         std::cout << "* function id: " << func.id << " @" << func.addr << std::endl;
 
-    bool brk = false;
-    int addr = 0;
+    Int addr = 0;
 
-    while (addr < Size() && !brk) {
+    while (addr < Size()) {
         std::cout << "[" << std::setw(6) << addr << "] ";
 
         const int op = Read(addr++);
 
         switch (op) {
-        case OP_NOP:
-            std::cout << OpcodeString(op) << std::endl;
-            break;
 
-        case OP_LOADB:
-            print_op_immediate(op, Read(addr++));
-            break;
-
-        case OP_LOADI:
-            print_op_immediate(op, ReadInt(addr));
-            addr += 8;
-            break;
-
-        case OP_LOADF:
-            print_op_immediate_f(op, ReadFloat(addr));
-            addr += 8;
-            break;
-
-        case OP_LOADS:
-            {
-                const int index = ReadWord(addr);
-                if (index < 0 || index >= strings_.size())
-                    InternalError("index out of range: " +
-                            std::to_string(index),
-                            __FILE__, __LINE__);
-
-                print_op_immediate_s(op, ReadWord(addr), strings_[index]);
-                addr += 2;
-            }
-            break;
-
-        case OP_LOADLOCAL:
-            print_op_address(op, Read(addr++));
-            break;
-
-        case OP_LOADGLOBAL:
-            print_op_address(op, ReadWord(addr));
-            addr += 2;
-            break;
-
-        case OP_STORELOCAL:
-            print_op_address(op, Read(addr++));
-            break;
-
-        case OP_STOREGLOBAL:
-            print_op_address(op, ReadWord(addr));
-            addr += 2;
-            break;
-
-        case OP_ALLOC:
-            print_op_immediate(op, Read(addr++));
-            break;
-
-        case OP_CALL:
-            print_op_immediate(op, ReadWord(addr), false);
-            std::cout << " = @" << GetFunctionAddress(ReadWord(addr)) << std::endl;
-            addr += 2;
-            break;
-
-        case OP_CALL_BUILTIN:
-            print_op_immediate(op, Read(addr++));
-            break;
-
-        case OP_RET:
-            print_op(op);
-            break;
-
-        case OP_JMP:
-            print_op_immediate(op, ReadWord(addr));
-            addr += 2;
-            break;
-
-        case OP_JEQ:
-            print_op_immediate(op, ReadWord(addr));
-            addr += 2;
-            break;
-
-        case OP_ADD:
-            print_op(op);
-            break;
-
-        case OP_ADDF:
-            print_op(op);
-            break;
-
-        case OP_ADDS:
-            print_op(op);
-            break;
-
-        case OP_EQ:
-            print_op(op);
-            break;
-
-        case OP_EQF:
-            print_op(op);
-            break;
-
-        case OP_EQS:
-            print_op(op);
-            break;
-
-        case OP_EXIT:
-            print_op(op);
-            break;
-
-        case OP_EOC:
-            print_op(op);
-            brk = true;
-            break;
+#define OP(opcode, operand_size) \
+            case opcode: addr = print_op(op, operand_size, addr); break;
+        BYTECODE_LIST
+#undef OP
 
         default:
             std::cerr << "Opcode: " << " not in Bytecode::Print()" << std::endl;
             std::exit(EXIT_FAILURE);
             break;
         }
+
+        if (op == OP_EOC)
+            break;
     }
 }
