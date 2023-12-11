@@ -148,31 +148,6 @@ void Bytecode::Return()
     bytes_.push_back(OP_RET);
 }
 
-void Bytecode::Equal(OpSuffix suffix, bool invert)
-{
-    Opcode op = OP_EQ;
-
-    switch (suffix) {
-    case OpSuffix::Integer:
-        op = invert ? OP_NEQ : OP_EQ;
-        break;
-
-    case OpSuffix::Float:
-        op = invert ? OP_NEQF : OP_EQF;
-        break;
-
-    case OpSuffix::String:
-        op = invert ? OP_NEQS : OP_EQS;
-        break;
-
-    case OpSuffix::None:
-        // error
-        break;
-    }
-
-    bytes_.push_back(op);
-}
-
 void Bytecode::AddInt()
 {
     bytes_.push_back(OP_ADD);
@@ -201,6 +176,21 @@ void Bytecode::EqualFloat()
 void Bytecode::EqualString()
 {
     bytes_.push_back(OP_EQS);
+}
+
+void Bytecode::NotEqualInt()
+{
+    bytes_.push_back(OP_NEQ);
+}
+
+void Bytecode::NotEqualFloat()
+{
+    bytes_.push_back(OP_NEQF);
+}
+
+void Bytecode::NotEqualString()
+{
+    bytes_.push_back(OP_NEQS);
 }
 
 void Bytecode::Exit()

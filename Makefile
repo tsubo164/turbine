@@ -1,6 +1,6 @@
 MAKE := make
 
-.PHONY: clean test all
+.PHONY: all clean run test
 
 all:
 		$(MAKE) -C src

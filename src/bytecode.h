@@ -54,13 +54,6 @@ enum Opcode {
 
 const char *OpcodeString(Byte op);
 
-enum class OpSuffix {
-    None,
-    Integer,
-    Float,
-    String,
-};
-
 class Bytecode {
 public:
     Bytecode() {}
@@ -82,13 +75,15 @@ public:
     Int Jump(Int addr);
     Int JumpIfZero(Int addr);
     void Return();
-    void Equal(OpSuffix suffix, bool invert);
     void AddInt();
     void AddFloat();
     void AddString();
     void EqualInt();
     void EqualFloat();
     void EqualString();
+    void NotEqualInt();
+    void NotEqualFloat();
+    void NotEqualString();
     void Exit();
     void End();
     void BackPatch(Int operand_addr);

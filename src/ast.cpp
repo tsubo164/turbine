@@ -331,28 +331,26 @@ void CallExpr::Gen(Bytecode &code) const
     code.CallFunction(func->id, func->is_builtin);
 }
 
-static OpSuffix opsuffix(const Type *type)
-{
-    if (type->IsInteger())
-        return OpSuffix::Integer;
-    else if (type->IsFloat())
-        return OpSuffix::Float;
-    else if (type->IsString())
-        return OpSuffix::String;
-    else
-        return OpSuffix::None;
-}
-
 void BinaryExpr::Gen(Bytecode &code) const
 {
     l->Gen(code);
     r->Gen(code);
 
-    if (kind == TK::Equal2 || kind == TK::ExclEqual) {
-        const OpSuffix suffix = opsuffix(l->type);
-        const bool invert = kind == TK::ExclEqual;
-
-        code.Equal(suffix, invert);
+    if (kind == TK::Equal2) {
+        if (l->type->IsInteger())
+            code.EqualInt();
+        else if (l->type->IsFloat())
+            code.EqualFloat();
+        else if (l->type->IsString())
+            code.EqualString();
+    }
+    else if (kind == TK::ExclEqual) {
+        if (l->type->IsInteger())
+            code.NotEqualInt();
+        else if (l->type->IsFloat())
+            code.NotEqualFloat();
+        else if (l->type->IsString())
+            code.NotEqualString();
     }
 }
 

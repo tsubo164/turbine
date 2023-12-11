@@ -6,7 +6,7 @@ RM      := rm -f
 
 SRCS    := ast bytecode codegen error interpreter lexer parser scope type vm
 
-.PHONY: all clean run
+.PHONY: all clean run test
 
 MDS  := ../mds
 MDSA := libmds.a
