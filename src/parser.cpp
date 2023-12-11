@@ -234,6 +234,10 @@ Expr *Parser::equal_expr()
             tree = new EqualExpr(tree, add_expr());
             continue;
         }
+        else if (tok->kind == TK::ExclEqual) {
+            tree = new BinaryExpr(tok->kind, tree, add_expr());
+            continue;
+        }
         else {
             ungettok();
             return tree;

@@ -25,6 +25,11 @@ NullExpr::NullExpr()
 {
 }
 
+BinaryExpr::BinaryExpr(TokenKind Kind, Expr *L, Expr *R) :
+    Expr(PromoteType(L->type, R->type)), kind(Kind), l(L), r(R)
+{
+}
+
 AddExpr::AddExpr(Expr *l, Expr *r)
     : Expr(PromoteType(l->type, r->type)), lhs(l), rhs(r)
 {
@@ -89,6 +94,16 @@ void CallExpr::Print(int depth) const
     std::cout << func->name << std::endl;
     for (auto arg: args)
         arg->Print(depth + 1);
+}
+
+void BinaryExpr::Print(int depth) const
+{
+    print_node("BinaryExpr", depth, false);
+    std::cout << "'" << kind << "' ";
+    std::cout << type->kind << std::endl;
+
+    l->Print(depth + 1);
+    r->Print(depth + 1);
 }
 
 void AddExpr::Print(int depth) const
@@ -194,6 +209,13 @@ long SelectExpr::Eval() const
 long CallExpr::Eval() const
 {
     return 0;
+}
+
+long BinaryExpr::Eval() const
+{
+    const long L = l->Eval();
+    const long R = r->Eval();
+    return L + R;
 }
 
 long AddExpr::Eval() const
@@ -307,6 +329,31 @@ void CallExpr::Gen(Bytecode &code) const
     for (auto it = args.rbegin(); it != args.rend(); ++it)
         (*it)->Gen(code);
     code.CallFunction(func->id, func->is_builtin);
+}
+
+static OpSuffix opsuffix(const Type *type)
+{
+    if (type->IsInteger())
+        return OpSuffix::Integer;
+    else if (type->IsFloat())
+        return OpSuffix::Float;
+    else if (type->IsString())
+        return OpSuffix::String;
+    else
+        return OpSuffix::None;
+}
+
+void BinaryExpr::Gen(Bytecode &code) const
+{
+    l->Gen(code);
+    r->Gen(code);
+
+    if (kind == TK::Equal2 || kind == TK::ExclEqual) {
+        const OpSuffix suffix = opsuffix(l->type);
+        const bool invert = kind == TK::ExclEqual;
+
+        code.Equal(suffix, invert);
+    }
 }
 
 void AddExpr::Gen(Bytecode &code) const

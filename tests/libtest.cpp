@@ -435,6 +435,20 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
+    {
+        const std::string input(
+            "# main() int\n"
+            "  - i int\n"
+            "  if 42 != 42\n"
+            "    i = 0\n"
+            "  else\n"
+            "    i = 11\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(11, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

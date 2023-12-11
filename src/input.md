@@ -29,20 +29,9 @@
 //  - d int
 
 # main() int
-  - s0 string
-  - s1 string
-  - str string
-  s0 = "Hello, "
-  s1 = "World!"
-  str = s0 + s1
-
-  - f float
-  f = 3.14159
-
-  print(str)
-  exit(11)
-
-  if str == "Hello, World!"
-    return 42
+  - i int
+  if 42 != 42
+    i = 0
   else
-    return 0
+    i = 11
+  return i

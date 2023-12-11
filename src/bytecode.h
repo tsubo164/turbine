@@ -39,6 +39,9 @@ using Float = double;
     OP(OP_EQ,           OPERAND_NONE) \
     OP(OP_EQF,          OPERAND_NONE) \
     OP(OP_EQS,          OPERAND_NONE) \
+    OP(OP_NEQ,          OPERAND_NONE) \
+    OP(OP_NEQF,         OPERAND_NONE) \
+    OP(OP_NEQS,         OPERAND_NONE) \
     /* exit */\
     OP(OP_EXIT,         OPERAND_NONE) \
     OP(OP_EOC,          OPERAND_NONE) \
@@ -50,6 +53,13 @@ enum Opcode {
 };
 
 const char *OpcodeString(Byte op);
+
+enum class OpSuffix {
+    None,
+    Integer,
+    Float,
+    String,
+};
 
 class Bytecode {
 public:
@@ -72,6 +82,7 @@ public:
     Int Jump(Int addr);
     Int JumpIfZero(Int addr);
     void Return();
+    void Equal(OpSuffix suffix, bool invert);
     void AddInt();
     void AddFloat();
     void AddString();

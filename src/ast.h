@@ -5,6 +5,7 @@
 #include <vector>
 #include "bytecode.h"
 #include "scope.h"
+#include "lexer.h"
 
 struct Type;
 
@@ -99,6 +100,17 @@ struct CallExpr : public Expr {
     void AddArg(Expr *e) { args.push_back(e); }
     std::vector<Expr*> args;
     const Func *func;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
+struct BinaryExpr : public Expr {
+    BinaryExpr(TokenKind Kind, Expr *L, Expr *R);
+    TokenKind kind;
+    std::unique_ptr<Expr> l;
+    std::unique_ptr<Expr> r;
 
     long Eval() const override final;
     void Print(int depth) const override final;
