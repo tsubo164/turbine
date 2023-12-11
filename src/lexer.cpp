@@ -26,36 +26,9 @@ static TokenKind keyword_or_identifier(std::string_view word)
 static const char *tok_kind_string(TokenKind kind)
 {
     switch (kind) {
-    case TK::Eof: return "EOF";
-    case TK::Unknown: return "Unknown";
-    case TK::IntNum: return "IntNum";
-    case TK::FpNum: return "FpNum";
-    case TK::StringLit: return "StringLit";
-    case TK::Ident: return "Ident";
-
-    case TK::Equal: return "=";
-    case TK::Equal2: return "==";
-    case TK::Plus: return "+";
-    case TK::Minus: return "-";
-    case TK::Slash: return "/";
-    case TK::Period: return ".";
-    case TK::Hash: return "#";
-    case TK::Hash2: return "##";
-
-    case TK::Int: return "int";
-    case TK::Float: return "float";
-    case TK::String: return "string";
-    case TK::If: return "if";
-    case TK::Else: return "else";
-    case TK::Return: return "return";
-
-    case TK::Comma: return ",";
-    case TK::LParen: return "(";
-    case TK::RParen: return ")";
-    case TK::BlockBegin: return "BlockBegin";
-    case TK::BlockEnd: return "BlockEnd";
-    case TK::NewLine: return "\\n";
-
+#define TK(tok, str) case TokenKind::tok: return str;
+    TOKEN_LIST
+#undef TK
     default:
         ERROR_NO_CASE(kind);
         return nullptr;
@@ -180,6 +153,19 @@ void Lexer::Get(Token *tok)
             else {
                 unget();
                 tok->set(TK::Equal, pos);
+            }
+            return;
+        }
+
+        if (ch == '!') {
+            ch = get();
+
+            if (ch == '=') {
+                tok->set(TK::ExclEqual, pos);
+            }
+            else {
+                unget();
+                tok->set(TK::Exclamation, pos);
             }
             return;
         }

@@ -6,37 +6,46 @@
 #include <string>
 #include <stack>
 
+#define TOKEN_LIST \
+    /* TOKEN       TOKEN_STRING   */\
+    /* ========================== */\
+    TK(Unknown,     "Unknown") \
+    /* factor */\
+    TK(IntNum,      "IntNum") \
+    TK(FpNum,       "FpNum") \
+    TK(StringLit,   "StringLit") \
+    TK(Ident,       "Ident") \
+    /* operator */\
+    TK(Equal,       "=") \
+    TK(Equal2,      "==") \
+    TK(ExclEqual,   "!=") \
+    TK(Exclamation, "!") \
+    TK(Plus,        "+") \
+    TK(Minus,       "-") \
+    TK(Slash,       "/") \
+    TK(Period,      ".") \
+    TK(Hash,        "#") \
+    TK(Hash2,       "##") \
+    /* keyword */\
+    TK(Int,         "int") \
+    TK(Float,       "float") \
+    TK(String,      "string") \
+    TK(If,          "if") \
+    TK(Else,        "else") \
+    TK(Return,      "return") \
+    /* separator */\
+    TK(Comma,       ",") \
+    TK(LParen,      "(") \
+    TK(RParen,      ")") \
+    TK(BlockBegin,  "BlockBegin") \
+    TK(BlockEnd,    "BlockEnd") \
+    TK(NewLine,     "\\n") \
+    TK(Eof,         "EOF")
+
 enum class TokenKind {
-    Eof = -1,
-    Unknown = 0,
-    // factor
-    IntNum,
-    FpNum,
-    StringLit,
-    Ident,
-    // operator
-    Equal,
-    Equal2,
-    Plus,
-    Minus,
-    Slash,
-    Period,
-    Hash,
-    Hash2,
-    // keyword
-    Int,
-    Float,
-    String,
-    If,
-    Else,
-    Return,
-    // separator
-    Comma,
-    LParen,
-    RParen,
-    BlockBegin,
-    BlockEnd,
-    NewLine,
+#define TK(tok, str) tok,
+    TOKEN_LIST
+#undef TK
 };
 using TK = TokenKind;
 
