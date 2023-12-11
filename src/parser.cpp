@@ -256,6 +256,9 @@ Expr *Parser::assign_expr()
     case TK::Equal:
         return new AssignExpr(tree, expression());
 
+    case TK::INC:
+        return new IncExpr(tree);
+
     default:
         ungettok();
         return tree;

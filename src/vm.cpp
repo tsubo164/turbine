@@ -261,6 +261,24 @@ void VM::run()
             }
             break;
 
+        case OP_INCLOCAL:
+            {
+                const Int id = fetch_byte();
+                Value val = get_local(id);
+                val.inum++;
+                set_local(id, val);
+            }
+            break;
+
+        case OP_INCGLOBAL:
+            {
+                const Int id = fetch_word();
+                Value val = get_global(id);
+                val.inum++;
+                set_global(id, val);
+            }
+            break;
+
         case OP_ALLOC:
             {
                 const Int size  = fetch_byte();

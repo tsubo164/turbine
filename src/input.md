@@ -28,10 +28,26 @@
 //  ---
 //  - d int
 
+//# foo(x int) int
+//    return 19
+//    if x == 10
+//        - y int
+//        y = 23
+//        x = y
+//    return x + 3
+//
+//# main() int
+//    return foo(17)
+
+- glbl int
+
 # main() int
   - i int
   if 42 != 42
     i = 0
   else
     i = 11
+  i++
+  glbl = 99
+  glbl++
   return i

@@ -25,6 +25,8 @@ using Float = double;
     OP(OP_LOADGLOBAL,   OPERAND_WORD) \
     OP(OP_STORELOCAL,   OPERAND_BYTE) \
     OP(OP_STOREGLOBAL,  OPERAND_WORD) \
+    OP(OP_INCLOCAL,     OPERAND_BYTE) \
+    OP(OP_INCGLOBAL,    OPERAND_WORD) \
     /* jump and function */\
     OP(OP_ALLOC,        OPERAND_BYTE) \
     OP(OP_CALL,         OPERAND_WORD) \
@@ -68,6 +70,8 @@ public:
     void LoadGlobal(Word id);
     void StoreLocal(Byte id);
     void StoreGlobal(Word id);
+    void IncLocal(Byte id);
+    void IncGlobal(Word id);
     void AllocateLocal(Byte count);
     void CallFunction(Word func_index, bool builtin);
     // jump instructions return the address

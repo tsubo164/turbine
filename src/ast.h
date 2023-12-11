@@ -147,6 +147,15 @@ struct AssignExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
+struct IncExpr : public Expr {
+    IncExpr(Expr *L) : Expr(L->type), lval(L) {}
+    std::unique_ptr<Expr> lval;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct Stmt : public Node {
 };
 
