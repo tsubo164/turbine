@@ -24,6 +24,7 @@
     TK(Minus,       "-") \
     TK(Slash,       "/") \
     TK(Period,      ".") \
+    TK(INC,         "++") \
     TK(Hash,        "#") \
     TK(Hash2,       "##") \
     /* keyword */\

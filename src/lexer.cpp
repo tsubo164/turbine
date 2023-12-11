@@ -171,7 +171,14 @@ void Lexer::Get(Token *tok)
         }
 
         if (ch == '+') {
-            tok->set(TK::Plus, pos);
+            ch = get();
+            if (ch == '+') {
+                tok->set(TK::INC, pos);
+            }
+            else {
+                unget();
+                tok->set(TK::Plus, pos);
+            }
             return;
         }
 
