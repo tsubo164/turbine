@@ -72,9 +72,9 @@ void Parser::expect(TokenKind kind)
 {
     const Token *tok = gettok();
     if (tok->kind != kind) {
-        std::cerr << "error: unexpected token: '" << tok->kind << "'" << std::endl;
-        std::cerr << "         expected token: '" << kind << "'" << std::endl;
-        exit(EXIT_FAILURE);
+        const std::string msg =
+            std::string("expected '") + GetTokenKindString(kind) + "'";
+        Error(msg, *src_, tok->pos);
     }
 }
 

@@ -62,6 +62,11 @@ static const char *tok_kind_string(TokenKind kind)
     }
 }
 
+const char *GetTokenKindString(TokenKind kind)
+{
+    return tok_kind_string(kind);
+}
+
 std::ostream &operator<<(std::ostream &os, TokenKind kind)
 {
     return os << tok_kind_string(kind);
@@ -265,8 +270,7 @@ void Lexer::Get(Token *tok)
             continue;
         }
 
-        unget();
-        Error("unable to scan", *src_, pos_);
+        Error("unknown token", *src_, pos_);
         return;
     }
 

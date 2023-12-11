@@ -40,6 +40,7 @@ enum class TokenKind {
 };
 using TK = TokenKind;
 
+const char *GetTokenKindString(TokenKind kind);
 std::ostream &operator<<(std::ostream &os, TokenKind kind);
 
 struct Pos {
