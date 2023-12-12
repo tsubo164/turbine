@@ -489,6 +489,20 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
+    {
+        // '%' operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    - j int\n"
+            "    i = 19\n"
+            "    j = 7\n"
+            "    return 46 - i % j\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(41, ip.Run(input));
+    }
 
 
     if (GetTestCount() <= 1)

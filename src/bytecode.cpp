@@ -205,6 +205,16 @@ void Bytecode::DivFloat()
     bytes_.push_back(OP_DIVF);
 }
 
+void Bytecode::RemInt()
+{
+    bytes_.push_back(OP_REM);
+}
+
+void Bytecode::RemFloat()
+{
+    bytes_.push_back(OP_REMF);
+}
+
 void Bytecode::EqualInt()
 {
     bytes_.push_back(OP_EQ);

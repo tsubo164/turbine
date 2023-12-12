@@ -44,9 +44,9 @@
 # main() int
     - i int
     - j int
-    i = 12
+    i = 14
     j = 3
-    return 46 - i / j
+    return 46 - i % j
     return sub(12, 7)
     return AssertI(1, 1, 7)
 

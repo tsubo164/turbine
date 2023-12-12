@@ -203,10 +203,14 @@ Expr *Parser::primary_expr()
     return nullptr;
 }
 
-// mul_expr = primary_expr ('*' primary_expr | '/' primary_expr | '%' primary_expr)*
+// mul_expr
+//     primary_expr
+//     mul_expr '*' primary_expr
+//     mul_expr '/' primary_expr
+//     mul_expr '%' primary_expr
 Expr *Parser::mul_expr()
 {
-    Expr *tree = primary_expr();
+    Expr *expr = primary_expr();
 
     for (;;) {
         const Token *tok = gettok();
@@ -215,12 +219,13 @@ Expr *Parser::mul_expr()
 
         case TK::STAR:
         case TK::Slash:
-            tree = new BinaryExpr(tok->kind, tree, primary_expr());
+        case TK::PERCENT:
+            expr = new BinaryExpr(tok->kind, expr, primary_expr());
             break;
 
         default:
             ungettok();
-            return tree;
+            return expr;
         }
     }
 }
@@ -286,7 +291,7 @@ Expr *Parser::assign_expr()
     case TK::Equal:
         return new AssignExpr(tree, expression());
 
-    case TK::INC:
+    case TK::PLUS2:
         return new IncExpr(tree);
 
     default:

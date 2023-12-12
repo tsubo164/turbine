@@ -367,6 +367,12 @@ void BinaryExpr::Gen(Bytecode &code) const
         else if (type->IsFloat())
             code.DivFloat();
     }
+    else if (kind == TK::PERCENT) {
+        if (type->IsInteger())
+            code.RemInt();
+        else if (type->IsFloat())
+            code.RemFloat();
+    }
     else if (kind == TK::Equal2) {
         if (l->type->IsInteger())
             code.EqualInt();

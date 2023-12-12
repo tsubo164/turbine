@@ -24,8 +24,9 @@
     TK(Minus,       "-") \
     TK(STAR,        "*") \
     TK(Slash,       "/") \
+    TK(PERCENT,     "%") \
     TK(Period,      ".") \
-    TK(INC,         "++") \
+    TK(PLUS2,       "++") \
     TK(Hash,        "#") \
     TK(Hash2,       "##") \
     /* keyword */\

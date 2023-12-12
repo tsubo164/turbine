@@ -44,6 +44,8 @@ using Float = double;
     OP(OP_MULF,         OPERAND_NONE) \
     OP(OP_DIV,          OPERAND_NONE) \
     OP(OP_DIVF,         OPERAND_NONE) \
+    OP(OP_REM,          OPERAND_NONE) \
+    OP(OP_REMF,         OPERAND_NONE) \
     OP(OP_EQ,           OPERAND_NONE) \
     OP(OP_EQF,          OPERAND_NONE) \
     OP(OP_EQS,          OPERAND_NONE) \
@@ -94,6 +96,8 @@ public:
     void MulFloat();
     void DivInt();
     void DivFloat();
+    void RemInt();
+    void RemFloat();
     void EqualInt();
     void EqualFloat();
     void EqualString();

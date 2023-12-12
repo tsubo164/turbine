@@ -1,5 +1,6 @@
 #include "vm.h"
 #include <iostream>
+#include <cmath>
 
 void VM::set_ip(Int ip)
 {
@@ -420,6 +421,24 @@ void VM::run()
                 const Float l = pop_float();
                 // TODO check zero div
                 push_float(l / r);
+            }
+            break;
+
+        case OP_REM:
+            {
+                const Int r = pop_int();
+                const Int l = pop_int();
+                // TODO check zero div
+                push_int(l % r);
+            }
+            break;
+
+        case OP_REMF:
+            {
+                const Float r = pop_float();
+                const Float l = pop_float();
+                // TODO check zero div
+                push_float(std::fmod(l, r));
             }
             break;
 

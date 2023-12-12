@@ -173,7 +173,7 @@ void Lexer::Get(Token *tok)
         if (ch == '+') {
             ch = get();
             if (ch == '+') {
-                tok->set(TK::INC, pos);
+                tok->set(TK::PLUS2, pos);
             }
             else {
                 unget();
@@ -203,6 +203,11 @@ void Lexer::Get(Token *tok)
                 unget();
                 tok->set(TK::Slash, pos);
             }
+            return;
+        }
+
+        if (ch == '%') {
+            tok->set(TK::PERCENT, pos);
             return;
         }
 
