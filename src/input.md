@@ -46,6 +46,9 @@
     - j int
     i = 14
     j = 3
+
+    //return 34 / i + j
+    return 34 / (i + j)
     return 46 - i % j
     return sub(12, 7)
     return AssertI(1, 1, 7)

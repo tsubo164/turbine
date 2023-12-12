@@ -503,6 +503,20 @@ int main(int argc, char **argv)
 
         ASSERTL(41, ip.Run(input));
     }
+    {
+        // '(' expr ')'
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    - j int\n"
+            "    i = 19\n"
+            "    j = 17\n"
+            "    return 21 * (i - j)\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
+    }
 
 
     if (GetTestCount() <= 1)

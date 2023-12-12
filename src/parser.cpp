@@ -141,6 +141,12 @@ Expr *Parser::primary_expr()
     if (consume(TK::StringLit))
         return new StringLitExpr(tok_str(), new Type(TY::String));
 
+    if (consume(TK::LParen)) {
+        Expr *expr = expression();
+        expect(TK::RParen);
+        return expr;
+    }
+
     Expr *expr = nullptr;
 
     for (;;) {
