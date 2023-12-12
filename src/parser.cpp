@@ -203,7 +203,8 @@ Expr *Parser::primary_expr()
     return nullptr;
 }
 
-Expr *Parser::add_expr()
+// mul_expr = primary_expr ('*' primary_expr | '/' primary_expr | '%' primary_expr)*
+Expr *Parser::mul_expr()
 {
     Expr *tree = primary_expr();
 
@@ -212,12 +213,36 @@ Expr *Parser::add_expr()
 
         switch (tok->kind) {
 
+        case TK::STAR:
+            tree = new BinaryExpr(tok->kind, tree, primary_expr());
+            break;
+
+        default:
+            ungettok();
+            return tree;
+        }
+    }
+}
+
+// add_expr
+//     mul_expr
+//     add_expr '+' mul_expr
+//     add_expr '-' mul_expr
+Expr *Parser::add_expr()
+{
+    Expr *tree = mul_expr();
+
+    for (;;) {
+        const Token *tok = gettok();
+
+        switch (tok->kind) {
+
         case TK::Plus:
-            tree = new AddExpr(tree, primary_expr());
+            tree = new AddExpr(tree, mul_expr());
             break;
 
         case TK::Minus:
-            tree = new BinaryExpr(tok->kind, tree, primary_expr());
+            tree = new BinaryExpr(tok->kind, tree, mul_expr());
             break;
 
         default:

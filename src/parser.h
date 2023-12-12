@@ -50,6 +50,7 @@ private:
     // expression
     CallExpr *arg_list(CallExpr *fcall);
     Expr *primary_expr();
+    Expr *mul_expr();
     Expr *add_expr();
     Expr *equal_expr();
     Expr *assign_expr();

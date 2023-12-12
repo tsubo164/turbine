@@ -8,7 +8,7 @@ void AssertI(int expected, int actual, int line)
     test_count++;
 
     if (expected != actual) {
-        printf("error: expected: %d actual: %d [%d]\n", expected, actual, line);
+        printf("error:%d: expected: %d actual: %d\n", line, expected, actual);
         exit(1);
     }
 }
@@ -18,7 +18,7 @@ void AssertL(long expected, long actual, int line)
     test_count++;
 
     if (expected != actual) {
-        printf("error: expected: %ld actual: %ld [%d]\n", expected, actual, line);
+        printf("error:%d: expected: %ld actual: %ld\n", line, expected, actual);
         exit(1);
     }
 }
@@ -28,8 +28,8 @@ void AssertS(const std::string &expected, const std::string &actual, int line)
     test_count++;
 
     if (expected != actual) {
-        printf("error: expected: \"%s\" actual: \"%s\" [%d]\n",
-                expected.c_str(), actual.c_str(), line);
+        printf("error:%d: expected: \"%s\" actual: \"%s\"\n",
+                line, expected.c_str(), actual.c_str());
         exit(1);
     }
 }

@@ -22,6 +22,7 @@
     TK(Exclamation, "!") \
     TK(Plus,        "+") \
     TK(Minus,       "-") \
+    TK(STAR,        "*") \
     TK(Slash,       "/") \
     TK(Period,      ".") \
     TK(INC,         "++") \

@@ -42,6 +42,11 @@
     return x - y
 
 # main() int
+    - i int
+    - j int
+    i = 12
+    j = 3
+    return 46 - i * 3
     return sub(12, 7)
     return AssertI(1, 1, 7)
 

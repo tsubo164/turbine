@@ -187,6 +187,11 @@ void Lexer::Get(Token *tok)
             return;
         }
 
+        if (ch == '*') {
+            tok->set(TK::STAR, pos);
+            return;
+        }
+
         if (ch == '/') {
             ch = get();
 

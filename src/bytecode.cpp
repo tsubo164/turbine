@@ -185,6 +185,16 @@ void Bytecode::SubFloat()
     bytes_.push_back(OP_SUBF);
 }
 
+void Bytecode::MulInt()
+{
+    bytes_.push_back(OP_MUL);
+}
+
+void Bytecode::MulFloat()
+{
+    bytes_.push_back(OP_MULF);
+}
+
 void Bytecode::EqualInt()
 {
     bytes_.push_back(OP_EQ);

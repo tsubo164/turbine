@@ -350,10 +350,16 @@ void BinaryExpr::Gen(Bytecode &code) const
     r->Gen(code);
 
     if (kind == TK::Minus) {
-        if (l->type->IsInteger())
+        if (type->IsInteger())
             code.SubInt();
-        else if (l->type->IsFloat())
+        else if (type->IsFloat())
             code.SubFloat();
+    }
+    else if (kind == TK::STAR) {
+        if (type->IsInteger())
+            code.MulInt();
+        else if (type->IsFloat())
+            code.MulFloat();
     }
     else if (kind == TK::Equal2) {
         if (l->type->IsInteger())
