@@ -361,6 +361,12 @@ void BinaryExpr::Gen(Bytecode &code) const
         else if (type->IsFloat())
             code.MulFloat();
     }
+    else if (kind == TK::Slash) {
+        if (type->IsInteger())
+            code.DivInt();
+        else if (type->IsFloat())
+            code.DivFloat();
+    }
     else if (kind == TK::Equal2) {
         if (l->type->IsInteger())
             code.EqualInt();

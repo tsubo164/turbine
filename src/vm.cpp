@@ -405,6 +405,24 @@ void VM::run()
             }
             break;
 
+        case OP_DIV:
+            {
+                const Int r = pop_int();
+                const Int l = pop_int();
+                // TODO check zero div
+                push_int(l / r);
+            }
+            break;
+
+        case OP_DIVF:
+            {
+                const Float r = pop_float();
+                const Float l = pop_float();
+                // TODO check zero div
+                push_float(l / r);
+            }
+            break;
+
         case OP_EQ:
             {
                 const Int val1 = pop_int();

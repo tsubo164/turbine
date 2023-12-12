@@ -195,6 +195,16 @@ void Bytecode::MulFloat()
     bytes_.push_back(OP_MULF);
 }
 
+void Bytecode::DivInt()
+{
+    bytes_.push_back(OP_DIV);
+}
+
+void Bytecode::DivFloat()
+{
+    bytes_.push_back(OP_DIVF);
+}
+
 void Bytecode::EqualInt()
 {
     bytes_.push_back(OP_EQ);

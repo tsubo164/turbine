@@ -214,6 +214,7 @@ Expr *Parser::mul_expr()
         switch (tok->kind) {
 
         case TK::STAR:
+        case TK::Slash:
             tree = new BinaryExpr(tok->kind, tree, primary_expr());
             break;
 
