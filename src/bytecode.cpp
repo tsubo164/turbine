@@ -175,6 +175,16 @@ void Bytecode::AddString()
     bytes_.push_back(OP_ADDS);
 }
 
+void Bytecode::SubInt()
+{
+    bytes_.push_back(OP_SUB);
+}
+
+void Bytecode::SubFloat()
+{
+    bytes_.push_back(OP_SUBF);
+}
+
 void Bytecode::EqualInt()
 {
     bytes_.push_back(OP_EQ);

@@ -28,26 +28,32 @@
 //  ---
 //  - d int
 
-//# foo(x int) int
-//    return 19
-//    if x == 10
-//        - y int
-//        y = 23
-//        x = y
-//    return x + 3
-//
-//# main() int
-//    return foo(17)
+- test_count int
 
-- glbl int
+# AssertI(expected int, actual int, line int) int
+    test_count++
+
+    if expected != actual
+        print("error:")
+        exit(1)
+    return
+
+# sub(x int, y int) int
+    return x - y
 
 # main() int
-  - i int
-  if 42 != 42
-    i = 0
-  else
-    i = 11
-  i++
-  glbl = 99
-  glbl++
-  return i
+    return sub(12, 7)
+    return AssertI(1, 1, 7)
+
+//- glbl int
+//
+//# main() int
+//  - i int
+//  if 42 != 42
+//    i = 0
+//  else
+//    i = 11
+//  i++
+//  glbl = 99
+//  glbl++
+//  return i

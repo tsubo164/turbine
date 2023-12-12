@@ -449,6 +449,19 @@ int main(int argc, char **argv)
 
         ASSERTL(11, ip.Run(input));
     }
+    {
+        // '-' operator and order of eval args
+        const std::string input(
+            "# sub(x int, y int) int\n"
+            "    return x - y\n"
+            "# main() int\n"
+            "    return sub(12, 7)\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(5, ip.Run(input));
+    }
+
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

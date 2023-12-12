@@ -216,6 +216,10 @@ Expr *Parser::add_expr()
             tree = new AddExpr(tree, primary_expr());
             break;
 
+        case TK::Minus:
+            tree = new BinaryExpr(tok->kind, tree, primary_expr());
+            break;
+
         default:
             ungettok();
             return tree;

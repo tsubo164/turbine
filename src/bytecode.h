@@ -38,6 +38,8 @@ using Float = double;
     OP(OP_ADD,          OPERAND_NONE) \
     OP(OP_ADDF,         OPERAND_NONE) \
     OP(OP_ADDS,         OPERAND_NONE) \
+    OP(OP_SUB,          OPERAND_NONE) \
+    OP(OP_SUBF,         OPERAND_NONE) \
     OP(OP_EQ,           OPERAND_NONE) \
     OP(OP_EQF,          OPERAND_NONE) \
     OP(OP_EQS,          OPERAND_NONE) \
@@ -82,6 +84,8 @@ public:
     void AddInt();
     void AddFloat();
     void AddString();
+    void SubInt();
+    void SubFloat();
     void EqualInt();
     void EqualFloat();
     void EqualString();

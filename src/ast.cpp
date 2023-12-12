@@ -339,8 +339,8 @@ void SelectExpr::Gen(Bytecode &code) const
 
 void CallExpr::Gen(Bytecode &code) const
 {
-    for (auto it = args.rbegin(); it != args.rend(); ++it)
-        (*it)->Gen(code);
+    for (auto arg: args)
+        arg->Gen(code);
     code.CallFunction(func->id, func->is_builtin);
 }
 
@@ -349,7 +349,13 @@ void BinaryExpr::Gen(Bytecode &code) const
     l->Gen(code);
     r->Gen(code);
 
-    if (kind == TK::Equal2) {
+    if (kind == TK::Minus) {
+        if (l->type->IsInteger())
+            code.SubInt();
+        else if (l->type->IsFloat())
+            code.SubFloat();
+    }
+    else if (kind == TK::Equal2) {
         if (l->type->IsInteger())
             code.EqualInt();
         else if (l->type->IsFloat())

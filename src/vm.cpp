@@ -373,6 +373,22 @@ void VM::run()
             }
             break;
 
+        case OP_SUB:
+            {
+                const Int val1 = pop_int();
+                const Int val0 = pop_int();
+                push_int(val0 - val1);
+            }
+            break;
+
+        case OP_SUBF:
+            {
+                const Float val1 = pop_float();
+                const Float val0 = pop_float();
+                push_float(val0 - val1);
+            }
+            break;
+
         case OP_EQ:
             {
                 const Int val1 = pop_int();
