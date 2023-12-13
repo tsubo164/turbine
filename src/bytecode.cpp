@@ -245,6 +245,16 @@ void Bytecode::NotEqualString()
     bytes_.push_back(OP_NEQS);
 }
 
+void Bytecode::NegateInt()
+{
+    bytes_.push_back(OP_NEG);
+}
+
+void Bytecode::NegateFloat()
+{
+    bytes_.push_back(OP_NEGF);
+}
+
 void Bytecode::Exit()
 {
     bytes_.push_back(OP_EXIT);

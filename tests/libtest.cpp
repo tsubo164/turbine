@@ -573,7 +573,42 @@ int main(int argc, char **argv)
 
         ASSERTL(1, ip.Run(input) != 0);
     }
+    {
+        // "+" unary operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    i = 7\n"
+            "    return +i\n"
+            );
+        Interpreter ip;
 
+        ASSERTL(7, ip.Run(input));
+    }
+    {
+        // "-" unary operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    i = 42\n"
+            "    return -i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(-42, ip.Run(input));
+    }
+    {
+        // "-+" unary operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    i = 42\n"
+            "    return -+-+-+- -+-+ +-i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(-42, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

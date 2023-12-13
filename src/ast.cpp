@@ -25,8 +25,13 @@ NullExpr::NullExpr()
 {
 }
 
-BinaryExpr::BinaryExpr(TokenKind Kind, Expr *L, Expr *R) :
-    Expr(PromoteType(L->type, R->type)), kind(Kind), l(L), r(R)
+BinaryExpr::BinaryExpr(TokenKind Kind, Expr *L, Expr *R)
+    : Expr(PromoteType(L->type, R->type)), kind(Kind), l(L), r(R)
+{
+}
+
+UnaryExpr::UnaryExpr(TokenKind Kind, Expr *R)
+    : Expr(R->type), kind(Kind), r(R)
 {
 }
 
@@ -103,6 +108,15 @@ void BinaryExpr::Print(int depth) const
     std::cout << type->kind << std::endl;
 
     l->Print(depth + 1);
+    r->Print(depth + 1);
+}
+
+void UnaryExpr::Print(int depth) const
+{
+    print_node("UnaryExpr", depth, false);
+    std::cout << "\"" << kind << "\" ";
+    std::cout << type->kind << std::endl;
+
     r->Print(depth + 1);
 }
 
@@ -224,6 +238,12 @@ long BinaryExpr::Eval() const
     const long L = l->Eval();
     const long R = r->Eval();
     return L + R;
+}
+
+long UnaryExpr::Eval() const
+{
+    const long R = r->Eval();
+    return R;
 }
 
 long AddExpr::Eval() const
@@ -427,6 +447,20 @@ void BinaryExpr::Gen(Bytecode &code) const
             code.NotEqualFloat();
         else if (l->type->IsString())
             code.NotEqualString();
+    }
+}
+
+void UnaryExpr::Gen(Bytecode &code) const
+{
+    r->Gen(code);
+
+    if (kind == TK::Minus) {
+        if (type->IsInteger()) {
+            code.NegateInt();
+        }
+        else if (type->IsFloat()) {
+            code.NegateFloat();
+        }
     }
 }
 

@@ -477,6 +477,20 @@ void VM::run()
             }
             break;
 
+        case OP_NEG:
+            {
+                const Int r = pop_int();
+                push_int( -1 * r);
+            }
+            break;
+
+        case OP_NEGF:
+            {
+                const Float r = pop_float();
+                push_float( -1 * r);
+            }
+            break;
+
         case OP_EXIT:
         case OP_EOC:
             brk = true;

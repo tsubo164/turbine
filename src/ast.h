@@ -117,6 +117,16 @@ struct BinaryExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
+struct UnaryExpr : public Expr {
+    UnaryExpr(TokenKind Kind, Expr *R);
+    TokenKind kind;
+    std::unique_ptr<Expr> r;
+
+    long Eval() const override final;
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct AddExpr : public Expr {
     AddExpr(Expr *l, Expr *r);
     std::unique_ptr<Expr> lhs;

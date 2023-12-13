@@ -209,6 +209,25 @@ Expr *Parser::primary_expr()
     return nullptr;
 }
 
+// unary_expr
+//     primary_expr
+//     "+" unary_expr
+//     "-" unary_expr
+Expr *Parser::unary_expr()
+{
+    const Token *tok = gettok();
+
+    switch (tok->kind) {
+    case TK::Plus:
+    case TK::Minus:
+        return new UnaryExpr(tok->kind, unary_expr());
+
+    default:
+        ungettok();
+        return primary_expr();
+    }
+}
+
 // mul_expr
 //     primary_expr
 //     mul_expr '*' primary_expr
@@ -216,7 +235,7 @@ Expr *Parser::primary_expr()
 //     mul_expr '%' primary_expr
 Expr *Parser::mul_expr()
 {
-    Expr *expr = primary_expr();
+    Expr *expr = unary_expr();
 
     for (;;) {
         const Token *tok = gettok();
@@ -226,7 +245,7 @@ Expr *Parser::mul_expr()
         case TK::STAR:
         case TK::Slash:
         case TK::PERCENT:
-            expr = new BinaryExpr(tok->kind, expr, primary_expr());
+            expr = new BinaryExpr(tok->kind, expr, unary_expr());
             break;
 
         default:
