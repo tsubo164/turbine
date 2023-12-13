@@ -211,6 +211,30 @@ void Lexer::Get(Token *tok)
             return;
         }
 
+        if (ch == '|') {
+            ch = get();
+            if (ch == '|') {
+                tok->set(TK::BAR2, pos);
+            }
+            else {
+                unget();
+                tok->set(TK::BAR, pos);
+            }
+            return;
+        }
+
+        if (ch == '&') {
+            ch = get();
+            if (ch == '&') {
+                tok->set(TK::AMP2, pos);
+            }
+            else {
+                unget();
+                tok->set(TK::AMP, pos);
+            }
+            return;
+        }
+
         if (ch == '.') {
             tok->set(TK::Period, pos);
             return;

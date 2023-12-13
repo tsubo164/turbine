@@ -286,14 +286,56 @@ Expr *Parser::equal_expr()
     }
 }
 
+// logand_expr
+//     equal_expr
+//     logand_expr "&&" equal_expr
+Expr *Parser::logand_expr()
+{
+    Expr *tree = equal_expr();
+
+    for (;;) {
+        const Token *tok = gettok();
+
+        if (tok->kind == TK::AMP2) {
+            tree = new BinaryExpr(tok->kind, tree, equal_expr());
+            continue;
+        }
+        else {
+            ungettok();
+            return tree;
+        }
+    }
+}
+
+// logor_expr
+//     logand_expr
+//     logor_expr "||" logand_expr
+Expr *Parser::logor_expr()
+{
+    Expr *tree = logand_expr();
+
+    for (;;) {
+        const Token *tok = gettok();
+
+        switch (tok->kind) {
+        case TK::BAR2:
+            tree = new BinaryExpr(tok->kind, tree, logand_expr());
+            continue;
+
+        default:
+            ungettok();
+            return tree;
+        }
+    }
+}
+
 // assign = equality ("=" assign)?
 Expr *Parser::assign_expr()
 {
-    Expr *tree = equal_expr();
+    Expr *tree = logor_expr();
     const Token *tok = gettok();
 
     switch (tok->kind) {
-
     case TK::Equal:
         return new AssignExpr(tree, expression());
 

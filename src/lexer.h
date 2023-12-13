@@ -25,6 +25,10 @@
     TK(STAR,        "*") \
     TK(Slash,       "/") \
     TK(PERCENT,     "%") \
+    TK(BAR,         "|") \
+    TK(BAR2,        "||") \
+    TK(AMP,         "&") \
+    TK(AMP2,        "&&") \
     TK(Period,      ".") \
     TK(PLUS2,       "++") \
     TK(Hash,        "#") \

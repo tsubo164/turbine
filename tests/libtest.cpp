@@ -517,6 +517,62 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
+    {
+        // "||" operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    - j int\n"
+            "    i = 0\n"
+            "    j = 7\n"
+            "    return i || j\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(1, ip.Run(input) != 0);
+    }
+    {
+        // "||" operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    - j int\n"
+            "    i = 0\n"
+            "    j = 0\n"
+            "    return i || j\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(0, ip.Run(input) != 0);
+    }
+    {
+        // "&&" operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    - j int\n"
+            "    i = 0\n"
+            "    j = 7\n"
+            "    return i && j\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(0, ip.Run(input) != 0);
+    }
+    {
+        // "&&" operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    - j int\n"
+            "    i = 1\n"
+            "    j = 7\n"
+            "    return i && j\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(1, ip.Run(input) != 0);
+    }
 
 
     if (GetTestCount() <= 1)

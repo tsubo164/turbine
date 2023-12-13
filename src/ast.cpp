@@ -99,7 +99,7 @@ void CallExpr::Print(int depth) const
 void BinaryExpr::Print(int depth) const
 {
     print_node("BinaryExpr", depth, false);
-    std::cout << "'" << kind << "' ";
+    std::cout << "\"" << kind << "\" ";
     std::cout << type->kind << std::endl;
 
     l->Print(depth + 1);
@@ -346,6 +346,45 @@ void CallExpr::Gen(Bytecode &code) const
 
 void BinaryExpr::Gen(Bytecode &code) const
 {
+    if (kind == TK::BAR2) {
+        Int ELSE = 0;
+        Int EXIT = 0;
+
+        // eval
+        l->Gen(code);
+        ELSE = code.JumpIfZero(-1);
+
+        // true
+        code.LoadByte(1);
+        EXIT = code.Jump(-1);
+
+        // false
+        code.BackPatch(ELSE);
+        r->Gen(code);
+        code.BackPatch(EXIT);
+
+        return;
+    }
+    else if (kind == TK::AMP2) {
+        Int ELSE = 0;
+        Int EXIT = 0;
+
+        // eval
+        l->Gen(code);
+        ELSE = code.JumpIfZero(-1);
+
+        // true
+        r->Gen(code);
+        EXIT = code.Jump(-1);
+
+        // false
+        code.BackPatch(ELSE);
+        code.LoadByte(0);
+        code.BackPatch(EXIT);
+
+        return;
+    }
+
     l->Gen(code);
     r->Gen(code);
 
