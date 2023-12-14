@@ -579,17 +579,32 @@ void VM::run()
 
         case OP_AND:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 & val1);
+                const Int r = pop_int();
+                const Int l = pop_int();
+                push_int(l & r);
             }
             break;
 
         case OP_OR:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 | val1);
+                const Int r = pop_int();
+                const Int l = pop_int();
+                push_int(l | r);
+            }
+            break;
+
+        case OP_XOR:
+            {
+                const Int r = pop_int();
+                const Int l = pop_int();
+                push_int(l ^ r);
+            }
+            break;
+
+        case OP_NOT:
+            {
+                const Int i = pop_int();
+                push_int(~i);
             }
             break;
 

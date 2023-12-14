@@ -222,6 +222,7 @@ Expr *Parser::unary_expr()
     case TK::Plus:
     case TK::Minus:
     case TK::EXCL:
+    case TK::TILDA:
         return new UnaryExpr(tok->kind, unary_expr());
 
     default:
@@ -248,6 +249,7 @@ Expr *Parser::mul_expr()
         case TK::Slash:
         case TK::PERCENT:
         case TK::AMP:
+        case TK::CARET:
             expr = new BinaryExpr(tok->kind, expr, unary_expr());
             break;
 

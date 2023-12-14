@@ -487,6 +487,10 @@ void BinaryExpr::Gen(Bytecode &code) const
         code.Or();
         return;
 
+    case TK::CARET:
+        code.Xor();
+        return;
+
     default:
         return;
     }
@@ -509,6 +513,15 @@ void UnaryExpr::Gen(Bytecode &code) const
     }
     else if (kind == TK::EXCL) {
         code.SetIfZero();
+    }
+
+    switch (kind) {
+    case TK::TILDA:
+        code.Not();
+        return;
+
+    default:
+        return;
     }
 }
 

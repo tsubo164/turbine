@@ -1,4 +1,4 @@
 # main() int
     - i int
-    i = 0x383
-    return i & 0xFF
+    i = 0x8
+    return  ~i & 0xF
