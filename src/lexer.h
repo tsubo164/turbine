@@ -20,6 +20,10 @@
     TK(Equal2,      "==") \
     TK(ExclEqual,   "!=") \
     TK(EXCL,        "!") \
+    TK(LT,          "<") \
+    TK(GT,          ">") \
+    TK(LTE,         "<=") \
+    TK(GTE,         ">=") \
     TK(Plus,        "+") \
     TK(Minus,       "-") \
     TK(STAR,        "*") \

@@ -1,6 +1,5 @@
 # main() int
     - i int
     i = 42
-
-    return !(42 != i)
-    return !i
+    print("Hello, World!")
+    return 42 <= i

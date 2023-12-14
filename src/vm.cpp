@@ -477,6 +477,88 @@ void VM::run()
             }
             break;
 
+        case OP_NEQF:
+            {
+                const Float val1 = pop_float();
+                const Float val0 = pop_float();
+                push_int(val0 != val1);
+            }
+            break;
+
+        case OP_NEQS:
+            {
+                const Value val1 = pop();
+                const Value val0 = pop();
+                Value val;
+                val.inum = *val0.str != *val1.str;
+                push(val);
+            }
+            break;
+
+        case OP_LT:
+            {
+                const Int val1 = pop_int();
+                const Int val0 = pop_int();
+                push_int(val0 < val1);
+            }
+            break;
+
+        case OP_LTF:
+            {
+                const Float val1 = pop_float();
+                const Float val0 = pop_float();
+                push_int(val0 < val1);
+            }
+            break;
+
+        case OP_LTE:
+            {
+                const Int val1 = pop_int();
+                const Int val0 = pop_int();
+                push_int(val0 <= val1);
+            }
+            break;
+
+        case OP_LTEF:
+            {
+                const Float val1 = pop_float();
+                const Float val0 = pop_float();
+                push_int(val0 <= val1);
+            }
+            break;
+
+        case OP_GT:
+            {
+                const Int val1 = pop_int();
+                const Int val0 = pop_int();
+                push_int(val0 > val1);
+            }
+            break;
+
+        case OP_GTF:
+            {
+                const Float val1 = pop_float();
+                const Float val0 = pop_float();
+                push_int(val0 > val1);
+            }
+            break;
+
+        case OP_GTE:
+            {
+                const Int val1 = pop_int();
+                const Int val0 = pop_int();
+                push_int(val0 >= val1);
+            }
+            break;
+
+        case OP_GTEF:
+            {
+                const Float val1 = pop_float();
+                const Float val0 = pop_float();
+                push_int(val0 >= val1);
+            }
+            break;
+
         case OP_NEG:
             {
                 const Int i = pop_int();

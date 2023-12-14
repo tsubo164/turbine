@@ -448,6 +448,39 @@ void BinaryExpr::Gen(Bytecode &code) const
         else if (l->type->IsString())
             code.NotEqualString();
     }
+
+    switch (kind) {
+    case TK::LT:
+        if (l->type->IsInteger())
+            code.LessInt();
+        else if (l->type->IsFloat())
+            code.LessFloat();
+        return;
+
+    case TK::LTE:
+        if (l->type->IsInteger())
+            code.LessEqualInt();
+        else if (l->type->IsFloat())
+            code.LessEqualFloat();
+        return;
+
+    case TK::GT:
+        if (l->type->IsInteger())
+            code.GreaterInt();
+        else if (l->type->IsFloat())
+            code.GreaterFloat();
+        return;
+
+    case TK::GTE:
+        if (l->type->IsInteger())
+            code.GreaterEqualInt();
+        else if (l->type->IsFloat())
+            code.GreaterEqualFloat();
+        return;
+
+    default:
+        return;
+    }
 }
 
 void UnaryExpr::Gen(Bytecode &code) const

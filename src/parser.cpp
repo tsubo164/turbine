@@ -285,52 +285,53 @@ Expr *Parser::add_expr()
     }
 }
 
-Expr *Parser::equal_expr()
+// rel_expr = add_expr (rel_op add_expr)*
+// rel_op   = "==" | "!=" | "<" | ">" | "<=" | ">="
+Expr *Parser::rel_expr()
 {
-    Expr *tree = add_expr();
+    Expr *expr = add_expr();
 
     for (;;) {
         const Token *tok = gettok();
 
-        if (tok->kind == TK::Equal2) {
-            tree = new EqualExpr(tree, add_expr());
+        switch (tok->kind) {
+        case TK::Equal2:
+        case TK::ExclEqual:
+        case TK::LT:
+        case TK::GT:
+        case TK::LTE:
+        case TK::GTE:
+            expr = new BinaryExpr(tok->kind, expr, add_expr());
             continue;
-        }
-        else if (tok->kind == TK::ExclEqual) {
-            tree = new BinaryExpr(tok->kind, tree, add_expr());
-            continue;
-        }
-        else {
+
+        default:
             ungettok();
-            return tree;
+            return expr;
         }
     }
 }
 
-// logand_expr
-//     equal_expr
-//     logand_expr "&&" equal_expr
+// logand_expr = rel_expr ("&&" rel_expr)*
 Expr *Parser::logand_expr()
 {
-    Expr *tree = equal_expr();
+    Expr *expr = rel_expr();
 
     for (;;) {
         const Token *tok = gettok();
 
-        if (tok->kind == TK::AMP2) {
-            tree = new BinaryExpr(tok->kind, tree, equal_expr());
+        switch (tok->kind) {
+        case TK::AMP2:
+            expr = new BinaryExpr(tok->kind, expr, rel_expr());
             continue;
-        }
-        else {
+
+        default:
             ungettok();
-            return tree;
+            return expr;
         }
     }
 }
 
-// logor_expr
-//     logand_expr
-//     logor_expr "||" logand_expr
+// logor_expr = logand_expr ("&&" logand_expr)*
 Expr *Parser::logor_expr()
 {
     Expr *tree = logand_expr();

@@ -52,6 +52,14 @@ using Float = double;
     OP(OP_NEQ,          OPERAND_NONE) \
     OP(OP_NEQF,         OPERAND_NONE) \
     OP(OP_NEQS,         OPERAND_NONE) \
+    OP(OP_LT,           OPERAND_NONE) \
+    OP(OP_LTF,          OPERAND_NONE) \
+    OP(OP_LTE,          OPERAND_NONE) \
+    OP(OP_LTEF,         OPERAND_NONE) \
+    OP(OP_GT,           OPERAND_NONE) \
+    OP(OP_GTF,          OPERAND_NONE) \
+    OP(OP_GTE,          OPERAND_NONE) \
+    OP(OP_GTEF,         OPERAND_NONE) \
     OP(OP_NEG,          OPERAND_NONE) \
     OP(OP_NEGF,         OPERAND_NONE) \
     OP(OP_SETZ,         OPERAND_NONE) \
@@ -108,6 +116,14 @@ public:
     void NotEqualInt();
     void NotEqualFloat();
     void NotEqualString();
+    void LessInt();
+    void LessFloat();
+    void LessEqualInt();
+    void LessEqualFloat();
+    void GreaterInt();
+    void GreaterFloat();
+    void GreaterEqualInt();
+    void GreaterEqualFloat();
     void NegateInt();
     void NegateFloat();
     void SetIfZero();

@@ -53,7 +53,7 @@ private:
     Expr *unary_expr();
     Expr *mul_expr();
     Expr *add_expr();
-    Expr *equal_expr();
+    Expr *rel_expr();
     Expr *logand_expr();
     Expr *logor_expr();
     Expr *assign_expr();

@@ -245,6 +245,46 @@ void Bytecode::NotEqualString()
     bytes_.push_back(OP_NEQS);
 }
 
+void Bytecode::LessInt()
+{
+    bytes_.push_back(OP_LT);
+}
+
+void Bytecode::LessFloat()
+{
+    bytes_.push_back(OP_LTF);
+}
+
+void Bytecode::LessEqualInt()
+{
+    bytes_.push_back(OP_LTE);
+}
+
+void Bytecode::LessEqualFloat()
+{
+    bytes_.push_back(OP_LTEF);
+}
+
+void Bytecode::GreaterInt()
+{
+    bytes_.push_back(OP_GT);
+}
+
+void Bytecode::GreaterFloat()
+{
+    bytes_.push_back(OP_GTF);
+}
+
+void Bytecode::GreaterEqualInt()
+{
+    bytes_.push_back(OP_GTE);
+}
+
+void Bytecode::GreaterEqualFloat()
+{
+    bytes_.push_back(OP_GTEF);
+}
+
 void Bytecode::NegateInt()
 {
     bytes_.push_back(OP_NEG);
