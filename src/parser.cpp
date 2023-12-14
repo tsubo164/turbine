@@ -231,11 +231,8 @@ Expr *Parser::unary_expr()
     }
 }
 
-// mul_expr
-//     primary_expr
-//     mul_expr '*' primary_expr
-//     mul_expr '/' primary_expr
-//     mul_expr '%' primary_expr
+// mul_expr = unary_expr (mul_op unary_expr)*
+// mul_op   = "*" | "/" | "%" | "&" | "<<" | ">>"
 Expr *Parser::mul_expr()
 {
     Expr *expr = unary_expr();
@@ -249,7 +246,8 @@ Expr *Parser::mul_expr()
         case TK::Slash:
         case TK::PERCENT:
         case TK::AMP:
-        case TK::CARET:
+        case TK::LT2:
+        case TK::GT2:
             expr = new BinaryExpr(tok->kind, expr, unary_expr());
             break;
 
@@ -260,10 +258,8 @@ Expr *Parser::mul_expr()
     }
 }
 
-// add_expr
-//     mul_expr
-//     add_expr '+' mul_expr
-//     add_expr '-' mul_expr
+// add_expr = mul_expr (add_op mul_expr)*
+// add_op   = "+" | "-" | "|" | "^"
 Expr *Parser::add_expr()
 {
     Expr *expr = mul_expr();
@@ -279,6 +275,7 @@ Expr *Parser::add_expr()
 
         case TK::Minus:
         case TK::BAR:
+        case TK::CARET:
             expr = new BinaryExpr(tok->kind, expr, mul_expr());
             break;
 

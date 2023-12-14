@@ -22,6 +22,8 @@
     TK(EXCL,        "!") \
     TK(CARET,       "^") \
     TK(TILDA,       "~") \
+    TK(LT2,         "<<") \
+    TK(GT2,         ">>") \
     TK(LT,          "<") \
     TK(GT,          ">") \
     TK(LTE,         "<=") \

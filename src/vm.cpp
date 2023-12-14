@@ -608,6 +608,22 @@ void VM::run()
             }
             break;
 
+        case OP_SHL:
+            {
+                const Int r = pop_int();
+                const Int l = pop_int();
+                push_int(l << r);
+            }
+            break;
+
+        case OP_SHR:
+            {
+                const Int r = pop_int();
+                const Int l = pop_int();
+                push_int(l >> r);
+            }
+            break;
+
         case OP_NEG:
             {
                 const Int i = pop_int();

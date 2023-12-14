@@ -182,7 +182,10 @@ void Lexer::Get(Token *tok)
 
         if (ch == '<') {
             ch = get();
-            if (ch == '=') {
+            if (ch == '<') {
+                tok->set(TK::LT2, pos);
+            }
+            else if (ch == '=') {
                 tok->set(TK::LTE, pos);
             }
             else {
@@ -194,7 +197,10 @@ void Lexer::Get(Token *tok)
 
         if (ch == '>') {
             ch = get();
-            if (ch == '=') {
+            if (ch == '>') {
+                tok->set(TK::GT2, pos);
+            }
+            else if (ch == '=') {
                 tok->set(TK::GTE, pos);
             }
             else {

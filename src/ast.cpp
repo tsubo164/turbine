@@ -491,6 +491,14 @@ void BinaryExpr::Gen(Bytecode &code) const
         code.Xor();
         return;
 
+    case TK::LT2:
+        code.ShiftLeft();
+        return;
+
+    case TK::GT2:
+        code.ShiftRight();
+        return;
+
     default:
         return;
     }

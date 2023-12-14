@@ -66,6 +66,8 @@ using Float = double;
     OP(OP_OR,           OPERAND_NONE) \
     OP(OP_XOR,          OPERAND_NONE) \
     OP(OP_NOT,          OPERAND_NONE) \
+    OP(OP_SHL,          OPERAND_NONE) \
+    OP(OP_SHR,          OPERAND_NONE) \
     OP(OP_NEG,          OPERAND_NONE) \
     OP(OP_NEGF,         OPERAND_NONE) \
     OP(OP_SETZ,         OPERAND_NONE) \
@@ -136,6 +138,8 @@ public:
     void Or();
     void Xor();
     void Not();
+    void ShiftLeft();
+    void ShiftRight();
     void NegateInt();
     void NegateFloat();
     void SetIfZero();

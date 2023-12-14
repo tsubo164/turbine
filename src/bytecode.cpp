@@ -317,6 +317,16 @@ void Bytecode::Not()
     bytes_.push_back(OP_NOT);
 }
 
+void Bytecode::ShiftLeft()
+{
+    bytes_.push_back(OP_SHL);
+}
+
+void Bytecode::ShiftRight()
+{
+    bytes_.push_back(OP_SHR);
+}
+
 void Bytecode::NegateInt()
 {
     bytes_.push_back(OP_NEG);
