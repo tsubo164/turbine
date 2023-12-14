@@ -1,5 +1,4 @@
 # main() int
     - i int
-    i = 42
-    i--
-    return i
+    i = 0x383
+    return i & 0xFF

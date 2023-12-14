@@ -479,6 +479,14 @@ void BinaryExpr::Gen(Bytecode &code) const
             code.GreaterEqualFloat();
         return;
 
+    case TK::AMP:
+        code.And();
+        return;
+
+    case TK::BAR:
+        code.Or();
+        return;
+
     default:
         return;
     }

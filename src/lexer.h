@@ -20,6 +20,8 @@
     TK(Equal2,      "==") \
     TK(ExclEqual,   "!=") \
     TK(EXCL,        "!") \
+    TK(CARET,       "^") \
+    TK(TILDA,       "~") \
     TK(LT,          "<") \
     TK(GT,          ">") \
     TK(LTE,         "<=") \

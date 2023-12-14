@@ -707,6 +707,30 @@ int main(int argc, char **argv)
 
         ASSERTL(41, ip.Run(input));
     }
+    {
+        // "&" operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    i = 0x3A9\n"
+            "    return i & 0xFF\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(0xA9, ip.Run(input));
+    }
+    {
+        // "|" operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    i = 0x3A9\n"
+            "    return i | 0xFFF\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(0xFFF, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

@@ -297,6 +297,26 @@ void Bytecode::GreaterEqualFloat()
     bytes_.push_back(OP_GTEF);
 }
 
+void Bytecode::And()
+{
+    bytes_.push_back(OP_AND);
+}
+
+void Bytecode::Or()
+{
+    bytes_.push_back(OP_OR);
+}
+
+void Bytecode::Xor()
+{
+    bytes_.push_back(OP_XOR);
+}
+
+void Bytecode::Not()
+{
+    bytes_.push_back(OP_NOT);
+}
+
 void Bytecode::NegateInt()
 {
     bytes_.push_back(OP_NEG);

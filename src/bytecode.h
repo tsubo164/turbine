@@ -62,6 +62,10 @@ using Float = double;
     OP(OP_GTF,          OPERAND_NONE) \
     OP(OP_GTE,          OPERAND_NONE) \
     OP(OP_GTEF,         OPERAND_NONE) \
+    OP(OP_AND,          OPERAND_NONE) \
+    OP(OP_OR,           OPERAND_NONE) \
+    OP(OP_XOR,          OPERAND_NONE) \
+    OP(OP_NOT,          OPERAND_NONE) \
     OP(OP_NEG,          OPERAND_NONE) \
     OP(OP_NEGF,         OPERAND_NONE) \
     OP(OP_SETZ,         OPERAND_NONE) \
@@ -128,6 +132,10 @@ public:
     void GreaterFloat();
     void GreaterEqualInt();
     void GreaterEqualFloat();
+    void And();
+    void Or();
+    void Xor();
+    void Not();
     void NegateInt();
     void NegateFloat();
     void SetIfZero();

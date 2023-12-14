@@ -170,6 +170,16 @@ void Lexer::Get(Token *tok)
             return;
         }
 
+        if (ch == '^') {
+            tok->set(TK::CARET, pos);
+            return;
+        }
+
+        if (ch == '~') {
+            tok->set(TK::TILDA, pos);
+            return;
+        }
+
         if (ch == '<') {
             ch = get();
             if (ch == '=') {

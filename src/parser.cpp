@@ -247,6 +247,7 @@ Expr *Parser::mul_expr()
         case TK::STAR:
         case TK::Slash:
         case TK::PERCENT:
+        case TK::AMP:
             expr = new BinaryExpr(tok->kind, expr, unary_expr());
             break;
 
@@ -263,7 +264,7 @@ Expr *Parser::mul_expr()
 //     add_expr '-' mul_expr
 Expr *Parser::add_expr()
 {
-    Expr *tree = mul_expr();
+    Expr *expr = mul_expr();
 
     for (;;) {
         const Token *tok = gettok();
@@ -271,16 +272,17 @@ Expr *Parser::add_expr()
         switch (tok->kind) {
 
         case TK::Plus:
-            tree = new AddExpr(tree, mul_expr());
+            expr = new AddExpr(expr, mul_expr());
             break;
 
         case TK::Minus:
-            tree = new BinaryExpr(tok->kind, tree, mul_expr());
+        case TK::BAR:
+            expr = new BinaryExpr(tok->kind, expr, mul_expr());
             break;
 
         default:
             ungettok();
-            return tree;
+            return expr;
         }
     }
 }
