@@ -2,4 +2,5 @@
     - i int
     i = 42
 
-    return - + - + - i
+    return !(42 != i)
+    return !i

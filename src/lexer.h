@@ -19,7 +19,7 @@
     TK(Equal,       "=") \
     TK(Equal2,      "==") \
     TK(ExclEqual,   "!=") \
-    TK(Exclamation, "!") \
+    TK(EXCL,        "!") \
     TK(Plus,        "+") \
     TK(Minus,       "-") \
     TK(STAR,        "*") \

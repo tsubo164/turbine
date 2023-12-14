@@ -165,7 +165,7 @@ void Lexer::Get(Token *tok)
             }
             else {
                 unget();
-                tok->set(TK::Exclamation, pos);
+                tok->set(TK::EXCL, pos);
             }
             return;
         }

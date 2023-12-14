@@ -479,15 +479,29 @@ void VM::run()
 
         case OP_NEG:
             {
-                const Int r = pop_int();
-                push_int( -1 * r);
+                const Int i = pop_int();
+                push_int(-1 * i);
             }
             break;
 
         case OP_NEGF:
             {
-                const Float r = pop_float();
-                push_float( -1 * r);
+                const Float f = pop_float();
+                push_float(-1 * f);
+            }
+            break;
+
+        case OP_SETZ:
+            {
+                const Int i = pop_int();
+                push_int(i == 0);
+            }
+            break;
+
+        case OP_SETNZ:
+            {
+                const Int i = pop_int();
+                push_int(i != 0);
             }
             break;
 

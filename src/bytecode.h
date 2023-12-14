@@ -54,6 +54,8 @@ using Float = double;
     OP(OP_NEQS,         OPERAND_NONE) \
     OP(OP_NEG,          OPERAND_NONE) \
     OP(OP_NEGF,         OPERAND_NONE) \
+    OP(OP_SETZ,         OPERAND_NONE) \
+    OP(OP_SETNZ,        OPERAND_NONE) \
     /* exit */\
     OP(OP_EXIT,         OPERAND_NONE) \
     OP(OP_EOC,          OPERAND_NONE) \
@@ -108,6 +110,8 @@ public:
     void NotEqualString();
     void NegateInt();
     void NegateFloat();
+    void SetIfZero();
+    void SetIfNotZero();
     void Exit();
     void End();
     void BackPatch(Int operand_addr);

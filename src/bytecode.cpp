@@ -255,6 +255,16 @@ void Bytecode::NegateFloat()
     bytes_.push_back(OP_NEGF);
 }
 
+void Bytecode::SetIfZero()
+{
+    bytes_.push_back(OP_SETZ);
+}
+
+void Bytecode::SetIfNotZero()
+{
+    bytes_.push_back(OP_SETNZ);
+}
+
 void Bytecode::Exit()
 {
     bytes_.push_back(OP_EXIT);

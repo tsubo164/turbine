@@ -454,13 +454,19 @@ void UnaryExpr::Gen(Bytecode &code) const
 {
     r->Gen(code);
 
-    if (kind == TK::Minus) {
+    if (kind == TK::Plus) {
+        // pass
+    }
+    else if (kind == TK::Minus) {
         if (type->IsInteger()) {
             code.NegateInt();
         }
         else if (type->IsFloat()) {
             code.NegateFloat();
         }
+    }
+    else if (kind == TK::EXCL) {
+        code.SetIfZero();
     }
 }
 

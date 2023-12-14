@@ -213,6 +213,7 @@ Expr *Parser::primary_expr()
 //     primary_expr
 //     "+" unary_expr
 //     "-" unary_expr
+//     "!" unary_expr
 Expr *Parser::unary_expr()
 {
     const Token *tok = gettok();
@@ -220,6 +221,7 @@ Expr *Parser::unary_expr()
     switch (tok->kind) {
     case TK::Plus:
     case TK::Minus:
+    case TK::EXCL:
         return new UnaryExpr(tok->kind, unary_expr());
 
     default:
