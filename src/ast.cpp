@@ -147,9 +147,10 @@ void AssignExpr::Print(int depth) const
     rval->Print(depth + 1);
 }
 
-void IncExpr::Print(int depth) const
+void IncDecExpr::Print(int depth) const
 {
-    print_node("IncExpr", depth, false);
+    print_node("IncDecExpr", depth, false);
+    std::cout << "\"" << kind << "\" ";
     std::cout << type->kind << std::endl;
 
     lval->Print(depth + 1);
@@ -265,7 +266,7 @@ long AssignExpr::Eval() const
     return rval->Eval();
 }
 
-long IncExpr::Eval() const
+long IncDecExpr::Eval() const
 {
     return lval->Eval();
 }
@@ -541,13 +542,28 @@ void AssignExpr::Gen(Bytecode &code) const
         code.StoreLocal(index);
 }
 
-void IncExpr::Gen(Bytecode &code) const
+void IncDecExpr::Gen(Bytecode &code) const
 {
     const int index = lval->Addr();
-    if (lval->IsGlobal())
-        code.IncGlobal(index);
-    else
-        code.IncLocal(index);
+
+    switch (kind) {
+    case TK::PLUS2:
+        if (lval->IsGlobal())
+            code.IncGlobal(index);
+        else
+            code.IncLocal(index);
+        return;
+
+    case TK::MINUS2:
+        if (lval->IsGlobal())
+            code.DecGlobal(index);
+        else
+            code.DecLocal(index);
+        return;
+
+    default:
+        return;
+    }
 }
 
 void BlockStmt::Gen(Bytecode &code) const

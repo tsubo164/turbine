@@ -681,6 +681,32 @@ int main(int argc, char **argv)
 
         ASSERTL(1, ip.Run(input) != 0);
     }
+    {
+        // "++" operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    i = 42\n"
+            "    i++\n"
+            "    return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(43, ip.Run(input));
+    }
+    {
+        // "--" operator
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    i = 42\n"
+            "    i--\n"
+            "    return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(41, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

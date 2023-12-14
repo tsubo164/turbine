@@ -119,6 +119,18 @@ void Bytecode::IncGlobal(Word id)
     push_back<Word>(bytes_, id);
 }
 
+void Bytecode::DecLocal(Byte id)
+{
+    bytes_.push_back(OP_DECLOCAL);
+    bytes_.push_back(id);
+}
+
+void Bytecode::DecGlobal(Word id)
+{
+    bytes_.push_back(OP_DECGLOBAL);
+    push_back<Word>(bytes_, id);
+}
+
 void Bytecode::AllocateLocal(Byte count)
 {
     bytes_.push_back(OP_ALLOC);

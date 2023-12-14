@@ -354,19 +354,20 @@ Expr *Parser::logor_expr()
 // assign = equality ("=" assign)?
 Expr *Parser::assign_expr()
 {
-    Expr *tree = logor_expr();
+    Expr *expr = logor_expr();
     const Token *tok = gettok();
 
     switch (tok->kind) {
     case TK::Equal:
-        return new AssignExpr(tree, expression());
+        return new AssignExpr(expr, expression());
 
     case TK::PLUS2:
-        return new IncExpr(tree);
+    case TK::MINUS2:
+        return new IncDecExpr(tok->kind, expr);
 
     default:
         ungettok();
-        return tree;
+        return expr;
     }
 }
 

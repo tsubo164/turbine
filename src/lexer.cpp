@@ -207,7 +207,14 @@ void Lexer::Get(Token *tok)
         }
 
         if (ch == '-') {
-            tok->set(TK::Minus, pos);
+            ch = get();
+            if (ch == '-') {
+                tok->set(TK::MINUS2, pos);
+            }
+            else {
+                unget();
+                tok->set(TK::Minus, pos);
+            }
             return;
         }
 

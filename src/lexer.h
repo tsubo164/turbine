@@ -35,6 +35,7 @@
     TK(AMP2,        "&&") \
     TK(Period,      ".") \
     TK(PLUS2,       "++") \
+    TK(MINUS2,      "--") \
     TK(Hash,        "#") \
     TK(Hash2,       "##") \
     /* keyword */\

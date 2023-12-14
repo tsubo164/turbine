@@ -157,8 +157,9 @@ struct AssignExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
-struct IncExpr : public Expr {
-    IncExpr(Expr *L) : Expr(L->type), lval(L) {}
+struct IncDecExpr : public Expr {
+    IncDecExpr(TokenKind k, Expr *e) : Expr(e->type), kind(k), lval(e) {}
+    TokenKind kind;
     std::unique_ptr<Expr> lval;
 
     long Eval() const override final;
