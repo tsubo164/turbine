@@ -36,7 +36,7 @@ private:
     bool print_symbols_ = false;
     bool print_bytecode_ = false;
     bool print_stack_ = false;
-    int print_token(const std::string &src) const;
+    void print_token(const std::string &src) const;
 };
 
 #endif // _H

@@ -21,9 +21,8 @@ Interpreter::~Interpreter()
 Int Interpreter::Run(const std::string &src)
 {
     // Print token
-    if (print_token_) {
-        return print_token(src);
-    }
+    if (print_token_)
+        print_token(src);
 
     // Compile source
     tree_ = parser_.Parse(src);
@@ -83,7 +82,7 @@ void Interpreter::EnablePrintStack(bool enable)
     print_stack_ = enable;
 }
 
-int Interpreter::print_token(const std::string &src) const
+void Interpreter::print_token(const std::string &src) const
 {
     Lexer lexer;
 
@@ -144,6 +143,4 @@ int Interpreter::print_token(const std::string &src) const
             break;
     }
     std::cout << std::endl;
-
-    return 0;
 }

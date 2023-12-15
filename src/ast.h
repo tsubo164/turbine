@@ -12,7 +12,6 @@ struct Type;
 struct Node {
     Node() {}
     virtual ~Node() {}
-    virtual long Eval() const = 0;
     virtual void Print(int depth = 0) const = 0;
     virtual void Gen(Bytecode &code) const = 0;
 };
@@ -27,7 +26,6 @@ struct Expr : public Node {
 
 struct NullExpr : public Expr {
     NullExpr();
-    long Eval() const override final { return 0; }
     void Print(int depth) const override final {}
     void Gen(Bytecode &code) const override final {}
 };
@@ -36,7 +34,6 @@ struct IntNumExpr : public Expr {
     IntNumExpr(long n, const Type *t) : Expr(t), ival(n) {}
     long ival;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -45,7 +42,6 @@ struct FpNumExpr : public Expr {
     FpNumExpr(double n, const Type *t) : Expr(t), fval(n) {}
     double fval;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -54,7 +50,6 @@ struct StringLitExpr : public Expr {
     StringLitExpr(std::string_view s, const Type *t) : Expr(t), sval(s) {}
     std::string_view sval;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -63,7 +58,6 @@ struct IdentExpr : public Expr {
     IdentExpr(const Var *v) : Expr(v->type), var(v) {}
     const Var *var;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 
@@ -75,7 +69,6 @@ struct FieldExpr : public Expr {
     FieldExpr(const Field *f) : Expr(f->type), fld(f) {}
     const Field *fld;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 
@@ -87,7 +80,6 @@ struct SelectExpr : public Expr {
     Expr *inst;
     Expr *fld;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 
@@ -101,7 +93,6 @@ struct CallExpr : public Expr {
     std::vector<Expr*> args;
     const Func *func;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -112,7 +103,6 @@ struct BinaryExpr : public Expr {
     std::unique_ptr<Expr> l;
     std::unique_ptr<Expr> r;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -122,7 +112,6 @@ struct UnaryExpr : public Expr {
     TokenKind kind;
     std::unique_ptr<Expr> r;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -132,7 +121,6 @@ struct AssignExpr : public Expr {
     std::unique_ptr<Expr> lval;
     std::unique_ptr<Expr> rval;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -142,7 +130,6 @@ struct IncDecExpr : public Expr {
     TokenKind kind;
     std::unique_ptr<Expr> lval;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -160,7 +147,6 @@ struct BlockStmt : public Stmt {
     void AddStmt(Stmt *stmt) { stmts.push_back(stmt); }
     std::vector<Stmt*> stmts;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -174,7 +160,6 @@ struct IfStmt : public Stmt {
     std::unique_ptr<BlockStmt> then;
     std::unique_ptr<BlockStmt> els;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -184,7 +169,6 @@ struct ReturnStmt : public Stmt {
     ReturnStmt(Expr *e) : expr(e) {}
     std::unique_ptr<Expr> expr;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -193,7 +177,6 @@ struct ExprStmt : public Stmt {
     ExprStmt(Expr *e) : expr(e) {}
     std::unique_ptr<Expr> expr;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -204,7 +187,6 @@ struct FuncDef : public Node {
     Func *func = nullptr;
     std::unique_ptr<BlockStmt> block;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
@@ -217,7 +199,6 @@ struct Prog: public Node {
     // TODO remove this
     const Func *main_func = nullptr;
 
-    long Eval() const override final;
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
