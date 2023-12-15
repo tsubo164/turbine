@@ -144,6 +144,15 @@ void IfStmt::Print(int depth) const
         els->Print(depth + 1);
 }
 
+void ForStmt::Print(int depth) const
+{
+    print_node("ForStmt", depth);
+    init->Print(depth + 1);
+    cond->Print(depth + 1);
+    post->Print(depth + 1);
+    body->Print(depth + 1);
+}
+
 void ReturnStmt::Print(int depth) const
 {
     print_node("ReturnStmt", depth);
@@ -469,6 +478,27 @@ void IfStmt::Gen(Bytecode &code) const
         els->Gen(code);
         code.BackPatch(jmp);
     }
+}
+
+void ForStmt::Gen(Bytecode &code) const
+{
+    // init
+    init->Gen(code);
+
+    // body
+    const Int start = code.NextAddr();
+    body->Gen(code);
+
+    // post
+    post->Gen(code);
+
+    // cond
+    cond->Gen(code);
+    const Int exit = code.JumpIfZero(-1);
+    code.Jump(start);
+
+    // exit
+    code.BackPatch(exit);
 }
 
 void ReturnStmt::Gen(Bytecode &code) const

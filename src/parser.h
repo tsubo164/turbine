@@ -61,6 +61,7 @@ private:
 
     // statement
     Stmt *if_stmt();
+    Stmt *for_stmt();
     Stmt *ret_stmt();
     Stmt *expr_stmt();
     BlockStmt *block_stmt();

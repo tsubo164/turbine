@@ -161,6 +161,7 @@ public:
     Word ReadWord(Int addr) const;
     Int ReadInt(Int addr) const;
     Float ReadFloat(Int addr) const;
+    Int NextAddr() const;
     Int Size() const;
 
     // print

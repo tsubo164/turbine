@@ -48,9 +48,11 @@
     TK(STRING,      "string") \
     TK(IF,          "if") \
     TK(ELSE,        "else") \
+    TK(FOR,         "for") \
     TK(RETURN,      "return") \
     /* separator */\
     TK(COMMA,       ",") \
+    TK(SEMICOLON,   ";") \
     TK(LPAREN,      "(") \
     TK(RPAREN,      ")") \
     TK(BLOCKBEGIN,  "block_begin") \

@@ -10,6 +10,7 @@ static const std::unordered_map<std::string_view, TokenKind> keywords = {
     {"string", TK::STRING},
     {"if",     TK::IF},
     {"else",   TK::ELSE},
+    {"for",    TK::FOR},
     {"return", TK::RETURN},
 };
 
@@ -289,6 +290,11 @@ void Lexer::Get(Token *tok)
 
         if (ch == ',') {
             tok->set(TK::COMMA, pos);
+            return;
+        }
+
+        if (ch == ';') {
+            tok->set(TK::SEMICOLON, pos);
             return;
         }
 

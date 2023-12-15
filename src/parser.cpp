@@ -396,6 +396,26 @@ Stmt *Parser::if_stmt()
     return new IfStmt(cond, then, els);
 }
 
+Stmt *Parser::for_stmt()
+{
+    expect(TK::FOR);
+
+    Expr *init = expression();
+    expect(TK::SEMICOLON);
+
+    Expr *cond = expression();
+    expect(TK::SEMICOLON);
+
+    Expr *post = expression();
+    expect(TK::NEWLINE);
+
+    enter_scope();
+    BlockStmt *body = block_stmt();
+    leave_scope();
+
+    return new ForStmt(init, cond, post, body);
+}
+
 Stmt *Parser::ret_stmt()
 {
     expect(TK::RETURN);
@@ -499,6 +519,10 @@ BlockStmt *Parser::block_stmt()
         }
         else if (next == TK::IF) {
             block->AddStmt(if_stmt());
+            continue;
+        }
+        else if (next == TK::FOR) {
+            block->AddStmt(for_stmt());
             continue;
         }
         else if (next == TK::RETURN) {

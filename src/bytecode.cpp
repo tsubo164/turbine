@@ -152,7 +152,7 @@ void Bytecode::CallFunction(Word func_index, bool builtin)
 Int Bytecode::JumpIfZero(Int addr)
 {
     bytes_.push_back(OP_JEQ);
-    const Int operand_addr = Size();
+    const Int operand_addr = NextAddr();
     push_back<Word>(bytes_, addr);
 
     return operand_addr;
@@ -161,7 +161,7 @@ Int Bytecode::JumpIfZero(Int addr)
 Int Bytecode::Jump(Int addr)
 {
     bytes_.push_back(OP_JMP);
-    const Int operand_addr = Size();
+    const Int operand_addr = NextAddr();
     push_back<Word>(bytes_, addr);
 
     return operand_addr;
@@ -359,8 +359,8 @@ void Bytecode::End()
 
 void Bytecode::BackPatch(Int operand_addr)
 {
-    const Int current_addr = Size();
-    write<Word>(bytes_, operand_addr, current_addr);
+    const Int next_addr = NextAddr();
+    write<Word>(bytes_, operand_addr, next_addr);
 }
 
 Int Bytecode::GetFunctionAddress(Word func_index) const
@@ -397,7 +397,7 @@ void Bytecode::RegisterFunction(Word func_index, Byte argc)
         std::exit(EXIT_FAILURE);
     }
 
-    const Int next_addr = Size();
+    const Int next_addr = NextAddr();
     funcs_.emplace_back(func_index, argc, next_addr);
 }
 
@@ -454,6 +454,11 @@ Float Bytecode::ReadFloat(Int addr) const
                 __FILE__, __LINE__);
 
     return read<Float>(bytes_, addr);
+}
+
+Int Bytecode::NextAddr() const
+{
+    return Size();
 }
 
 Int Bytecode::Size() const

@@ -13,10 +13,10 @@ int Type::Size() const
 static const char *type_kind_string(TypeKind kind)
 {
     switch (kind) {
-    case TY::Integer: return "Integer";
-    case TY::Float: return "Float";
-    case TY::String: return "String";
-    case TY::ClassType: return "ClassType";
+    case TY::Integer: return "int";
+    case TY::Float: return "float";
+    case TY::String: return "string";
+    case TY::ClassType: return "class";
 
     default:
         ERROR_NO_CASE(kind);
