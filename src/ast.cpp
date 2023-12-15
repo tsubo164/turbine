@@ -35,16 +35,6 @@ UnaryExpr::UnaryExpr(TokenKind Kind, Expr *R)
 {
 }
 
-AddExpr::AddExpr(Expr *l, Expr *r)
-    : Expr(PromoteType(l->type, r->type)), lhs(l), rhs(r)
-{
-}
-
-EqualExpr::EqualExpr(Expr *l, Expr *r)
-    : Expr(new Type(TY::Integer)), lhs(l), rhs(r)
-{
-}
-
 AssignExpr::AssignExpr(Expr *l, Expr *r)
     : Expr(PromoteType(l->type, r->type)), lval(l), rval(r)
 {
@@ -118,24 +108,6 @@ void UnaryExpr::Print(int depth) const
     std::cout << type->kind << std::endl;
 
     r->Print(depth + 1);
-}
-
-void AddExpr::Print(int depth) const
-{
-    print_node("AddExpr", depth, false);
-    std::cout << type->kind << std::endl;
-
-    lhs->Print(depth + 1);
-    rhs->Print(depth + 1);
-}
-
-void EqualExpr::Print(int depth) const
-{
-    print_node("EqualExpr", depth, false);
-    std::cout << type->kind << std::endl;
-
-    lhs->Print(depth + 1);
-    rhs->Print(depth + 1);
 }
 
 void AssignExpr::Print(int depth) const
@@ -245,20 +217,6 @@ long UnaryExpr::Eval() const
 {
     const long R = r->Eval();
     return R;
-}
-
-long AddExpr::Eval() const
-{
-    const long l = lhs->Eval();
-    const long r = rhs->Eval();
-    return l + r;
-}
-
-long EqualExpr::Eval() const
-{
-    const long l = lhs->Eval();
-    const long r = rhs->Eval();
-    return l + r;
 }
 
 long AssignExpr::Eval() const
@@ -433,24 +391,35 @@ void BinaryExpr::Gen(Bytecode &code) const
         else if (type->IsFloat())
             code.RemFloat();
     }
-    else if (kind == TK::EQ2) {
+
+    switch (kind) {
+    case TK::PLUS:
+        if (type->IsInteger())
+            code.AddInt();
+        else if (type->IsFloat())
+            code.AddFloat();
+        else if (type->IsString())
+            code.AddString();
+        return;
+
+    case TK::EQ2:
         if (l->type->IsInteger())
             code.EqualInt();
         else if (l->type->IsFloat())
             code.EqualFloat();
         else if (l->type->IsString())
             code.EqualString();
-    }
-    else if (kind == TK::EXCLEQ) {
+        return;
+
+    case TK::EXCLEQ:
         if (l->type->IsInteger())
             code.NotEqualInt();
         else if (l->type->IsFloat())
             code.NotEqualFloat();
         else if (l->type->IsString())
             code.NotEqualString();
-    }
+        return;
 
-    switch (kind) {
     case TK::LT:
         if (l->type->IsInteger())
             code.LessInt();
@@ -531,32 +500,6 @@ void UnaryExpr::Gen(Bytecode &code) const
     default:
         return;
     }
-}
-
-void AddExpr::Gen(Bytecode &code) const
-{
-    lhs->Gen(code);
-    rhs->Gen(code);
-
-    if (type->IsInteger())
-        code.AddInt();
-    else if (type->IsFloat())
-        code.AddFloat();
-    else if (type->IsString())
-        code.AddString();
-}
-
-void EqualExpr::Gen(Bytecode &code) const
-{
-    lhs->Gen(code);
-    rhs->Gen(code);
-
-    if (lhs->type->IsInteger())
-        code.EqualInt();
-    else if (lhs->type->IsFloat())
-        code.EqualFloat();
-    else if (lhs->type->IsString())
-        code.EqualString();
 }
 
 void AssignExpr::Gen(Bytecode &code) const

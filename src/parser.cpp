@@ -209,11 +209,8 @@ Expr *Parser::primary_expr()
     return nullptr;
 }
 
-// unary_expr
-//     primary_expr
-//     "+" unary_expr
-//     "-" unary_expr
-//     "!" unary_expr
+// unary_expr = primary_expr (unary_op primary_expr)*
+// unary_op   = "+" | "-" | "!" | "~"
 Expr *Parser::unary_expr()
 {
     const Token *tok = gettok();
@@ -270,9 +267,6 @@ Expr *Parser::add_expr()
         switch (tok->kind) {
 
         case TK::PLUS:
-            expr = new AddExpr(expr, mul_expr());
-            break;
-
         case TK::MINUS:
         case TK::BAR:
         case TK::CARET:
@@ -332,27 +326,30 @@ Expr *Parser::logand_expr()
     }
 }
 
-// logor_expr = logand_expr ("&&" logand_expr)*
+// logor_expr = logand_expr ("||" logand_expr)*
 Expr *Parser::logor_expr()
 {
-    Expr *tree = logand_expr();
+    Expr *expr = logand_expr();
 
     for (;;) {
         const Token *tok = gettok();
 
         switch (tok->kind) {
         case TK::BAR2:
-            tree = new BinaryExpr(tok->kind, tree, logand_expr());
+            expr = new BinaryExpr(tok->kind, expr, logand_expr());
             continue;
 
         default:
             ungettok();
-            return tree;
+            return expr;
         }
     }
 }
 
-// assign = equality ("=" assign)?
+// assign_expr = logand_expr assing_op expression
+//             | logand_expr incdec_op
+// assign_op   = "="
+// incdec_op   = "++" | "--"
 Expr *Parser::assign_expr()
 {
     Expr *expr = logor_expr();
