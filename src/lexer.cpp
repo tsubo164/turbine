@@ -5,12 +5,12 @@
 #include <cassert>
 
 static const std::unordered_map<std::string_view, TokenKind> keywords = {
-    {"int", TK::Int},
-    {"float", TK::Float},
-    {"string", TK::String},
-    {"if", TK::If},
-    {"else", TK::Else},
-    {"return", TK::Return},
+    {"int",    TK::INT},
+    {"float",  TK::FLOAT},
+    {"string", TK::STRING},
+    {"if",     TK::IF},
+    {"else",   TK::ELSE},
+    {"return", TK::RETURN},
 };
 
 static TokenKind keyword_or_identifier(std::string_view word)
@@ -20,7 +20,7 @@ static TokenKind keyword_or_identifier(std::string_view word)
     if (it != keywords.end())
         return it->second;
 
-    return TK::Ident;
+    return TK::IDENT;
 }
 
 static const char *tok_kind_string(TokenKind kind)
@@ -121,7 +121,7 @@ void Lexer::Get(Token *tok)
 
     if (unread_blockend_ > 0) {
         unread_blockend_--;
-        tok->set(TK::BlockEnd, pos_);
+        tok->set(TK::BLOCKEND, pos_);
         return;
     }
 
@@ -129,7 +129,7 @@ void Lexer::Get(Token *tok)
         is_line_begin_ = false;
 
         const TokenKind kind = scan_indent(tok);
-        if (kind == TK::BlockBegin || kind == TK::BlockEnd)
+        if (kind == TK::BLOCKBEGIN || kind == TK::BLOCKEND)
             return;
     }
 
@@ -148,11 +148,11 @@ void Lexer::Get(Token *tok)
             ch = get();
 
             if (ch == '=') {
-                tok->set(TK::Equal2, pos);
+                tok->set(TK::EQ2, pos);
             }
             else {
                 unget();
-                tok->set(TK::Equal, pos);
+                tok->set(TK::EQ, pos);
             }
             return;
         }
@@ -161,7 +161,7 @@ void Lexer::Get(Token *tok)
             ch = get();
 
             if (ch == '=') {
-                tok->set(TK::ExclEqual, pos);
+                tok->set(TK::EXCLEQ, pos);
             }
             else {
                 unget();
@@ -217,7 +217,7 @@ void Lexer::Get(Token *tok)
             }
             else {
                 unget();
-                tok->set(TK::Plus, pos);
+                tok->set(TK::PLUS, pos);
             }
             return;
         }
@@ -229,7 +229,7 @@ void Lexer::Get(Token *tok)
             }
             else {
                 unget();
-                tok->set(TK::Minus, pos);
+                tok->set(TK::MINUS, pos);
             }
             return;
         }
@@ -248,7 +248,7 @@ void Lexer::Get(Token *tok)
             }
             else {
                 unget();
-                tok->set(TK::Slash, pos);
+                tok->set(TK::SLASH, pos);
             }
             return;
         }
@@ -283,22 +283,22 @@ void Lexer::Get(Token *tok)
         }
 
         if (ch == '.') {
-            tok->set(TK::Period, pos);
+            tok->set(TK::PERIOD, pos);
             return;
         }
 
         if (ch == ',') {
-            tok->set(TK::Comma, pos);
+            tok->set(TK::COMMA, pos);
             return;
         }
 
         if (ch == '(') {
-            tok->set(TK::LParen, pos);
+            tok->set(TK::LPAREN, pos);
             return;
         }
 
         if (ch == ')') {
-            tok->set(TK::RParen, pos);
+            tok->set(TK::RPAREN, pos);
             return;
         }
 
@@ -319,23 +319,23 @@ void Lexer::Get(Token *tok)
             ch = get();
 
             if (ch == '#') {
-                tok->set(TK::Hash2, pos);
+                tok->set(TK::HASH2, pos);
             }
             else {
                 unget();
-                tok->set(TK::Hash, pos);
+                tok->set(TK::HASH, pos);
             }
             return;
         }
 
         if (ch == '\n') {
-            tok->set(TK::NewLine, pos);
+            tok->set(TK::NEWLINE, pos);
             is_line_begin_ = true;
             return;
         }
 
         if (ch == EOF) {
-            tok->set(TK::Eof, pos);
+            tok->set(TK::EOF_, pos);
             return;
         }
 
@@ -348,7 +348,7 @@ void Lexer::Get(Token *tok)
         return;
     }
 
-    tok->set(TK::Eof, pos_);
+    tok->set(TK::EOF_, pos_);
 }
 
 static bool isfp(int ch)
@@ -406,11 +406,11 @@ void Lexer::scan_number(Token *tok, Pos pos)
 
     if (fpnum) {
         tok->fval = strtod(&(*start), &end);
-        tok->set(TK::FpNum, pos);
+        tok->set(TK::FLTLIT, pos);
     }
     else {
         tok->ival = strtol(&(*start), &end, base);
-        tok->set(TK::IntNum, pos);
+        tok->set(TK::INTLIT, pos);
     }
 
     assert(end && (len == (end - &(*start))));
@@ -434,7 +434,7 @@ void Lexer::scan_word(Token *tok, Pos pos)
     const std::string_view word(&(*start), len);
     const TokenKind kind = keyword_or_identifier(word);
 
-    if (kind == TK::Ident)
+    if (kind == TK::IDENT)
         tok->sval = word;
 
     tok->set(kind, pos);
@@ -451,7 +451,7 @@ void Lexer::scan_string(Token *tok, Pos pos)
     const std::string_view str_lit(&(*start), len);
 
     tok->sval = str_lit;
-    tok->set(TK::StringLit, pos);
+    tok->set(TK::STRLIT, pos);
 }
 
 int Lexer::count_indent()
@@ -501,7 +501,7 @@ TokenKind Lexer::scan_indent(Token *tok)
     if (indent > indent_stack_.top()) {
         // push indent
         indent_stack_.push(indent);
-        tok->set(TK::BlockBegin, pos_);
+        tok->set(TK::BLOCKBEGIN, pos_);
 
         // BlockBegin alwasy starts at beginning of line
         tok->pos.x = 1;
@@ -516,7 +516,7 @@ TokenKind Lexer::scan_indent(Token *tok)
             indent_stack_.pop();
 
             if (indent == indent_stack_.top()) {
-                tok->set(TK::BlockEnd, pos_);
+                tok->set(TK::BLOCKEND, pos_);
                 return tok->kind;
             }
 

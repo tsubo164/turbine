@@ -409,7 +409,7 @@ void BinaryExpr::Gen(Bytecode &code) const
     l->Gen(code);
     r->Gen(code);
 
-    if (kind == TK::Minus) {
+    if (kind == TK::MINUS) {
         if (type->IsInteger())
             code.SubInt();
         else if (type->IsFloat())
@@ -421,7 +421,7 @@ void BinaryExpr::Gen(Bytecode &code) const
         else if (type->IsFloat())
             code.MulFloat();
     }
-    else if (kind == TK::Slash) {
+    else if (kind == TK::SLASH) {
         if (type->IsInteger())
             code.DivInt();
         else if (type->IsFloat())
@@ -433,7 +433,7 @@ void BinaryExpr::Gen(Bytecode &code) const
         else if (type->IsFloat())
             code.RemFloat();
     }
-    else if (kind == TK::Equal2) {
+    else if (kind == TK::EQ2) {
         if (l->type->IsInteger())
             code.EqualInt();
         else if (l->type->IsFloat())
@@ -441,7 +441,7 @@ void BinaryExpr::Gen(Bytecode &code) const
         else if (l->type->IsString())
             code.EqualString();
     }
-    else if (kind == TK::ExclEqual) {
+    else if (kind == TK::EXCLEQ) {
         if (l->type->IsInteger())
             code.NotEqualInt();
         else if (l->type->IsFloat())
@@ -508,10 +508,10 @@ void UnaryExpr::Gen(Bytecode &code) const
 {
     r->Gen(code);
 
-    if (kind == TK::Plus) {
+    if (kind == TK::PLUS) {
         // pass
     }
-    else if (kind == TK::Minus) {
+    else if (kind == TK::MINUS) {
         if (type->IsInteger()) {
             code.NegateInt();
         }

@@ -7,18 +7,18 @@
 #include <stack>
 
 #define TOKEN_LIST \
-    /* TOKEN       TOKEN_STRING   */\
+    /* TOKEN        STRING        */\
     /* ========================== */\
-    TK(Unknown,     "Unknown") \
+    TK(UNKNOWN,     "unknown") \
     /* factor */\
-    TK(IntNum,      "IntNum") \
-    TK(FpNum,       "FpNum") \
-    TK(StringLit,   "StringLit") \
-    TK(Ident,       "Ident") \
+    TK(INTLIT,      "integer_literal") \
+    TK(FLTLIT,      "float_literal") \
+    TK(STRLIT,      "string_literal") \
+    TK(IDENT,       "identifier") \
     /* operator */\
-    TK(Equal,       "=") \
-    TK(Equal2,      "==") \
-    TK(ExclEqual,   "!=") \
+    TK(EQ,          "=") \
+    TK(EQ2,         "==") \
+    TK(EXCLEQ,      "!=") \
     TK(EXCL,        "!") \
     TK(CARET,       "^") \
     TK(TILDA,       "~") \
@@ -28,35 +28,35 @@
     TK(GT,          ">") \
     TK(LTE,         "<=") \
     TK(GTE,         ">=") \
-    TK(Plus,        "+") \
-    TK(Minus,       "-") \
+    TK(PLUS,        "+") \
+    TK(MINUS,       "-") \
     TK(STAR,        "*") \
-    TK(Slash,       "/") \
+    TK(SLASH,       "/") \
     TK(PERCENT,     "%") \
     TK(BAR,         "|") \
     TK(BAR2,        "||") \
     TK(AMP,         "&") \
     TK(AMP2,        "&&") \
-    TK(Period,      ".") \
+    TK(PERIOD,      ".") \
     TK(PLUS2,       "++") \
     TK(MINUS2,      "--") \
-    TK(Hash,        "#") \
-    TK(Hash2,       "##") \
+    TK(HASH,        "#") \
+    TK(HASH2,       "##") \
     /* keyword */\
-    TK(Int,         "int") \
-    TK(Float,       "float") \
-    TK(String,      "string") \
-    TK(If,          "if") \
-    TK(Else,        "else") \
-    TK(Return,      "return") \
+    TK(INT,         "int") \
+    TK(FLOAT,       "float") \
+    TK(STRING,      "string") \
+    TK(IF,          "if") \
+    TK(ELSE,        "else") \
+    TK(RETURN,      "return") \
     /* separator */\
-    TK(Comma,       ",") \
-    TK(LParen,      "(") \
-    TK(RParen,      ")") \
-    TK(BlockBegin,  "BlockBegin") \
-    TK(BlockEnd,    "BlockEnd") \
-    TK(NewLine,     "\\n") \
-    TK(Eof,         "EOF")
+    TK(COMMA,       ",") \
+    TK(LPAREN,      "(") \
+    TK(RPAREN,      ")") \
+    TK(BLOCKBEGIN,  "block_begin") \
+    TK(BLOCKEND,    "block_end") \
+    TK(NEWLINE,     "\\n") \
+    TK(EOF_,        "end_of_file")
 
 enum class TokenKind {
 #define TK(tok, str) tok,
@@ -73,7 +73,7 @@ struct Pos {
 };
 
 struct Token {
-    TokenKind kind = TK::Unknown;
+    TokenKind kind = TK::UNKNOWN;
     Pos pos;
 
     long ival = 0;

@@ -111,17 +111,17 @@ void Parser::leave_scope()
 
 CallExpr *Parser::arg_list(CallExpr *call)
 {
-    expect(TK::LParen);
+    expect(TK::LPAREN);
 
-    if (consume(TK::RParen))
+    if (consume(TK::RPAREN))
         return call;
 
     do {
         call->AddArg(expression());
     }
-    while (consume(TK::Comma));
+    while (consume(TK::COMMA));
 
-    expect(TK::RParen);
+    expect(TK::RPAREN);
     return call;
 }
 
@@ -132,18 +132,18 @@ CallExpr *Parser::arg_list(CallExpr *call)
 //     primary_expr selector
 Expr *Parser::primary_expr()
 {
-    if (consume(TK::IntNum))
+    if (consume(TK::INTLIT))
         return new IntNumExpr(tok_int(), new Type(TY::Integer));
 
-    if (consume(TK::FpNum))
+    if (consume(TK::FLTLIT))
         return new FpNumExpr(tok_float(), new Type(TY::Float));
 
-    if (consume(TK::StringLit))
+    if (consume(TK::STRLIT))
         return new StringLitExpr(tok_str(), new Type(TY::String));
 
-    if (consume(TK::LParen)) {
+    if (consume(TK::LPAREN)) {
         Expr *expr = expression();
-        expect(TK::RParen);
+        expect(TK::RPAREN);
         return expr;
     }
 
@@ -152,8 +152,8 @@ Expr *Parser::primary_expr()
     for (;;) {
         const Token *tok = gettok();
 
-        if (tok->kind == TK::Ident) {
-            if (peek() == TK::LParen) {
+        if (tok->kind == TK::IDENT) {
+            if (peek() == TK::LPAREN) {
                 Func *func = FindBuiltinFunc(tok->sval);
                 if (!func) {
                     func = scope_->FindFunc(tok->sval);
@@ -179,7 +179,7 @@ Expr *Parser::primary_expr()
             }
             continue;
         }
-        else if (tok->kind == TK::Period) {
+        else if (tok->kind == TK::PERIOD) {
             // TODO FIX
             if (!expr || !expr->type) {
                 std::cerr << "error: no type" << std::endl;
@@ -190,7 +190,7 @@ Expr *Parser::primary_expr()
                 exit(EXIT_FAILURE);
             }
 
-            expect(TK::Ident);
+            expect(TK::IDENT);
 
             Field *fld = expr->type->clss->FindField(tok_str());
 
@@ -219,8 +219,8 @@ Expr *Parser::unary_expr()
     const Token *tok = gettok();
 
     switch (tok->kind) {
-    case TK::Plus:
-    case TK::Minus:
+    case TK::PLUS:
+    case TK::MINUS:
     case TK::EXCL:
     case TK::TILDA:
         return new UnaryExpr(tok->kind, unary_expr());
@@ -243,7 +243,7 @@ Expr *Parser::mul_expr()
         switch (tok->kind) {
 
         case TK::STAR:
-        case TK::Slash:
+        case TK::SLASH:
         case TK::PERCENT:
         case TK::AMP:
         case TK::LT2:
@@ -269,11 +269,11 @@ Expr *Parser::add_expr()
 
         switch (tok->kind) {
 
-        case TK::Plus:
+        case TK::PLUS:
             expr = new AddExpr(expr, mul_expr());
             break;
 
-        case TK::Minus:
+        case TK::MINUS:
         case TK::BAR:
         case TK::CARET:
             expr = new BinaryExpr(tok->kind, expr, mul_expr());
@@ -296,8 +296,8 @@ Expr *Parser::rel_expr()
         const Token *tok = gettok();
 
         switch (tok->kind) {
-        case TK::Equal2:
-        case TK::ExclEqual:
+        case TK::EQ2:
+        case TK::EXCLEQ:
         case TK::LT:
         case TK::GT:
         case TK::LTE:
@@ -359,7 +359,7 @@ Expr *Parser::assign_expr()
     const Token *tok = gettok();
 
     switch (tok->kind) {
-    case TK::Equal:
+    case TK::EQ:
         return new AssignExpr(expr, expression());
 
     case TK::PLUS2:
@@ -379,17 +379,17 @@ Expr *Parser::expression()
 
 Stmt *Parser::if_stmt()
 {
-    expect(TK::If);
+    expect(TK::IF);
     Expr *cond = expression();
-    expect(TK::NewLine);
+    expect(TK::NEWLINE);
 
     enter_scope();
     BlockStmt *then = block_stmt();
     leave_scope();
 
     BlockStmt *els = nullptr;
-    if (consume(TK::Else)) {
-        expect(TK::NewLine);
+    if (consume(TK::ELSE)) {
+        expect(TK::NEWLINE);
 
         enter_scope();
         els = block_stmt();
@@ -401,16 +401,16 @@ Stmt *Parser::if_stmt()
 
 Stmt *Parser::ret_stmt()
 {
-    expect(TK::Return);
+    expect(TK::RETURN);
 
     ReturnStmt *stmt = nullptr;
 
-    if (consume(TK::NewLine)) {
+    if (consume(TK::NEWLINE)) {
         stmt = new ReturnStmt();
     }
     else {
         stmt = new ReturnStmt(expression());
-        expect(TK::NewLine);
+        expect(TK::NEWLINE);
     }
 
     return stmt;
@@ -419,7 +419,7 @@ Stmt *Parser::ret_stmt()
 Stmt *Parser::expr_stmt()
 {
     ExprStmt *stmt = new ExprStmt(expression());
-    expect(TK::NewLine);
+    expect(TK::NEWLINE);
 
     return stmt;
 }
@@ -427,8 +427,8 @@ Stmt *Parser::expr_stmt()
 // var_decl = - ident int newline
 Var *Parser::var_decl()
 {
-    expect(TK::Minus);
-    expect(TK::Ident);
+    expect(TK::MINUS);
+    expect(TK::IDENT);
 
     if (scope_->FindVar(tok_str())) {
         std::cerr
@@ -440,15 +440,15 @@ Var *Parser::var_decl()
 
     Var *var = scope_->DefineVar(tok_str());
     var->type = type();
-    expect(TK::NewLine);
+    expect(TK::NEWLINE);
 
     return var;
 }
 
 Field *Parser::field_decl()
 {
-    expect(TK::Minus);
-    expect(TK::Ident);
+    expect(TK::MINUS);
+    expect(TK::IDENT);
 
     if (scope_->FindField(tok_str())) {
         std::cerr
@@ -460,15 +460,15 @@ Field *Parser::field_decl()
 
     Field *fld = scope_->DefineFild(tok_str());
     fld->type = type();
-    expect(TK::NewLine);
+    expect(TK::NEWLINE);
 
     return fld;
 }
 
 Class *Parser::class_decl()
 {
-    expect(TK::Hash2);
-    expect(TK::Ident);
+    expect(TK::HASH2);
+    expect(TK::IDENT);
 
     // class name
     Class *clss = scope_->DefineClass(tok_str());
@@ -477,11 +477,11 @@ Class *Parser::class_decl()
         std::exit(EXIT_FAILURE);
     }
 
-    expect(TK::NewLine);
+    expect(TK::NEWLINE);
     enter_scope(clss);
-    expect(TK::BlockBegin);
+    expect(TK::BLOCKBEGIN);
     field_list(clss);
-    expect(TK::BlockEnd);
+    expect(TK::BLOCKEND);
     leave_scope();
 
     return nullptr;
@@ -491,24 +491,24 @@ Class *Parser::class_decl()
 BlockStmt *Parser::block_stmt()
 {
     BlockStmt *block = new BlockStmt();
-    expect(TK::BlockBegin);
+    expect(TK::BLOCKBEGIN);
 
     for (;;) {
         const TokenKind next = peek();
 
-        if (next == TK::Minus) {
+        if (next == TK::MINUS) {
             var_decl();
             continue;
         }
-        else if (next == TK::If) {
+        else if (next == TK::IF) {
             block->AddStmt(if_stmt());
             continue;
         }
-        else if (next == TK::Return) {
+        else if (next == TK::RETURN) {
             block->AddStmt(ret_stmt());
             continue;
         }
-        else if (next == TK::BlockEnd) {
+        else if (next == TK::BLOCKEND) {
             break;
         }
         else {
@@ -517,22 +517,22 @@ BlockStmt *Parser::block_stmt()
         }
     }
 
-    expect(TK::BlockEnd);
+    expect(TK::BLOCKEND);
     return block;
 }
 
 Type *Parser::type()
 {
-    if (consume(TK::Int))
+    if (consume(TK::INT))
         return new Type(TY::Integer);
 
-    if (consume(TK::Float))
+    if (consume(TK::FLOAT))
         return new Type(TY::Float);
 
-    if (consume(TK::String))
+    if (consume(TK::STRING))
         return new Type(TY::String);
 
-    if (consume(TK::Ident)) {
+    if (consume(TK::IDENT)) {
         Type *ty = new Type(TY::ClassType);
         ty->clss = scope_->FindClass(tok_str());
         return ty;
@@ -548,40 +548,40 @@ Type *Parser::type()
 
 void Parser::field_list(Class *clss)
 {
-    expect(TK::Minus);
+    expect(TK::MINUS);
 
     do {
-        expect(TK::Ident);
+        expect(TK::IDENT);
         std::string_view name = tok_str();
 
         clss->DeclareField(name, type());
-        expect(TK::NewLine);
+        expect(TK::NEWLINE);
     }
-    while (consume(TK::Minus));
+    while (consume(TK::MINUS));
 }
 
 void Parser::param_list(Func *func)
 {
-    expect(TK::LParen);
+    expect(TK::LPAREN);
 
-    if (consume(TK::RParen))
+    if (consume(TK::RPAREN))
         return;
 
     do {
-        expect(TK::Ident);
+        expect(TK::IDENT);
         std::string_view name = tok_str();
 
         func->DeclareParam(name, type());
     }
-    while (consume(TK::Comma));
+    while (consume(TK::COMMA));
 
-    expect(TK::RParen);
+    expect(TK::RPAREN);
 }
 
 FuncDef *Parser::func_def()
 {
-    expect(TK::Hash);
-    expect(TK::Ident);
+    expect(TK::HASH);
+    expect(TK::IDENT);
 
     // func name
     Func *func = scope_->DefineFunc(tok_str());
@@ -594,7 +594,7 @@ FuncDef *Parser::func_def()
 
     param_list(func);
     func->type = type();
-    expect(TK::NewLine);
+    expect(TK::NEWLINE);
 
     // func body
     BlockStmt *block = block_stmt();
@@ -611,7 +611,7 @@ Prog *Parser::program()
     for (;;) {
         const TokenKind next = peek();
 
-        if (next == TK::Hash) {
+        if (next == TK::HASH) {
             FuncDef *fdef = func_def();
 
             if (fdef->func->name == "main")
@@ -621,17 +621,17 @@ Prog *Parser::program()
             continue;
         }
 
-        if (next == TK::Hash2) {
+        if (next == TK::HASH2) {
             class_decl();
             continue;
         }
 
-        if (next == TK::Minus) {
+        if (next == TK::MINUS) {
             var_decl();
             continue;
         }
 
-        if (next == TK::Eof) {
+        if (next == TK::EOF_) {
             break;
         }
 
