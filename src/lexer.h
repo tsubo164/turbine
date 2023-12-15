@@ -49,6 +49,8 @@
     TK(IF,          "if") \
     TK(ELSE,        "else") \
     TK(FOR,         "for") \
+    TK(BREAK,       "break") \
+    TK(CONTINUE,    "continue") \
     TK(RETURN,      "return") \
     /* separator */\
     TK(COMMA,       ",") \

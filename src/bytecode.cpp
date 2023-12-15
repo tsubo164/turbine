@@ -466,6 +466,22 @@ Int Bytecode::Size() const
     return bytes_.size();
 }
 
+void Bytecode::SwapBlockEnds(std::vector<Int> &ends)
+{
+    block_ends_.swap(ends);
+}
+
+void Bytecode::BackPatchEnds()
+{
+    for (auto addr: block_ends_)
+        BackPatch(addr);
+}
+
+void Bytecode::PushBackPatchEnd(Int addr)
+{
+    block_ends_.push_back(addr);
+}
+
 enum OperandSize {
     OPERAND_NONE,
     OPERAND_BYTE,

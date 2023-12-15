@@ -164,6 +164,11 @@ public:
     Int NextAddr() const;
     Int Size() const;
 
+    // Backpatches
+    void SwapBlockEnds(std::vector<Int> &ends);
+    void BackPatchEnds();
+    void PushBackPatchEnd(Int addr);
+
     // print
     void Print() const;
 
@@ -179,6 +184,8 @@ private:
         Int addr = 0;
     };
     std::vector<FuncInfo> funcs_;
+
+    std::vector<Int> block_ends_;
 
     Int print_op(int op, int operand, Int address) const;
 };

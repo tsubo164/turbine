@@ -174,6 +174,14 @@ struct ForStmt : public Stmt {
     void Gen(Bytecode &code) const override final;
 };
 
+struct JumpStmt : public Stmt {
+    JumpStmt(TK k) : kind(k) {}
+    TK kind;
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct ReturnStmt : public Stmt {
     ReturnStmt() : expr(new NullExpr()) {}
     ReturnStmt(Expr *e) : expr(e) {}

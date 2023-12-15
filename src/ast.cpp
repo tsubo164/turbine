@@ -153,6 +153,12 @@ void ForStmt::Print(int depth) const
     body->Print(depth + 1);
 }
 
+void JumpStmt::Print(int depth) const
+{
+    print_node("JumpStmt", depth, false);
+    std::cout << "\"" << kind << "\"" << std::endl;;
+}
+
 void ReturnStmt::Print(int depth) const
 {
     print_node("ReturnStmt", depth);
@@ -482,6 +488,10 @@ void IfStmt::Gen(Bytecode &code) const
 
 void ForStmt::Gen(Bytecode &code) const
 {
+    // new block
+    std::vector<Int> block_ends;
+    code.SwapBlockEnds(block_ends);
+
     // init
     init->Gen(code);
 
@@ -499,6 +509,18 @@ void ForStmt::Gen(Bytecode &code) const
 
     // exit
     code.BackPatch(exit);
+
+    // put old block back
+    code.BackPatchEnds();
+    code.SwapBlockEnds(block_ends);
+}
+
+void JumpStmt::Gen(Bytecode &code) const
+{
+    const Int addr = code.Jump(-1);
+
+    if (kind == TK::BREAK)
+        code.PushBackPatchEnd(addr);
 }
 
 void ReturnStmt::Gen(Bytecode &code) const

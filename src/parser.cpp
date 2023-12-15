@@ -416,6 +416,21 @@ Stmt *Parser::for_stmt()
     return new ForStmt(init, cond, post, body);
 }
 
+Stmt *Parser::jump_stmt()
+{
+    const Token *tok = gettok();
+    const TK kind = tok->kind;
+
+    if (kind == TK::BREAK) {
+    }
+    else if (kind == TK::CONTINUE) {
+    }
+
+    expect(TK::NEWLINE);
+
+    return new JumpStmt(kind);
+}
+
 Stmt *Parser::ret_stmt()
 {
     expect(TK::RETURN);
@@ -523,6 +538,10 @@ BlockStmt *Parser::block_stmt()
         }
         else if (next == TK::FOR) {
             block->AddStmt(for_stmt());
+            continue;
+        }
+        else if (next == TK::BREAK) {
+            block->AddStmt(jump_stmt());
             continue;
         }
         else if (next == TK::RETURN) {

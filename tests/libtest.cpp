@@ -794,6 +794,20 @@ int main(int argc, char **argv)
 
         ASSERTL(20, ip.Run(input));
     }
+    {
+        // "break" statment
+        const std::string input(
+            "# main() int\n"
+            "  - i int\n"
+            "  for i = 0; i < 10; i++\n"
+            "    if i == 5\n"
+            "      break\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(5, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
