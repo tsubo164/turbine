@@ -466,20 +466,42 @@ Int Bytecode::Size() const
     return bytes_.size();
 }
 
-void Bytecode::SwapBlockEnds(std::vector<Int> &ends)
+void Bytecode::BeginFor()
 {
-    block_ends_.swap(ends);
+    breaks_.push(-1);
+    continues_.push(-1);
 }
 
-void Bytecode::BackPatchEnds()
+void Bytecode::PushBreak(Int addr)
 {
-    for (auto addr: block_ends_)
+    breaks_.push(addr);
+}
+
+void Bytecode::PushContinue(Int addr)
+{
+    continues_.push(addr);
+}
+
+void Bytecode::BackPatchBreaks()
+{
+    while (!breaks_.empty()) {
+        const Int addr = breaks_.top();
+        breaks_.pop();
+        if (addr == -1)
+            break;
         BackPatch(addr);
+    }
 }
 
-void Bytecode::PushBackPatchEnd(Int addr)
+void Bytecode::BackPatchContinues()
 {
-    block_ends_.push_back(addr);
+    while (!continues_.empty()) {
+        const Int addr = continues_.top();
+        continues_.pop();
+        if (addr == -1)
+            break;
+        BackPatch(addr);
+    }
 }
 
 enum OperandSize {

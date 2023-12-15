@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <stack>
 
 using Byte = uint8_t;
 using Word = uint16_t;
@@ -165,9 +166,11 @@ public:
     Int Size() const;
 
     // Backpatches
-    void SwapBlockEnds(std::vector<Int> &ends);
-    void BackPatchEnds();
-    void PushBackPatchEnd(Int addr);
+    void BeginFor();
+    void PushBreak(Int addr);
+    void PushContinue(Int addr);
+    void BackPatchBreaks();
+    void BackPatchContinues();
 
     // print
     void Print() const;
@@ -185,7 +188,9 @@ private:
     };
     std::vector<FuncInfo> funcs_;
 
-    std::vector<Int> block_ends_;
+    // back patches
+    std::stack<Int> breaks_;
+    std::stack<Int> continues_;
 
     Int print_op(int op, int operand, Int address) const;
 };

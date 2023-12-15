@@ -808,6 +808,23 @@ int main(int argc, char **argv)
 
         ASSERTL(5, ip.Run(input));
     }
+    {
+        // "continue" statment
+        const std::string input(
+            "# main() int\n"
+            "  - i int\n"
+            "  - j int\n"
+            "  j = 0\n"
+            "  for i = 0; i < 10; i++\n"
+            "    if i % 2 == 0\n"
+            "      continue\n"
+            "    j++\n"
+            "  return j\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(5, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

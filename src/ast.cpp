@@ -488,31 +488,26 @@ void IfStmt::Gen(Bytecode &code) const
 
 void ForStmt::Gen(Bytecode &code) const
 {
-    // new block
-    std::vector<Int> block_ends;
-    code.SwapBlockEnds(block_ends);
-
     // init
+    code.BeginFor();
     init->Gen(code);
 
     // body
-    const Int start = code.NextAddr();
+    const Int begin = code.NextAddr();
     body->Gen(code);
 
     // post
+    code.BackPatchContinues();
     post->Gen(code);
 
     // cond
     cond->Gen(code);
     const Int exit = code.JumpIfZero(-1);
-    code.Jump(start);
+    code.Jump(begin);
 
     // exit
     code.BackPatch(exit);
-
-    // put old block back
-    code.BackPatchEnds();
-    code.SwapBlockEnds(block_ends);
+    code.BackPatchBreaks();
 }
 
 void JumpStmt::Gen(Bytecode &code) const
@@ -520,7 +515,9 @@ void JumpStmt::Gen(Bytecode &code) const
     const Int addr = code.Jump(-1);
 
     if (kind == TK::BREAK)
-        code.PushBackPatchEnd(addr);
+        code.PushBreak(addr);
+    else if (kind == TK::CONTINUE)
+        code.PushContinue(addr);
 }
 
 void ReturnStmt::Gen(Bytecode &code) const

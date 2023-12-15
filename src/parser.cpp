@@ -540,7 +540,7 @@ BlockStmt *Parser::block_stmt()
             block->AddStmt(for_stmt());
             continue;
         }
-        else if (next == TK::BREAK) {
+        else if (next == TK::BREAK || next == TK::CONTINUE) {
             block->AddStmt(jump_stmt());
             continue;
         }
