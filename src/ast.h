@@ -182,6 +182,30 @@ struct JumpStmt : public Stmt {
     void Gen(Bytecode &code) const override final;
 };
 
+struct CaseStmt : public Stmt {
+    CaseStmt(Expr *e, BlockStmt *b) : expr(e), block(b) {}
+    Expr *expr;
+    BlockStmt *block;
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
+struct SwitchStmt : public Stmt {
+    SwitchStmt(Expr *c) : cond(c) {}
+    ~SwitchStmt()
+    {
+        for (auto cs: cases)
+            delete cs;
+    }
+    void AddCase(CaseStmt *cs) { cases.push_back(cs); }
+    Expr *cond;
+    std::vector<Stmt*> cases;
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct ReturnStmt : public Stmt {
     ReturnStmt() : expr(new NullExpr()) {}
     ReturnStmt(Expr *e) : expr(e) {}

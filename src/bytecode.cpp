@@ -347,6 +347,16 @@ void Bytecode::SetIfNotZero()
     bytes_.push_back(OP_SETNZ);
 }
 
+void Bytecode::Pop()
+{
+    bytes_.push_back(OP_POP);
+}
+
+void Bytecode::DuplicateTop()
+{
+    bytes_.push_back(OP_DUP);
+}
+
 void Bytecode::Exit()
 {
     bytes_.push_back(OP_EXIT);
@@ -472,6 +482,11 @@ void Bytecode::BeginFor()
     continues_.push(-1);
 }
 
+void Bytecode::BeginSwitch()
+{
+    casecloses_.push(-1);
+}
+
 void Bytecode::PushBreak(Int addr)
 {
     breaks_.push(addr);
@@ -480,6 +495,11 @@ void Bytecode::PushBreak(Int addr)
 void Bytecode::PushContinue(Int addr)
 {
     continues_.push(addr);
+}
+
+void Bytecode::PushCaseCloses(Int addr)
+{
+    casecloses_.push(addr);
 }
 
 void Bytecode::BackPatchBreaks()
@@ -498,6 +518,17 @@ void Bytecode::BackPatchContinues()
     while (!continues_.empty()) {
         const Int addr = continues_.top();
         continues_.pop();
+        if (addr == -1)
+            break;
+        BackPatch(addr);
+    }
+}
+
+void Bytecode::BackPatchCaseCloses()
+{
+    while (!casecloses_.empty()) {
+        const Int addr = casecloses_.top();
+        casecloses_.pop();
         if (addr == -1)
             break;
         BackPatch(addr);

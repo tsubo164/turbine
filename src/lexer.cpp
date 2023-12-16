@@ -13,6 +13,9 @@ static const std::unordered_map<std::string_view, TokenKind> keywords = {
     {"for",      TK::FOR},
     {"break",    TK::BREAK},
     {"continue", TK::CONTINUE},
+    {"switch",   TK::SWITCH},
+    {"case",     TK::CASE},
+    {"default",  TK::DEFAULT},
     {"return",   TK::RETURN},
 };
 

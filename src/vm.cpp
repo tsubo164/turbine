@@ -652,6 +652,19 @@ void VM::run()
             }
             break;
 
+        case OP_POP:
+            {
+                pop();
+            }
+            break;
+
+        case OP_DUP:
+            {
+                const Value v = top();
+                push(v);
+            }
+            break;
+
         case OP_EXIT:
         case OP_EOC:
             brk = true;

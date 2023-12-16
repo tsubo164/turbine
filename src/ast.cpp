@@ -159,6 +159,20 @@ void JumpStmt::Print(int depth) const
     std::cout << "\"" << kind << "\"" << std::endl;;
 }
 
+void CaseStmt::Print(int depth) const
+{
+    print_node("CaseStmt", depth);
+    expr->Print(depth + 1);
+    block->Print(depth + 1);
+}
+
+void SwitchStmt::Print(int depth) const
+{
+    print_node("SwitchStmt", depth);
+    for (const auto cs: cases)
+        cs->Print(depth + 1);
+}
+
 void ReturnStmt::Print(int depth) const
 {
     print_node("ReturnStmt", depth);
@@ -518,6 +532,39 @@ void JumpStmt::Gen(Bytecode &code) const
         code.PushBreak(addr);
     else if (kind == TK::CONTINUE)
         code.PushContinue(addr);
+}
+
+void CaseStmt::Gen(Bytecode &code) const
+{
+    // expr
+    code.DuplicateTop();
+    expr->Gen(code);
+    code.EqualInt();
+    const Int next = code.JumpIfZero(-1);
+
+    // body
+    block->Gen(code);
+
+    // close
+    const Int addr = code.Jump(-1);
+    code.PushCaseCloses(addr);
+    code.BackPatch(next);
+}
+
+void SwitchStmt::Gen(Bytecode &code) const
+{
+    // init
+    code.BeginSwitch();
+    cond->Gen(code);
+
+    // cases
+    for (auto cs: cases)
+        cs->Gen(code);
+
+    // quit
+    code.BackPatchCaseCloses();
+    // remove cond val
+    code.Pop();
 }
 
 void ReturnStmt::Gen(Bytecode &code) const

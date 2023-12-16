@@ -63,6 +63,8 @@ private:
     Stmt *if_stmt();
     Stmt *for_stmt();
     Stmt *jump_stmt();
+    Stmt *switch_stmt();
+    CaseStmt *case_stmt();
     Stmt *ret_stmt();
     Stmt *expr_stmt();
     BlockStmt *block_stmt();

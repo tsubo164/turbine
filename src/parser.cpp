@@ -431,6 +431,42 @@ Stmt *Parser::jump_stmt()
     return new JumpStmt(kind);
 }
 
+Stmt *Parser::switch_stmt()
+{
+    expect(TK::SWITCH);
+
+    Expr *expr = expression();
+    expect(TK::NEWLINE);
+
+    SwitchStmt *swtch = new SwitchStmt(expr);
+
+    for (;;) {
+        const Token *tok = gettok();
+
+        switch (tok->kind) {
+        case TK::CASE:
+            swtch->AddCase(case_stmt());
+            continue;
+
+        case TK::DEFAULT:
+            continue;
+
+        default:
+            return swtch;
+        }
+    }
+}
+
+CaseStmt *Parser::case_stmt()
+{
+    Expr *expr = expression();
+    expect(TK::NEWLINE);
+
+    BlockStmt *block = block_stmt();
+
+    return new CaseStmt(expr, block);
+}
+
 Stmt *Parser::ret_stmt()
 {
     expect(TK::RETURN);
@@ -542,6 +578,10 @@ BlockStmt *Parser::block_stmt()
         }
         else if (next == TK::BREAK || next == TK::CONTINUE) {
             block->AddStmt(jump_stmt());
+            continue;
+        }
+        else if (next == TK::SWITCH) {
+            block->AddStmt(switch_stmt());
             continue;
         }
         else if (next == TK::RETURN) {

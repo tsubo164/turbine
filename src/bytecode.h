@@ -73,6 +73,8 @@ using Float = double;
     OP(OP_NEGF,         OPERAND_NONE) \
     OP(OP_SETZ,         OPERAND_NONE) \
     OP(OP_SETNZ,        OPERAND_NONE) \
+    OP(OP_POP,          OPERAND_NONE) \
+    OP(OP_DUP,          OPERAND_NONE) \
     /* exit */\
     OP(OP_EXIT,         OPERAND_NONE) \
     OP(OP_EOC,          OPERAND_NONE) \
@@ -145,6 +147,8 @@ public:
     void NegateFloat();
     void SetIfZero();
     void SetIfNotZero();
+    void Pop();
+    void DuplicateTop();
     void Exit();
     void End();
     void BackPatch(Int operand_addr);
@@ -167,10 +171,13 @@ public:
 
     // Backpatches
     void BeginFor();
+    void BeginSwitch();
     void PushBreak(Int addr);
     void PushContinue(Int addr);
+    void PushCaseCloses(Int addr);
     void BackPatchBreaks();
     void BackPatchContinues();
+    void BackPatchCaseCloses();
 
     // print
     void Print() const;
@@ -191,6 +198,7 @@ private:
     // back patches
     std::stack<Int> breaks_;
     std::stack<Int> continues_;
+    std::stack<Int> casecloses_;
 
     Int print_op(int op, int operand, Int address) const;
 };

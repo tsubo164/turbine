@@ -825,6 +825,29 @@ int main(int argc, char **argv)
 
         ASSERTL(5, ip.Run(input));
     }
+    {
+        // "switch" statment
+        const std::string input(
+            "# main() int\n"
+            "  - i int\n"
+            "  - j int\n"
+            "  i = 2\n"
+            "  j = 0\n"
+            "  switch i\n"
+            "  case 0\n"
+            "    j = 0\n"
+            "  case 1\n"
+            "    j = 23\n"
+            "  case 2\n"
+            "    j = 34\n"
+            "  case 3\n"
+            "    j = 77\n"
+            "  return  j\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(34, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

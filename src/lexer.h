@@ -51,6 +51,9 @@
     TK(FOR,         "for") \
     TK(BREAK,       "break") \
     TK(CONTINUE,    "continue") \
+    TK(SWITCH,      "switch") \
+    TK(CASE,        "case") \
+    TK(DEFAULT,     "default") \
     TK(RETURN,      "return") \
     /* separator */\
     TK(COMMA,       ",") \
