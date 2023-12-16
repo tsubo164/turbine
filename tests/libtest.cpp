@@ -795,6 +795,36 @@ int main(int argc, char **argv)
         ASSERTL(20, ip.Run(input));
     }
     {
+        // "for" statment while style
+        const std::string input(
+            "# main() int\n"
+            "    - i int\n"
+            "    i = 0\n"
+            "    for i < 10\n"
+            "        i++\n"
+            "    return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(10, ip.Run(input));
+    }
+    {
+        // "for" statment infinite loop
+        const std::string input(
+            "# main() int\n"
+            "  - i int\n"
+            "  i = 0\n"
+            "  for\n"
+            "    i++\n"
+            "    if i == 8\n"
+            "      break\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(8, ip.Run(input));
+    }
+    {
         // "break" statment
         const std::string input(
             "# main() int\n"

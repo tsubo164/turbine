@@ -400,15 +400,40 @@ Stmt *Parser::for_stmt()
 {
     expect(TK::FOR);
 
-    Expr *init = expression();
-    expect(TK::SEMICOLON);
+    Expr *init = nullptr;
+    Expr *cond = nullptr;
+    Expr *post = nullptr;
 
-    Expr *cond = expression();
-    expect(TK::SEMICOLON);
+    if (consume(TK::NEWLINE)) {
+        // infinite loop
+        init = new NullExpr();
+        cond = new IntNumExpr(1, new Type(TY::Integer));
+        post = new NullExpr();
+    }
+    else {
+        Expr *e = expression();
 
-    Expr *post = expression();
-    expect(TK::NEWLINE);
+        if (consume(TK::SEMICOLON)) {
+            // traditional for
+            init = e;
+            cond = expression();
+            expect(TK::SEMICOLON);
+            post = expression();
+            expect(TK::NEWLINE);
+        }
+        else if (consume(TK::NEWLINE)) {
+            // while style
+            init = new NullExpr();
+            cond = e;
+            post = new NullExpr();
+        }
+        else {
+            const Token *tok = gettok();
+            Error("Unknown token", *src_, tok->pos);
+        }
+    }
 
+    // body
     enter_scope();
     BlockStmt *body = block_stmt();
     leave_scope();
