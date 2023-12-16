@@ -440,15 +440,23 @@ Stmt *Parser::switch_stmt()
 
     SwitchStmt *swtch = new SwitchStmt(expr);
 
+    int default_count = 0;
+
     for (;;) {
         const Token *tok = gettok();
 
         switch (tok->kind) {
         case TK::CASE:
-            swtch->AddCase(case_stmt());
+            if (default_count > 0) {
+                Error("No 'case' should come after 'default'",
+                        *src_, tok->pos);
+            }
+            swtch->AddCase(case_stmt(tok->kind));
             continue;
 
         case TK::DEFAULT:
+            swtch->AddCase(case_stmt(tok->kind));
+            default_count++;
             continue;
 
         default:
@@ -457,14 +465,19 @@ Stmt *Parser::switch_stmt()
     }
 }
 
-CaseStmt *Parser::case_stmt()
+CaseStmt *Parser::case_stmt(TK kind)
 {
-    Expr *expr = expression();
+    Expr *expr = nullptr;
+
+    if (kind == TK::CASE)
+        expr = expression();
+    else if (kind == TK::DEFAULT)
+        expr = new NullExpr();
+
     expect(TK::NEWLINE);
 
     BlockStmt *block = block_stmt();
-
-    return new CaseStmt(expr, block);
+    return new CaseStmt(kind, expr, block);
 }
 
 Stmt *Parser::ret_stmt()

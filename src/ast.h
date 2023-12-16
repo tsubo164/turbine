@@ -183,9 +183,10 @@ struct JumpStmt : public Stmt {
 };
 
 struct CaseStmt : public Stmt {
-    CaseStmt(Expr *e, BlockStmt *b) : expr(e), block(b) {}
-    Expr *expr;
-    BlockStmt *block;
+    CaseStmt(TK k, Expr *e, BlockStmt *b) : kind(k), expr(e), block(b) {}
+    TK kind;
+    std::unique_ptr<Expr> expr;
+    std::unique_ptr<BlockStmt> block;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
@@ -199,7 +200,7 @@ struct SwitchStmt : public Stmt {
             delete cs;
     }
     void AddCase(CaseStmt *cs) { cases.push_back(cs); }
-    Expr *cond;
+    std::unique_ptr<Expr> cond;
     std::vector<Stmt*> cases;
 
     void Print(int depth) const override final;

@@ -161,7 +161,8 @@ void JumpStmt::Print(int depth) const
 
 void CaseStmt::Print(int depth) const
 {
-    print_node("CaseStmt", depth);
+    print_node("CaseStmt", depth, false);
+    std::cout << "\"" << kind << "\"" << std::endl;;
     expr->Print(depth + 1);
     block->Print(depth + 1);
 }
@@ -536,19 +537,25 @@ void JumpStmt::Gen(Bytecode &code) const
 
 void CaseStmt::Gen(Bytecode &code) const
 {
-    // expr
-    code.DuplicateTop();
-    expr->Gen(code);
-    code.EqualInt();
-    const Int next = code.JumpIfZero(-1);
+    Int next = 0;
+
+    if (kind == TK::CASE) {
+        // expr
+        code.DuplicateTop();
+        expr->Gen(code);
+        code.EqualInt();
+        next = code.JumpIfZero(-1);
+    }
 
     // body
     block->Gen(code);
 
-    // close
-    const Int addr = code.Jump(-1);
-    code.PushCaseCloses(addr);
-    code.BackPatch(next);
+    if (kind == TK::CASE) {
+        // close
+        const Int addr = code.Jump(-1);
+        code.PushCaseCloses(addr);
+        code.BackPatch(next);
+    }
 }
 
 void SwitchStmt::Gen(Bytecode &code) const

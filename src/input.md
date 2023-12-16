@@ -1,7 +1,7 @@
 # main() int
   - i int
   - j int
-  i = 2
+  i = 5
   j = 0
 
   switch i
@@ -13,5 +13,7 @@
     j = 34
   case 3
     j = 77
+  default
+    j = 99
 
   return  j
