@@ -38,6 +38,11 @@ const Type *PromoteType(const Type *t1, const Type *t2)
     return new Type(TY::Integer);
 }
 
+const Type *DuplicateType(const Type *t)
+{
+    return new Type(t->kind);
+}
+
 std::ostream &operator<<(std::ostream &os, TypeKind kind)
 {
     return os << type_kind_string(kind);

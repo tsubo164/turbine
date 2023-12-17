@@ -925,6 +925,32 @@ int main(int argc, char **argv)
 
         ASSERTL(39, ip.Run(input));
     }
+    {
+        // local var type
+        const std::string input(
+            "# main() int\n"
+            "  - i = 41\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(41, ip.Run(input));
+    }
+    {
+        // local var type
+        const std::string input(
+            "# main() int\n"
+            "  - i = 41\n"
+            "  - f = 3.1415\n"
+            "  - g float = 3.1\n"
+            "  if f == g + 0.0415\n"
+            "    i = 9\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(9, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

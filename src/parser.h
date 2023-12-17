@@ -31,6 +31,7 @@ private:
     // token get
     Token *next() const;
     Token *prev() const;
+    const Token *curtok() const;
     const Token *gettok();
     void ungettok();
 
@@ -70,7 +71,7 @@ private:
     BlockStmt *block_stmt();
 
     //
-    Type *type();
+    Type *type_spec();
     Stmt *var_decl();
     Field *field_decl();
     Class *class_decl();

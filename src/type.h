@@ -28,6 +28,7 @@ struct Type {
 };
 
 const Type *PromoteType(const Type *t1, const Type *t2);
+const Type *DuplicateType(const Type *t);
 
 std::ostream &operator<<(std::ostream &os, TypeKind kind);
 

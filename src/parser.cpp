@@ -26,6 +26,11 @@ Token *Parser::prev() const
         return curr_ - 1;
 }
 
+const Token *Parser::curtok() const
+{
+    return curr_;
+}
+
 const Token *Parser::gettok()
 {
     if (curr_ != head_) {
@@ -538,36 +543,46 @@ Stmt *Parser::var_decl()
     expect(TK::IDENT);
 
     if (scope_->FindVar(tok_str())) {
-        std::cerr
-            << "error: re-defined variable: '"
-            << tok_str() << "'"
-            << std::endl;
-        std::exit(EXIT_FAILURE);
+        const Token *tok = curtok();
+        const std::string msg = "re-defined variable: '" +
+            std::string(tok_str()) + "'";
+        Error(msg, *src_, tok->pos);
     }
 
     // var
     Var *var = scope_->DefineVar(tok_str());
-    var->type = type();
-    Expr *ident = new IdentExpr(var);
+    Expr *init = nullptr;
 
-    // expr
-    Expr *expr = nullptr;
     if (consume(TK::EQ)) {
-        expr = expression();
+        // "- x = 42"
+        init = expression();
+        var->type = DuplicateType(init->type);
     }
     else {
-        if (var->type->IsInteger())
-            expr = new IntNumExpr(0, new Type(TY::Integer));
-        else if (var->type->IsFloat())
-            expr = new FpNumExpr(0.0f, new Type(TY::Float));
-        else if (var->type->IsString())
-            expr = new StringLitExpr("", new Type(TY::String));
-        else
-            expr = new IntNumExpr(0, new Type(TY::Integer));
+        var->type = type_spec();
+
+        if (consume(TK::EQ)) {
+            // "- x int = 42"
+            init = expression();
+        }
+        else {
+            // "- x int"
+            if (var->type->IsInteger())
+                init = new IntNumExpr(0, new Type(TY::Integer));
+            else if (var->type->IsFloat())
+                init = new FpNumExpr(0.0f, new Type(TY::Float));
+            else if (var->type->IsString())
+                init = new StringLitExpr("", new Type(TY::String));
+            else
+                // TODO Class type
+                init = new IntNumExpr(0, new Type(TY::Integer));
+        }
     }
 
     expect(TK::NEWLINE);
-    return new ExprStmt(new AssignExpr(ident, expr));
+
+    Expr *ident = new IdentExpr(var);
+    return new ExprStmt(new AssignExpr(ident, init));
 }
 
 Field *Parser::field_decl()
@@ -584,7 +599,7 @@ Field *Parser::field_decl()
     }
 
     Field *fld = scope_->DefineFild(tok_str());
-    fld->type = type();
+    fld->type = type_spec();
     expect(TK::NEWLINE);
 
     return fld;
@@ -658,8 +673,8 @@ BlockStmt *Parser::block_stmt()
     return block;
 }
 
-// type = "int" | "float" | "string" | identifier
-Type *Parser::type()
+// type_spec = "int" | "float" | "string" | identifier
+Type *Parser::type_spec()
 {
     if (consume(TK::INT))
         return new Type(TY::Integer);
@@ -692,7 +707,7 @@ void Parser::field_list(Class *clss)
         expect(TK::IDENT);
         std::string_view name = tok_str();
 
-        clss->DeclareField(name, type());
+        clss->DeclareField(name, type_spec());
         expect(TK::NEWLINE);
     }
     while (consume(TK::MINUS));
@@ -709,7 +724,7 @@ void Parser::param_list(Func *func)
         expect(TK::IDENT);
         std::string_view name = tok_str();
 
-        func->DeclareParam(name, type());
+        func->DeclareParam(name, type_spec());
     }
     while (consume(TK::COMMA));
 
@@ -731,7 +746,7 @@ FuncDef *Parser::func_def()
     enter_scope(func);
 
     param_list(func);
-    func->type = type();
+    func->type = type_spec();
     expect(TK::NEWLINE);
 
     // func body
