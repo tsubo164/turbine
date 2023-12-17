@@ -530,8 +530,9 @@ Stmt *Parser::expr_stmt()
     return stmt;
 }
 
-// var_decl = - ident int newline
-Var *Parser::var_decl()
+// var_decl = "-" identifier type newline
+//          | "-" identifier type = expression newline
+Stmt *Parser::var_decl()
 {
     expect(TK::MINUS);
     expect(TK::IDENT);
@@ -544,11 +545,29 @@ Var *Parser::var_decl()
         std::exit(EXIT_FAILURE);
     }
 
+    // var
     Var *var = scope_->DefineVar(tok_str());
     var->type = type();
-    expect(TK::NEWLINE);
+    Expr *ident = new IdentExpr(var);
 
-    return var;
+    // expr
+    Expr *expr = nullptr;
+    if (consume(TK::EQ)) {
+        expr = expression();
+    }
+    else {
+        if (var->type->IsInteger())
+            expr = new IntNumExpr(0, new Type(TY::Integer));
+        else if (var->type->IsFloat())
+            expr = new FpNumExpr(0.0f, new Type(TY::Float));
+        else if (var->type->IsString())
+            expr = new StringLitExpr("", new Type(TY::String));
+        else
+            expr = new IntNumExpr(0, new Type(TY::Integer));
+    }
+
+    expect(TK::NEWLINE);
+    return new ExprStmt(new AssignExpr(ident, expr));
 }
 
 Field *Parser::field_decl()
@@ -603,7 +622,7 @@ BlockStmt *Parser::block_stmt()
         const TokenKind next = peek();
 
         if (next == TK::MINUS) {
-            var_decl();
+            block->AddStmt(var_decl());
             continue;
         }
         else if (next == TK::IF) {
@@ -639,6 +658,7 @@ BlockStmt *Parser::block_stmt()
     return block;
 }
 
+// type = "int" | "float" | "string" | identifier
 Type *Parser::type()
 {
     if (consume(TK::INT))

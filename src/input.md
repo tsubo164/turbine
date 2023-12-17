@@ -1,8 +1,5 @@
 # main() int
-  - i int
-  i = 0
+  - i int = 42
+  - j int
 
-  for i < 10
-    i++
-
-  return  i
+  return i

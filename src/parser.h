@@ -71,7 +71,7 @@ private:
 
     //
     Type *type();
-    Var *var_decl();
+    Stmt *var_decl();
     Field *field_decl();
     Class *class_decl();
     void field_list(Class *clss);
