@@ -14,14 +14,13 @@ struct Type;
 class Scope;
 
 struct Var {
-    Var(std::string_view Name, int ID, bool global)
-        : name(Name), id(ID), is_global(global) {}
+    Var(std::string_view Name, const Type *t, int ID, bool global)
+        : name(Name), type(t), id(ID), is_global(global) {}
 
     std::string_view name;
+    const Type *type;
     const int id;
     const bool is_global;
-
-    const Type *type = nullptr;
 };
 
 struct Func {
@@ -83,7 +82,7 @@ public:
     bool HasParent() const;
     bool IsGlobal() const;
 
-    Var *DefineVar(std::string_view name);
+    Var *DefineVar(std::string_view name, const Type *type);
     Var *FindVar(std::string_view name) const;
     int VarCount() const;
 

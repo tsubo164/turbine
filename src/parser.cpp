@@ -535,6 +535,18 @@ Stmt *Parser::expr_stmt()
     return stmt;
 }
 
+static Expr *default_value(const Type *type)
+{
+    if (type->IsInteger())
+        return new IntNumExpr(0, DuplicateType(type));
+    else if (type->IsFloat())
+        return new FpNumExpr(0.0f, DuplicateType(type));
+    else if (type->IsString())
+        return new StringLitExpr("", DuplicateType(type));
+    else
+        return new NullExpr();
+}
+
 // var_decl = "-" identifier type newline
 //          | "-" identifier type = expression newline
 Stmt *Parser::var_decl()
@@ -549,17 +561,19 @@ Stmt *Parser::var_decl()
         Error(msg, *src_, tok->pos);
     }
 
-    // var
-    Var *var = scope_->DefineVar(tok_str());
+    // var anme
+    std::string_view name = tok_str();
+    const Type *type = nullptr;
     Expr *init = nullptr;
 
+    // type and init
     if (consume(TK::EQ)) {
         // "- x = 42"
         init = expression();
-        var->type = DuplicateType(init->type);
+        type = DuplicateType(init->type);
     }
     else {
-        var->type = type_spec();
+        type = type_spec();
 
         if (consume(TK::EQ)) {
             // "- x int = 42"
@@ -567,20 +581,13 @@ Stmt *Parser::var_decl()
         }
         else {
             // "- x int"
-            if (var->type->IsInteger())
-                init = new IntNumExpr(0, new Type(TY::Integer));
-            else if (var->type->IsFloat())
-                init = new FpNumExpr(0.0f, new Type(TY::Float));
-            else if (var->type->IsString())
-                init = new StringLitExpr("", new Type(TY::String));
-            else
-                // TODO Class type
-                init = new IntNumExpr(0, new Type(TY::Integer));
+            init = default_value(type);
         }
     }
 
     expect(TK::NEWLINE);
 
+    Var *var = scope_->DefineVar(name, type);
     Expr *ident = new IdentExpr(var);
     return new ExprStmt(new AssignExpr(ident, init));
 }

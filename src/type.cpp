@@ -40,7 +40,10 @@ const Type *PromoteType(const Type *t1, const Type *t2)
 
 const Type *DuplicateType(const Type *t)
 {
-    return new Type(t->kind);
+    Type *dup = new Type(t->kind);
+    dup->clss = t->clss;
+
+    return dup;
 }
 
 std::ostream &operator<<(std::ostream &os, TypeKind kind)

@@ -18,7 +18,7 @@ struct Node {
 
 struct Expr : public Node {
     Expr(const Type *t) : type(t) {}
-    const Type *type = nullptr;
+    const Type *type;
 
     virtual int Addr() const { return -1; }
     virtual bool IsGlobal() const { return false; }

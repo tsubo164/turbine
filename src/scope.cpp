@@ -5,8 +5,7 @@
 // Func
 void Func::DeclareParam(std::string_view name, const Type *type)
 {
-    Var *v = scope->DefineVar(name);
-    v->type = type;
+    scope->DefineVar(name, type);
     nparams_++;
 }
 
@@ -88,7 +87,7 @@ bool Scope::IsGlobal() const
     return !Parent();
 }
 
-Var *Scope::DefineVar(std::string_view name)
+Var *Scope::DefineVar(std::string_view name, const Type *type)
 {
     const auto found = vars_.find(name);
     if (found != vars_.end()) {
@@ -96,7 +95,7 @@ Var *Scope::DefineVar(std::string_view name)
     }
 
     const int next_id = vars_.size();
-    Var *var = new Var(name, next_id, IsGlobal());
+    Var *var = new Var(name, type, next_id, IsGlobal());
     vars_.insert({name, var});
     return var;
 }
