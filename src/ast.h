@@ -139,13 +139,8 @@ struct Stmt : public Node {
 
 struct BlockStmt : public Stmt {
     BlockStmt() {}
-    ~BlockStmt()
-    {
-        for (auto stmt: stmts)
-            delete stmt;
-    }
-    void AddStmt(Stmt *stmt) { stmts.push_back(stmt); }
-    std::vector<Stmt*> stmts;
+    void AddStmt(Stmt *stmt) { stmts.emplace_back(stmt); }
+    std::vector<std::unique_ptr<Stmt>> stmts;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
@@ -194,14 +189,9 @@ struct CaseStmt : public Stmt {
 
 struct SwitchStmt : public Stmt {
     SwitchStmt(Expr *c) : cond(c) {}
-    ~SwitchStmt()
-    {
-        for (auto cs: cases)
-            delete cs;
-    }
-    void AddCase(CaseStmt *cs) { cases.push_back(cs); }
+    void AddCase(CaseStmt *cs) { cases.emplace_back(cs); }
     std::unique_ptr<Expr> cond;
-    std::vector<Stmt*> cases;
+    std::vector<std::unique_ptr<CaseStmt>> cases;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
@@ -236,9 +226,12 @@ struct FuncDef : public Node {
 
 struct Prog: public Node {
     Prog(Scope *sc) : scope(sc) {}
-    void AddFuncDef(FuncDef *func) { funcs.push_back(func); }
-    std::vector<FuncDef*> funcs;
+    void AddFuncDef(FuncDef *func) { funcs.emplace_back(func); }
+    void AddGlobalVar(Stmt *gvar) { gvars.emplace_back(gvar); }
+
     const Scope *scope;
+    std::vector<std::unique_ptr<FuncDef>> funcs;
+    std::vector<std::unique_ptr<Stmt>> gvars;
     // TODO remove this
     const Func *main_func = nullptr;
 

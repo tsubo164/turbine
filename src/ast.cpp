@@ -65,7 +65,7 @@ void StringLitExpr::Print(int depth) const
 void IdentExpr::Print(int depth) const
 {
     print_node("IdentExpr", depth, false);
-    std::cout << var->name << " @" << var->id <<
+    std::cout << "\"" << var->name << "\" @" << var->id <<
         " " << type->kind << std::endl;
 }
 
@@ -131,7 +131,7 @@ void IncDecExpr::Print(int depth) const
 void BlockStmt::Print(int depth) const
 {
     print_node("BlockStmt", depth);
-    for (const auto stmt: stmts)
+    for (const auto &stmt: stmts)
         stmt->Print(depth + 1);
 }
 
@@ -170,7 +170,7 @@ void CaseStmt::Print(int depth) const
 void SwitchStmt::Print(int depth) const
 {
     print_node("SwitchStmt", depth);
-    for (const auto cs: cases)
+    for (const auto &cs: cases)
         cs->Print(depth + 1);
 }
 
@@ -196,7 +196,11 @@ void FuncDef::Print(int depth) const
 void Prog::Print(int depth) const
 {
     print_node("Prog", depth);
-    for (const auto func: funcs)
+
+    for (const auto &gvar: gvars)
+        gvar->Print(depth + 1);
+
+    for (const auto &func: funcs)
         func->Print(depth + 1);
 }
 
@@ -475,7 +479,7 @@ void IncDecExpr::Gen(Bytecode &code) const
 
 void BlockStmt::Gen(Bytecode &code) const
 {
-    for (const auto stmt: stmts)
+    for (const auto &stmt: stmts)
         stmt->Gen(code);
 }
 
@@ -565,7 +569,7 @@ void SwitchStmt::Gen(Bytecode &code) const
     cond->Gen(code);
 
     // cases
-    for (auto cs: cases)
+    for (const auto &cs: cases)
         cs->Gen(code);
 
     // quit
@@ -591,7 +595,7 @@ void FuncDef::Gen(Bytecode &code) const
 
     // local vars
     if (func->VarCount() > 0)
-        code.AllocateLocal(func->VarCount());
+        code.Allocate(func->VarCount());
 
     block->Gen(code);
 }
@@ -605,13 +609,15 @@ void Prog::Gen(Bytecode &code) const
 
     // global vars
     if (scope->VarCount() > 0)
-        code.AllocateLocal(scope->VarSize());
+        code.Allocate(scope->VarSize());
+    for (const auto &gvar: gvars)
+        gvar->Gen(code);
 
     // call main
     code.CallFunction(main_func->id, main_func->is_builtin);
     code.Exit();
 
     // global funcs
-    for (const auto func: funcs)
+    for (const auto &func: funcs)
         func->Gen(code);
 }

@@ -131,7 +131,7 @@ void Bytecode::DecGlobal(Word id)
     push_back<Word>(bytes_, id);
 }
 
-void Bytecode::AllocateLocal(Byte count)
+void Bytecode::Allocate(Byte count)
 {
     bytes_.push_back(OP_ALLOC);
     bytes_.push_back(count);

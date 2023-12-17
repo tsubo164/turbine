@@ -105,7 +105,7 @@ public:
     void IncGlobal(Word id);
     void DecLocal(Byte id);
     void DecGlobal(Word id);
-    void AllocateLocal(Byte count);
+    void Allocate(Byte count);
     void CallFunction(Word func_index, bool builtin);
     // jump instructions return the address
     // where the destination address is stored.

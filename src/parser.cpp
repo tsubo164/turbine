@@ -765,7 +765,7 @@ Prog *Parser::program()
         }
 
         if (next == TK::MINUS) {
-            var_decl();
+            prog->AddGlobalVar(var_decl());
             continue;
         }
 

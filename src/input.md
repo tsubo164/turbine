@@ -1,5 +1,7 @@
+- g int = 39
+
 # main() int
   - i int = 42
-  - j int
+  return g
 
-  return i
+- h int = 7
