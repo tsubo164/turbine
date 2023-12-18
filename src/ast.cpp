@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "escseq.h"
 #include <iostream>
 #include <limits>
 
@@ -256,7 +257,11 @@ void FpNumExpr::Gen(Bytecode &code) const
 
 void StringLitExpr::Gen(Bytecode &code) const
 {
-    const Word id = code.RegisterConstString(sval);
+    std::string converted;
+    ConvertEscapeSequence(sval, converted);
+    std::string_view s(converted.c_str(), converted.length());
+
+    const Word id = code.RegisterConstString(s);
     code.LoadString(id);
 }
 

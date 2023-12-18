@@ -11,14 +11,6 @@
   - c = false // bool
 
   for i = 0; i < 7; i++
-    nop
-
-  //if b
-  //  i = 19
-
-  //i = i * b
-
-  //if b != !c
-  //  i = 11
+    print("\"Hello,\nWorld!\"")
 
   return i

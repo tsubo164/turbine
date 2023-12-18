@@ -480,8 +480,15 @@ void Lexer::scan_string(Token *tok, Pos pos)
     auto start = it_;
     int len = 0;
 
-    for (int ch = get(); ch != '"'; ch = get())
+    for (int ch = get(); ch != '"'; ch = get()) {
+        const int next = peek();
+
+        if (ch == '\\' && next == '"') {
+            ch = get();
+            len++;
+        }
         len++;
+    }
 
     const std::string_view str_lit(&(*start), len);
 
