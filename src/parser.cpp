@@ -137,6 +137,12 @@ CallExpr *Parser::arg_list(CallExpr *call)
 //     primary_expr selector
 Expr *Parser::primary_expr()
 {
+    if (consume(TK::TRUE))
+        return new ConstExpr(true);
+
+    if (consume(TK::FALSE))
+        return new ConstExpr(false);
+
     if (consume(TK::INTLIT))
         return new IntNumExpr(tok_int(), new Type(TY::Integer));
 
@@ -237,25 +243,31 @@ Expr *Parser::unary_expr()
 // mul_op   = "*" | "/" | "%" | "&" | "<<" | ">>"
 Expr *Parser::mul_expr()
 {
-    Expr *expr = unary_expr();
+    Expr *x = unary_expr();
+    Expr *y;
 
     for (;;) {
         const Token *tok = gettok();
 
         switch (tok->kind) {
-
         case TK::STAR:
         case TK::SLASH:
         case TK::PERCENT:
         case TK::AMP:
         case TK::LT2:
         case TK::GT2:
-            expr = new BinaryExpr(tok->kind, expr, unary_expr());
+            y = unary_expr();
+            if (!MatchType(x->type, y->type)) {
+                const std::string msg = std::string("type mismatch: ") +
+                    TypeString(x->type) + " and " + TypeString(y->type);
+                Error(msg, *src_, tok->pos);
+            }
+            x = new BinaryExpr(tok->kind, x, y);
             break;
 
         default:
             ungettok();
-            return expr;
+            return x;
         }
     }
 }
@@ -268,14 +280,20 @@ Expr *Parser::add_expr()
 
     for (;;) {
         const Token *tok = gettok();
+        Expr *l;
 
         switch (tok->kind) {
-
         case TK::PLUS:
         case TK::MINUS:
         case TK::BAR:
         case TK::CARET:
-            expr = new BinaryExpr(tok->kind, expr, mul_expr());
+            l = mul_expr();
+            if (!MatchType(expr->type, l->type)) {
+                const std::string msg = std::string("type mismatch: ") +
+                    TypeString(expr->type) + " and " + TypeString(l->type);
+                Error(msg, *src_, tok->pos);
+            }
+            expr = new BinaryExpr(tok->kind, expr, l);
             break;
 
         default:

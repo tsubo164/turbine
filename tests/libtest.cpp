@@ -1011,6 +1011,35 @@ int main(int argc, char **argv)
 
         ASSERTL(2, ip.Run(input));
     }
+    {
+        // bool type
+        const std::string input(
+            "# main() int\n"
+            "  - i = 42\n"
+            "  - b = true\n"
+            "  if b\n"
+            "    i = 19\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(19, ip.Run(input));
+    }
+    {
+        // bool type
+        const std::string input(
+            "# main() int\n"
+            "  - i = 42\n"
+            "  - b = true\n"
+            "  - c = false\n"
+            "  if b != !c\n"
+            "    i = 19\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

@@ -6,8 +6,7 @@
 #include "bytecode.h"
 #include "scope.h"
 #include "lexer.h"
-
-struct Type;
+#include "type.h"
 
 struct Node {
     Node() {}
@@ -28,6 +27,22 @@ struct NullExpr : public Expr {
     NullExpr();
     void Print(int depth) const override final {}
     void Gen(Bytecode &code) const override final {}
+};
+
+// Constant: true, 42, 3.14, "Hello", ...
+struct ConstExpr : public Expr {
+    ConstExpr(bool b)
+        : Expr(new Type(TY::Bool)), bval(b) {}
+
+    union {
+        bool bval = false;
+        long ival;
+        double fval;
+        std::string_view sval;
+    };
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
 };
 
 struct IntNumExpr : public Expr {
@@ -54,6 +69,7 @@ struct StringLitExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
+// Identifier: x, COUNT, foo() ..
 struct IdentExpr : public Expr {
     IdentExpr(const Var *v) : Expr(v->type), var(v) {}
     const Var *var;

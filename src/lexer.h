@@ -48,6 +48,8 @@
     TK(HASH,        "#") \
     TK(HASH2,       "##") \
     /* keyword */\
+    TK(TRUE,        "true") \
+    TK(FALSE,       "false") \
     TK(INT,         "int") \
     TK(FLOAT,       "float") \
     TK(STRING,      "string") \

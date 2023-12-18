@@ -6,6 +6,7 @@
 struct Class;
 
 enum class TypeKind {
+    Bool,
     Integer,
     Float,
     String,
@@ -21,15 +22,18 @@ struct Type {
 
     int Size() const;
 
+    bool IsBool() const { return kind == TY::Bool; }
     bool IsInteger() const { return kind == TY::Integer; }
     bool IsFloat() const { return kind == TY::Float; }
     bool IsString() const { return kind == TY::String; }
     bool IsClass() const { return kind == TY::ClassType; }
 };
 
+bool MatchType(const Type *t1, const Type *t2);
 const Type *PromoteType(const Type *t1, const Type *t2);
 const Type *DuplicateType(const Type *t);
 
+const char *TypeString(const Type *type);
 std::ostream &operator<<(std::ostream &os, TypeKind kind);
 
 #endif // _H

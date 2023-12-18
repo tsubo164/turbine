@@ -1,5 +1,4 @@
 #include "ast.h"
-#include "type.h"
 #include <iostream>
 #include <limits>
 
@@ -36,6 +35,13 @@ UnaryExpr::UnaryExpr(TokenKind Kind, Expr *R)
 }
 
 // Print
+void ConstExpr::Print(int depth) const
+{
+    print_node("ConstExpr", depth, false);
+    std::cout << bval <<
+        " " << type->kind << std::endl;
+}
+
 void IntNumExpr::Print(int depth) const
 {
     print_node("IntNumExpr", depth, false);
@@ -207,6 +213,13 @@ int IdentExpr::Addr() const
 }
 
 // Gen
+void ConstExpr::Gen(Bytecode &code) const
+{
+    if (type->IsBool()) {
+        code.LoadByte(bval);
+    }
+}
+
 void IntNumExpr::Gen(Bytecode &code) const
 {
     constexpr Int bytemin = std::numeric_limits<Byte>::min();
@@ -338,7 +351,7 @@ void BinaryExpr::Gen(Bytecode &code) const
         return;
 
     case TK::EQ2:
-        if (l->type->IsInteger())
+        if (l->type->IsInteger() || l->type->IsBool())
             code.EqualInt();
         else if (l->type->IsFloat())
             code.EqualFloat();
@@ -347,7 +360,7 @@ void BinaryExpr::Gen(Bytecode &code) const
         return;
 
     case TK::EXCLEQ:
-        if (l->type->IsInteger())
+        if (l->type->IsInteger() || l->type->IsBool())
             code.NotEqualInt();
         else if (l->type->IsFloat())
             code.NotEqualFloat();

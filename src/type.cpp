@@ -13,6 +13,7 @@ int Type::Size() const
 static const char *type_kind_string(TypeKind kind)
 {
     switch (kind) {
+    case TY::Bool: return "bool";
     case TY::Integer: return "int";
     case TY::Float: return "float";
     case TY::String: return "string";
@@ -22,6 +23,16 @@ static const char *type_kind_string(TypeKind kind)
         ERROR_NO_CASE(kind);
         return nullptr;
     }
+}
+
+const char *TypeString(const Type *type)
+{
+    return type_kind_string(type->kind);
+}
+
+bool MatchType(const Type *t1, const Type *t2)
+{
+    return t1->kind == t2->kind;
 }
 
 const Type *PromoteType(const Type *t1, const Type *t2)
