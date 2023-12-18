@@ -35,11 +35,6 @@ UnaryExpr::UnaryExpr(TokenKind Kind, Expr *R)
 {
 }
 
-AssignExpr::AssignExpr(Expr *l, Expr *r)
-    : Expr(PromoteType(l->type, r->type)), lval(l), rval(r)
-{
-}
-
 // Print
 void IntNumExpr::Print(int depth) const
 {
@@ -113,6 +108,7 @@ void UnaryExpr::Print(int depth) const
 void AssignExpr::Print(int depth) const
 {
     print_node("AssignExpr", depth, false);
+    std::cout << "\"" << kind << "\" ";
     std::cout << type->kind << std::endl;
 
     lval->Print(depth + 1);
@@ -443,8 +439,45 @@ void UnaryExpr::Gen(Bytecode &code) const
 
 void AssignExpr::Gen(Bytecode &code) const
 {
-    // rval first
-    rval->Gen(code);
+    if (kind == TK::EQ) {
+        // rval first
+        rval->Gen(code);
+    }
+    else {
+        lval->Gen(code);
+        rval->Gen(code);
+
+        if (kind == TK::PLUSEQ) {
+            if (type->IsInteger())
+                code.AddInt();
+            else if (type->IsFloat())
+                code.AddFloat();
+        }
+        else if (kind == TK::MINUSEQ) {
+            if (type->IsInteger())
+                code.SubInt();
+            else if (type->IsFloat())
+                code.SubFloat();
+        }
+        else if (kind == TK::STAREQ) {
+            if (type->IsInteger())
+                code.MulInt();
+            else if (type->IsFloat())
+                code.MulFloat();
+        }
+        else if (kind == TK::SLASHEQ) {
+            if (type->IsInteger())
+                code.DivInt();
+            else if (type->IsFloat())
+                code.DivFloat();
+        }
+        else if (kind == TK::PERCENTEQ) {
+            if (type->IsInteger())
+                code.RemInt();
+            else if (type->IsFloat())
+                code.RemFloat();
+        }
+    }
 
     const int index = lval->Addr();
     if (lval->IsGlobal())

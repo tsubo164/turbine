@@ -221,6 +221,9 @@ void Lexer::Get(Token *tok)
             if (ch == '+') {
                 tok->set(TK::PLUS2, pos);
             }
+            else if (ch == '=') {
+                tok->set(TK::PLUSEQ, pos);
+            }
             else {
                 unget();
                 tok->set(TK::PLUS, pos);
@@ -233,6 +236,9 @@ void Lexer::Get(Token *tok)
             if (ch == '-') {
                 tok->set(TK::MINUS2, pos);
             }
+            else if (ch == '=') {
+                tok->set(TK::MINUSEQ, pos);
+            }
             else {
                 unget();
                 tok->set(TK::MINUS, pos);
@@ -241,16 +247,25 @@ void Lexer::Get(Token *tok)
         }
 
         if (ch == '*') {
-            tok->set(TK::STAR, pos);
+            ch = get();
+            if (ch == '=') {
+                tok->set(TK::STAREQ, pos);
+            }
+            else {
+                unget();
+                tok->set(TK::STAR, pos);
+            }
             return;
         }
 
         if (ch == '/') {
             ch = get();
-
             if (ch == '/') {
                 scan_line_comment();
                 continue;
+            }
+            else if (ch == '=') {
+                tok->set(TK::SLASHEQ, pos);
             }
             else {
                 unget();
@@ -260,7 +275,14 @@ void Lexer::Get(Token *tok)
         }
 
         if (ch == '%') {
-            tok->set(TK::PERCENT, pos);
+            ch = get();
+            if (ch == '=') {
+                tok->set(TK::PERCENTEQ, pos);
+            }
+            else {
+                unget();
+                tok->set(TK::PERCENT, pos);
+            }
             return;
         }
 
@@ -328,7 +350,6 @@ void Lexer::Get(Token *tok)
 
         if (ch == '#') {
             ch = get();
-
             if (ch == '#') {
                 tok->set(TK::HASH2, pos);
             }

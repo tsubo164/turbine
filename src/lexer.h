@@ -17,6 +17,11 @@
     TK(IDENT,       "identifier") \
     /* operator */\
     TK(EQ,          "=") \
+    TK(PLUSEQ,      "+=") \
+    TK(MINUSEQ,     "-=") \
+    TK(STAREQ,      "*=") \
+    TK(SLASHEQ,     "/=") \
+    TK(PERCENTEQ,   "%=") \
     TK(EQ2,         "==") \
     TK(EXCLEQ,      "!=") \
     TK(EXCL,        "!") \

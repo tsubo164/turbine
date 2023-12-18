@@ -951,6 +951,66 @@ int main(int argc, char **argv)
 
         ASSERTL(9, ip.Run(input));
     }
+    {
+        // "+=" operator
+        const std::string input(
+            "# main() int\n"
+            "  - i = 42\n"
+            "  i += 4\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(46, ip.Run(input));
+    }
+    {
+        // "-=" operator
+        const std::string input(
+            "# main() int\n"
+            "  - i = 42\n"
+            "  i -= 4\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(38, ip.Run(input));
+    }
+    {
+        // "*=" operator
+        const std::string input(
+            "# main() int\n"
+            "  - i = 42\n"
+            "  i *= 4\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(168, ip.Run(input));
+    }
+    {
+        // "/=" operator
+        const std::string input(
+            "# main() int\n"
+            "  - i = 42\n"
+            "  i /= 4\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(10, ip.Run(input));
+    }
+    {
+        // "%=" operator
+        const std::string input(
+            "# main() int\n"
+            "  - i = 42\n"
+            "  i %= 4\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(2, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());

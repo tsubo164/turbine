@@ -6,4 +6,5 @@
   - i = 42   // int
   - f = 3.14 // float
   - pt Point
+  i %= 4
   return i

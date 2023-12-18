@@ -117,9 +117,11 @@ struct UnaryExpr : public Expr {
 };
 
 struct AssignExpr : public Expr {
-    AssignExpr(Expr *l, Expr *r);
+    AssignExpr(Expr *l, Expr *r, TK k)
+        : Expr(l->type), lval(l), rval(r), kind(k) {}
     std::unique_ptr<Expr> lval;
     std::unique_ptr<Expr> rval;
+    TK kind;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;

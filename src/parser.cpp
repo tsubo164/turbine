@@ -353,7 +353,7 @@ Expr *Parser::logor_expr()
 
 // assign_expr = logand_expr assing_op expression
 //             | logand_expr incdec_op
-// assign_op   = "="
+// assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
 // incdec_op   = "++" | "--"
 Expr *Parser::assign_expr()
 {
@@ -362,7 +362,12 @@ Expr *Parser::assign_expr()
 
     switch (tok->kind) {
     case TK::EQ:
-        return new AssignExpr(expr, expression());
+    case TK::PLUSEQ:
+    case TK::MINUSEQ:
+    case TK::STAREQ:
+    case TK::SLASHEQ:
+    case TK::PERCENTEQ:
+        return new AssignExpr(expr, expression(), tok->kind);
 
     case TK::PLUS2:
     case TK::MINUS2:
@@ -589,7 +594,7 @@ Stmt *Parser::var_decl()
 
     Var *var = scope_->DefineVar(name, type);
     Expr *ident = new IdentExpr(var);
-    return new ExprStmt(new AssignExpr(ident, init));
+    return new ExprStmt(new AssignExpr(ident, init, TK::EQ));
 }
 
 Field *Parser::field_decl()
