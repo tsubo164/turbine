@@ -267,6 +267,10 @@ void Lexer::Get(Token *tok)
                 scan_line_comment();
                 continue;
             }
+            else if (ch == '*') {
+                scan_block_comment();
+                continue;
+            }
             else if (ch == '=') {
                 tok->set(TK::SLASHEQ, pos);
             }
@@ -583,6 +587,40 @@ void Lexer::scan_line_comment()
         if (ch == '\n') {
             unget();
             break;
+        }
+    }
+}
+
+void Lexer::scan_block_comment()
+{
+    // already accepted "/*"
+    int depth = 1;
+
+    for (;;) {
+        int ch = get();
+
+        if (ch == '/') {
+            ch = get();
+            if (ch == '*') {
+                depth++;
+                continue;
+            }
+        }
+
+        if (ch == '*') {
+            ch = get();
+            if (ch == '/') {
+                depth--;
+                if (depth == 0)
+                    break;
+                else
+                    continue;
+            }
+        }
+
+        if (ch == EOF || ch == '\0') {
+            unget();
+            Error("unterminated block comment", *src_, pos_);
         }
     }
 }

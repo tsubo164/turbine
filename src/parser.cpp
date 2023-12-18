@@ -209,8 +209,11 @@ Expr *Parser::primary_expr()
             continue;
         }
         else {
-            if (!expr)
-                Error("Unknown token", *src_, tok->pos);
+            if (!expr) {
+                const std::string msg = "unknown token: \"" +
+                    std::string(GetTokenKindString(tok->kind)) + "\"";
+                Error(msg, *src_, tok->pos);
+            }
 
             ungettok();
             return expr;
@@ -457,7 +460,7 @@ Stmt *Parser::for_stmt()
         }
         else {
             const Token *tok = gettok();
-            Error("Unknown token", *src_, tok->pos);
+            Error("unknown token", *src_, tok->pos);
         }
     }
 
@@ -693,6 +696,10 @@ BlockStmt *Parser::block_stmt()
         else if (next == TK::NOP) {
             gettok();
             expect(TK::NEWLINE);
+            continue;
+        }
+        else if (next == TK::NEWLINE) {
+            gettok();
             continue;
         }
         else if (next == TK::BLOCKEND) {

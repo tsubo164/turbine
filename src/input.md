@@ -7,10 +7,12 @@
 
 # main() int
   - i = 42   // int
-  - b = true // bool
-  - c = false // bool
-
-  for i = 0; i < 7; i++
-    print("\"Hello,\nWorld!\"")
-
+  /*
+    this is a block comment
+    the first indent has to match.
+  /*
+      nested block comment.
+  */
+  this is another line in block comment.
+  */
   return i

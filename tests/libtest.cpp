@@ -1053,6 +1053,25 @@ int main(int argc, char **argv)
 
         ASSERTL(7, ip.Run(input));
     }
+    {
+        // block comment
+        const std::string input(
+            "# main() int\n"
+            "  - i = 42   // int\n"
+            "  /*\n"
+            "    this is a block comment\n"
+            "    the first indent has to match.\n"
+            "  /*\n"
+            "      nested block comment.\n"
+            "  */\n"
+            "  this is another line in block comment.\n"
+            "  */\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(42, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
