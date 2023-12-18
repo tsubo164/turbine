@@ -690,6 +690,11 @@ BlockStmt *Parser::block_stmt()
             block->AddStmt(ret_stmt());
             continue;
         }
+        else if (next == TK::NOP) {
+            gettok();
+            expect(TK::NEWLINE);
+            continue;
+        }
         else if (next == TK::BLOCKEND) {
             break;
         }

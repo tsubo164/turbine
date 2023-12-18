@@ -19,6 +19,7 @@ static const std::unordered_map<std::string_view, TokenKind> keywords = {
     {"case",     TK::CASE},
     {"default",  TK::DEFAULT},
     {"return",   TK::RETURN},
+    {"nop",      TK::NOP},
 };
 
 static TokenKind keyword_or_identifier(std::string_view word)

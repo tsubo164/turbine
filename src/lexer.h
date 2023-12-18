@@ -62,6 +62,7 @@
     TK(CASE,        "case") \
     TK(DEFAULT,     "default") \
     TK(RETURN,      "return") \
+    TK(NOP,         "nop") \
     /* separator */\
     TK(COMMA,       ",") \
     TK(SEMICOLON,   ";") \

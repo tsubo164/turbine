@@ -1040,6 +1040,19 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
+    {
+        // nop statement
+        const std::string input(
+            "# main() int\n"
+            "  - i int\n"
+            "  for i = 0; i < 7; i++\n"
+            "    nop\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(7, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
