@@ -382,7 +382,7 @@ void VM::run()
             }
             break;
 
-        case OP_ADDS:
+        case OP_CATS:
             {
                 const Value val1 = pop();
                 const Value val0 = pop();

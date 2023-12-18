@@ -1,7 +1,6 @@
 #ifndef BYTECODE_H
 #define BYTECODE_H
 
-#include <unordered_map>
 #include <string_view>
 #include <cstdint>
 #include <vector>
@@ -40,7 +39,7 @@ using Float = double;
     /* arithmetic */\
     OP(OP_ADD,          OPERAND_NONE) \
     OP(OP_ADDF,         OPERAND_NONE) \
-    OP(OP_ADDS,         OPERAND_NONE) \
+    OP(OP_CATS,         OPERAND_NONE) \
     OP(OP_SUB,          OPERAND_NONE) \
     OP(OP_SUBF,         OPERAND_NONE) \
     OP(OP_MUL,          OPERAND_NONE) \
@@ -49,6 +48,7 @@ using Float = double;
     OP(OP_DIVF,         OPERAND_NONE) \
     OP(OP_REM,          OPERAND_NONE) \
     OP(OP_REMF,         OPERAND_NONE) \
+    /* relational */\
     OP(OP_EQ,           OPERAND_NONE) \
     OP(OP_EQF,          OPERAND_NONE) \
     OP(OP_EQS,          OPERAND_NONE) \
@@ -114,7 +114,7 @@ public:
     void Return();
     void AddInt();
     void AddFloat();
-    void AddString();
+    void ConcatString();
     void SubInt();
     void SubFloat();
     void MulInt();

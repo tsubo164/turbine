@@ -2,6 +2,24 @@
 #include <iostream>
 #include <limits>
 
+#define EMIT(code, ty, op) \
+    do { \
+    if ((ty)->IsInteger() || (ty)->IsBool()) \
+        (code).op##Int(); \
+    else if ((ty)->IsFloat()) \
+        (code).op##Float(); \
+    } while (0)
+
+#define EMITS(code, ty, op, ops) \
+    do { \
+    if ((ty)->IsInteger() || (ty)->IsBool()) \
+        (code).op##Int(); \
+    else if ((ty)->IsFloat()) \
+        (code).op##Float(); \
+    else if ((ty)->IsString()) \
+        (code).ops##String(); \
+    } while (0)
+
 static void print_indent(int depth)
 {
     for (int i = 0; i < depth; i++)
@@ -315,85 +333,49 @@ void BinaryExpr::Gen(Bytecode &code) const
     l->Gen(code);
     r->Gen(code);
 
-    if (kind == TK::MINUS) {
-        if (type->IsInteger())
-            code.SubInt();
-        else if (type->IsFloat())
-            code.SubFloat();
-    }
-    else if (kind == TK::STAR) {
-        if (type->IsInteger())
-            code.MulInt();
-        else if (type->IsFloat())
-            code.MulFloat();
-    }
-    else if (kind == TK::SLASH) {
-        if (type->IsInteger())
-            code.DivInt();
-        else if (type->IsFloat())
-            code.DivFloat();
-    }
-    else if (kind == TK::PERCENT) {
-        if (type->IsInteger())
-            code.RemInt();
-        else if (type->IsFloat())
-            code.RemFloat();
-    }
-
     switch (kind) {
     case TK::PLUS:
-        if (type->IsInteger())
-            code.AddInt();
-        else if (type->IsFloat())
-            code.AddFloat();
-        else if (type->IsString())
-            code.AddString();
+        EMITS(code, type, Add, Concat);
+        return;
+
+    case TK::MINUS:
+        EMIT(code, type, Sub);
+        return;
+
+    case TK::STAR:
+        EMIT(code, type, Mul);
+        return;
+
+    case TK::SLASH:
+        EMIT(code, type, Div);
+        return;
+
+    case TK::PERCENT:
+        EMIT(code, type, Rem);
         return;
 
     case TK::EQ2:
-        if (l->type->IsInteger() || l->type->IsBool())
-            code.EqualInt();
-        else if (l->type->IsFloat())
-            code.EqualFloat();
-        else if (l->type->IsString())
-            code.EqualString();
+        EMITS(code, l->type, Equal, Equal);
         return;
 
     case TK::EXCLEQ:
-        if (l->type->IsInteger() || l->type->IsBool())
-            code.NotEqualInt();
-        else if (l->type->IsFloat())
-            code.NotEqualFloat();
-        else if (l->type->IsString())
-            code.NotEqualString();
+        EMITS(code, l->type, NotEqual, NotEqual);
         return;
 
     case TK::LT:
-        if (l->type->IsInteger())
-            code.LessInt();
-        else if (l->type->IsFloat())
-            code.LessFloat();
+        EMIT(code, l->type, Less);
         return;
 
     case TK::LTE:
-        if (l->type->IsInteger())
-            code.LessEqualInt();
-        else if (l->type->IsFloat())
-            code.LessEqualFloat();
+        EMIT(code, l->type, LessEqual);
         return;
 
     case TK::GT:
-        if (l->type->IsInteger())
-            code.GreaterInt();
-        else if (l->type->IsFloat())
-            code.GreaterFloat();
+        EMIT(code, l->type, Greater);
         return;
 
     case TK::GTE:
-        if (l->type->IsInteger())
-            code.GreaterEqualInt();
-        else if (l->type->IsFloat())
-            code.GreaterEqualFloat();
+        EMIT(code, l->type, GreaterEqual);
         return;
 
     case TK::AMP:
@@ -425,22 +407,18 @@ void UnaryExpr::Gen(Bytecode &code) const
 {
     r->Gen(code);
 
-    if (kind == TK::PLUS) {
-        // pass
-    }
-    else if (kind == TK::MINUS) {
-        if (type->IsInteger()) {
-            code.NegateInt();
-        }
-        else if (type->IsFloat()) {
-            code.NegateFloat();
-        }
-    }
-    else if (kind == TK::EXCL) {
-        code.SetIfZero();
-    }
-
     switch (kind) {
+    case TK::PLUS:
+        return;
+
+    case TK::MINUS:
+        EMIT(code, type, Negate);
+        return;
+
+    case TK::EXCL:
+        code.SetIfZero();
+        return;
+
     case TK::TILDA:
         code.Not();
         return;
@@ -460,35 +438,29 @@ void AssignExpr::Gen(Bytecode &code) const
         lval->Gen(code);
         rval->Gen(code);
 
-        if (kind == TK::PLUSEQ) {
-            if (type->IsInteger())
-                code.AddInt();
-            else if (type->IsFloat())
-                code.AddFloat();
-        }
-        else if (kind == TK::MINUSEQ) {
-            if (type->IsInteger())
-                code.SubInt();
-            else if (type->IsFloat())
-                code.SubFloat();
-        }
-        else if (kind == TK::STAREQ) {
-            if (type->IsInteger())
-                code.MulInt();
-            else if (type->IsFloat())
-                code.MulFloat();
-        }
-        else if (kind == TK::SLASHEQ) {
-            if (type->IsInteger())
-                code.DivInt();
-            else if (type->IsFloat())
-                code.DivFloat();
-        }
-        else if (kind == TK::PERCENTEQ) {
-            if (type->IsInteger())
-                code.RemInt();
-            else if (type->IsFloat())
-                code.RemFloat();
+        switch (kind) {
+        case TK::PLUSEQ:
+            EMITS(code, type, Add, Concat);
+            break;;
+
+        case TK::MINUSEQ:
+            EMIT(code, type, Sub);
+            break;;
+
+        case TK::STAREQ:
+            EMIT(code, type, Mul);
+            break;;
+
+        case TK::SLASHEQ:
+            EMIT(code, type, Div);
+            break;;
+
+        case TK::PERCENTEQ:
+            EMIT(code, type, Rem);
+            break;;
+
+        default:
+            break;;
         }
     }
 

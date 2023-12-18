@@ -182,9 +182,9 @@ void Bytecode::AddFloat()
     bytes_.push_back(OP_ADDF);
 }
 
-void Bytecode::AddString()
+void Bytecode::ConcatString()
 {
-    bytes_.push_back(OP_ADDS);
+    bytes_.push_back(OP_CATS);
 }
 
 void Bytecode::SubInt()
