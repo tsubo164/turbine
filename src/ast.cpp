@@ -297,8 +297,29 @@ void SelectExpr::Gen(Bytecode &code) const
 
 void CallExpr::Gen(Bytecode &code) const
 {
-    for (auto arg: args)
-        arg->Gen(code);
+    if (func->is_variadic) {
+        for (auto arg: args) {
+            // arg value
+            arg->Gen(code);
+
+            // arg type
+            if (arg->type->IsInteger() || arg->type->IsBool())
+                code.LoadTypeInt();
+            else if (arg->type->IsFloat())
+                code.LoadTypeFloat();
+            else if (arg->type->IsString())
+                code.LoadTypeString();
+            else
+                code.LoadInt(0);
+        }
+        // arg count
+        code.LoadByte(args.size());
+    }
+    else {
+        for (auto arg: args)
+            arg->Gen(code);
+    }
+
     code.CallFunction(func->id, func->is_builtin);
 }
 

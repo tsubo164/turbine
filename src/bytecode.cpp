@@ -149,6 +149,21 @@ void Bytecode::CallFunction(Word func_index, bool builtin)
     }
 }
 
+void Bytecode::LoadTypeInt()
+{
+    bytes_.push_back(OP_LOADTYPEI);
+}
+
+void Bytecode::LoadTypeFloat()
+{
+    bytes_.push_back(OP_LOADTYPEF);
+}
+
+void Bytecode::LoadTypeString()
+{
+    bytes_.push_back(OP_LOADTYPES);
+}
+
 Int Bytecode::JumpIfZero(Int addr)
 {
     bytes_.push_back(OP_JEQ);

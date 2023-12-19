@@ -2,6 +2,14 @@
 #include <iostream>
 #include <cmath>
 
+// for variadic function
+enum class TypeID {
+    VOID = 0,
+    INT,
+    FLT,
+    STR,
+};
+
 void VM::set_ip(Int ip)
 {
     ip_ = ip;
@@ -305,6 +313,18 @@ void VM::run()
             }
             break;
 
+        case OP_LOADTYPEI:
+            push_int(static_cast<int>(TypeID::INT));
+            break;
+
+        case OP_LOADTYPEF:
+            push_int(static_cast<int>(TypeID::FLT));
+            break;
+
+        case OP_LOADTYPES:
+            push_int(static_cast<int>(TypeID::STR));
+            break;
+
         case OP_CALL:
             {
                 const Word func_index = fetch_word();
@@ -327,8 +347,48 @@ void VM::run()
 
                 if (func_index == 0) {
                     // builtin "print" function
-                    const Value val = pop();
-                    std::cout << *val.str << std::endl;
+                    // FIXME hard coded variadic
+                    const int argc = pop_int();
+                    std::stack<Value> args;
+
+                    // pop args
+                    for (int i = 0; i < argc; i++) {
+                        const Value type = pop();
+                        const Value val = pop();
+                        args.push(val);
+                        args.push(type);
+                    }
+
+                    while (!args.empty()) {
+                        const Value type = args.top();
+                        args.pop();
+                        const Value val = args.top();
+                        args.pop();
+
+                        const TypeID id = static_cast<TypeID>(type.inum);
+
+                        switch (id) {
+                        case TypeID::VOID:
+                            break;
+
+                        case TypeID::INT:
+                            std::cout << val.inum;
+                            break;
+
+                        case TypeID::FLT:
+                            std::cout << val.fpnum;
+                            break;
+
+                        case TypeID::STR:
+                            std::cout << *val.str;
+                            break;
+                        }
+
+                        if (args.empty())
+                            std::cout << std::endl;
+                        else
+                            std::cout << ' ';
+                    }
                 }
                 else if (func_index == 1) {
                     // builtin "exit" function

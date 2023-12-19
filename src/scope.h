@@ -24,12 +24,13 @@ struct Var {
 };
 
 struct Func {
-    Func(std::string_view Name, int ID, Scope *sc, bool builtin = false)
-        : name(Name), id(ID), is_builtin(builtin), scope(sc) {}
+    Func(std::string_view Name, int ID, Scope *sc, bool builtin = false, bool variadic = false)
+        : name(Name), id(ID), is_builtin(builtin), is_variadic(variadic), scope(sc) {}
 
     std::string_view name;
     const int id;
     const bool is_builtin;
+    const bool is_variadic;
     Scope *scope;
 
     void DeclareParam(std::string_view name, const Type *type);

@@ -29,6 +29,10 @@ using Float = double;
     OP(OP_INCGLOBAL,    OPERAND_WORD) \
     OP(OP_DECLOCAL,     OPERAND_BYTE) \
     OP(OP_DECGLOBAL,    OPERAND_WORD) \
+    /* arg type spec */\
+    OP(OP_LOADTYPEI,    OPERAND_NONE) \
+    OP(OP_LOADTYPEF,    OPERAND_NONE) \
+    OP(OP_LOADTYPES,    OPERAND_NONE) \
     /* jump and function */\
     OP(OP_ALLOC,        OPERAND_BYTE) \
     OP(OP_CALL,         OPERAND_WORD) \
@@ -107,6 +111,9 @@ public:
     void DecGlobal(Word id);
     void Allocate(Byte count);
     void CallFunction(Word func_index, bool builtin);
+    void LoadTypeInt();
+    void LoadTypeFloat();
+    void LoadTypeString();
     // jump instructions return the address
     // where the destination address is stored.
     Int Jump(Int addr);
