@@ -27,7 +27,7 @@ bool FindEscapedChar(int second_char, int &result_char)
     return false;
 }
 
-void ConvertEscapeSequence(std::string_view src, std::string &dst)
+int ConvertEscapeSequence(std::string_view src, std::string &dst)
 {
     dst.reserve(src.length());
 
@@ -43,8 +43,10 @@ void ConvertEscapeSequence(std::string_view src, std::string &dst)
             }
             else {
                 // error
+                return i;
             }
         }
         dst += ch;
     }
+    return -1;
 }

@@ -149,8 +149,19 @@ Expr *Parser::primary_expr()
     if (consume(TK::FLTLIT))
         return new FpNumExpr(tok_float(), new Type(TY::Float));
 
-    if (consume(TK::STRLIT))
-        return new StringLitExpr(tok_str(), new Type(TY::String));
+    if (consume(TK::STRLIT)) {
+        StringLitExpr *e = new StringLitExpr(tok_str(), new Type(TY::String));
+        const Token *tok = curtok();
+        if (tok->has_escseq) {
+            const int errpos = e->ConvertEscSeq();
+            if (errpos != -1) {
+                Pos pos = tok->pos;
+                pos.x += errpos + 1;
+                Error("unknown escape sequence", *src_, pos);
+            }
+        }
+        return e;
+    }
 
     if (consume(TK::LPAREN)) {
         Expr *expr = expression();

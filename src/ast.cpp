@@ -53,6 +53,11 @@ UnaryExpr::UnaryExpr(TokenKind Kind, Expr *R)
 {
 }
 
+int StringLitExpr::ConvertEscSeq()
+{
+    return ConvertEscapeSequence(sval, converted);
+}
+
 // Print
 void ConstExpr::Print(int depth) const
 {
@@ -257,9 +262,12 @@ void FpNumExpr::Gen(Bytecode &code) const
 
 void StringLitExpr::Gen(Bytecode &code) const
 {
-    std::string converted;
-    ConvertEscapeSequence(sval, converted);
-    std::string_view s(converted.c_str(), converted.length());
+    std::string_view s;
+
+    if (converted.empty())
+        s = sval;
+    else
+        s = std::string_view(converted.c_str(), converted.length());
 
     const Word id = code.RegisterConstString(s);
     code.LoadString(id);

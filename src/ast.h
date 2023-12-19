@@ -64,6 +64,9 @@ struct FpNumExpr : public Expr {
 struct StringLitExpr : public Expr {
     StringLitExpr(std::string_view s, const Type *t) : Expr(t), sval(s) {}
     std::string_view sval;
+    std::string converted;
+
+    int ConvertEscSeq();
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;

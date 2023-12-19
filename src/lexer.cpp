@@ -512,19 +512,24 @@ void Lexer::scan_string(Token *tok, Pos pos)
 {
     auto start = it_;
     int len = 0;
+    int backslashes = 0;
 
     for (int ch = get(); ch != '"'; ch = get()) {
         const int next = peek();
 
-        if (ch == '\\' && next == '"') {
-            ch = get();
-            len++;
+        if (ch == '\\') {
+            backslashes++;
+            if (next == '"') {
+                ch = get();
+                len++;
+            }
         }
         len++;
     }
 
     const std::string_view str_lit(&(*start), len);
 
+    tok->has_escseq = backslashes > 0;
     tok->sval = str_lit;
     tok->set(TK::STRLIT, pos);
 }
