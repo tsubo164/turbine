@@ -13,6 +13,7 @@ int Type::Size() const
 static const char *type_kind_string(TypeKind kind)
 {
     switch (kind) {
+    case TY::Nil: return "nil";
     case TY::Bool: return "bool";
     case TY::Integer: return "int";
     case TY::Float: return "float";

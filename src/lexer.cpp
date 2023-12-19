@@ -6,6 +6,7 @@
 #include <cassert>
 
 static const std::unordered_map<std::string_view, TokenKind> keywords = {
+    {"nil",      TK::NIL},
     {"true",     TK::TRUE},
     {"false",    TK::FALSE},
     {"int",      TK::INT},

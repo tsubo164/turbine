@@ -6,6 +6,7 @@
 struct Class;
 
 enum class TypeKind {
+    Nil,
     Bool,
     Integer,
     Float,
@@ -22,8 +23,9 @@ struct Type {
 
     int Size() const;
 
+    bool IsNil() const { return kind == TY::Nil; }
     bool IsBool() const { return kind == TY::Bool; }
-    bool IsInteger() const { return kind == TY::Integer; }
+    bool IsInt() const { return kind == TY::Integer; }
     bool IsFloat() const { return kind == TY::Float; }
     bool IsString() const { return kind == TY::String; }
     bool IsClass() const { return kind == TY::ClassType; }

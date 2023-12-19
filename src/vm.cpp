@@ -4,7 +4,7 @@
 
 // for variadic function
 enum class TypeID {
-    VOID = 0,
+    NIL = 0,
     INT,
     FLT,
     STR,
@@ -368,7 +368,7 @@ void VM::run()
                         const TypeID id = static_cast<TypeID>(type.inum);
 
                         switch (id) {
-                        case TypeID::VOID:
+                        case TypeID::NIL:
                             break;
 
                         case TypeID::INT:

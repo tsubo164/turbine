@@ -48,6 +48,7 @@
     TK(HASH,        "#") \
     TK(HASH2,       "##") \
     /* keyword */\
+    TK(NIL,         "nil") \
     TK(TRUE,        "true") \
     TK(FALSE,       "false") \
     TK(INT,         "int") \

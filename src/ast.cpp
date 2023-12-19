@@ -5,7 +5,7 @@
 
 #define EMIT(code, ty, op) \
     do { \
-    if ((ty)->IsInteger() || (ty)->IsBool()) \
+    if ((ty)->IsInt() || (ty)->IsBool()) \
         (code).op##Int(); \
     else if ((ty)->IsFloat()) \
         (code).op##Float(); \
@@ -13,7 +13,7 @@
 
 #define EMITS(code, ty, op, ops) \
     do { \
-    if ((ty)->IsInteger() || (ty)->IsBool()) \
+    if ((ty)->IsInt() || (ty)->IsBool()) \
         (code).op##Int(); \
     else if ((ty)->IsFloat()) \
         (code).op##Float(); \
@@ -303,7 +303,7 @@ void CallExpr::Gen(Bytecode &code) const
             arg->Gen(code);
 
             // arg type
-            if (arg->type->IsInteger() || arg->type->IsBool())
+            if (arg->type->IsInt() || arg->type->IsBool())
                 code.LoadTypeInt();
             else if (arg->type->IsFloat())
                 code.LoadTypeFloat();

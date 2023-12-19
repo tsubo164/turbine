@@ -574,7 +574,7 @@ Stmt *Parser::expr_stmt()
 
 static Expr *default_value(const Type *type)
 {
-    if (type->IsInteger())
+    if (type->IsInt())
         return new IntNumExpr(0, DuplicateType(type));
     else if (type->IsFloat())
         return new FpNumExpr(0.0f, DuplicateType(type));

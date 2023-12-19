@@ -29,8 +29,12 @@ struct NullExpr : public Expr {
     void Gen(Bytecode &code) const override final {}
 };
 
-// Constant: true, 42, 3.14, "Hello", ...
+// Constant: nil, true, 42, 3.14, "Hello", ...
 struct ConstExpr : public Expr {
+    // nil
+    ConstExpr()
+        : Expr(new Type(TY::Nil)) {}
+    // bool
     ConstExpr(bool b)
         : Expr(new Type(TY::Bool)), bval(b) {}
 
