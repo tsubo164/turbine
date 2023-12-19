@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include "error.h"
+#include "escseq.h"
 #include <unordered_map>
 #include <cstdlib>
 #include <cassert>
@@ -150,6 +151,11 @@ void Lexer::Get(Token *tok)
         if (isdigit(ch)) {
             unget();
             scan_number(tok, pos);
+            return;
+        }
+
+        if (ch == '\'') {
+            scan_char_literal(tok, pos);
             return;
         }
 
@@ -453,6 +459,29 @@ void Lexer::scan_number(Token *tok, Pos pos)
     }
 
     assert(end && (len == (end - &(*start))));
+}
+
+void Lexer::scan_char_literal(Token *tok, Pos pos)
+{
+    int ch = get();
+
+    if (ch == '\\') {
+        const int next = get();
+        const bool found = FindEscapedChar(next, ch);
+        if (!found) {
+            unget();
+            Error("unknown escape sequence", *src_, pos_);
+        }
+    }
+
+    tok->ival = ch;
+    tok->set(TK::INTLIT, pos);
+
+    ch = get();
+    if (ch != '\'') {
+        unget();
+        Error("unterminated char literal", *src_, pos_);
+    }
 }
 
 static bool isword(int ch)

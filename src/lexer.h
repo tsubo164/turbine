@@ -125,6 +125,7 @@ private:
     int curr() const;
 
     void scan_number(Token *tok, Pos pos);
+    void scan_char_literal(Token *tok, Pos pos);
     void scan_word(Token *tok, Pos pos);
     void scan_string(Token *tok, Pos pos);
     int count_indent();

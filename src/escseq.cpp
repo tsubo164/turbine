@@ -1,9 +1,7 @@
 #include "escseq.h"
 
-void ConvertEscapeSequence(std::string_view src, std::string &dst)
+bool FindEscapedChar(int second_char, int &result_char)
 {
-    dst.reserve(src.length());
-
     static const int table[][2] = {
         {'"',  '"'},
         {'0',  '\0'},
@@ -20,18 +18,31 @@ void ConvertEscapeSequence(std::string_view src, std::string &dst)
     };
     static const int N = sizeof(table) / sizeof(table[0]);
 
+    for (int j = 0; j < N; j++) {
+        if (second_char == table[j][0]) {
+            result_char = table[j][1];
+            return true;
+        }
+    }
+    return false;
+}
+
+void ConvertEscapeSequence(std::string_view src, std::string &dst)
+{
+    dst.reserve(src.length());
+
     for (int i = 0; i < src.length(); i++) {
         int ch = src[i];
 
         if (ch == '\\') {
             const int next = src[i + 1];
+            const bool found = FindEscapedChar(next, ch);
 
-            for (int j = 0; j < N; j++) {
-                if (next == table[j][0]) {
-                    ch = table[j][1];
-                    i++;
-                    break;
-                }
+            if (found) {
+                i++;
+            }
+            else {
+                // error
             }
         }
         dst += ch;

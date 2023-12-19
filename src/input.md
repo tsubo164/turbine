@@ -6,13 +6,9 @@
 //      print("Error")
 
 # main() int
-  - i = 42   // int
-  /*
-    this is a block comment
-    the first indent has to match.
-  /*
-      nested block comment.
-  */
-  this is another line in block comment.
-  */
+  - i = 'a'
+  i = '\n'
+
+  print("\"Hello, \nWorld\"")
+
   return i

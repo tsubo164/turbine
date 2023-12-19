@@ -1072,6 +1072,28 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
+    {
+        // char literal
+        const std::string input(
+            "# main() int\n"
+            "  - i = 'a'\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(97, ip.Run(input));
+    }
+    {
+        // char literal
+        const std::string input(
+            "# main() int\n"
+            "  - i = '\n'\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(10, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
