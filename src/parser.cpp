@@ -137,6 +137,9 @@ CallExpr *Parser::arg_list(CallExpr *call)
 //     primary_expr selector
 Expr *Parser::primary_expr()
 {
+    if (consume(TK::NIL))
+        return new ConstExpr();
+
     if (consume(TK::TRUE))
         return new ConstExpr(true);
 

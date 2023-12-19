@@ -313,6 +313,10 @@ void VM::run()
             }
             break;
 
+        case OP_LOADTYPEN:
+            push_int(static_cast<int>(TypeID::NIL));
+            break;
+
         case OP_LOADTYPEI:
             push_int(static_cast<int>(TypeID::INT));
             break;
@@ -382,6 +386,13 @@ void VM::run()
                         case TypeID::STR:
                             std::cout << *val.str;
                             break;
+                        }
+
+                        // peek next arg
+                        if (!args.empty()) {
+                            const Value next_type = args.top();
+                            if (next_type.inum == static_cast<int>(TypeID::NIL))
+                                break;
                         }
 
                         if (args.empty())

@@ -239,7 +239,10 @@ int IdentExpr::Addr() const
 // Gen
 void ConstExpr::Gen(Bytecode &code) const
 {
-    if (type->IsBool()) {
+    if (type->IsNil()) {
+        code.LoadByte(0);
+    }
+    else if (type->IsBool()) {
         code.LoadByte(bval);
     }
 }
@@ -303,14 +306,16 @@ void CallExpr::Gen(Bytecode &code) const
             arg->Gen(code);
 
             // arg type
-            if (arg->type->IsInt() || arg->type->IsBool())
+            if (arg->type->IsNil())
+                code.LoadTypeNil();
+            else if (arg->type->IsInt() || arg->type->IsBool())
                 code.LoadTypeInt();
             else if (arg->type->IsFloat())
                 code.LoadTypeFloat();
             else if (arg->type->IsString())
                 code.LoadTypeString();
             else
-                code.LoadInt(0);
+                code.LoadTypeNil();
         }
         // arg count
         code.LoadByte(args.size());

@@ -149,6 +149,11 @@ void Bytecode::CallFunction(Word func_index, bool builtin)
     }
 }
 
+void Bytecode::LoadTypeNil()
+{
+    bytes_.push_back(OP_LOADTYPEN);
+}
+
 void Bytecode::LoadTypeInt()
 {
     bytes_.push_back(OP_LOADTYPEI);
