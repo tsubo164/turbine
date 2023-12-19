@@ -132,7 +132,7 @@ private:
     int count_indent();
     TokenKind scan_indent(Token *tok);
     void scan_line_comment();
-    void scan_block_comment();
+    void scan_block_comment(Pos pos);
 };
 
 #endif // _H

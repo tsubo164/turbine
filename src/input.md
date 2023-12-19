@@ -7,10 +7,14 @@
 
 # main() int
   - i = 'a'
-  i = '\n'
+  - s = "foo"
 
-  print("\"Hello, World\"")
-  print("Hello, World!")
+  //print("\"Hello, World\"")
+  //print("Hello, World!")
   //print("\"Hello, \nWor\ld\"")
+  //print("no new line\\")
+
+  if s == "foo"
+    i = 9
 
   return i

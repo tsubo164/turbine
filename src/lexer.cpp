@@ -274,7 +274,7 @@ void Lexer::Get(Token *tok)
                 continue;
             }
             else if (ch == '*') {
-                scan_block_comment();
+                scan_block_comment(pos);
                 continue;
             }
             else if (ch == '=') {
@@ -510,6 +510,7 @@ void Lexer::scan_word(Token *tok, Pos pos)
 
 void Lexer::scan_string(Token *tok, Pos pos)
 {
+    const Pos strpos = pos;
     auto start = it_;
     int len = 0;
     int backslashes = 0;
@@ -519,11 +520,17 @@ void Lexer::scan_string(Token *tok, Pos pos)
 
         if (ch == '\\') {
             backslashes++;
-            if (next == '"') {
+            if (next == '"' || next == '\\') {
                 ch = get();
                 len++;
             }
         }
+
+        if (ch == EOF || ch == '\0') {
+            unget();
+            Error("unterminated string literal", *src_, strpos);
+        }
+
         len++;
     }
 
@@ -625,8 +632,9 @@ void Lexer::scan_line_comment()
     }
 }
 
-void Lexer::scan_block_comment()
+void Lexer::scan_block_comment(Pos pos)
 {
+    const Pos commentpos = pos;
     // already accepted "/*"
     int depth = 1;
 
@@ -654,7 +662,7 @@ void Lexer::scan_block_comment()
 
         if (ch == EOF || ch == '\0') {
             unget();
-            Error("unterminated block comment", *src_, pos_);
+            Error("unterminated block comment", *src_, commentpos);
         }
     }
 }

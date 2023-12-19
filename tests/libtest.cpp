@@ -1094,6 +1094,20 @@ int main(int argc, char **argv)
 
         ASSERTL(10, ip.Run(input));
     }
+    {
+        // slash at the end of string literal
+        const std::string input(
+            "# main() int\n"
+            "  - i int\n"
+            "  - s = \"Hello\\\\\"\n"
+            "  if s == \"Hello\\\\\"\n"
+            "    i = 13\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(13, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
