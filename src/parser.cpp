@@ -748,9 +748,9 @@ Type *Parser::type_spec()
     }
 
     const Token *tok = gettok();
-
-    std::cerr << "error: not a type name: '" << tok->kind << "'" << std::endl;
-    std::exit(EXIT_FAILURE);
+    const std::string msg =
+        std::string("not a type name: '") + GetTokenKindString(tok->kind) + "'";
+    Error(msg, *src_, tok->pos);
 
     return nullptr;
 }
@@ -787,6 +787,7 @@ void Parser::param_list(Func *func)
     expect(TK::RPAREN);
 }
 
+// func_def = "#" identifier param_list type_spec? newline block_stmt
 FuncDef *Parser::func_def()
 {
     expect(TK::HASH);
@@ -795,16 +796,25 @@ FuncDef *Parser::func_def()
     // func name
     Func *func = scope_->DefineFunc(tok_str());
     if (!func) {
-        std::cerr << "error: re-defined function: '" << tok_str() << "'" << std::endl;
-        std::exit(EXIT_FAILURE);
+        const Token *tok = curtok();
+        const std::string msg =
+            "re-defined function: '" +
+            std::string(tok_str()) + "'";
+        Error(msg, *src_, tok->pos);
     }
 
     enter_scope(func);
 
+    // params
     param_list(func);
-    func->type = type_spec();
-    expect(TK::NEWLINE);
-
+    // return type
+    if (consume(TK::NEWLINE)) {
+        func->type = new Type(TY::Nil);
+    }
+    else {
+        func->type = type_spec();
+        expect(TK::NEWLINE);
+    }
     // func body
     BlockStmt *block = block_stmt();
 

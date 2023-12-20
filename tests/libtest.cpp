@@ -1108,6 +1108,19 @@ int main(int argc, char **argv)
 
         ASSERTL(13, ip.Run(input));
     }
+    {
+        // nil return type
+        const std::string input(
+            "# foo()\n"
+            "  return\n"
+            "# main() int\n"
+            "  - i = 11\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(11, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
