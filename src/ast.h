@@ -24,50 +24,46 @@ struct Expr : public Node {
 };
 
 struct NullExpr : public Expr {
-    NullExpr();
+    NullExpr() : Expr(new Type(TY::Nil)) {}
+
     void Print(int depth) const override final {}
     void Gen(Bytecode &code) const override final {}
 };
 
-// Constant: nil, true, 42, 3.14, "Hello", ...
-struct ConstExpr : public Expr {
-    // nil
-    ConstExpr()
-        : Expr(new Type(TY::Nil)) {}
-    // bool
-    ConstExpr(bool b)
-        : Expr(new Type(TY::Bool)), bval(b) {}
-
-    union {
-        bool bval = false;
-        long ival;
-        double fval;
-        std::string_view sval;
-    };
+struct NilValExpr : public Expr {
+    NilValExpr() : Expr(new Type(TY::Nil)) {}
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
-struct IntNumExpr : public Expr {
-    IntNumExpr(long n, const Type *t) : Expr(t), ival(n) {}
-    long ival;
+struct BoolValExpr : public Expr {
+    BoolValExpr(bool b) : Expr(new Type(TY::Bool)), val(b) {}
+    bool val;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
-struct FpNumExpr : public Expr {
-    FpNumExpr(double n, const Type *t) : Expr(t), fval(n) {}
-    double fval;
+struct IntValExpr : public Expr {
+    IntValExpr(long l) : Expr(new Type(TY::Integer)), val(l) {}
+    long val;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
-struct StringLitExpr : public Expr {
-    StringLitExpr(std::string_view s, const Type *t) : Expr(t), sval(s) {}
-    std::string_view sval;
+struct FltValExpr : public Expr {
+    FltValExpr(double d) : Expr(new Type(TY::Float)), val(d) {}
+    double val;
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
+struct StrValExpr : public Expr {
+    StrValExpr(std::string_view s) : Expr(new Type(TY::String)), val(s) {}
+    std::string_view val;
     std::string converted;
 
     int ConvertEscSeq();
@@ -76,26 +72,25 @@ struct StringLitExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
-// Identifier: x, COUNT, foo() ..
 struct IdentExpr : public Expr {
     IdentExpr(const Var *v) : Expr(v->type), var(v) {}
     const Var *var;
 
+    int Addr() const override { return var->id; }
+    bool IsGlobal() const override { return var->is_global; }
+
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
-
-    int Addr() const override;
-    bool IsGlobal() const override { return var->is_global; }
 };
 
 struct FieldExpr : public Expr {
     FieldExpr(const Field *f) : Expr(f->type), fld(f) {}
     const Field *fld;
 
+    int Addr() const override { return fld->id; }
+
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
-
-    int Addr() const override { return fld->id; }
 };
 
 struct SelectExpr : public Expr {
@@ -103,37 +98,39 @@ struct SelectExpr : public Expr {
     Expr *inst;
     Expr *fld;
 
-    void Print(int depth) const override final;
-    void Gen(Bytecode &code) const override final;
-
     int Addr() const override { return inst->Addr() + fld->Addr(); }
     bool IsGlobal() const override { return inst->IsGlobal(); }
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
 };
 
 struct CallExpr : public Expr {
     CallExpr(Func *f) : Expr(f->type), func(f) {}
-    void AddArg(Expr *e) { args.push_back(e); }
     std::vector<Expr*> args;
     const Func *func;
+
+    void AddArg(Expr *e) { args.push_back(e); }
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
 struct BinaryExpr : public Expr {
-    BinaryExpr(TokenKind Kind, Expr *L, Expr *R);
-    TokenKind kind;
+    BinaryExpr(Expr *L, Expr *R, TK k)
+        : Expr(PromoteType(L->type, R->type)), l(L), r(R), kind(k) {}
     std::unique_ptr<Expr> l;
     std::unique_ptr<Expr> r;
+    TK kind;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
 struct UnaryExpr : public Expr {
-    UnaryExpr(TokenKind Kind, Expr *R);
-    TokenKind kind;
+    UnaryExpr(Expr *R, TK k) : Expr(R->type), r(R), kind(k) {}
     std::unique_ptr<Expr> r;
+    TK kind;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
@@ -151,9 +148,9 @@ struct AssignExpr : public Expr {
 };
 
 struct IncDecExpr : public Expr {
-    IncDecExpr(TokenKind k, Expr *e) : Expr(e->type), kind(k), lval(e) {}
-    TokenKind kind;
+    IncDecExpr(Expr *e, TK k) : Expr(e->type), lval(e), kind(k) {}
     std::unique_ptr<Expr> lval;
+    TK kind;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;

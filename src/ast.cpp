@@ -38,52 +38,43 @@ static void print_node(const char *name, int depth, bool end_line = true)
         std::cout << ' ';
 }
 
-NullExpr::NullExpr()
-    : Expr(new Type(TY::Integer))
+int StrValExpr::ConvertEscSeq()
 {
-}
-
-BinaryExpr::BinaryExpr(TokenKind Kind, Expr *L, Expr *R)
-    : Expr(PromoteType(L->type, R->type)), kind(Kind), l(L), r(R)
-{
-}
-
-UnaryExpr::UnaryExpr(TokenKind Kind, Expr *R)
-    : Expr(R->type), kind(Kind), r(R)
-{
-}
-
-int StringLitExpr::ConvertEscSeq()
-{
-    return ConvertEscapeSequence(sval, converted);
+    return ConvertEscapeSequence(val, converted);
 }
 
 // Print
-void ConstExpr::Print(int depth) const
+void NilValExpr::Print(int depth) const
 {
-    print_node("ConstExpr", depth, false);
-    std::cout << bval <<
+    print_node("NilValExpr", depth, false);
+    std::cout << type->kind << std::endl;
+}
+
+void BoolValExpr::Print(int depth) const
+{
+    print_node("BoolValExpr", depth, false);
+    std::cout << val <<
         " " << type->kind << std::endl;
 }
 
-void IntNumExpr::Print(int depth) const
+void IntValExpr::Print(int depth) const
 {
-    print_node("IntNumExpr", depth, false);
-    std::cout << ival <<
+    print_node("IntValExpr", depth, false);
+    std::cout << val <<
         " " << type->kind << std::endl;
 }
 
-void FpNumExpr::Print(int depth) const
+void FltValExpr::Print(int depth) const
 {
-    print_node("FpNumExpr", depth, false);
-    std::cout << fval <<
+    print_node("FltValExpr", depth, false);
+    std::cout << val <<
         " " << type->kind << std::endl;
 }
 
-void StringLitExpr::Print(int depth) const
+void StrValExpr::Print(int depth) const
 {
-    print_node("StringLitExpr", depth, false);
-    std::cout << "\"" << sval << "\"" <<
+    print_node("StrValExpr", depth, false);
+    std::cout << "\"" << val << "\"" <<
         " " << type->kind << std::endl;
 }
 
@@ -230,45 +221,39 @@ void Prog::Print(int depth) const
         func->Print(depth + 1);
 }
 
-// Addr
-int IdentExpr::Addr() const
-{
-    return var->id;
-}
-
 // Gen
-void ConstExpr::Gen(Bytecode &code) const
+void NilValExpr::Gen(Bytecode &code) const
 {
-    if (type->IsNil()) {
-        code.LoadByte(0);
-    }
-    else if (type->IsBool()) {
-        code.LoadByte(bval);
-    }
+    code.LoadByte(0);
 }
 
-void IntNumExpr::Gen(Bytecode &code) const
+void BoolValExpr::Gen(Bytecode &code) const
+{
+    code.LoadByte(val);
+}
+
+void IntValExpr::Gen(Bytecode &code) const
 {
     constexpr Int bytemin = std::numeric_limits<Byte>::min();
     constexpr Int bytemax = std::numeric_limits<Byte>::max();
 
-    if (ival >= bytemin && ival <= bytemax)
-        code.LoadByte(ival);
+    if (val >= bytemin && val <= bytemax)
+        code.LoadByte(val);
     else
-        code.LoadInt(ival);
+        code.LoadInt(val);
 }
 
-void FpNumExpr::Gen(Bytecode &code) const
+void FltValExpr::Gen(Bytecode &code) const
 {
-    code.LoadFloat(fval);
+    code.LoadFloat(val);
 }
 
-void StringLitExpr::Gen(Bytecode &code) const
+void StrValExpr::Gen(Bytecode &code) const
 {
     std::string_view s;
 
     if (converted.empty())
-        s = sval;
+        s = val;
     else
         s = std::string_view(converted.c_str(), converted.length());
 

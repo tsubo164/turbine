@@ -138,22 +138,22 @@ CallExpr *Parser::arg_list(CallExpr *call)
 Expr *Parser::primary_expr()
 {
     if (consume(TK::NIL))
-        return new ConstExpr();
+        return new NilValExpr();
 
     if (consume(TK::TRUE))
-        return new ConstExpr(true);
+        return new BoolValExpr(true);
 
     if (consume(TK::FALSE))
-        return new ConstExpr(false);
+        return new BoolValExpr(false);
 
     if (consume(TK::INTLIT))
-        return new IntNumExpr(tok_int(), new Type(TY::Integer));
+        return new IntValExpr(tok_int());
 
     if (consume(TK::FLTLIT))
-        return new FpNumExpr(tok_float(), new Type(TY::Float));
+        return new FltValExpr(tok_float());
 
     if (consume(TK::STRLIT)) {
-        StringLitExpr *e = new StringLitExpr(tok_str(), new Type(TY::String));
+        StrValExpr *e = new StrValExpr(tok_str());
         const Token *tok = curtok();
         if (tok->has_escseq) {
             const int errpos = e->ConvertEscSeq();
@@ -248,7 +248,7 @@ Expr *Parser::unary_expr()
     case TK::MINUS:
     case TK::EXCL:
     case TK::TILDA:
-        return new UnaryExpr(tok->kind, unary_expr());
+        return new UnaryExpr(unary_expr(), tok->kind);
 
     default:
         ungettok();
@@ -279,7 +279,7 @@ Expr *Parser::mul_expr()
                     TypeString(x->type) + " and " + TypeString(y->type);
                 Error(msg, *src_, tok->pos);
             }
-            x = new BinaryExpr(tok->kind, x, y);
+            x = new BinaryExpr(x, y, tok->kind);
             break;
 
         default:
@@ -310,7 +310,7 @@ Expr *Parser::add_expr()
                     TypeString(expr->type) + " and " + TypeString(l->type);
                 Error(msg, *src_, tok->pos);
             }
-            expr = new BinaryExpr(tok->kind, expr, l);
+            expr = new BinaryExpr(expr, l, tok->kind);
             break;
 
         default:
@@ -336,7 +336,7 @@ Expr *Parser::rel_expr()
         case TK::GT:
         case TK::LTE:
         case TK::GTE:
-            expr = new BinaryExpr(tok->kind, expr, add_expr());
+            expr = new BinaryExpr(expr, add_expr(), tok->kind);
             continue;
 
         default:
@@ -356,7 +356,7 @@ Expr *Parser::logand_expr()
 
         switch (tok->kind) {
         case TK::AMP2:
-            expr = new BinaryExpr(tok->kind, expr, rel_expr());
+            expr = new BinaryExpr(expr, rel_expr(), tok->kind);
             continue;
 
         default:
@@ -376,7 +376,7 @@ Expr *Parser::logor_expr()
 
         switch (tok->kind) {
         case TK::BAR2:
-            expr = new BinaryExpr(tok->kind, expr, logand_expr());
+            expr = new BinaryExpr(expr, logand_expr(), tok->kind);
             continue;
 
         default:
@@ -406,7 +406,7 @@ Expr *Parser::assign_expr()
 
     case TK::PLUS2:
     case TK::MINUS2:
-        return new IncDecExpr(tok->kind, expr);
+        return new IncDecExpr(expr, tok->kind);
 
     default:
         ungettok();
@@ -452,7 +452,7 @@ Stmt *Parser::for_stmt()
     if (consume(TK::NEWLINE)) {
         // infinite loop
         init = new NullExpr();
-        cond = new IntNumExpr(1, new Type(TY::Integer));
+        cond = new IntValExpr(1);
         post = new NullExpr();
     }
     else {
@@ -578,11 +578,11 @@ Stmt *Parser::expr_stmt()
 static Expr *default_value(const Type *type)
 {
     if (type->IsInt())
-        return new IntNumExpr(0, DuplicateType(type));
+        return new IntValExpr(0);
     else if (type->IsFloat())
-        return new FpNumExpr(0.0f, DuplicateType(type));
+        return new FltValExpr(0.0);
     else if (type->IsString())
-        return new StringLitExpr("", DuplicateType(type));
+        return new StrValExpr("");
     else
         return new NullExpr();
 }
