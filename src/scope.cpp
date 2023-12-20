@@ -100,12 +100,15 @@ Var *Scope::DefineVar(std::string_view name, const Type *type)
     return var;
 }
 
-Var *Scope::FindVar(std::string_view name) const
+Var *Scope::FindVar(std::string_view name, bool find_in_parents) const
 {
     const auto it = vars_.find(name);
     if (it != vars_.end()) {
         return it->second;
     }
+
+    if (!find_in_parents)
+        return nullptr;
 
     if (HasParent())
         return Parent()->FindVar(name);

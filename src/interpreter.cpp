@@ -21,8 +21,12 @@ Interpreter::~Interpreter()
 Int Interpreter::Run(const std::string &src)
 {
     // Print token
-    if (print_token_)
+    if (print_token_) {
         print_token(src);
+        if (!print_tree_ && !print_symbols_ && !print_bytecode_) {
+            return 0;
+        }
+    }
 
     // Compile source
     tree_ = parser_.Parse(src);

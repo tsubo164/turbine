@@ -195,9 +195,10 @@ Expr *Parser::primary_expr()
             else {
                 Var *var = scope_->FindVar(tok->sval);
                 if (!var) {
-                    std::cerr << "error: undefined identifier: '" <<
-                        tok->sval << "'" << std::endl;
-                    exit(EXIT_FAILURE);
+                    const Token *tok = curtok();
+                    const std::string msg = "undefined identifier: '" +
+                        std::string(tok->sval) + "'";
+                    Error(msg, *src_, tok->pos);
                 }
 
                 expr = new IdentExpr(var);
@@ -594,7 +595,7 @@ Stmt *Parser::var_decl()
     expect(TK::MINUS);
     expect(TK::IDENT);
 
-    if (scope_->FindVar(tok_str())) {
+    if (scope_->FindVar(tok_str(), false)) {
         const Token *tok = curtok();
         const std::string msg = "re-defined variable: '" +
             std::string(tok_str()) + "'";
@@ -705,6 +706,14 @@ BlockStmt *Parser::block_stmt()
         }
         else if (next == TK::RETURN) {
             block->AddStmt(ret_stmt());
+            continue;
+        }
+        else if (next == TK::MINUS3) {
+            gettok();
+            expect(TK::NEWLINE);
+            enter_scope();
+            block->AddStmt(block_stmt());
+            leave_scope();
             continue;
         }
         else if (next == TK::NOP) {

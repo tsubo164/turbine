@@ -84,7 +84,7 @@ public:
     bool IsGlobal() const;
 
     Var *DefineVar(std::string_view name, const Type *type);
-    Var *FindVar(std::string_view name) const;
+    Var *FindVar(std::string_view name, bool find_in_parents = true) const;
     int VarCount() const;
 
     Field *DefineFild(std::string_view name);

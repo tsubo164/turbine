@@ -37,13 +37,70 @@ static TokenKind keyword_or_identifier(std::string_view word)
 static const char *tok_kind_string(TokenKind kind)
 {
     switch (kind) {
-#define TK(tok, str) case TokenKind::tok: return str;
-    TOKEN_LIST
-#undef TK
-    default:
-        ERROR_NO_CASE(kind);
-        return nullptr;
+    case TK::UNKNOWN:    return "unknown";
+    case TK::INTLIT:     return "integer_literal";
+    case TK::FLTLIT:     return "float_literal";
+    case TK::STRLIT:     return "string_literal";
+    case TK::IDENT:      return "identifier";
+    case TK::EQ:         return "=";
+    case TK::PLUSEQ:     return "+=";
+    case TK::MINUSEQ:    return "-=";
+    case TK::STAREQ:     return "*=";
+    case TK::SLASHEQ:    return "/=";
+    case TK::PERCENTEQ:  return "%=";
+    case TK::EQ2:        return "==";
+    case TK::EXCLEQ:     return "!=";
+    case TK::EXCL:       return "!";
+    case TK::CARET:      return "^";
+    case TK::TILDA:      return "~";
+    case TK::LT2:        return "<<";
+    case TK::GT2:        return ">>";
+    case TK::LT:         return "<";
+    case TK::GT:         return ">";
+    case TK::LTE:        return "<=";
+    case TK::GTE:        return ">=";
+    case TK::PLUS:       return "+";
+    case TK::MINUS:      return "-";
+    case TK::STAR:       return "*";
+    case TK::SLASH:      return "/";
+    case TK::PERCENT:    return "%";
+    case TK::BAR:        return "|";
+    case TK::BAR2:       return "||";
+    case TK::AMP:        return "&";
+    case TK::AMP2:       return "&&";
+    case TK::PERIOD:     return ".";
+    case TK::PLUS2:      return "++";
+    case TK::MINUS2:     return "--";
+    case TK::HASH:       return "#";
+    case TK::HASH2:      return "##";
+    case TK::NIL:        return "nil";
+    case TK::TRUE:       return "true";
+    case TK::FALSE:      return "false";
+    case TK::INT:        return "int";
+    case TK::FLOAT:      return "float";
+    case TK::STRING:     return "string";
+    case TK::IF:         return "if";
+    case TK::ELSE:       return "else";
+    case TK::FOR:        return "for";
+    case TK::BREAK:      return "break";
+    case TK::CONTINUE:   return "continue";
+    case TK::SWITCH:     return "switch";
+    case TK::CASE:       return "case";
+    case TK::DEFAULT:    return "default";
+    case TK::RETURN:     return "return";
+    case TK::NOP:        return "nop";
+    case TK::MINUS3:     return "---";
+    case TK::COMMA:      return ",";
+    case TK::SEMICOLON:  return ";";
+    case TK::LPAREN:     return "(";
+    case TK::RPAREN:     return ")";
+    case TK::BLOCKBEGIN: return "block_begin";
+    case TK::BLOCKEND:   return "block_end";
+    case TK::NEWLINE:    return "\\n";
+    case TK::EOF_:       return "end_of_file";
     }
+    ERROR_NO_CASE(kind);
+    return nullptr;
 }
 
 const char *GetTokenKindString(TokenKind kind)
@@ -244,7 +301,15 @@ void Lexer::Get(Token *tok)
         if (ch == '-') {
             ch = get();
             if (ch == '-') {
-                tok->set(TK::MINUS2, pos);
+                //tok->set(TK::MINUS2, pos);
+                ch = get();
+                if (ch == '-') {
+                    tok->set(TK::MINUS3, pos);
+                }
+                else {
+                    unget();
+                    tok->set(TK::MINUS2, pos);
+                }
             }
             else if (ch == '=') {
                 tok->set(TK::MINUSEQ, pos);
