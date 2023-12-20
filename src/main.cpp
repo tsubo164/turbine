@@ -79,9 +79,9 @@ int main(int argc, char **argv)
     ip.EnablePrintBytecode(print_bytecode);
     ip.EnablePrintStack(print_stack);
 
-    const int ret = ip.Run(src);
-    if (!print_token && !print_tree && !print_bytecode && !print_symbols)
-        std::cout << "ret: " << ret << std::endl;
+    int ret = ip.Run(src);
+    if (print_token || print_tree || print_bytecode || print_symbols)
+        ret = 0;
 
-    return 0;
+    return ret;
 }
