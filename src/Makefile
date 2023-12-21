@@ -16,7 +16,7 @@ DEPS := $(addsuffix .d, $(SRCS)) main.d
 all: $(MDS)
 
 run: $(MDS)
-	$(MDS) ./input.md
+	$(MDS) ./input.ro
 
 $(OBJS): %.o: %.cpp
 	$(CC) $(CFLAGS) -o $@ $<

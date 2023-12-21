@@ -391,8 +391,12 @@ void VM::run()
                         // peek next arg
                         if (!args.empty()) {
                             const Value next_type = args.top();
-                            if (next_type.inum == static_cast<int>(TypeID::NIL))
-                                break;
+                            if (next_type.inum == static_cast<int>(TypeID::NIL)) {
+                                // remove nil and skip separator
+                                args.pop();
+                                args.pop();
+                                continue;
+                            }
                         }
 
                         if (args.empty())
