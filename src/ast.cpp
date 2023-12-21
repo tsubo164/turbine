@@ -211,7 +211,8 @@ void ExprStmt::Print(int depth) const
 void FuncDef::Print(int depth) const
 {
     print_node("FuncDef", depth, false);
-    std::cout << func->name << std::endl;
+    std::cout << func->name << " " <<
+        func->type->kind << std::endl;
     block->Print(depth + 1);
 }
 

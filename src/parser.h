@@ -20,6 +20,7 @@ private:
     Lexer lexer_;
     Scope *scope_;
     const std::string *src_;
+    Func *func_ = nullptr;
 
     // token buffer
     std::array<Token,8> tokbuf_;

@@ -228,7 +228,6 @@ struct SwitchStmt : public Stmt {
 };
 
 struct ReturnStmt : public Stmt {
-    ReturnStmt() : expr(new NullExpr()) {}
     ReturnStmt(Expr *e) : expr(e) {}
     std::unique_ptr<Expr> expr;
 

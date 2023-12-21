@@ -555,17 +555,29 @@ Stmt *Parser::ret_stmt()
 {
     expect(TK::RETURN);
 
-    ReturnStmt *stmt = nullptr;
+    const Token *tok = curtok();
+    const Pos exprpos = tok->pos;
+    Expr *expr = nullptr;
 
     if (consume(TK::NEWLINE)) {
-        stmt = new ReturnStmt();
+        expr = new NullExpr();
     }
     else {
-        stmt = new ReturnStmt(expression());
+        expr = expression();
         expect(TK::NEWLINE);
     }
 
-    return stmt;
+    assert(func_);
+
+    if (func_->type->kind != expr->type->kind) {
+        const std::string msg =
+            std::string("type mismatch: function type '") +
+            TypeString(func_->type) + "': expression type '" +
+            TypeString(expr->type) + "'";
+        Error(msg, *src_, exprpos);
+    }
+
+    return new ReturnStmt(expr);
 }
 
 Stmt *Parser::expr_stmt()
@@ -842,7 +854,9 @@ FuncDef *Parser::func_def()
         expect(TK::NEWLINE);
     }
     // func body
+    func_ = func;
     BlockStmt *block = block_stmt();
+    func_ = nullptr;
 
     leave_scope();
 
