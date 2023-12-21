@@ -74,7 +74,7 @@ private:
 class Scope {
 public:
     Scope();
-    Scope(Scope *parent);
+    Scope(Scope *parent, int var_id_offset);
     ~Scope();
 
     Scope *OpenChild();
@@ -85,7 +85,10 @@ public:
 
     Var *DefineVar(std::string_view name, const Type *type);
     Var *FindVar(std::string_view name, bool find_in_parents = true) const;
+    // var count in this scope
     int VarCount() const;
+    // max var id including child scopes
+    int MaxVarID() const;
 
     Field *DefineFild(std::string_view name);
     Field *FindField(std::string_view name) const;
@@ -98,6 +101,7 @@ public:
     Class *DefineClass(std::string_view name);
     Class *FindClass(std::string_view name) const;
 
+    int NextVarID() const;
     int VarSize() const;
     int FieldSize() const;
 
@@ -106,6 +110,8 @@ public:
 private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;
+    const int var_id_offset_ = 0;
+
     const Func *func_ = nullptr;
     const Class *clss_ = nullptr;
 

@@ -1,5 +1,6 @@
 #include "scope.h"
 #include "type.h"
+#include <algorithm>
 #include <iostream>
 
 // Func
@@ -16,7 +17,8 @@ int Func::ParamCount() const
 
 int Func::VarCount() const
 {
-    return scope->VarCount() - ParamCount();
+    const int var_count = scope->MaxVarID() + 1;
+    return var_count - ParamCount();
 }
 
 // Class
@@ -44,12 +46,12 @@ int Class::Size() const
 
 // Scope
 Scope::Scope()
-    : parent_(nullptr)
+    : parent_(nullptr), var_id_offset_(0)
 {
 }
 
-Scope::Scope(Scope *parent)
-    : parent_(parent)
+Scope::Scope(Scope *parent, int var_id_offset)
+    : parent_(parent), var_id_offset_(var_id_offset)
 {
 }
 
@@ -61,7 +63,9 @@ Scope::~Scope()
 
 Scope *Scope::OpenChild()
 {
-    Scope *child = new Scope(this);
+    const int next_var_id = IsGlobal() ? 0 : NextVarID();
+
+    Scope *child = new Scope(this, next_var_id);
     children_.push_back(child);
 
     return child;
@@ -94,7 +98,7 @@ Var *Scope::DefineVar(std::string_view name, const Type *type)
         return nullptr;
     }
 
-    const int next_id = vars_.size();
+    const int next_id = NextVarID();
     Var *var = new Var(name, type, next_id, IsGlobal());
     vars_.insert({name, var});
     return var;
@@ -119,6 +123,16 @@ Var *Scope::FindVar(std::string_view name, bool find_in_parents) const
 int Scope::VarCount() const
 {
     return vars_.size();
+}
+
+int Scope::MaxVarID() const
+{
+    int max = NextVarID() - 1;
+
+    for (auto child: children_)
+        max = std::max(max, child->MaxVarID());
+
+    return max;
 }
 
 Field *Scope::DefineFild(std::string_view name)
@@ -207,6 +221,11 @@ Class *Scope::FindClass(std::string_view name) const
         return Parent()->FindClass(name);
 
     return nullptr;
+}
+
+int Scope::NextVarID() const
+{
+    return VarCount() + var_id_offset_;
 }
 
 int Scope::VarSize() const

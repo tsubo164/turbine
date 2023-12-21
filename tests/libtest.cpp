@@ -1121,6 +1121,20 @@ int main(int argc, char **argv)
 
         ASSERTL(11, ip.Run(input));
     }
+    {
+        // scope statement
+        const std::string input(
+            "# main() int\n"
+            "  - i = 17\n"
+            "  ---\n"
+            "    - i int\n"
+            "    i = 9\n"
+            "  return i\n"
+            );
+        Interpreter ip;
+
+        ASSERTL(17, ip.Run(input));
+    }
 
     if (GetTestCount() <= 1)
         printf("%d test done.\n", GetTestCount());
