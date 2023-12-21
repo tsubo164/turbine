@@ -890,12 +890,19 @@ Prog *Parser::program()
             continue;
         }
 
+        if (next == TK::NEWLINE) {
+            gettok();
+            continue;
+        }
+
         if (next == TK::EOF_) {
             break;
         }
 
-        std::cerr << "error: unexpected token: '" << next << "'" << std::endl;
-        exit(EXIT_FAILURE);
+        const Token *tok = gettok();
+        const std::string msg = std::string("error: unexpected token: '") +
+            GetTokenKindString(next) + "'";
+        Error(msg, *src_, tok->pos);
     }
 
     return prog;

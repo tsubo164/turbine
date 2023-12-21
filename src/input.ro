@@ -1,6 +1,10 @@
 # foo() int
   return 3//.14
 
+// test
+/*
+comment
+*/
 # main() int
   print("Hello, World!", nil, 42, 3.14)
 
