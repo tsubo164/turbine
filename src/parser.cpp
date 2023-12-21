@@ -576,6 +576,28 @@ Stmt *Parser::expr_stmt()
     return stmt;
 }
 
+Stmt *Parser::scope_stmt()
+{
+    expect(TK::MINUS3);
+    expect(TK::NEWLINE);
+
+    enter_scope();
+    BlockStmt *stmt = block_stmt();
+    leave_scope();
+
+    return stmt;
+}
+
+Stmt *Parser::nop_stmt()
+{
+    expect(TK::NOP);
+
+    NopStmt *stmt = new NopStmt();
+    expect(TK::NEWLINE);
+
+    return stmt;
+}
+
 static Expr *default_value(const Type *type)
 {
     if (type->IsInt())
@@ -709,16 +731,11 @@ BlockStmt *Parser::block_stmt()
             continue;
         }
         else if (next == TK::MINUS3) {
-            gettok();
-            expect(TK::NEWLINE);
-            enter_scope();
-            block->AddStmt(block_stmt());
-            leave_scope();
+            block->AddStmt(scope_stmt());
             continue;
         }
         else if (next == TK::NOP) {
-            gettok();
-            expect(TK::NEWLINE);
+            block->AddStmt(nop_stmt());
             continue;
         }
         else if (next == TK::NEWLINE) {

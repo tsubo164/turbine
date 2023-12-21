@@ -68,6 +68,8 @@ private:
     CaseStmt *case_stmt(TK kind);
     Stmt *ret_stmt();
     Stmt *expr_stmt();
+    Stmt *scope_stmt();
+    Stmt *nop_stmt();
     BlockStmt *block_stmt();
 
     //

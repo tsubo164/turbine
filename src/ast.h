@@ -159,10 +159,18 @@ struct IncDecExpr : public Expr {
 struct Stmt : public Node {
 };
 
+struct NopStmt : public Stmt {
+    NopStmt() {}
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct BlockStmt : public Stmt {
     BlockStmt() {}
-    void AddStmt(Stmt *stmt) { stmts.emplace_back(stmt); }
     std::vector<std::unique_ptr<Stmt>> stmts;
+
+    void AddStmt(Stmt *stmt) { stmts.emplace_back(stmt); }
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;

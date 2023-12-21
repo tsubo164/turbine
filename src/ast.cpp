@@ -145,6 +145,11 @@ void IncDecExpr::Print(int depth) const
     lval->Print(depth + 1);
 }
 
+void NopStmt::Print(int depth) const
+{
+    print_node("NopStmt", depth);
+}
+
 void BlockStmt::Print(int depth) const
 {
     print_node("BlockStmt", depth);
@@ -517,6 +522,10 @@ void IncDecExpr::Gen(Bytecode &code) const
     default:
         return;
     }
+}
+
+void NopStmt::Gen(Bytecode &code) const
+{
 }
 
 void BlockStmt::Gen(Bytecode &code) const
