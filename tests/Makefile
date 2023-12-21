@@ -14,13 +14,13 @@ test: all
 libtest: libtest.out
 	./$@.out
 
-libtest.out: libtest.o test.o ../src/libmds.a
+libtest.out: libtest.o test.o ../src/librock.a
 	$(CC) -o $@ $^
 
 %.o:%.cpp
 	$(CC) -std=c++17 -g -c $<
 
-../src/libmds.a: ../src/*.h ../src/*.cpp
+../src/librock.a: ../src/*.h ../src/*.cpp
 	make -C ../src
 
 clean:

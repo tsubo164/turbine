@@ -8,15 +8,15 @@ SRCS    := ast bytecode codegen error escseq interpreter lexer parser scope type
 
 .PHONY: all clean run test
 
-MDS  := ../mds
-MDSA := libmds.a
+ROCK  := ../rock
+ROCKA := librock.a
 OBJS := $(addsuffix .o, $(SRCS))
 DEPS := $(addsuffix .d, $(SRCS)) main.d
 
-all: $(MDS)
+all: $(ROCK)
 
-run: $(MDS)
-	$(MDS) ./input.ro
+run: $(ROCK)
+	$(ROCK) ./input.ro
 
 $(OBJS): %.o: %.cpp
 	$(CC) $(CFLAGS) -o $@ $<
@@ -24,16 +24,16 @@ $(OBJS): %.o: %.cpp
 main.o: main.cpp
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(MDS): main.o $(MDSA)
+$(ROCK): main.o $(ROCKA)
 	$(CC) -o $@ $^
 
-$(MDSA): $(OBJS)
+$(ROCKA): $(OBJS)
 	$(AR) -r $@ $^
 
 clean:
-	$(RM) $(MDS) $(MDSA) *.o *.d
+	$(RM) $(ROCK) $(ROCKA) *.o *.d
 
-test: $(MDSA)
+test: $(ROCKA)
 	$(MAKE) -C tests $@
 
 $(DEPS): %.d: %.cpp
