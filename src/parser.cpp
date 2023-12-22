@@ -62,6 +62,11 @@ void Parser::ungettok()
     curr_ = prev();
 }
 
+Pos Parser::tok_pos() const
+{
+    return curr_->pos;
+}
+
 long Parser::tok_int() const
 {
     return curr_->ival;
@@ -130,15 +135,44 @@ CallExpr *Parser::arg_list(CallExpr *call)
 {
     expect(TK::LPAREN);
 
-    if (consume(TK::RPAREN))
-        return call;
-
-    do {
-        call->AddArg(expression());
+    if (peek() != TK::RPAREN) {
+        do {
+            call->AddArg(expression());
+        }
+        while (consume(TK::COMMA));
     }
-    while (consume(TK::COMMA));
+
+    if (call->func->HasSpecialVar()) {
+        call->AddArg(new IntValExpr(call->pos.y));
+    }
 
     expect(TK::RPAREN);
+
+    // TODO remove builtin check
+    if (!call->func->is_builtin) {
+        const int argc = call->ArgCount();
+        const int paramc = call->func->ParamCount();
+
+        if (argc < paramc) {
+            error(tok_pos(), "too few arguments");
+        }
+        else if (argc > paramc) {
+            error(tok_pos(), "too many arguments");
+        }
+        else {
+            for (int i = 0; i < argc; i++) {
+                const Expr *arg = call->GetArg(i);
+                const Var *param = call->func->GetParam(i);
+
+                if (!MatchType(arg->type, param->type)) {
+                    error(tok_pos(), "type mismatch: ",
+                            TypeString(arg->type), " and ",
+                            TypeString(param->type));
+                }
+            }
+        }
+    }
+
     return call;
 }
 
@@ -185,11 +219,10 @@ Expr *Parser::primary_expr()
     }
 
     if (consume(TK::CALLER_LINE)) {
-        const Token *tok = curtok();
-        Var *var = scope_->FindVar(tok->sval);
+        Var *var = scope_->FindVar(tok_str());
         if (!var) {
-            error(tok->pos,
-                    "special variable '", tok->sval,
+            error(tok_pos(),
+                    "special variable '", tok_str(),
                     "' not declared in parameters");
         }
         return new IdentExpr(var);
@@ -206,9 +239,8 @@ Expr *Parser::primary_expr()
                 if (!func) {
                     func = scope_->FindFunc(tok->sval);
                     if (!func) {
-                        std::cerr << "error: undefined identifier: '" <<
-                            tok->sval << "'" << std::endl;
-                        exit(EXIT_FAILURE);
+                        error(tok->pos,
+                                "undefined identifier: '", tok->sval, "'");
                     }
                 }
 
@@ -218,10 +250,9 @@ Expr *Parser::primary_expr()
             else {
                 Var *var = scope_->FindVar(tok->sval);
                 if (!var) {
-                    const Token *tok = curtok();
                     const std::string msg = "undefined identifier: '" +
-                        std::string(tok->sval) + "'";
-                    Error(msg, *src_, tok->pos);
+                        std::string(tok_str()) + "'";
+                    Error(msg, *src_, tok_pos());
                 }
 
                 expr = new IdentExpr(var);
@@ -600,8 +631,7 @@ Stmt *Parser::ret_stmt()
 {
     expect(TK::RETURN);
 
-    const Token *tok = curtok();
-    const Pos exprpos = tok->pos;
+    const Pos exprpos = tok_pos();
     Expr *expr = nullptr;
 
     if (consume(TK::NEWLINE)) {
@@ -671,10 +701,9 @@ Stmt *Parser::var_decl()
     expect(TK::IDENT);
 
     if (scope_->FindVar(tok_str(), false)) {
-        const Token *tok = curtok();
         const std::string msg = "re-defined variable: '" +
             std::string(tok_str()) + "'";
-        Error(msg, *src_, tok->pos);
+        Error(msg, *src_, tok_pos());
     }
 
     // var anme
@@ -900,11 +929,10 @@ FuncDef *Parser::func_def()
     // func name
     Func *func = scope_->DefineFunc(tok_str());
     if (!func) {
-        const Token *tok = curtok();
         const std::string msg =
             "re-defined function: '" +
             std::string(tok_str()) + "'";
-        Error(msg, *src_, tok->pos);
+        Error(msg, *src_, tok_pos());
     }
 
     // params

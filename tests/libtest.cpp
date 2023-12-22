@@ -336,7 +336,7 @@ int main(int argc, char **argv)
             "    return x + y\n"
             "\n"
             "# main() int\n"
-            "    return foo(10) + add(20 + 3)\n"
+            "    return foo(10) + add(20, 3)\n"
             );
         Interpreter ip;
 

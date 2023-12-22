@@ -6,8 +6,8 @@
 // Func
 void Func::DeclareParam(std::string_view name, const Type *type)
 {
-    scope->DefineVar(name, type);
-    nparams_++;
+    const Var *var = scope->DefineVar(name, type);
+    params_.push_back(var);
 
     if (name[0] == '$')
         has_special_var_ = true;
@@ -15,13 +15,21 @@ void Func::DeclareParam(std::string_view name, const Type *type)
 
 int Func::ParamCount() const
 {
-    return nparams_;
+    return params_.size();
 }
 
 int Func::VarCount() const
 {
     const int var_count = scope->MaxVarID() + 1;
     return var_count - ParamCount();
+}
+
+const Var *Func::GetParam(int index) const
+{
+    if (index < 0 || index >= ParamCount())
+        return nullptr;
+
+    return params_[index];
 }
 
 // Class

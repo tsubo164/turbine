@@ -1,26 +1,21 @@
-# foo(x int, y int, z int, $caller_line)
+# foo(x int, y int, h int, $caller_line)
   - a = 42
   - b = "foo"
   print("caller line: ", $caller_line)
   - c = 3.14
   - caller_line int
-
   ---
     - x int
 
-  return
+# bar()
+  print("bar")
+  nop
+
+// twice the number
+# twice(i int) int
+  return 2 * i
 
 # main() int
-  - n = 3
-
-  //if n == 3
-  //  print("Fiz")
-  //or n == 5
-  //  print("Baz")
-  //or
-  //  print("FizBaz")
-
-
+  bar()
   foo(33, 44, 55)
-
-  return n
+  return twice(3)

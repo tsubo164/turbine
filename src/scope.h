@@ -32,16 +32,16 @@ struct Func {
     const bool is_builtin;
     const bool is_variadic;
     Scope *scope;
+    const Type *type = nullptr;
 
     void DeclareParam(std::string_view name, const Type *type);
     int ParamCount() const;
     int VarCount() const;
+    const Var *GetParam(int index) const;
     bool HasSpecialVar() const { return has_special_var_; }
 
-    const Type *type = nullptr;
-
 private:
-    int nparams_ = 0;
+    std::vector<const Var*> params_;
     bool has_special_var_ = false;
 };
 

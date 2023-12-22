@@ -36,7 +36,8 @@ private:
     const Token *gettok();
     void ungettok();
 
-    //
+    // tokens
+    Pos tok_pos() const;
     long tok_int() const;
     double tok_float() const;
     std::string_view tok_str() const;

@@ -114,6 +114,13 @@ struct CallExpr : public Expr {
     const Pos pos;
 
     void AddArg(Expr *e) { args.push_back(e); }
+    int ArgCount() const { return args.size(); }
+    const Expr *GetArg(int index)
+    {
+        if (index < 0 || index >= ArgCount())
+            return nullptr;
+        return args[index];
+    }
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
