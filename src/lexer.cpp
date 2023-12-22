@@ -23,6 +23,8 @@ static const std::unordered_map<std::string_view, TokenKind> keywords = {
     {"default",  TK::DEFAULT},
     {"return",   TK::RETURN},
     {"nop",      TK::NOP},
+    // special vars
+    {"$caller_line", TK::CALLER_LINE},
 };
 
 static TokenKind keyword_or_identifier(std::string_view word)
@@ -91,6 +93,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::DEFAULT:    return "default";
     case TK::RETURN:     return "return";
     case TK::NOP:        return "nop";
+    case TK::CALLER_LINE:return "$caller_line";
     case TK::MINUS3:     return "---";
     case TK::COMMA:      return ",";
     case TK::SEMICOLON:  return ";";
@@ -423,6 +426,18 @@ void Lexer::Get(Token *tok)
             return;
         }
 
+        if (ch == '$') {
+            unget();
+            scan_word(tok, pos);
+            if (tok->kind == TK::IDENT) {
+                const std::string msg =
+                    "unknown special variables: '$" +
+                    std::string(tok->sval) + "'";
+                Error(msg, *src_, pos);
+            }
+            return;
+        }
+
         // string
         if (ch == '"') {
             scan_string(tok, pos);
@@ -562,6 +577,10 @@ void Lexer::scan_word(Token *tok, Pos pos)
     auto start = it_;
     int len = 0;
 
+    const int first = get();
+    if (first == '$' || isword(first))
+        len++;
+
     for (int ch = get(); isword(ch); ch = get())
         len++;
 
@@ -570,9 +589,7 @@ void Lexer::scan_word(Token *tok, Pos pos)
     const std::string_view word(&(*start), len);
     const TokenKind kind = keyword_or_identifier(word);
 
-    if (kind == TK::IDENT)
-        tok->sval = word;
-
+    tok->sval = word;
     tok->set(kind, pos);
 }
 

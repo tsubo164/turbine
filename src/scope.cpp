@@ -8,6 +8,9 @@ void Func::DeclareParam(std::string_view name, const Type *type)
 {
     scope->DefineVar(name, type);
     nparams_++;
+
+    if (name[0] == '$')
+        has_special_var_ = true;
 }
 
 int Func::ParamCount() const

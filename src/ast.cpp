@@ -319,6 +319,9 @@ void CallExpr::Gen(Bytecode &code) const
     else {
         for (auto arg: args)
             arg->Gen(code);
+
+        if (func->HasSpecialVar())
+            code.LoadByte(pos.y);
     }
 
     code.CallFunction(func->id, func->is_builtin);

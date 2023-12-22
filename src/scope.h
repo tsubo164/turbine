@@ -36,11 +36,13 @@ struct Func {
     void DeclareParam(std::string_view name, const Type *type);
     int ParamCount() const;
     int VarCount() const;
+    bool HasSpecialVar() const { return has_special_var_; }
 
     const Type *type = nullptr;
 
 private:
     int nparams_ = 0;
+    bool has_special_var_ = false;
 };
 
 struct Field {

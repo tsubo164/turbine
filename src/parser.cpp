@@ -172,6 +172,19 @@ Expr *Parser::primary_expr()
         return expr;
     }
 
+    if (consume(TK::CALLER_LINE)) {
+        const Token *tok = curtok();
+        Var *var = scope_->FindVar(tok->sval);
+        if (!var) {
+            const std::string msg =
+                "special variable '$" +
+                std::string(tok->sval) +
+                "' not declared in parameters";
+            Error(msg, *src_, tok->pos);
+        }
+        return new IdentExpr(var);
+    }
+
     Expr *expr = nullptr;
 
     for (;;) {
@@ -189,7 +202,7 @@ Expr *Parser::primary_expr()
                     }
                 }
 
-                CallExpr *call = new CallExpr(func);
+                CallExpr *call = new CallExpr(func, tok->pos);
                 expr = arg_list(call);
             }
             else {
@@ -845,10 +858,20 @@ void Parser::param_list(Func *func)
         return;
 
     do {
-        expect(TK::IDENT);
-        std::string_view name = tok_str();
+        const Type *type = nullptr;
+        std::string_view name;
 
-        func->DeclareParam(name, type_spec());
+        if (consume(TK::CALLER_LINE)) {
+            name = tok_str();
+            type = new Type(TY::Integer);
+        }
+        else {
+            expect(TK::IDENT);
+            name = tok_str();
+            type = type_spec();
+        }
+
+        func->DeclareParam(name, type);
     }
     while (consume(TK::COMMA));
 

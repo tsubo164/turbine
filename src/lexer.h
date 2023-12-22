@@ -63,6 +63,8 @@ enum class TokenKind {
     DEFAULT,
     RETURN,
     NOP,
+    // special var
+    CALLER_LINE,
     // separator
     MINUS3,
     COMMA,

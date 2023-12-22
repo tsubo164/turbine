@@ -108,9 +108,10 @@ struct SelectExpr : public Expr {
 };
 
 struct CallExpr : public Expr {
-    CallExpr(Func *f) : Expr(f->type), func(f) {}
+    CallExpr(Func *f, Pos p) : Expr(f->type), func(f), pos(p) {}
     std::vector<Expr*> args;
     const Func *func;
+    const Pos pos;
 
     void AddArg(Expr *e) { args.push_back(e); }
 
