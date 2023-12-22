@@ -179,11 +179,14 @@ public:
     Int Size() const;
 
     // Backpatches
+    void BeginIf();
     void BeginFor();
     void BeginSwitch();
+    void PushOrClose(Int addr);
     void PushBreak(Int addr);
     void PushContinue(Int addr);
-    void PushCaseCloses(Int addr);
+    void PushCaseClose(Int addr);
+    void BackPatchOrCloses();
     void BackPatchBreaks();
     void BackPatchContinues();
     void BackPatchCaseCloses();
@@ -205,6 +208,7 @@ private:
     std::vector<FuncInfo> funcs_;
 
     // back patches
+    std::stack<Int> ors_;
     std::stack<Int> breaks_;
     std::stack<Int> continues_;
     std::stack<Int> casecloses_;

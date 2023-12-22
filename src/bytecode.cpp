@@ -496,6 +496,11 @@ Int Bytecode::Size() const
     return bytes_.size();
 }
 
+void Bytecode::BeginIf()
+{
+    ors_.push(-1);
+}
+
 void Bytecode::BeginFor()
 {
     breaks_.push(-1);
@@ -505,6 +510,11 @@ void Bytecode::BeginFor()
 void Bytecode::BeginSwitch()
 {
     casecloses_.push(-1);
+}
+
+void Bytecode::PushOrClose(Int addr)
+{
+    ors_.push(addr);
 }
 
 void Bytecode::PushBreak(Int addr)
@@ -517,9 +527,20 @@ void Bytecode::PushContinue(Int addr)
     continues_.push(addr);
 }
 
-void Bytecode::PushCaseCloses(Int addr)
+void Bytecode::PushCaseClose(Int addr)
 {
     casecloses_.push(addr);
+}
+
+void Bytecode::BackPatchOrCloses()
+{
+    while (!ors_.empty()) {
+        const Int addr = ors_.top();
+        ors_.pop();
+        if (addr == -1)
+            break;
+        BackPatch(addr);
+    }
 }
 
 void Bytecode::BackPatchBreaks()

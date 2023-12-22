@@ -420,6 +420,27 @@ Expr *Parser::expression()
     return assign_expr();
 }
 
+OrStmt *Parser::or_stmt()
+{
+    Expr *cond = nullptr;
+
+    if (consume(TK::NEWLINE)) {
+        // or (else)
+        cond = new NullExpr();
+    }
+    else {
+        // or if (else if)
+        cond = expression();
+        expect(TK::NEWLINE);
+    }
+
+    enter_scope();
+    BlockStmt *body = block_stmt();
+    leave_scope();
+
+    return new OrStmt(cond, body);
+}
+
 Stmt *Parser::if_stmt()
 {
     expect(TK::IF);
@@ -430,16 +451,25 @@ Stmt *Parser::if_stmt()
     BlockStmt *then = block_stmt();
     leave_scope();
 
-    BlockStmt *els = nullptr;
-    if (consume(TK::ELSE)) {
-        expect(TK::NEWLINE);
+    IfStmt *ifs = new IfStmt(cond, then);
 
-        enter_scope();
-        els = block_stmt();
-        leave_scope();
+    bool endor = false;
+
+    while (!endor) {
+        if (consume(TK::OR)) {
+            if (peek() == TK::NEWLINE) {
+                // last 'or' (else)
+                endor = true;
+            }
+
+            ifs->AddOr(or_stmt());
+        }
+        else {
+            endor = true;
+        }
     }
 
-    return new IfStmt(cond, then, els);
+    return ifs;
 }
 
 Stmt *Parser::for_stmt()
@@ -856,6 +886,8 @@ FuncDef *Parser::func_def()
     // func body
     func_ = func;
     BlockStmt *block = block_stmt();
+    // TODO control flow check to allow implicit return
+    block->AddStmt(new ReturnStmt(new NullExpr()));
     func_ = nullptr;
 
     leave_scope();

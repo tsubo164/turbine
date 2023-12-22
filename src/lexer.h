@@ -53,6 +53,7 @@ enum class TokenKind {
     FLOAT,
     STRING,
     IF,
+    OR,
     ELSE,
     FOR,
     BREAK,

@@ -157,13 +157,18 @@ void BlockStmt::Print(int depth) const
         stmt->Print(depth + 1);
 }
 
+void OrStmt::Print(int depth) const
+{
+    print_node("OrStmt", depth);
+    cond->Print(depth + 1);
+    body->Print(depth + 1);
+}
+
 void IfStmt::Print(int depth) const
 {
     print_node("IfStmt", depth);
-    cond->Print(depth + 1);
-    then->Print(depth + 1);
-    if (els)
-        els->Print(depth + 1);
+    for (const auto &stmt: orstmts)
+        stmt->Print(depth + 1);
 }
 
 void ForStmt::Print(int depth) const
@@ -535,26 +540,36 @@ void BlockStmt::Gen(Bytecode &code) const
         stmt->Gen(code);
 }
 
-void IfStmt::Gen(Bytecode &code) const
+void OrStmt::Gen(Bytecode &code) const
 {
-    Int jiz = 0;
-    Int jmp = 0;
+    Int next = 0;
 
-    // cond
-    cond->Gen(code);
-    jiz = code.JumpIfZero(-1);
+    if (!cond->IsNull()) {
+        // cond
+        cond->Gen(code);
+        next = code.JumpIfZero(-1);
+    }
 
     // true
-    then->Gen(code);
-    if (els)
-        jmp = code.Jump(-1);
+    body->Gen(code);
 
-    // false
-    code.BackPatch(jiz);
-    if (els) {
-        els->Gen(code);
-        code.BackPatch(jmp);
+    if (!cond->IsNull()) {
+        // close
+        const Int addr = code.Jump(-1);
+        code.PushOrClose(addr);
+        code.BackPatch(next);
     }
+}
+
+void IfStmt::Gen(Bytecode &code) const
+{
+    code.BeginIf();
+
+    for (const auto &stmt: orstmts)
+        stmt->Gen(code);
+
+    // exit
+    code.BackPatchOrCloses();
 }
 
 void ForStmt::Gen(Bytecode &code) const
@@ -596,7 +611,7 @@ void CaseStmt::Gen(Bytecode &code) const
     Int next = 0;
 
     if (kind == TK::CASE) {
-        // expr
+        // cond
         code.DuplicateTop();
         expr->Gen(code);
         code.EqualInt();
@@ -609,7 +624,7 @@ void CaseStmt::Gen(Bytecode &code) const
     if (kind == TK::CASE) {
         // close
         const Int addr = code.Jump(-1);
-        code.PushCaseCloses(addr);
+        code.PushCaseClose(addr);
         code.BackPatch(next);
     }
 }

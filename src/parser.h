@@ -62,6 +62,7 @@ private:
     Expr *expression();
 
     // statement
+    OrStmt *or_stmt();
     Stmt *if_stmt();
     Stmt *for_stmt();
     Stmt *jump_stmt();

@@ -21,6 +21,7 @@ struct Expr : public Node {
 
     virtual int Addr() const { return -1; }
     virtual bool IsGlobal() const { return false; }
+    virtual bool IsNull() const { return false; }
 };
 
 struct NullExpr : public Expr {
@@ -28,6 +29,7 @@ struct NullExpr : public Expr {
 
     void Print(int depth) const override final {}
     void Gen(Bytecode &code) const override final {}
+    bool IsNull() const override final { return true; }
 };
 
 struct NilValExpr : public Expr {
@@ -176,12 +178,21 @@ struct BlockStmt : public Stmt {
     void Gen(Bytecode &code) const override final;
 };
 
-struct IfStmt : public Stmt {
-    IfStmt(Expr *cond_, BlockStmt *then_, BlockStmt *els_)
-        : cond(cond_), then(then_), els(els_) {}
+struct OrStmt : public Stmt {
+    OrStmt(Expr *cond_, BlockStmt *body_)
+        : cond(cond_), body(body_) {}
     std::unique_ptr<Expr> cond;
-    std::unique_ptr<BlockStmt> then;
-    std::unique_ptr<BlockStmt> els;
+    std::unique_ptr<BlockStmt> body;
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
+struct IfStmt : public Stmt {
+    IfStmt(Expr *cond, BlockStmt *body) { AddOr(new OrStmt(cond, body)); }
+    std::vector<std::unique_ptr<OrStmt>> orstmts;
+
+    void AddOr(OrStmt *ors) { orstmts.emplace_back(ors); }
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;

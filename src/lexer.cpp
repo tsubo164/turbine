@@ -13,6 +13,7 @@ static const std::unordered_map<std::string_view, TokenKind> keywords = {
     {"float",    TK::FLOAT},
     {"string",   TK::STRING},
     {"if",       TK::IF},
+    {"or",       TK::OR},
     {"else",     TK::ELSE},
     {"for",      TK::FOR},
     {"break",    TK::BREAK},
@@ -80,6 +81,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::FLOAT:      return "float";
     case TK::STRING:     return "string";
     case TK::IF:         return "if";
+    case TK::OR:         return "or";
     case TK::ELSE:       return "else";
     case TK::FOR:        return "for";
     case TK::BREAK:      return "break";
