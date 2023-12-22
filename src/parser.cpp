@@ -2,6 +2,18 @@
 #include "error.h"
 #include <iostream>
 
+void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
+        std::string_view s2, std::string_view s3) const
+{
+    std::string msg(s0);
+
+    if (!s1.empty()) msg += s1;
+    if (!s2.empty()) msg += s2;
+    if (!s3.empty()) msg += s3;
+
+    Error(msg, *src_, pos);
+}
+
 Node *Parser::Parse(const std::string &src)
 {
     src_ = &src;
@@ -176,11 +188,9 @@ Expr *Parser::primary_expr()
         const Token *tok = curtok();
         Var *var = scope_->FindVar(tok->sval);
         if (!var) {
-            const std::string msg =
-                "special variable '$" +
-                std::string(tok->sval) +
-                "' not declared in parameters";
-            Error(msg, *src_, tok->pos);
+            error(tok->pos,
+                    "special variable '", tok->sval,
+                    "' not declared in parameters");
         }
         return new IdentExpr(var);
     }
