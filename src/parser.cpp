@@ -447,9 +447,7 @@ OrStmt *Parser::or_stmt()
         expect(TK::NEWLINE);
     }
 
-    enter_scope();
     BlockStmt *body = block_stmt();
-    leave_scope();
 
     return new OrStmt(cond, body);
 }
@@ -460,11 +458,8 @@ Stmt *Parser::if_stmt()
     Expr *cond = expression();
     expect(TK::NEWLINE);
 
-    enter_scope();
-    BlockStmt *then = block_stmt();
-    leave_scope();
-
-    IfStmt *ifs = new IfStmt(cond, then);
+    BlockStmt *body = block_stmt();
+    IfStmt *ifs = new IfStmt(cond, body);
 
     bool endor = false;
 
@@ -523,10 +518,7 @@ Stmt *Parser::for_stmt()
     }
 
     // body
-    enter_scope();
     BlockStmt *body = block_stmt();
-    leave_scope();
-
     return new ForStmt(init, cond, post, body);
 }
 
@@ -590,8 +582,8 @@ CaseStmt *Parser::case_stmt(TK kind)
 
     expect(TK::NEWLINE);
 
-    BlockStmt *block = block_stmt();
-    return new CaseStmt(kind, expr, block);
+    BlockStmt *body = block_stmt();
+    return new CaseStmt(kind, expr, body);
 }
 
 Stmt *Parser::ret_stmt()
@@ -636,11 +628,7 @@ Stmt *Parser::scope_stmt()
     expect(TK::MINUS3);
     expect(TK::NEWLINE);
 
-    enter_scope();
-    BlockStmt *stmt = block_stmt();
-    leave_scope();
-
-    return stmt;
+    return block_stmt();
 }
 
 Stmt *Parser::nop_stmt()
@@ -753,9 +741,11 @@ Class *Parser::class_decl()
     //return new ClasDef(clss);
 }
 
-BlockStmt *Parser::block_stmt()
+BlockStmt *Parser::block_stmt(Func *func)
 {
     BlockStmt *block = new BlockStmt();
+
+    enter_scope(func);
     expect(TK::BLOCKBEGIN);
 
     for (;;) {
@@ -807,6 +797,8 @@ BlockStmt *Parser::block_stmt()
     }
 
     expect(TK::BLOCKEND);
+    leave_scope();
+
     return block;
 }
 
@@ -878,6 +870,17 @@ void Parser::param_list(Func *func)
     expect(TK::RPAREN);
 }
 
+void Parser::ret_type(Func *func)
+{
+    if (consume(TK::NEWLINE)) {
+        func->type = new Type(TY::Nil);
+    }
+    else {
+        func->type = type_spec();
+        expect(TK::NEWLINE);
+    }
+}
+
 // func_def = "#" identifier param_list type_spec? newline block_stmt
 FuncDef *Parser::func_def()
 {
@@ -894,28 +897,19 @@ FuncDef *Parser::func_def()
         Error(msg, *src_, tok->pos);
     }
 
-    enter_scope(func);
-
     // params
     param_list(func);
     // return type
-    if (consume(TK::NEWLINE)) {
-        func->type = new Type(TY::Nil);
-    }
-    else {
-        func->type = type_spec();
-        expect(TK::NEWLINE);
-    }
+    ret_type(func);
+
     // func body
     func_ = func;
-    BlockStmt *block = block_stmt();
+    BlockStmt *body = block_stmt(func);
     // TODO control flow check to allow implicit return
-    block->AddStmt(new ReturnStmt(new NullExpr()));
+    body->AddStmt(new ReturnStmt(new NullExpr()));
     func_ = nullptr;
 
-    leave_scope();
-
-    return new FuncDef(func, block);
+    return new FuncDef(func, body);
 }
 
 Prog *Parser::program()

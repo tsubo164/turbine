@@ -72,7 +72,7 @@ private:
     Stmt *expr_stmt();
     Stmt *scope_stmt();
     Stmt *nop_stmt();
-    BlockStmt *block_stmt();
+    BlockStmt *block_stmt(Func *func = nullptr);
 
     //
     Type *type_spec();
@@ -81,6 +81,7 @@ private:
     Class *class_decl();
     void field_list(Class *clss);
     void param_list(Func *func);
+    void ret_type(Func *func);
     FuncDef *func_def();
 
     Prog *program();
