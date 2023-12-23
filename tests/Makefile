@@ -10,8 +10,12 @@ all: $(TARGETS)
 
 test: all
 	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[Rock tests]"
+	../rock test.ro
+	@echo "\033[0;32mOK\033[0;39m"
 
 libtest: libtest.out
+	@echo "[C++ tests]"
 	./$@.out
 
 libtest.out: libtest.o test.o ../src/librock.a

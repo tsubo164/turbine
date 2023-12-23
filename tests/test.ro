@@ -1,0 +1,46 @@
+- test_count int
+
+// asserts int
+# AssertI(expected int, actual int, $caller_line)
+  test_count++
+
+  if expected != actual
+    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+    exit(1)
+
+# main() int
+
+  ---
+    - id int
+    id = 114
+    AssertI(125, id + 11)
+
+  ---
+    - i int = 19
+    AssertI(19, i)
+
+  ---
+    AssertI(42, 39 + 3)
+
+  ---
+    - id int
+    id = 0
+    AssertI(114, id + 114)
+
+  ---
+    AssertI(4422, 3129 + 1293)
+
+  ---
+    AssertI(5533, 3129 + 1293+1111)
+
+  ---
+    AssertI(42, 20+22)
+
+  ---
+    - a int
+    a = 12
+    AssertI(12, a)
+
+  print(test_count, "tests done.")
+
+  return 0
