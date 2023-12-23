@@ -6,6 +6,8 @@
   - s = "Hello"
 
   //s = foo()
-  s++
+  //s++
+  //exit(s) // error
+  //print(s)
 
   return x

@@ -57,12 +57,12 @@ int Class::Size() const
 
 // Scope
 Scope::Scope()
-    : parent_(nullptr), var_id_offset_(0)
+    : parent_(nullptr), level_(0), var_id_offset_(0)
 {
 }
 
-Scope::Scope(Scope *parent, int var_id_offset)
-    : parent_(parent), var_id_offset_(var_id_offset)
+Scope::Scope(Scope *parent, int level, int var_id_offset)
+    : parent_(parent), level_(level), var_id_offset_(var_id_offset)
 {
 }
 
@@ -76,7 +76,7 @@ Scope *Scope::OpenChild()
 {
     const int next_var_id = IsGlobal() ? 0 : NextVarID();
 
-    Scope *child = new Scope(this, next_var_id);
+    Scope *child = new Scope(this, level_ + 1, next_var_id);
     children_.push_back(child);
 
     return child;
@@ -99,7 +99,9 @@ bool Scope::HasParent() const
 
 bool Scope::IsGlobal() const
 {
-    return !Parent();
+    // level 0: builtin scope
+    // level 1: global (file) scope
+    return level_ == 1;
 }
 
 Var *Scope::DefineVar(std::string_view name, const Type *type)

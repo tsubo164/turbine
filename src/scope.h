@@ -76,7 +76,7 @@ private:
 class Scope {
 public:
     Scope();
-    Scope(Scope *parent, int var_id_offset);
+    Scope(Scope *parent, int level, int var_id_offset);
     ~Scope();
 
     Scope *OpenChild();
@@ -112,6 +112,7 @@ public:
 private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;
+    const int level_;
     const int var_id_offset_ = 0;
 
     const Func *func_ = nullptr;

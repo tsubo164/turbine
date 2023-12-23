@@ -19,6 +19,9 @@ Node *Parser::Parse(const std::string &src)
     src_ = &src;
     lexer_.SetInput(src);
 
+    // global (file) scope
+    enter_scope();
+
     return program();
 }
 
