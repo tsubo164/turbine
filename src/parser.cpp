@@ -447,7 +447,8 @@ Expr *Parser::logor_expr()
 // incdec_op   = "++" | "--"
 Expr *Parser::assign_expr()
 {
-    Expr *expr = logor_expr();
+    Expr *lval = logor_expr();
+    Expr *rval = nullptr;
     const Token *tok = gettok();
 
     switch (tok->kind) {
@@ -457,15 +458,25 @@ Expr *Parser::assign_expr()
     case TK::STAREQ:
     case TK::SLASHEQ:
     case TK::PERCENTEQ:
-        return new AssignExpr(expr, expression(), tok->kind);
+        rval = expression();
+        if (!MatchType(lval->type, rval->type)) {
+            error(tok->pos,
+                    "type mismatch: ", TypeString(lval->type),
+                    ", ", TypeString(rval->type));
+        }
+        return new AssignExpr(lval, rval, tok->kind);
 
     case TK::PLUS2:
     case TK::MINUS2:
-        return new IncDecExpr(expr, tok->kind);
+        if (!lval->type->IsInt()) {
+            error(tok->pos,
+                    "type mismatch: ++/-- must be used for int");
+        }
+        return new IncDecExpr(lval, tok->kind);
 
     default:
         ungettok();
-        return expr;
+        return lval;
     }
 }
 
@@ -615,6 +626,7 @@ Stmt *Parser::switch_stmt()
 
 CaseStmt *Parser::case_stmt(TK kind)
 {
+    // TODO make this last by adding ListExpr
     CaseStmt *cases = new CaseStmt(kind);
 
     if (kind == TK::CASE) {

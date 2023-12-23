@@ -102,7 +102,8 @@ void SelectExpr::Print(int depth) const
 void CallExpr::Print(int depth) const
 {
     print_node("CallExpr", depth, false);
-    std::cout << func->name << std::endl;
+    std::cout << func->name <<
+        " " << type->kind << std::endl;
     for (auto arg: args)
         arg->Print(depth + 1);
 }
