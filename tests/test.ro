@@ -40,6 +40,40 @@
     - a int
     a = 12
     AssertI(12, a)
+  // C++ test
+  // ==========================================================================
+
+  // switch with multi case values
+  ---
+    - n = 6
+    - x = 0
+
+    switch n
+    case 1
+      x = 11
+    case 2, 3, 4
+      x = 22
+    case 13, 55, 6
+      x = 99
+    default
+      x = 255
+    AssertI(99, x)
+
+  // switch with multi case values
+  ---
+    - n = 3
+    - x = 0
+
+    switch n
+    case 1
+      x = 11
+    case 2, 3, 4
+      x = 22
+    case 13, 55, 6
+      x = 99
+    default
+      x = 255
+    AssertI(22, x)
 
   print(test_count, "tests done.")
 

@@ -227,10 +227,13 @@ struct JumpStmt : public Stmt {
 };
 
 struct CaseStmt : public Stmt {
-    CaseStmt(TK k, Expr *e, BlockStmt *b) : kind(k), expr(e), block(b) {}
+    CaseStmt(TK k) : kind(k) {}
+    std::vector<std::unique_ptr<Expr>> conds;
+    std::unique_ptr<BlockStmt> body;
     TK kind;
-    std::unique_ptr<Expr> expr;
-    std::unique_ptr<BlockStmt> block;
+
+    void AddCond(Expr *cond) { conds.emplace_back(cond); }
+    void AddBody(BlockStmt *b) { body.reset(b); }
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;

@@ -1,21 +1,15 @@
-# foo(x int, y int, h int, $caller_line)
-  - a = 42
-  - b = "foo"
-  print("caller line: ", $caller_line)
-  - c = 3.14
-  - caller_line int
-  ---
-    - x int
-
-# bar()
-  print("bar")
-  nop
-
-// twice the number
-# twice(i int) int
-  return 2 * i
-
 # main() int
-  bar()
-  foo(33, 44, 55)
-  return twice(3)
+  - n = 6
+  - x = 0
+
+  ---
+    switch n
+    case 1
+      x = 11
+    case 2, 3, 4
+      x = 22
+    case 13, 55, 6
+      x = 99
+    default
+      x = 255
+  return x

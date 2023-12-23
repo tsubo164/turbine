@@ -583,6 +583,7 @@ Stmt *Parser::switch_stmt()
     expect(TK::SWITCH);
 
     Expr *expr = expression();
+    // TODO int check
     expect(TK::NEWLINE);
 
     SwitchStmt *swtch = new SwitchStmt(expr);
@@ -595,8 +596,7 @@ Stmt *Parser::switch_stmt()
         switch (tok->kind) {
         case TK::CASE:
             if (default_count > 0) {
-                Error("No 'case' should come after 'default'",
-                        *src_, tok->pos);
+                error(tok->pos, "No 'case' should come after 'default'");
             }
             swtch->AddCase(case_stmt(tok->kind));
             continue;
@@ -607,6 +607,7 @@ Stmt *Parser::switch_stmt()
             continue;
 
         default:
+            ungettok();
             return swtch;
         }
     }
@@ -614,17 +615,26 @@ Stmt *Parser::switch_stmt()
 
 CaseStmt *Parser::case_stmt(TK kind)
 {
-    Expr *expr = nullptr;
+    CaseStmt *cases = new CaseStmt(kind);
 
-    if (kind == TK::CASE)
-        expr = expression();
-    else if (kind == TK::DEFAULT)
-        expr = new NullExpr();
+    if (kind == TK::CASE) {
+        do {
+            Expr *expr = expression();
+            // TODO const int check
+            cases->AddCond(expr);
+        }
+        while (consume(TK::COMMA));
+    }
+    else if (kind == TK::DEFAULT) {
+        cases->AddCond(new NullExpr());
+    }
 
     expect(TK::NEWLINE);
 
     BlockStmt *body = block_stmt();
-    return new CaseStmt(kind, expr, body);
+    cases->AddBody(body);
+
+    return cases;
 }
 
 Stmt *Parser::ret_stmt()
