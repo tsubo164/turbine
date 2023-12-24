@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "builtin.h"
 #include "lexer.h"
 #include <iostream>
 #include <iomanip>
@@ -20,6 +21,9 @@ Interpreter::~Interpreter()
 
 Int Interpreter::Run(const std::string &src)
 {
+    // Builtin functions
+    DefineBuiltinFuncs(&scope_);
+
     // Print token
     if (print_token_) {
         print_token(src);

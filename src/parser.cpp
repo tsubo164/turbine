@@ -238,13 +238,10 @@ Expr *Parser::primary_expr()
 
         if (tok->kind == TK::IDENT) {
             if (peek() == TK::LPAREN) {
-                Func *func = FindBuiltinFunc(tok->sval);
+                Func *func = scope_->FindFunc(tok->sval);
                 if (!func) {
-                    func = scope_->FindFunc(tok->sval);
-                    if (!func) {
-                        error(tok->pos,
-                                "undefined identifier: '", tok->sval, "'");
-                    }
+                    error(tok->pos,
+                            "undefined identifier: '", tok->sval, "'");
                 }
 
                 CallExpr *call = new CallExpr(func, tok->pos);

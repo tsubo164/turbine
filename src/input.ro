@@ -8,6 +8,7 @@
   //s = foo()
   //s++
   //exit(s) // error
-  //print(s)
+  print(s)
+  exit(1)
 
   return x

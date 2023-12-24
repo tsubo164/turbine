@@ -30,7 +30,7 @@ struct Func {
     std::string_view name;
     const int id;
     const bool is_builtin;
-    const bool is_variadic;
+    bool is_variadic;
     Scope *scope;
     const Type *type = nullptr;
 
@@ -123,8 +123,5 @@ private:
     std::map<std::string_view,Field*> flds_;
     std::map<std::string_view,Class*> clsses_;
 };
-
-// TODO should return const Func *
-Func *FindBuiltinFunc(std::string_view name);
 
 #endif // _H

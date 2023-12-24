@@ -9,6 +9,9 @@ void Func::DeclareParam(std::string_view name, const Type *type)
     const Var *var = scope->DefineVar(name, type);
     params_.push_back(var);
 
+    if (name == "...")
+        is_variadic = true;
+
     if (name[0] == '$')
         has_special_var_ = true;
 }
@@ -181,14 +184,14 @@ int Scope::FieldCount() const
 
 Func *Scope::DefineFunc(std::string_view name)
 {
-    const auto it = funcs_.find(name);
-    if (it != funcs_.end())
+    if (FindFunc(name))
         return nullptr;
 
     Scope *func_scope = OpenChild();
 
     const int next_id = funcs_.size();
-    Func *func = new Func(name, next_id, func_scope);
+    const bool is_builtin = level_ == 0;
+    Func *func = new Func(name, next_id, func_scope, is_builtin);
     funcs_.insert({name, func});
 
     func_scope->func_ = func;
@@ -300,20 +303,4 @@ void Scope::Print(int depth) const
 
         scope->Print(depth + 1);
     }
-}
-
-// TODO should return const Func *
-Func *FindBuiltinFunc(std::string_view name)
-{
-    static std::vector<Func> builtins = {
-        {"print", 0, nullptr, true, true},
-        {"exit",  1, nullptr, true, false},
-    };
-
-    for (auto &func: builtins) {
-        if (name == func.name)
-            return &func;
-    }
-
-    return nullptr;
 }
