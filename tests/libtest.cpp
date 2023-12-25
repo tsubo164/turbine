@@ -76,8 +76,6 @@ int main(int argc, char **argv)
 
         ASSERTL(0, ip.Run(input));
     }
-    // =========================================================================
-    // test cases above copied to test.ro
     {
         const std::string input("# main() int\n 42 == 42\n");
         Interpreter ip;
@@ -143,6 +141,8 @@ int main(int argc, char **argv)
 
         ASSERTL(42, ip.Run(input));
     }
+    // =========================================================================
+    // test cases above copied to test.ro
     {
         const std::string input(
             "# main() int\n"

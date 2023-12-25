@@ -16,6 +16,13 @@
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
     exit(1)
 
+//-----------------------------------------------------------------------------
+# seven() int
+  return 7
+
+# add(x int, y int) int
+  return x + y
+
 # main() int
 
   ---
@@ -57,6 +64,27 @@
   ---
     AssertB(false, 12 == 11)
 
+  ---
+    AssertB(true, 42 == 42)
+
+  ---
+    - a int
+    a = 39
+    AssertB(true, a == 39)
+
+  ---
+    - a int
+    a = 39
+    AssertB(true, a == 39)
+
+  ---
+    AssertI(7, seven())
+
+  ---
+    AssertI(42, seven() + 35)
+
+  ---
+    AssertI(42, seven() + add(30, 5))
   // C++ test
   // ==========================================================================
 
