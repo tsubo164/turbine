@@ -9,6 +9,7 @@ static const std::unordered_map<std::string_view, TokenKind> keywords = {
     {"nil",      TK::NIL},
     {"true",     TK::TRUE},
     {"false",    TK::FALSE},
+    {"bool",     TK::BOOL},
     {"int",      TK::INT},
     {"float",    TK::FLOAT},
     {"string",   TK::STRING},
@@ -79,6 +80,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::NIL:        return "nil";
     case TK::TRUE:       return "true";
     case TK::FALSE:      return "false";
+    case TK::BOOL:       return "bool";
     case TK::INT:        return "int";
     case TK::FLOAT:      return "float";
     case TK::STRING:     return "string";
@@ -93,7 +95,6 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::DEFAULT:    return "default";
     case TK::RETURN:     return "return";
     case TK::NOP:        return "nop";
-    case TK::CALLER_LINE:return "$caller_line";
     case TK::MINUS3:     return "---";
     case TK::COMMA:      return ",";
     case TK::SEMICOLON:  return ";";
@@ -102,6 +103,7 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::BLOCKBEGIN: return "block_begin";
     case TK::BLOCKEND:   return "block_end";
     case TK::NEWLINE:    return "\\n";
+    case TK::CALLER_LINE:return "$caller_line";
     case TK::EOF_:       return "end_of_file";
     }
     ERROR_NO_CASE(kind);

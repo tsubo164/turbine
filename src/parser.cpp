@@ -3,13 +3,16 @@
 #include <iostream>
 
 void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
-        std::string_view s2, std::string_view s3) const
+        std::string_view s2, std::string_view s3,
+        std::string_view s4, std::string_view s5) const
 {
     std::string msg(s0);
 
     if (!s1.empty()) msg += s1;
     if (!s2.empty()) msg += s2;
     if (!s3.empty()) msg += s3;
+    if (!s4.empty()) msg += s4;
+    if (!s5.empty()) msg += s5;
 
     Error(msg, *src_, pos);
 }
@@ -163,9 +166,9 @@ CallExpr *Parser::arg_list(CallExpr *call)
                 error(tok_pos(), "too many arguments");
 
             if (!MatchType(arg->type, param->type)) {
-                error(tok_pos(), "type mismatch: ",
-                        TypeString(arg->type), " and ",
-                        TypeString(param->type));
+                error(tok_pos(), "type mismatch: parameter type '",
+                    TypeString(param->type), "': argument type '",
+                    TypeString(arg->type), "'");
             }
         }
     }
@@ -663,11 +666,9 @@ Stmt *Parser::ret_stmt()
     assert(func_);
 
     if (func_->type->kind != expr->type->kind) {
-        const std::string msg =
-            std::string("type mismatch: function type '") +
-            TypeString(func_->type) + "': expression type '" +
-            TypeString(expr->type) + "'";
-        Error(msg, *src_, exprpos);
+        error(exprpos, "type mismatch: function type '",
+            TypeString(func_->type), "': expression type '",
+            TypeString(expr->type), "'");
     }
 
     return new ReturnStmt(expr);
@@ -701,14 +702,25 @@ Stmt *Parser::nop_stmt()
 
 static Expr *default_value(const Type *type)
 {
-    if (type->IsInt())
+    switch (type->kind) {
+    case TY::Bool:
+        return new BoolValExpr(false);
+    case TY::Integer:
         return new IntValExpr(0);
-    else if (type->IsFloat())
+    case TY::Float:
         return new FltValExpr(0.0);
-    else if (type->IsString())
+    case TY::String:
         return new StrValExpr("");
-    else
+
+    case TY::Nil:
+    case TY::Any:
+        ERROR_NO_CASE(type->kind);
+        return nullptr;
+
+    case TY::ClassType:
+        // TODO
         return new NullExpr();
+    }
 }
 
 // var_decl = "-" identifier type newline
@@ -859,9 +871,12 @@ BlockStmt *Parser::block_stmt(Func *func)
     return block;
 }
 
-// type_spec = "int" | "float" | "string" | identifier
+// type_spec = "bool" | "int" | "float" | "string" | identifier
 Type *Parser::type_spec()
 {
+    if (consume(TK::BOOL))
+        return new Type(TY::Bool);
+
     if (consume(TK::INT))
         return new Type(TY::Integer);
 

@@ -49,6 +49,7 @@ enum class TokenKind {
     NIL,
     TRUE,
     FALSE,
+    BOOL,
     INT,
     FLOAT,
     STRING,
@@ -63,8 +64,6 @@ enum class TokenKind {
     DEFAULT,
     RETURN,
     NOP,
-    // special var
-    CALLER_LINE,
     // separator
     MINUS3,
     COMMA,
@@ -74,6 +73,8 @@ enum class TokenKind {
     BLOCKBEGIN,
     BLOCKEND,
     NEWLINE,
+    // special var
+    CALLER_LINE,
     EOF_,
 };
 using TK = TokenKind;

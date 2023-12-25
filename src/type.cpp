@@ -19,11 +19,11 @@ static const char *type_kind_string(TypeKind kind)
     case TY::Float: return "float";
     case TY::String: return "string";
     case TY::ClassType: return "class";
-
-    default:
-        ERROR_NO_CASE(kind);
-        return nullptr;
+    case TY::Any: return "any";
     }
+
+    ERROR_NO_CASE(kind);
+    return nullptr;
 }
 
 const char *TypeString(const Type *type)
