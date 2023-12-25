@@ -752,6 +752,48 @@ void VM::run()
             }
             break;
 
+        case OP_BTOI:
+            {
+                const Int i = pop_int();
+                push_int(i != 0);
+            }
+            break;
+
+        case OP_BTOF:
+            {
+                const Int i = pop_int();
+                push_float(i);
+            }
+            break;
+
+        case OP_ITOB:
+            {
+                const Int i = pop_int();
+                push_int(i != 0);
+            }
+            break;
+
+        case OP_ITOF:
+            {
+                const Int i = pop_int();
+                push_float(i);
+            }
+            break;
+
+        case OP_FTOB:
+            {
+                const Float f = pop_float();
+                push_int(f != 0.f);
+            }
+            break;
+
+        case OP_FTOI:
+            {
+                const Float f = pop_float();
+                push_int(f);
+            }
+            break;
+
         case OP_EXIT:
         case OP_EOC:
             brk = true;

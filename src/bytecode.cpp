@@ -382,6 +382,36 @@ void Bytecode::DuplicateTop()
     bytes_.push_back(OP_DUP);
 }
 
+void Bytecode::BoolToInt()
+{
+    bytes_.push_back(OP_BTOI);
+}
+
+void Bytecode::BoolToFloat()
+{
+    bytes_.push_back(OP_BTOF);
+}
+
+void Bytecode::IntToBool()
+{
+    bytes_.push_back(OP_ITOB);
+}
+
+void Bytecode::IntToFloat()
+{
+    bytes_.push_back(OP_ITOF);
+}
+
+void Bytecode::FloatToBool()
+{
+    bytes_.push_back(OP_FTOB);
+}
+
+void Bytecode::FloatToInt()
+{
+    bytes_.push_back(OP_FTOI);
+}
+
 void Bytecode::Exit()
 {
     bytes_.push_back(OP_EXIT);

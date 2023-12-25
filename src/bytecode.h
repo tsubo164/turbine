@@ -81,6 +81,13 @@ using Float = double;
     OP(OP_SETNZ,        OPERAND_NONE) \
     OP(OP_POP,          OPERAND_NONE) \
     OP(OP_DUP,          OPERAND_NONE) \
+    /* conversion */\
+    OP(OP_BTOI,         OPERAND_NONE) \
+    OP(OP_BTOF,         OPERAND_NONE) \
+    OP(OP_ITOB,         OPERAND_NONE) \
+    OP(OP_ITOF,         OPERAND_NONE) \
+    OP(OP_FTOB,         OPERAND_NONE) \
+    OP(OP_FTOI,         OPERAND_NONE) \
     /* exit */\
     OP(OP_EXIT,         OPERAND_NONE) \
     OP(OP_EOC,          OPERAND_NONE) \
@@ -158,8 +165,17 @@ public:
     void NegateFloat();
     void SetIfZero();
     void SetIfNotZero();
+    // stack
     void Pop();
     void DuplicateTop();
+    // conversion
+    void BoolToInt();
+    void BoolToFloat();
+    void IntToBool();
+    void IntToFloat();
+    void FloatToBool();
+    void FloatToInt();
+    //
     void Exit();
     void End();
     void BackPatch(Int operand_addr);
