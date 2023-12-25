@@ -189,9 +189,9 @@ Expr *Parser::conv_expr(TK kind)
     expect(TK::RPAREN);
 
     switch (expr->type->kind) {
-    case TY::Bool:
-    case TY::Integer:
-    case TY::Float:
+    case TY::BOOL:
+    case TY::INT:
+    case TY::FLOAT:
         break;
     default:
         error(tokpos, "unable to convert type from '",
@@ -299,7 +299,7 @@ Expr *Parser::primary_expr()
                 std::cerr << "error: no type" << std::endl;
                 exit(EXIT_FAILURE);
             }
-            if (expr->type->kind != TY::ClassType) {
+            if (!expr->type->IsClass()) {
                 std::cerr << "error: not a class type" << std::endl;
                 exit(EXIT_FAILURE);
             }
@@ -432,7 +432,7 @@ Expr *Parser::rel_expr()
                         TypeString(l->type), " and ",
                         TypeString(r->type));
             }
-            l = new BinaryExpr(l, r, new Type(TY::Bool), tok->kind);
+            l = new BinaryExpr(l, r, new Type(TY::BOOL), tok->kind);
             continue;
 
         default:
@@ -745,21 +745,21 @@ Stmt *Parser::nop_stmt()
 static Expr *default_value(const Type *type)
 {
     switch (type->kind) {
-    case TY::Bool:
+    case TY::BOOL:
         return new BoolValExpr(false);
-    case TY::Integer:
+    case TY::INT:
         return new IntValExpr(0);
-    case TY::Float:
+    case TY::FLOAT:
         return new FltValExpr(0.0);
-    case TY::String:
+    case TY::STRING:
         return new StrValExpr("");
 
-    case TY::Nil:
-    case TY::Any:
+    case TY::NIL:
+    case TY::ANY:
         ERROR_NO_CASE(type->kind);
         return nullptr;
 
-    case TY::ClassType:
+    case TY::CLASS:
         // TODO
         return new NullExpr();
     }
@@ -917,19 +917,19 @@ BlockStmt *Parser::block_stmt(Func *func)
 Type *Parser::type_spec()
 {
     if (consume(TK::BOOL))
-        return new Type(TY::Bool);
+        return new Type(TY::BOOL);
 
     if (consume(TK::INT))
-        return new Type(TY::Integer);
+        return new Type(TY::INT);
 
     if (consume(TK::FLOAT))
-        return new Type(TY::Float);
+        return new Type(TY::FLOAT);
 
     if (consume(TK::STRING))
-        return new Type(TY::String);
+        return new Type(TY::STRING);
 
     if (consume(TK::IDENT)) {
-        Type *ty = new Type(TY::ClassType);
+        Type *ty = new Type(TY::CLASS);
         ty->clss = scope_->FindClass(tok_str());
         return ty;
     }
@@ -969,7 +969,7 @@ void Parser::param_list(Func *func)
 
         if (consume(TK::CALLER_LINE)) {
             name = tok_str();
-            type = new Type(TY::Integer);
+            type = new Type(TY::INT);
         }
         else {
             expect(TK::IDENT);
@@ -987,7 +987,7 @@ void Parser::param_list(Func *func)
 void Parser::ret_type(Func *func)
 {
     if (consume(TK::NEWLINE)) {
-        func->type = new Type(TY::Nil);
+        func->type = new Type(TY::NIL);
     }
     else {
         func->type = type_spec();

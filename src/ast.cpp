@@ -289,29 +289,29 @@ void ConvertExpr::Gen(Bytecode &code) const
     const TY to = type->kind;
 
     switch (from) {
-    case TY::Bool:
+    case TY::BOOL:
         switch (to) {
-        case TY::Bool: break;
-        case TY::Integer: code.BoolToInt(); break;
-        case TY::Float:   code.BoolToFloat(); break;
+        case TY::BOOL:  break;
+        case TY::INT:   code.BoolToInt(); break;
+        case TY::FLOAT: code.BoolToFloat(); break;
         default: break;
         }
         break;
 
-    case TY::Integer:
+    case TY::INT:
         switch (to) {
-        case TY::Bool:    code.IntToBool(); break;
-        case TY::Integer: break;
-        case TY::Float:   code.IntToFloat(); break;
+        case TY::BOOL:  code.IntToBool(); break;
+        case TY::INT:   break;
+        case TY::FLOAT: code.IntToFloat(); break;
         default: break;
         }
         break;
 
-    case TY::Float:
+    case TY::FLOAT:
         switch (to) {
-        case TY::Bool:    code.FloatToBool(); break;
-        case TY::Integer: code.FloatToInt(); break;
-        case TY::Float:   break;
+        case TY::BOOL:  code.FloatToBool(); break;
+        case TY::INT:   code.FloatToInt(); break;
+        case TY::FLOAT: break;
         default: break;
         }
         break;
@@ -351,23 +351,23 @@ void CallExpr::Gen(Bytecode &code) const
             arg->Gen(code);
 
             switch (arg->type->kind) {
-            case TY::Nil:
+            case TY::NIL:
                 code.LoadTypeNil();
                 break;
-            case TY::Bool:
+            case TY::BOOL:
                 code.LoadTypeBool();
                 break;
-            case TY::Integer:
+            case TY::INT:
                 code.LoadTypeInt();
                 break;
-            case TY::Float:
+            case TY::FLOAT:
                 code.LoadTypeFloat();
                 break;
-            case TY::String:
+            case TY::STRING:
                 code.LoadTypeString();
                 break;
-            case TY::Any:
-            case TY::ClassType:
+            case TY::ANY:
+            case TY::CLASS:
                 code.LoadTypeNil();
                 break;
             }

@@ -25,7 +25,7 @@ struct Expr : public Node {
 };
 
 struct NullExpr : public Expr {
-    NullExpr() : Expr(new Type(TY::Nil)) {}
+    NullExpr() : Expr(new Type(TY::NIL)) {}
 
     void Print(int depth) const override final {}
     void Gen(Bytecode &code) const override final {}
@@ -33,14 +33,14 @@ struct NullExpr : public Expr {
 };
 
 struct NilValExpr : public Expr {
-    NilValExpr() : Expr(new Type(TY::Nil)) {}
+    NilValExpr() : Expr(new Type(TY::NIL)) {}
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
 struct BoolValExpr : public Expr {
-    BoolValExpr(bool b) : Expr(new Type(TY::Bool)), val(b) {}
+    BoolValExpr(bool b) : Expr(new Type(TY::BOOL)), val(b) {}
     bool val;
 
     void Print(int depth) const override final;
@@ -48,7 +48,7 @@ struct BoolValExpr : public Expr {
 };
 
 struct IntValExpr : public Expr {
-    IntValExpr(long l) : Expr(new Type(TY::Integer)), val(l) {}
+    IntValExpr(long l) : Expr(new Type(TY::INT)), val(l) {}
     long val;
 
     void Print(int depth) const override final;
@@ -56,7 +56,7 @@ struct IntValExpr : public Expr {
 };
 
 struct FltValExpr : public Expr {
-    FltValExpr(double d) : Expr(new Type(TY::Float)), val(d) {}
+    FltValExpr(double d) : Expr(new Type(TY::FLOAT)), val(d) {}
     double val;
 
     void Print(int depth) const override final;
@@ -64,7 +64,7 @@ struct FltValExpr : public Expr {
 };
 
 struct StrValExpr : public Expr {
-    StrValExpr(std::string_view s) : Expr(new Type(TY::String)), val(s) {}
+    StrValExpr(std::string_view s) : Expr(new Type(TY::STRING)), val(s) {}
     std::string_view val;
     std::string converted;
 
