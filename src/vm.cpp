@@ -5,6 +5,7 @@
 // for variadic function
 enum class TypeID {
     NIL = 0,
+    BOL,
     INT,
     FLT,
     STR,
@@ -317,6 +318,10 @@ void VM::run()
             push_int(static_cast<int>(TypeID::NIL));
             break;
 
+        case OP_LOADTYPEB:
+            push_int(static_cast<int>(TypeID::BOL));
+            break;
+
         case OP_LOADTYPEI:
             push_int(static_cast<int>(TypeID::INT));
             break;
@@ -373,6 +378,13 @@ void VM::run()
 
                         switch (id) {
                         case TypeID::NIL:
+                            break;
+
+                        case TypeID::BOL:
+                            if (val.inum == 0)
+                                std::cout << "false";
+                            else
+                                std::cout << "true";
                             break;
 
                         case TypeID::INT:

@@ -7,5 +7,7 @@
   - c bool
 
   print(c)
+  print(b)
+  b = b == c
 
   return foo(b)

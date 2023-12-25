@@ -154,6 +154,11 @@ void Bytecode::LoadTypeNil()
     bytes_.push_back(OP_LOADTYPEN);
 }
 
+void Bytecode::LoadTypeBool()
+{
+    bytes_.push_back(OP_LOADTYPEB);
+}
+
 void Bytecode::LoadTypeInt()
 {
     bytes_.push_back(OP_LOADTYPEI);

@@ -303,17 +303,27 @@ void CallExpr::Gen(Bytecode &code) const
             // arg value
             arg->Gen(code);
 
-            // arg type
-            if (arg->type->IsNil())
+            switch (arg->type->kind) {
+            case TY::Nil:
                 code.LoadTypeNil();
-            else if (arg->type->IsInt() || arg->type->IsBool())
+                break;
+            case TY::Bool:
+                code.LoadTypeBool();
+                break;
+            case TY::Integer:
                 code.LoadTypeInt();
-            else if (arg->type->IsFloat())
+                break;
+            case TY::Float:
                 code.LoadTypeFloat();
-            else if (arg->type->IsString())
+                break;
+            case TY::String:
                 code.LoadTypeString();
-            else
+                break;
+            case TY::Any:
+            case TY::ClassType:
                 code.LoadTypeNil();
+                break;
+            }
         }
         // arg count
         code.LoadByte(args.size());

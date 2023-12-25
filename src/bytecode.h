@@ -31,6 +31,7 @@ using Float = double;
     OP(OP_DECGLOBAL,    OPERAND_WORD) \
     /* arg type spec */\
     OP(OP_LOADTYPEN,    OPERAND_NONE) \
+    OP(OP_LOADTYPEB,    OPERAND_NONE) \
     OP(OP_LOADTYPEI,    OPERAND_NONE) \
     OP(OP_LOADTYPEF,    OPERAND_NONE) \
     OP(OP_LOADTYPES,    OPERAND_NONE) \
@@ -113,6 +114,7 @@ public:
     void Allocate(Byte count);
     void CallFunction(Word func_index, bool builtin);
     void LoadTypeNil();
+    void LoadTypeBool();
     void LoadTypeInt();
     void LoadTypeFloat();
     void LoadTypeString();
