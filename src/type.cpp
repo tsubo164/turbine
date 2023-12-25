@@ -33,6 +33,8 @@ const char *TypeString(const Type *type)
 
 bool MatchType(const Type *t1, const Type *t2)
 {
+    if (t1->IsAny() || t2->IsAny())
+        return true;
     return t1->kind == t2->kind;
 }
 

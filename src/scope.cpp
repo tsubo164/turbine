@@ -10,10 +10,32 @@ void Func::DeclareParam(std::string_view name, const Type *type)
     params_.push_back(var);
 
     if (name == "...")
-        is_variadic = true;
+        ellipsis_index_ = ParamCount() - 1;
 
     if (name[0] == '$')
         has_special_var_ = true;
+}
+
+const Var *Func::GetParam(int index) const
+{
+    int i = 0;
+
+    if (IsVariadic() && index >= ParamCount())
+        i = ParamCount() - 1;
+    else
+        i = index;
+
+    if (i < 0 || i >= ParamCount())
+        return nullptr;
+    return params_[i];
+}
+
+int Func::RequiredParamCount() const
+{
+    if (IsVariadic())
+        return ParamCount() - 1;
+    else
+        return ParamCount();
 }
 
 int Func::ParamCount() const
@@ -25,14 +47,6 @@ int Func::VarCount() const
 {
     const int var_count = scope->MaxVarID() + 1;
     return var_count - ParamCount();
-}
-
-const Var *Func::GetParam(int index) const
-{
-    if (index < 0 || index >= ParamCount())
-        return nullptr;
-
-    return params_[index];
 }
 
 // Class

@@ -149,32 +149,28 @@ CallExpr *Parser::arg_list(CallExpr *call)
         call->AddArg(new IntValExpr(call->pos.y));
     }
 
-    expect(TK::RPAREN);
-
-    // TODO remove builtin check
-    if (!call->func->is_builtin) {
+    {
         const int argc = call->ArgCount();
-        const int paramc = call->func->ParamCount();
-
-        if (argc < paramc) {
+        const int paramc = call->func->RequiredParamCount();
+        if (argc < paramc)
             error(tok_pos(), "too few arguments");
-        }
-        else if (argc > paramc) {
-            error(tok_pos(), "too many arguments");
-        }
-        else {
-            for (int i = 0; i < argc; i++) {
-                const Expr *arg = call->GetArg(i);
-                const Var *param = call->func->GetParam(i);
 
-                if (!MatchType(arg->type, param->type)) {
-                    error(tok_pos(), "type mismatch: ",
-                            TypeString(arg->type), " and ",
-                            TypeString(param->type));
-                }
+        for (int i = 0; i < argc; i++) {
+            const Expr *arg = call->GetArg(i);
+            const Var *param = call->func->GetParam(i);
+
+            if (!param)
+                error(tok_pos(), "too many arguments");
+
+            if (!MatchType(arg->type, param->type)) {
+                error(tok_pos(), "type mismatch: ",
+                        TypeString(arg->type), " and ",
+                        TypeString(param->type));
             }
         }
     }
+
+    expect(TK::RPAREN);
 
     return call;
 }

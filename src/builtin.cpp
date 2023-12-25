@@ -7,7 +7,7 @@ void DefineBuiltinFuncs(Scope *builtin)
     {
         Func *func = builtin->DefineFunc("print");
 
-        func->DeclareParam("...", new Type(TY::Nil));
+        func->DeclareParam("...", new Type(TY::Any));
         func->type = new Type(TY::Nil);
     }
     {

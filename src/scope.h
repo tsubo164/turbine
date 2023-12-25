@@ -24,25 +24,30 @@ struct Var {
 };
 
 struct Func {
-    Func(std::string_view Name, int ID, Scope *sc, bool builtin = false, bool variadic = false)
-        : name(Name), id(ID), is_builtin(builtin), is_variadic(variadic), scope(sc) {}
+    Func(std::string_view Name, int ID, Scope *sc, bool builtin = false)
+        : name(Name), id(ID), scope(sc), is_builtin_(builtin) {}
 
-    std::string_view name;
+    const std::string_view name;
     const int id;
-    const bool is_builtin;
-    bool is_variadic;
     Scope *scope;
     const Type *type = nullptr;
 
     void DeclareParam(std::string_view name, const Type *type);
-    int ParamCount() const;
-    int VarCount() const;
     const Var *GetParam(int index) const;
+    int RequiredParamCount() const;
+    int ParamCount() const;
+
+    int VarCount() const;
+
     bool HasSpecialVar() const { return has_special_var_; }
+    bool IsVariadic() const { return ellipsis_index_ >= 0; }
+    bool IsBuiltin() const { return is_builtin_; }
 
 private:
     std::vector<const Var*> params_;
+    bool is_builtin_ = false;
     bool has_special_var_ = false;
+    int ellipsis_index_ = -1;
 };
 
 struct Field {

@@ -298,7 +298,7 @@ void SelectExpr::Gen(Bytecode &code) const
 
 void CallExpr::Gen(Bytecode &code) const
 {
-    if (func->is_variadic) {
+    if (func->IsVariadic()) {
         for (auto arg: args) {
             // arg value
             arg->Gen(code);
@@ -323,7 +323,7 @@ void CallExpr::Gen(Bytecode &code) const
             arg->Gen(code);
     }
 
-    code.CallFunction(func->id, func->is_builtin);
+    code.CallFunction(func->id, func->IsBuiltin());
 }
 
 void BinaryExpr::Gen(Bytecode &code) const
@@ -696,7 +696,7 @@ void Prog::Gen(Bytecode &code) const
         gvar->Gen(code);
 
     // call main
-    code.CallFunction(main_func->id, main_func->is_builtin);
+    code.CallFunction(main_func->id, main_func->IsBuiltin());
     code.Exit();
 
     // global funcs

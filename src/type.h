@@ -12,6 +12,7 @@ enum class TypeKind {
     Float,
     String,
     ClassType,
+    Any,
 };
 using TY = TypeKind;
 
@@ -29,6 +30,7 @@ struct Type {
     bool IsFloat() const { return kind == TY::Float; }
     bool IsString() const { return kind == TY::String; }
     bool IsClass() const { return kind == TY::ClassType; }
+    bool IsAny() const { return kind == TY::Any; }
 };
 
 bool MatchType(const Type *t1, const Type *t2);
