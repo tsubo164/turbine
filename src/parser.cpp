@@ -179,6 +179,30 @@ CallExpr *Parser::arg_list(CallExpr *call)
     return call;
 }
 
+Expr *Parser::conv_expr(TK kind)
+{
+    Type *to_type = type_spec();
+    const Pos tokpos = tok_pos();
+
+    expect(TK::LPAREN);
+    Expr *expr = expression();
+    expect(TK::RPAREN);
+
+    switch (expr->type->kind) {
+    case TY::Bool:
+    case TY::Integer:
+    case TY::Float:
+        break;
+    default:
+        error(tokpos, "unable to convert type from '",
+                TypeString(expr->type), "' to '",
+                TypeString(to_type), "'");
+        break;
+    }
+
+    return new ConvertExpr(expr, to_type);
+}
+
 // primary_expr =
 //     IntNum |
 //     FpNum |
@@ -229,6 +253,16 @@ Expr *Parser::primary_expr()
                     "' not declared in parameters");
         }
         return new IdentExpr(var);
+    }
+
+    const TK next = peek();
+    switch (next) {
+    case TK::BOOL:
+    case TK::INT:
+    case TK::FLOAT:
+        return conv_expr(next);
+    default:
+        break;
     }
 
     Expr *expr = nullptr;
@@ -379,7 +413,8 @@ Expr *Parser::add_expr()
 // rel_op   = "==" | "!=" | "<" | ">" | "<=" | ">="
 Expr *Parser::rel_expr()
 {
-    Expr *expr = add_expr();
+    Expr *l = add_expr();
+    Expr *r = nullptr;
 
     for (;;) {
         const Token *tok = gettok();
@@ -391,12 +426,18 @@ Expr *Parser::rel_expr()
         case TK::GT:
         case TK::LTE:
         case TK::GTE:
-            expr = new BinaryExpr(expr, add_expr(), tok->kind);
+            r = add_expr();
+            if (!MatchType(l->type, r->type)) {
+                error(tok->pos, "type mismatch: ",
+                        TypeString(l->type), " and ",
+                        TypeString(r->type));
+            }
+            l = new BinaryExpr(l, r, new Type(TY::Bool), tok->kind);
             continue;
 
         default:
             ungettok();
-            return expr;
+            return l;
         }
     }
 }
@@ -460,9 +501,9 @@ Expr *Parser::assign_expr()
     case TK::PERCENTEQ:
         rval = expression();
         if (!MatchType(lval->type, rval->type)) {
-            error(tok->pos,
-                    "type mismatch: ", TypeString(lval->type),
-                    ", ", TypeString(rval->type));
+            error(tok->pos, "type mismatch: l-value type '",
+                TypeString(lval->type), "': r-value type '",
+                TypeString(rval->type), "'");
         }
         return new AssignExpr(lval, rval, tok->kind);
 

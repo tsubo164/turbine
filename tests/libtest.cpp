@@ -617,7 +617,7 @@ int main(int argc, char **argv)
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
-            "    return !(42 != i)\n"
+            "    return int(!(42 != i))\n"
             );
         Interpreter ip;
 
@@ -641,7 +641,7 @@ int main(int argc, char **argv)
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
-            "    return i < 5\n"
+            "    return int(i < 5)\n"
             );
         Interpreter ip;
 
@@ -653,7 +653,7 @@ int main(int argc, char **argv)
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
-            "    return i <= 42\n"
+            "    return int(i <= 42)\n"
             );
         Interpreter ip;
 
@@ -665,7 +665,7 @@ int main(int argc, char **argv)
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
-            "    return i > 5\n"
+            "    return int(i > 5)\n"
             );
         Interpreter ip;
 
@@ -677,7 +677,7 @@ int main(int argc, char **argv)
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
-            "    return i >= 42\n"
+            "    return int(i >= 42)\n"
             );
         Interpreter ip;
 

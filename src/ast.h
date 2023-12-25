@@ -74,6 +74,14 @@ struct StrValExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
+struct ConvertExpr : public Expr {
+    ConvertExpr(const Expr *e, const Type *totype) : Expr(totype), expr(e) {}
+    std::unique_ptr<const Expr> expr;
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct IdentExpr : public Expr {
     IdentExpr(const Var *v) : Expr(v->type), var(v) {}
     const Var *var;
@@ -128,7 +136,9 @@ struct CallExpr : public Expr {
 
 struct BinaryExpr : public Expr {
     BinaryExpr(Expr *L, Expr *R, TK k)
-        : Expr(PromoteType(L->type, R->type)), l(L), r(R), kind(k) {}
+        : Expr(L->type), l(L), r(R), kind(k) {}
+    BinaryExpr(Expr *L, Expr *R, Type *t, TK k)
+        : Expr(t), l(L), r(R), kind(k) {}
     std::unique_ptr<Expr> l;
     std::unique_ptr<Expr> r;
     TK kind;

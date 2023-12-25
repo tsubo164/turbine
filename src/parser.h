@@ -52,6 +52,7 @@ private:
 
     // expression
     CallExpr *arg_list(CallExpr *fcall);
+    Expr *conv_expr(TK kind);
     Expr *primary_expr();
     Expr *unary_expr();
     Expr *mul_expr();

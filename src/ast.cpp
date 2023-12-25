@@ -78,6 +78,13 @@ void StrValExpr::Print(int depth) const
         " " << type->kind << std::endl;
 }
 
+void ConvertExpr::Print(int depth) const
+{
+    print_node("ConvertExpr", depth, false);
+    std::cout << type->kind << std::endl;
+    expr->Print(depth + 1);
+}
+
 void IdentExpr::Print(int depth) const
 {
     print_node("IdentExpr", depth, false);
@@ -272,6 +279,46 @@ void StrValExpr::Gen(Bytecode &code) const
 
     const Word id = code.RegisterConstString(s);
     code.LoadString(id);
+}
+
+void ConvertExpr::Gen(Bytecode &code) const
+{
+    expr->Gen(code);
+
+    const TY from = expr->type->kind;
+    const TY to = type->kind;
+
+    switch (from) {
+    case TY::Bool:
+        switch (to) {
+        case TY::Bool: break;
+        case TY::Integer: code.BoolToInt(); break;
+        case TY::Float:   code.BoolToFloat(); break;
+        default: break;
+        }
+        break;
+
+    case TY::Integer:
+        switch (to) {
+        case TY::Bool:    code.IntToBool(); break;
+        case TY::Integer: break;
+        case TY::Float:   code.IntToFloat(); break;
+        default: break;
+        }
+        break;
+
+    case TY::Float:
+        switch (to) {
+        case TY::Bool:    code.FloatToBool(); break;
+        case TY::Integer: code.FloatToInt(); break;
+        case TY::Float:   break;
+        default: break;
+        }
+        break;
+
+    default:
+        break;
+    }
 }
 
 void IdentExpr::Gen(Bytecode &code) const
