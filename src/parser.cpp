@@ -755,14 +755,17 @@ static Expr *default_value(const Type *type)
     case TY::STRING:
         return new StrValExpr("");
 
-    case TY::NIL:
-    case TY::ANY:
-        ERROR_NO_CASE(type->kind);
-        return nullptr;
+    case TY::PTR:
+        return new NilValExpr();
 
     case TY::CLASS:
         // TODO
         return new NullExpr();
+
+    case TY::NIL:
+    case TY::ANY:
+        ERROR_NO_CASE(type->kind);
+        return nullptr;
     }
 }
 
@@ -917,30 +920,40 @@ BlockStmt *Parser::block_stmt(Func *func)
 // type_spec = "bool" | "int" | "float" | "string" | identifier
 Type *Parser::type_spec()
 {
-    if (consume(TK::BOOL))
-        return new Type(TY::BOOL);
+    Type *ptr = nullptr;
+    Type *type = nullptr;
 
-    if (consume(TK::INT))
-        return new Type(TY::INT);
+    if (consume(TK::STAR))
+        ptr = new Type(TY::PTR);
 
-    if (consume(TK::FLOAT))
-        return new Type(TY::FLOAT);
-
-    if (consume(TK::STRING))
-        return new Type(TY::STRING);
-
-    if (consume(TK::IDENT)) {
-        Type *ty = new Type(TY::CLASS);
-        ty->clss = scope_->FindClass(tok_str());
-        return ty;
+    if (consume(TK::BOOL)) {
+        type = new Type(TY::BOOL);
+    }
+    else if (consume(TK::INT)) {
+        type = new Type(TY::INT);
+    }
+    else if (consume(TK::FLOAT)) {
+        type = new Type(TY::FLOAT);
+    }
+    else if (consume(TK::STRING)) {
+        type = new Type(TY::STRING);
+    }
+    else if (consume(TK::IDENT)) {
+        type = new Type(TY::CLASS);
+        type->clss = scope_->FindClass(tok_str());
+    }
+    else {
+        const Token *tok = gettok();
+        error(tok->pos, "not a type name: '",
+                GetTokenKindString(tok->kind), "'");
     }
 
-    const Token *tok = gettok();
-    const std::string msg =
-        std::string("not a type name: '") + GetTokenKindString(tok->kind) + "'";
-    Error(msg, *src_, tok->pos);
+    if (ptr) {
+        ptr->underlying = type;
+        type = ptr;
+    }
 
-    return nullptr;
+    return type;
 }
 
 void Parser::field_list(Class *clss)

@@ -47,41 +47,38 @@ int StrValExpr::ConvertEscSeq()
 void NilValExpr::Print(int depth) const
 {
     print_node("NilValExpr", depth, false);
-    std::cout << type->kind << std::endl;
+    std::cout << type << std::endl;
 }
 
 void BoolValExpr::Print(int depth) const
 {
     print_node("BoolValExpr", depth, false);
-    std::cout << val <<
-        " " << type->kind << std::endl;
+    std::cout << val << " " << type << std::endl;
 }
 
 void IntValExpr::Print(int depth) const
 {
     print_node("IntValExpr", depth, false);
-    std::cout << val <<
-        " " << type->kind << std::endl;
+    std::cout << val << " " << type << std::endl;
 }
 
 void FltValExpr::Print(int depth) const
 {
     print_node("FltValExpr", depth, false);
-    std::cout << val <<
-        " " << type->kind << std::endl;
+    std::cout << val << " " << type << std::endl;
 }
 
 void StrValExpr::Print(int depth) const
 {
     print_node("StrValExpr", depth, false);
     std::cout << "\"" << val << "\"" <<
-        " " << type->kind << std::endl;
+        " " << type << std::endl;
 }
 
 void ConvertExpr::Print(int depth) const
 {
     print_node("ConvertExpr", depth, false);
-    std::cout << type->kind << std::endl;
+    std::cout << type << std::endl;
     expr->Print(depth + 1);
 }
 
@@ -89,14 +86,14 @@ void IdentExpr::Print(int depth) const
 {
     print_node("IdentExpr", depth, false);
     std::cout << "\"" << var->name << "\" @" << var->id <<
-        " " << type->kind << std::endl;
+        " " << type << std::endl;
 }
 
 void FieldExpr::Print(int depth) const
 {
     print_node("FieldExpr", depth, false);
     std::cout << fld->name << " @" << fld->id <<
-        " " << type->kind << std::endl;
+        " " << type << std::endl;
 }
 
 void SelectExpr::Print(int depth) const
@@ -110,7 +107,7 @@ void CallExpr::Print(int depth) const
 {
     print_node("CallExpr", depth, false);
     std::cout << func->name <<
-        " " << type->kind << std::endl;
+        " " << type << std::endl;
     for (auto arg: args)
         arg->Print(depth + 1);
 }
@@ -119,7 +116,7 @@ void BinaryExpr::Print(int depth) const
 {
     print_node("BinaryExpr", depth, false);
     std::cout << "\"" << kind << "\" ";
-    std::cout << type->kind << std::endl;
+    std::cout << type << std::endl;
 
     l->Print(depth + 1);
     r->Print(depth + 1);
@@ -129,7 +126,7 @@ void UnaryExpr::Print(int depth) const
 {
     print_node("UnaryExpr", depth, false);
     std::cout << "\"" << kind << "\" ";
-    std::cout << type->kind << std::endl;
+    std::cout << type << std::endl;
 
     r->Print(depth + 1);
 }
@@ -138,7 +135,7 @@ void AssignExpr::Print(int depth) const
 {
     print_node("AssignExpr", depth, false);
     std::cout << "\"" << kind << "\" ";
-    std::cout << type->kind << std::endl;
+    std::cout << type << std::endl;
 
     lval->Print(depth + 1);
     rval->Print(depth + 1);
@@ -148,7 +145,7 @@ void IncDecExpr::Print(int depth) const
 {
     print_node("IncDecExpr", depth, false);
     std::cout << "\"" << kind << "\" ";
-    std::cout << type->kind << std::endl;
+    std::cout << type << std::endl;
 
     lval->Print(depth + 1);
 }
@@ -226,7 +223,7 @@ void FuncDef::Print(int depth) const
 {
     print_node("FuncDef", depth, false);
     std::cout << func->name << " " <<
-        func->type->kind << std::endl;
+        func->type << std::endl;
     block->Print(depth + 1);
 }
 
@@ -366,8 +363,9 @@ void CallExpr::Gen(Bytecode &code) const
             case TY::STRING:
                 code.LoadTypeString();
                 break;
-            case TY::ANY:
             case TY::CLASS:
+            case TY::PTR:
+            case TY::ANY:
                 code.LoadTypeNil();
                 break;
             }

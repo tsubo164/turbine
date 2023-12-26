@@ -1,6 +1,7 @@
 # main() int
-  - s = "Hello"
+  - i int = 42
+  - p *int
 
-  print(s)
+  //p = &i
 
-  return 13
+  return i

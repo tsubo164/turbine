@@ -19,6 +19,7 @@ static const char *type_kind_string(TY kind)
     case TY::FLOAT: return "float";
     case TY::STRING: return "string";
     case TY::CLASS: return "class";
+    case TY::PTR: return "*";
     case TY::ANY: return "any";
     }
 
@@ -26,9 +27,14 @@ static const char *type_kind_string(TY kind)
     return nullptr;
 }
 
-const char *TypeString(const Type *type)
+std::string TypeString(const Type *type)
 {
-    return type_kind_string(type->kind);
+    std::string s;
+
+    for (const Type *t = type; t; t = t->underlying)
+        s += type_kind_string(t->kind);
+
+    return s;
 }
 
 bool MatchType(const Type *t1, const Type *t2)
@@ -46,7 +52,7 @@ const Type *DuplicateType(const Type *t)
     return dup;
 }
 
-std::ostream &operator<<(std::ostream &os, TY kind)
+std::ostream &operator<<(std::ostream &os, const Type *type)
 {
-    return os << type_kind_string(kind);
+    return os << TypeString(type);
 }
