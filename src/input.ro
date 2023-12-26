@@ -1,18 +1,6 @@
-# add(x int, y int) int
-  return x + y
-
 # main() int
-  - i = 11
-  - x int
-  - b = true
+  - s = "Hello"
 
-  x = int(i == 11) + 4
-  //x = i == 11
+  print(s)
 
-  return x
-  /*
-
-  - i int
-  i = 42
-  return int(i < 5)
-  */
+  return 13

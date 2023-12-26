@@ -234,7 +234,7 @@ void VM::run()
                 const Word id = fetch_str();
                 const std::string &s = code_->GetConstString(id);
                 Value val;
-                val.str = new std::string(s);
+                val.str = gc_.NewString(s);
                 push(val);
             }
             break;
@@ -396,7 +396,7 @@ void VM::run()
                             break;
 
                         case TypeID::STR:
-                            std::cout << *val.str;
+                            std::cout << val.str->str;
                             break;
                         }
 
@@ -474,7 +474,7 @@ void VM::run()
                 const Value val1 = pop();
                 const Value val0 = pop();
                 Value val;
-                val.str = new std::string(*val0.str + *val1.str);
+                val.str = gc_.NewString(val0.str->str + val1.str->str);
                 push(val);
             }
             break;
@@ -569,7 +569,7 @@ void VM::run()
                 const Value val1 = pop();
                 const Value val0 = pop();
                 Value val;
-                val.inum = *val0.str == *val1.str;
+                val.inum = val0.str->str == val1.str->str;
                 push(val);
             }
             break;
@@ -595,7 +595,7 @@ void VM::run()
                 const Value val1 = pop();
                 const Value val0 = pop();
                 Value val;
-                val.inum = *val0.str != *val1.str;
+                val.inum = val0.str->str != val1.str->str;
                 push(val);
             }
             break;

@@ -3,12 +3,13 @@
 
 #include <vector>
 #include "bytecode.h"
+#include "gc.h"
 
 struct Value {
     union {
         Int inum = 0;
         Float fpnum;
-        std::string *str;
+        StringObj *str;
     };
 };
 
@@ -30,6 +31,8 @@ public:
     void PrintStack() const;
     void EnablePrintStack(bool enable);
 
+    void PrintObjs() const { gc_.PrintObjs(); }
+
 private:
     std::vector<Value> stack_ = {{0}};
     const Bytecode *code_ = nullptr;
@@ -43,6 +46,7 @@ private:
     int call_sp_ = 0;
 
     bool print_stack_ = false;
+    GC gc_;
 
     void run();
 
