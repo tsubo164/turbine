@@ -16,7 +16,7 @@ Interpreter::Interpreter()
 
 Interpreter::~Interpreter()
 {
-    delete tree_;
+    delete prog_;
 }
 
 Int Interpreter::Run(const std::string &src)
@@ -33,20 +33,23 @@ Int Interpreter::Run(const std::string &src)
     }
 
     // Compile source
-    tree_ = parser_.Parse(src);
+    prog_ = parser_.Parse(src, &scope_);
 
     if (print_tree_) {
         print_header("tree");
-        tree_->Print();
+        prog_->Print();
     }
 
     if (print_symbols_) {
         print_header("symbol");
-        scope_.Print();
+        if (print_symbols_all_)
+            scope_.Print();
+        else
+            prog_->scope->Print();
     }
 
     // Generate bytecode
-    GenerateCode(tree_, code_);
+    GenerateCode(prog_, code_);
 
     if (print_bytecode_) {
         print_header("bytecode");
@@ -75,9 +78,10 @@ void Interpreter::EnablePrintTree(bool enable)
     print_tree_ = enable;
 }
 
-void Interpreter::EnablePrintSymbols(bool enable)
+void Interpreter::EnablePrintSymbols(bool enable, bool all)
 {
     print_symbols_ = enable;
+    print_symbols_all_ = all;
 }
 
 void Interpreter::EnablePrintBytecode(bool enable)

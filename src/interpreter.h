@@ -18,15 +18,15 @@ public:
 
     void EnablePrintToken(bool enable, bool raw);
     void EnablePrintTree(bool enable);
-    void EnablePrintSymbols(bool enable);
+    void EnablePrintSymbols(bool enable, bool all);
     void EnablePrintBytecode(bool enable);
     void EnablePrintStack(bool enable);
 
 private:
     Scope scope_;
-    Parser parser_ {scope_};
+    Parser parser_;
 
-    Node *tree_ = nullptr;
+    Prog *prog_ = nullptr;
     Bytecode code_;
     VM vm_;
 
@@ -34,6 +34,7 @@ private:
     bool print_token_raw_ = false;
     bool print_tree_ = false;
     bool print_symbols_ = false;
+    bool print_symbols_all_ = false;
     bool print_bytecode_ = false;
     bool print_stack_ = false;
     void print_token(const std::string &src) const;

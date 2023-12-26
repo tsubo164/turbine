@@ -25,6 +25,7 @@ int main(int argc, char **argv)
     bool print_token_raw = false;
     bool print_tree = false;
     bool print_symbols = false;
+    bool print_symbols_all = false;
     bool print_bytecode = false;
     bool print_stack = false;
     std::string_view filename;
@@ -44,6 +45,10 @@ int main(int argc, char **argv)
         }
         else if (arg == "--print-symbols" || arg == "-y") {
             print_symbols = true;
+        }
+        else if (arg == "--print-symbols-all" || arg == "-Y") {
+            print_symbols = true;
+            print_symbols_all = true;
         }
         else if (arg == "--print-bytecode" || arg == "-b") {
             print_bytecode = true;
@@ -75,7 +80,7 @@ int main(int argc, char **argv)
     Interpreter ip;
     ip.EnablePrintToken(print_token, print_token_raw);
     ip.EnablePrintTree(print_tree);
-    ip.EnablePrintSymbols(print_symbols);
+    ip.EnablePrintSymbols(print_symbols, print_symbols_all);
     ip.EnablePrintBytecode(print_bytecode);
     ip.EnablePrintStack(print_stack);
 

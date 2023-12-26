@@ -296,7 +296,7 @@ struct Prog: public Node {
     // TODO remove this
     const Func *main_func = nullptr;
 
-    void Print(int depth) const override final;
+    void Print(int depth = 0) const override final;
     void Gen(Bytecode &code) const override final;
 };
 

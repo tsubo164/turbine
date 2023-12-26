@@ -17,10 +17,11 @@ void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
     Error(msg, *src_, pos);
 }
 
-Node *Parser::Parse(const std::string &src)
+Prog *Parser::Parse(const std::string &src, Scope *scope)
 {
     src_ = &src;
     lexer_.SetInput(src);
+    scope_ = scope;
 
     // global (file) scope
     enter_scope();

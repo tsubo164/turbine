@@ -10,15 +10,14 @@
 
 class Parser {
 public:
-    Parser(Scope &scope)
-        : lexer_(), scope_(&scope) {}
+    Parser() {}
     ~Parser() {}
 
-    Node *Parse(const std::string &src);
+    Prog *Parse(const std::string &src, Scope *scope);
 
 private:
     Lexer lexer_;
-    Scope *scope_;
+    Scope *scope_ = nullptr;
     const std::string *src_;
     Func *func_ = nullptr;
 
