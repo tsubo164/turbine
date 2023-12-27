@@ -333,6 +333,22 @@ Expr *Parser::unary_expr()
 {
     const Token *tok = gettok();
 
+    if (tok->kind == TK::AMP) {
+        Expr *expr = unary_expr();
+        Type *type = new Type(TY::PTR);
+        type->underlying = expr->type;
+        return new UnaryExpr(expr, type, tok->kind);
+    }
+    if (tok->kind == TK::STAR) {
+        Expr *expr = unary_expr();
+        if (!expr->type->IsPtr()) {
+            error(tok->pos,
+                    "type mismatch: * must be used for pointer type");
+        }
+        const Type *type = DuplicateType(expr->type->underlying);
+        return new UnaryExpr(expr, type, tok->kind);
+    }
+
     switch (tok->kind) {
     case TK::PLUS:
     case TK::MINUS:

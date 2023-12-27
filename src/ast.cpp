@@ -497,6 +497,12 @@ void BinaryExpr::Gen(Bytecode &code) const
 
 void UnaryExpr::Gen(Bytecode &code) const
 {
+    if (kind == TK::AMP) {
+        const int index = r->Addr();
+        code.LoadAddress(index);
+        return;
+    }
+
     r->Gen(code);
 
     switch (kind) {
@@ -513,6 +519,10 @@ void UnaryExpr::Gen(Bytecode &code) const
 
     case TK::TILDA:
         code.Not();
+        return;
+
+    case TK::STAR:
+        code.Dereference();
         return;
 
     default:

@@ -309,8 +309,23 @@ void VM::run()
 
         case OP_ALLOC:
             {
-                const Int size  = fetch_byte();
+                const Int size = fetch_byte();
                 set_sp(sp_ + size);
+            }
+            break;
+
+        case OP_LOADA:
+            {
+                const Int id = fetch_word();
+                push_int(bp_ + 1 + id);
+            }
+            break;
+
+        case OP_DEREF:
+            {
+                const Int addr  = pop_int();
+                const Value val = stack_[addr];
+                push(val);
             }
             break;
 

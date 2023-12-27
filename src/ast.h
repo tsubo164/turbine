@@ -148,9 +148,10 @@ struct BinaryExpr : public Expr {
 };
 
 struct UnaryExpr : public Expr {
+    UnaryExpr(Expr *R, const Type *t, TK k) : Expr(t), r(R), kind(k) {}
     UnaryExpr(Expr *R, TK k) : Expr(R->type), r(R), kind(k) {}
     std::unique_ptr<Expr> r;
-    TK kind;
+    const TK kind;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;

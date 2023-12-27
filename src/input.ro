@@ -2,6 +2,6 @@
   - i int = 42
   - p *int
 
-  //p = &i
+  p = &i
 
-  return i
+  return *p

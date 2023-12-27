@@ -137,16 +137,15 @@ void Bytecode::Allocate(Byte count)
     bytes_.push_back(count);
 }
 
-void Bytecode::CallFunction(Word func_index, bool builtin)
+void Bytecode::LoadAddress(Word id)
 {
-    if (builtin) {
-        bytes_.push_back(OP_CALL_BUILTIN);
-        push_back<Byte>(bytes_, func_index);
-    }
-    else {
-        bytes_.push_back(OP_CALL);
-        push_back<Word>(bytes_, func_index);
-    }
+    bytes_.push_back(OP_LOADA);
+    push_back<Word>(bytes_, id);
+}
+
+void Bytecode::Dereference()
+{
+    bytes_.push_back(OP_DEREF);
 }
 
 void Bytecode::LoadTypeNil()
@@ -172,6 +171,18 @@ void Bytecode::LoadTypeFloat()
 void Bytecode::LoadTypeString()
 {
     bytes_.push_back(OP_LOADTYPES);
+}
+
+void Bytecode::CallFunction(Word func_index, bool builtin)
+{
+    if (builtin) {
+        bytes_.push_back(OP_CALL_BUILTIN);
+        push_back<Byte>(bytes_, func_index);
+    }
+    else {
+        bytes_.push_back(OP_CALL);
+        push_back<Word>(bytes_, func_index);
+    }
 }
 
 Int Bytecode::JumpIfZero(Int addr)

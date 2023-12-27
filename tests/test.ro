@@ -127,6 +127,13 @@
     AssertB(true, b == false)
     AssertB(true, c != false)
 
+  // pointer variable
+  ---
+    - i int = 42
+    - p *int
+    p = &i
+    AssertI(42, *p)
+
   //------------------------------
   print(test_count, "tests done.")
 
