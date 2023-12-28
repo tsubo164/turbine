@@ -271,6 +271,14 @@ void VM::run()
             }
             break;
 
+        case OP_STORE:
+            {
+                const Value addr = pop();
+                const Value val = pop();
+                stack_[addr.inum] = val;
+            }
+            break;
+
         case OP_INCLOCAL:
             {
                 const Int id = fetch_byte();

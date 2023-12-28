@@ -23,6 +23,9 @@
 # add(x int, y int) int
   return x + y
 
+# twice(n *int)
+  *n = *n * 2
+
 # main() int
 
   ---
@@ -133,6 +136,12 @@
     - p *int
     p = &i
     AssertI(42, *p)
+
+  // pointer argument
+  ---
+    - i int = 13
+    twice(&i)
+    AssertI(26, i)
 
   //------------------------------
   print(test_count, "tests done.")

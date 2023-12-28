@@ -20,6 +20,7 @@ struct Expr : public Node {
     const Type *type;
 
     virtual int Addr() const { return -1; }
+    virtual bool IsAbsAddr() const { return false; }
     virtual bool IsGlobal() const { return false; }
     virtual bool IsNull() const { return false; }
 };
@@ -153,6 +154,8 @@ struct UnaryExpr : public Expr {
     std::unique_ptr<Expr> r;
     const TK kind;
 
+    int Addr() const override { return kind == TK::STAR ? r->Addr() : -1; }
+    bool IsAbsAddr() const override { return kind == TK::STAR; }
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };

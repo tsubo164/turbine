@@ -25,6 +25,7 @@ using Float = double;
     OP(OP_LOADGLOBAL,   OPERAND_WORD) \
     OP(OP_STORELOCAL,   OPERAND_BYTE) \
     OP(OP_STOREGLOBAL,  OPERAND_WORD) \
+    OP(OP_STORE,        OPERAND_NONE) \
     OP(OP_INCLOCAL,     OPERAND_BYTE) \
     OP(OP_INCGLOBAL,    OPERAND_WORD) \
     OP(OP_DECLOCAL,     OPERAND_BYTE) \
@@ -117,6 +118,7 @@ public:
     void LoadGlobal(Word id);
     void StoreLocal(Byte id);
     void StoreGlobal(Word id);
+    void Store();
     void IncLocal(Byte id);
     void IncGlobal(Word id);
     void DecLocal(Byte id);

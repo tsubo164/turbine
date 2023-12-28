@@ -566,11 +566,20 @@ void AssignExpr::Gen(Bytecode &code) const
         }
     }
 
-    const int index = lval->Addr();
-    if (lval->IsGlobal())
-        code.StoreGlobal(index);
-    else
-        code.StoreLocal(index);
+    if (lval->IsAbsAddr()) {
+        // absolute address from pointer variable
+        const int index = lval->Addr();
+        code.LoadLocal(index);
+        code.Store();
+    }
+    else {
+        // relative address from variable id
+        const int index = lval->Addr();
+        if (lval->IsGlobal())
+            code.StoreGlobal(index);
+        else
+            code.StoreLocal(index);
+    }
 }
 
 void IncDecExpr::Gen(Bytecode &code) const
