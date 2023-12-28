@@ -774,6 +774,10 @@ static Expr *default_value(const Type *type)
     case TY::PTR:
         return new NilValExpr();
 
+    case TY::ARRAY:
+        // TODO fill with zero values
+        return new NilValExpr();
+
     case TY::CLASS:
         // TODO
         return new NullExpr();
@@ -936,14 +940,27 @@ BlockStmt *Parser::block_stmt(Func *func)
 // type_spec = "bool" | "int" | "float" | "string" | identifier
 Type *Parser::type_spec()
 {
-    Type *ptr = nullptr;
+    Type *parent = nullptr;
     Type *type = nullptr;
 
-    if (consume(TK::STAR))
-        ptr = new Type(TY::PTR);
+    if (consume(TK::STAR)) {
+        return NewPtrType(type_spec());
+    }
+
+    if (consume(TK::LBRACK)) {
+        parent = new Type(TY::ARRAY);
+        Expr *e = expression();
+        if (!e->type->IsInt()) {
+            error(tok_pos(),
+                    "array length expression must be integer type");
+        }
+        const int len = 8;
+        expect(TK::RBRACK);
+        return NewArrayType(len, type_spec());
+    }
 
     if (consume(TK::BOOL)) {
-        type = new Type(TY::BOOL);
+        type = NewBoolType();
     }
     else if (consume(TK::INT)) {
         type = new Type(TY::INT);
@@ -962,11 +979,6 @@ Type *Parser::type_spec()
         const Token *tok = gettok();
         error(tok->pos, "not a type name: '",
                 GetTokenKindString(tok->kind), "'");
-    }
-
-    if (ptr) {
-        ptr->underlying = type;
-        type = ptr;
     }
 
     return type;

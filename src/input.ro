@@ -1,12 +1,5 @@
-# twice(n *int)
-  *n = *n * 2
-
 # main() int
-  - i int = 42
-  //- p *int
-  //p = &i
-  //*p = 11
-  //return *p
-
-  twice(&i)
+  - a [8]int
+  - i = 0
+  //i = a[3]
   return i

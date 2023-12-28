@@ -100,6 +100,8 @@ static const char *tok_kind_string(TokenKind kind)
     case TK::SEMICOLON:  return ";";
     case TK::LPAREN:     return "(";
     case TK::RPAREN:     return ")";
+    case TK::LBRACK:     return "[";
+    case TK::RBRACK:     return "]";
     case TK::BLOCKBEGIN: return "block_begin";
     case TK::BLOCKEND:   return "block_end";
     case TK::NEWLINE:    return "\\n";
@@ -418,6 +420,16 @@ void Lexer::Get(Token *tok)
 
         if (ch == ')') {
             tok->set(TK::RPAREN, pos);
+            return;
+        }
+
+        if (ch == '[') {
+            tok->set(TK::LBRACK, pos);
+            return;
+        }
+
+        if (ch == ']') {
+            tok->set(TK::RBRACK, pos);
             return;
         }
 

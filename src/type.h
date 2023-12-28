@@ -14,15 +14,19 @@ enum class TY {
     STRING,
     CLASS,
     PTR,
+    ARRAY,
     ANY,
 };
 
 struct Type {
+    Type(TY k, const Type *under)
+        : kind(k), underlying(under), clss(nullptr) {}
     Type(TY k)
         : kind(k), underlying(nullptr), clss(nullptr) {}
     const TY kind;
     const Type *underlying;
     const Class *clss;
+    int len = 0;
 
     int Size() const;
 
@@ -33,8 +37,13 @@ struct Type {
     bool IsString() const { return kind == TY::STRING; }
     bool IsClass() const { return kind == TY::CLASS; }
     bool IsPtr() const { return kind == TY::PTR; }
+    bool IsArray() const { return kind == TY::ARRAY; }
     bool IsAny() const { return kind == TY::ANY; }
 };
+
+Type *NewBoolType();
+Type *NewPtrType(Type *underlying);
+Type *NewArrayType(int len, Type *underlying);
 
 bool MatchType(const Type *t1, const Type *t2);
 const Type *DuplicateType(const Type *t);

@@ -70,6 +70,8 @@ enum class TokenKind {
     SEMICOLON,
     LPAREN,
     RPAREN,
+    LBRACK,
+    RBRACK,
     BLOCKBEGIN,
     BLOCKEND,
     NEWLINE,

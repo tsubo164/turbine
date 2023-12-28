@@ -365,6 +365,7 @@ void CallExpr::Gen(Bytecode &code) const
                 break;
             case TY::CLASS:
             case TY::PTR:
+            case TY::ARRAY:
             case TY::ANY:
                 code.LoadTypeNil();
                 break;
