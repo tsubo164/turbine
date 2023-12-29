@@ -27,7 +27,10 @@ Type *NewArrayType(int len, Type *underlying)
 
 int Type::Size() const
 {
-    if (IsClass())
+    if (IsArray())
+        // use one value for length info
+        return len + 1;
+    else if (IsClass())
         return clss->Size();
     else
         return 1;

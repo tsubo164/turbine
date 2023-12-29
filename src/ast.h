@@ -116,6 +116,19 @@ struct SelectExpr : public Expr {
     void Gen(Bytecode &code) const override final;
 };
 
+struct IndexExpr : public Expr {
+    IndexExpr(Expr *a, Expr *i)
+        : Expr(a->type->underlying), ary(a), idx(i) {}
+    std::unique_ptr<Expr> ary;
+    std::unique_ptr<Expr> idx;
+
+    //int Addr() const override { return inst->Addr() + fld->Addr(); }
+    //bool IsGlobal() const override { return inst->IsGlobal(); }
+
+    void Print(int depth) const override final;
+    void Gen(Bytecode &code) const override final;
+};
+
 struct CallExpr : public Expr {
     CallExpr(Func *f, Pos p) : Expr(f->type), func(f), pos(p) {}
     std::vector<Expr*> args;

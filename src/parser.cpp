@@ -241,9 +241,9 @@ Expr *Parser::primary_expr()
     }
 
     if (consume(TK::LPAREN)) {
-        Expr *expr = expression();
+        Expr *e = expression();
         expect(TK::RPAREN);
-        return expr;
+        return e;
     }
 
     if (consume(TK::CALLER_LINE)) {
@@ -311,6 +311,19 @@ Expr *Parser::primary_expr()
 
             expr = new SelectExpr(expr, new FieldExpr(fld));
             continue;
+        }
+        else if (tok->kind == TK::LBRACK) {
+            if (!expr->type->IsArray()) {
+                error(tok_pos(),
+                        "index operator must be used for array type");
+            }
+            Expr *idx = expression();
+            if (!idx->type->IsInt()) {
+                error(tok_pos(),
+                        "index expression must be integer type");
+            }
+            expect(TK::RBRACK);
+            return new IndexExpr(expr, idx);
         }
         else {
             if (!expr) {

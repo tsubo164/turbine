@@ -103,6 +103,14 @@ void SelectExpr::Print(int depth) const
     fld->Print(depth + 1);
 }
 
+void IndexExpr::Print(int depth) const
+{
+    print_node("IndexExpr", depth, false);
+    std::cout << type << std::endl;
+    ary->Print(depth + 1);
+    idx->Print(depth + 1);
+}
+
 void CallExpr::Print(int depth) const
 {
     print_node("CallExpr", depth, false);
@@ -338,6 +346,12 @@ void SelectExpr::Gen(Bytecode &code) const
         code.LoadGlobal(index);
     else
         code.LoadLocal(index);
+}
+
+void IndexExpr::Gen(Bytecode &code) const
+{
+    ary->Gen(code);
+    idx->Gen(code);
 }
 
 void CallExpr::Gen(Bytecode &code) const
