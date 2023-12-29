@@ -1,17 +1,12 @@
-## Point
-  - x int
-  - y int
-
-- p Point
-
-//- array [8] float
+//## Point
+//  - x int
+//  - y int
+//
+//- p Point
 
 # main() int
+  - i = 11
   - a [8]int
-  - i = 0
-  i = a[3]
+  //i = a[3]
+  //a[2] = 9
   return i
-  //- pt Point
-  //pt.x = 13
-  //pt.y = 29
-  //return pt.x + pt.y

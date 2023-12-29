@@ -95,17 +95,7 @@ Scope *Scope::OpenChild()
 
 Scope *Scope::Close() const
 {
-    return Parent();
-}
-
-Scope *Scope::Parent() const
-{
     return parent_;
-}
-
-bool Scope::HasParent() const
-{
-    return Parent();
 }
 
 bool Scope::IsGlobal() const
@@ -140,20 +130,10 @@ Var *Scope::FindVar(std::string_view name, bool find_in_parents) const
     if (!find_in_parents)
         return nullptr;
 
-    if (HasParent())
-        return Parent()->FindVar(name);
+    if (parent_)
+        return parent_->FindVar(name);
 
     return nullptr;
-}
-
-int Scope::max_var_id() const
-{
-    int max = next_var_id() - 1;
-
-    for (auto child: children_)
-        max = std::max(max, child->max_var_id());
-
-    return max;
 }
 
 Field *Scope::DefineFild(std::string_view name)
@@ -176,8 +156,8 @@ Field *Scope::FindField(std::string_view name) const
         return it->second;
     }
 
-    if (HasParent())
-        return Parent()->FindField(name);
+    if (parent_)
+        return parent_->FindField(name);
 
     return nullptr;
 }
@@ -210,8 +190,8 @@ Func *Scope::FindFunc(std::string_view name) const
         return it->second;
     }
 
-    if (HasParent())
-        return Parent()->FindFunc(name);
+    if (parent_)
+        return parent_->FindFunc(name);
 
     return nullptr;
 }
@@ -238,8 +218,8 @@ Class *Scope::FindClass(std::string_view name) const
     if (it != clsses_.end())
         return it->second;
 
-    if (HasParent())
-        return Parent()->FindClass(name);
+    if (parent_)
+        return parent_->FindClass(name);
 
     return nullptr;
 }
@@ -257,6 +237,16 @@ int Scope::VarSize() const
 int Scope::TotalVarSize() const
 {
     return max_var_id() + 1;
+}
+
+int Scope::max_var_id() const
+{
+    int max = next_var_id() - 1;
+
+    for (auto child: children_)
+        max = std::max(max, child->max_var_id());
+
+    return max;
 }
 
 int Scope::FieldSize() const

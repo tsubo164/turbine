@@ -138,6 +138,9 @@ void Bytecode::DecGlobal(Word id)
 
 void Bytecode::Allocate(Byte count)
 {
+    if (count == 0)
+        return;
+
     bytes_.push_back(OP_ALLOC);
     bytes_.push_back(count);
 }

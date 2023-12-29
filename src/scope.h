@@ -84,8 +84,6 @@ public:
 
     Scope *OpenChild();
     Scope *Close() const;
-    Scope *Parent() const;
-    bool HasParent() const;
     bool IsGlobal() const;
 
     Var *DefineVar(std::string_view name, const Type *type);

@@ -328,6 +328,11 @@ void ConvertExpr::Gen(Bytecode &code) const
 
 void IdentExpr::Gen(Bytecode &code) const
 {
+    if (type->IsArray()) {
+        code.LoadAddress(var->id);
+        return;
+    }
+
     if (var->is_global)
         code.LoadGlobal(var->id);
     else
@@ -352,6 +357,7 @@ void IndexExpr::Gen(Bytecode &code) const
 {
     ary->Gen(code);
     idx->Gen(code);
+    code.AddInt();
 }
 
 void CallExpr::Gen(Bytecode &code) const
@@ -765,8 +771,7 @@ void FuncDef::Gen(Bytecode &code) const
     code.RegisterFunction(func->id, func->ParamCount());
 
     // local vars
-    if (func->scope->TotalVarSize() > 0)
-        code.Allocate(func->scope->TotalVarSize());
+    code.Allocate(func->scope->TotalVarSize());
 
     block->Gen(code);
 }
@@ -779,8 +784,7 @@ void Prog::Gen(Bytecode &code) const
     }
 
     // global vars
-    if (scope->VarSize() > 0)
-        code.Allocate(scope->VarSize());
+    code.Allocate(scope->VarSize());
     for (const auto &gvar: gvars)
         gvar->Gen(code);
 
