@@ -43,12 +43,6 @@ int Func::ParamCount() const
     return params_.size();
 }
 
-int Func::VarCount() const
-{
-    const int var_count = scope->MaxVarID() + 1;
-    return var_count - ParamCount();
-}
-
 // Class
 void Class::DeclareField(std::string_view name, const Type *type)
 {
@@ -74,12 +68,12 @@ int Class::Size() const
 
 // Scope
 Scope::Scope()
-    : parent_(nullptr), level_(0), var_id_offset_(0)
+    : parent_(nullptr), level_(0), var_offset_(0)
 {
 }
 
-Scope::Scope(Scope *parent, int level, int var_id_offset)
-    : parent_(parent), level_(level), var_id_offset_(var_id_offset)
+Scope::Scope(Scope *parent, int level, int var_offset)
+    : parent_(parent), level_(level), var_offset_(var_offset)
 {
 }
 
@@ -91,9 +85,9 @@ Scope::~Scope()
 
 Scope *Scope::OpenChild()
 {
-    const int next_var_id = IsGlobal() ? 0 : NextVarID();
+    const int next_id = IsGlobal() ? 0 : next_var_id();
 
-    Scope *child = new Scope(this, level_ + 1, next_var_id);
+    Scope *child = new Scope(this, level_ + 1, next_id);
     children_.push_back(child);
 
     return child;
@@ -128,9 +122,11 @@ Var *Scope::DefineVar(std::string_view name, const Type *type)
         return nullptr;
     }
 
-    const int next_id = NextVarID();
+    const int next_id = next_var_id();
     Var *var = new Var(name, type, next_id, IsGlobal());
     vars_.insert({name, var});
+    var_offset_ += var->type->Size();
+
     return var;
 }
 
@@ -150,17 +146,12 @@ Var *Scope::FindVar(std::string_view name, bool find_in_parents) const
     return nullptr;
 }
 
-int Scope::VarCount() const
+int Scope::max_var_id() const
 {
-    return vars_.size();
-}
-
-int Scope::MaxVarID() const
-{
-    int max = NextVarID() - 1;
+    int max = next_var_id() - 1;
 
     for (auto child: children_)
-        max = std::max(max, child->MaxVarID());
+        max = std::max(max, child->max_var_id());
 
     return max;
 }
@@ -253,21 +244,19 @@ Class *Scope::FindClass(std::string_view name) const
     return nullptr;
 }
 
-int Scope::NextVarID() const
+int Scope::next_var_id() const
 {
-    return VarCount() + var_id_offset_;
+    return var_offset_;
 }
 
 int Scope::VarSize() const
 {
-    int size = 0;
+    return next_var_id();
+}
 
-    for (auto it: vars_) {
-        const Var *var = it.second;
-        size += var->type->Size();
-    }
-
-    return size;
+int Scope::TotalVarSize() const
+{
+    return max_var_id() + 1;
 }
 
 int Scope::FieldSize() const

@@ -37,8 +37,6 @@ struct Func {
     int RequiredParamCount() const;
     int ParamCount() const;
 
-    int VarCount() const;
-
     bool HasSpecialVar() const { return has_special_var_; }
     bool IsVariadic() const { return ellipsis_index_ >= 0; }
     bool IsBuiltin() const { return is_builtin_; }
@@ -81,7 +79,7 @@ private:
 class Scope {
 public:
     Scope();
-    Scope(Scope *parent, int level, int var_id_offset);
+    Scope(Scope *parent, int level, int var_offset);
     ~Scope();
 
     Scope *OpenChild();
@@ -92,10 +90,6 @@ public:
 
     Var *DefineVar(std::string_view name, const Type *type);
     Var *FindVar(std::string_view name, bool find_in_parents = true) const;
-    // var count in this scope
-    int VarCount() const;
-    // max var id including child scopes
-    int MaxVarID() const;
 
     Field *DefineFild(std::string_view name);
     Field *FindField(std::string_view name) const;
@@ -108,8 +102,8 @@ public:
     Class *DefineClass(std::string_view name);
     Class *FindClass(std::string_view name) const;
 
-    int NextVarID() const;
     int VarSize() const;
+    int TotalVarSize() const;
     int FieldSize() const;
 
     void Print(int depth = 0) const;
@@ -118,7 +112,7 @@ private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;
     const int level_;
-    const int var_id_offset_ = 0;
+    int var_offset_ = 0;
 
     const Func *func_ = nullptr;
     const Class *clss_ = nullptr;
@@ -127,6 +121,9 @@ private:
     std::map<std::string_view,Func*> funcs_;
     std::map<std::string_view,Field*> flds_;
     std::map<std::string_view,Class*> clsses_;
+
+    int next_var_id() const;
+    int max_var_id() const;
 };
 
 #endif // _H

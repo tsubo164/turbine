@@ -1,10 +1,10 @@
-//## Point
-//  - x int
-//  - y int
-//
-//- p Point
+## Point
+  - x int
+  - y int
 
-- array [8] float
+- p Point
+
+//- array [8] float
 
 # main() int
   - a [8]int

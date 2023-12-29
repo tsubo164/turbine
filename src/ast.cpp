@@ -765,8 +765,8 @@ void FuncDef::Gen(Bytecode &code) const
     code.RegisterFunction(func->id, func->ParamCount());
 
     // local vars
-    if (func->VarCount() > 0)
-        code.Allocate(func->VarCount());
+    if (func->scope->TotalVarSize() > 0)
+        code.Allocate(func->scope->TotalVarSize());
 
     block->Gen(code);
 }
@@ -779,7 +779,7 @@ void Prog::Gen(Bytecode &code) const
     }
 
     // global vars
-    if (scope->VarCount() > 0)
+    if (scope->VarSize() > 0)
         code.Allocate(scope->VarSize());
     for (const auto &gvar: gvars)
         gvar->Gen(code);
