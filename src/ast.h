@@ -129,9 +129,6 @@ struct IndexExpr : public Expr {
     std::unique_ptr<Expr> ary;
     std::unique_ptr<Expr> idx;
 
-    //int Addr() const override { return inst->Addr() + fld->Addr(); }
-    //bool IsGlobal() const override { return inst->IsGlobal(); }
-
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
     void GenAddr(Bytecode &code) const override final;

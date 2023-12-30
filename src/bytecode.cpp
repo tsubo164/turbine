@@ -67,8 +67,17 @@ void Bytecode::LoadByte(Byte byte)
 
 void Bytecode::LoadInt(Int integer)
 {
-    bytes_.push_back(OP_LOADI);
-    push_back<Int>(bytes_, integer);
+    constexpr Int bytemin = std::numeric_limits<Byte>::min();
+    constexpr Int bytemax = std::numeric_limits<Byte>::max();
+
+    if (integer >= bytemin && integer <= bytemax) {
+        bytes_.push_back(OP_LOADB);
+        push_back<Byte>(bytes_, integer);
+    }
+    else {
+        bytes_.push_back(OP_LOADI);
+        push_back<Int>(bytes_, integer);
+    }
 }
 
 void Bytecode::LoadFloat(Float fp)

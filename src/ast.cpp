@@ -21,6 +21,8 @@
         (code).ops##String(); \
     } while (0)
 
+static bool optimize = false;
+
 static void print_indent(int depth)
 {
     for (int i = 0; i < depth; i++)
@@ -249,15 +251,15 @@ void Prog::Print(int depth) const
 // Eval
 bool BinaryExpr::Eval(long &result) const
 {
-    long L = 0;
-    long R = 0;
-    const bool okL = l->Eval(L);
-    const bool okR = r->Eval(R);
+    long L = 0, R = 0;
+    bool ok;
 
-    if (!okL || !okR) {
-        result = 0;
+    ok = l->Eval(L);
+    if (!ok)
         return false;
-    }
+    ok = r->Eval(R);
+    if (!ok)
+        return false;
 
     switch (kind) {
     case TK::PLUS:    result = L + R; return true;
@@ -265,26 +267,25 @@ bool BinaryExpr::Eval(long &result) const
     case TK::STAR:    result = L * R; return true;
     case TK::SLASH:   result = L / R; return true;
     case TK::PERCENT: result = L % R; return true;
-    default: result = 0; return false;
+    default: return false;
     }
 }
 
 bool UnaryExpr::Eval(long &result) const
 {
     long R = 0;
-    const bool okr = r->Eval(R);
+    bool ok;
 
-    if (!okr) {
-        result = 0;
+    ok = r->Eval(R);
+    if (!ok)
         return false;
-    }
 
     switch (kind) {
     case TK::PLUS:  result = +R; return true;
     case TK::MINUS: result = -R; return true;
     case TK::EXCL:  result = !R; return true;
     case TK::TILDA: result = ~R; return true;
-    default: result = 0; return false;
+    default: return false;
     }
 }
 
@@ -503,6 +504,17 @@ void BinaryExpr::Gen(Bytecode &code) const
         return;
     }
 
+    // optimize
+    if (optimize) {
+        long val = 0;
+        bool ok;
+        ok = Eval(val);
+        if (ok) {
+            code.LoadInt(val);
+            return;
+        }
+    }
+
     l->Gen(code);
     r->Gen(code);
 
@@ -633,26 +645,26 @@ void AssignExpr::Gen(Bytecode &code) const
         switch (kind) {
         case TK::PLUSEQ:
             EMITS(code, type, Add, Concat);
-            break;;
+            break;
 
         case TK::MINUSEQ:
             EMIT(code, type, Sub);
-            break;;
+            break;
 
         case TK::STAREQ:
             EMIT(code, type, Mul);
-            break;;
+            break;
 
         case TK::SLASHEQ:
             EMIT(code, type, Div);
-            break;;
+            break;
 
         case TK::PERCENTEQ:
             EMIT(code, type, Rem);
-            break;;
+            break;
 
         default:
-            break;;
+            break;
         }
     }
 
