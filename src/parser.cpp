@@ -793,7 +793,7 @@ static Expr *default_value(const Type *type)
 
     case TY::CLASS:
         // TODO
-        return new NullExpr();
+        return new NilValExpr();
 
     case TY::NIL:
     case TY::ANY:

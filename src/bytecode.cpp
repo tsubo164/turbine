@@ -107,6 +107,11 @@ void Bytecode::StoreGlobal(Word id)
     push_back<Word>(bytes_, id);
 }
 
+void Bytecode::Load()
+{
+    bytes_.push_back(OP_LOAD);
+}
+
 void Bytecode::Store()
 {
     bytes_.push_back(OP_STORE);

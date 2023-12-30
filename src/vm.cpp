@@ -271,6 +271,14 @@ void VM::run()
             }
             break;
 
+        case OP_LOAD:
+            {
+                const Value addr = pop();
+                const Value val = stack_[addr.inum];
+                push(val);
+            }
+            break;
+
         case OP_STORE:
             {
                 const Value addr = pop();

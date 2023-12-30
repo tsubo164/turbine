@@ -23,6 +23,8 @@ struct Expr : public Node {
     virtual bool IsAbsAddr() const { return false; }
     virtual bool IsGlobal() const { return false; }
     virtual bool IsNull() const { return false; }
+
+    virtual void GenAddr(Bytecode &code) const {}
 };
 
 struct NullExpr : public Expr {
@@ -92,6 +94,7 @@ struct IdentExpr : public Expr {
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+    void GenAddr(Bytecode &code) const override final;
 };
 
 struct FieldExpr : public Expr {
@@ -102,6 +105,7 @@ struct FieldExpr : public Expr {
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+    void GenAddr(Bytecode &code) const override final;
 };
 
 struct SelectExpr : public Expr {
@@ -114,6 +118,7 @@ struct SelectExpr : public Expr {
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+    void GenAddr(Bytecode &code) const override final;
 };
 
 struct IndexExpr : public Expr {
@@ -127,6 +132,7 @@ struct IndexExpr : public Expr {
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+    void GenAddr(Bytecode &code) const override final;
 };
 
 struct CallExpr : public Expr {
@@ -171,6 +177,7 @@ struct UnaryExpr : public Expr {
     bool IsAbsAddr() const override { return kind == TK::STAR; }
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+    void GenAddr(Bytecode &code) const override final;
 };
 
 struct AssignExpr : public Expr {

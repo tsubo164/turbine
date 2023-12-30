@@ -328,15 +328,18 @@ void ConvertExpr::Gen(Bytecode &code) const
 
 void IdentExpr::Gen(Bytecode &code) const
 {
-    if (type->IsArray()) {
-        code.LoadAddress(var->id);
-        return;
-    }
-
     if (var->is_global)
         code.LoadGlobal(var->id);
     else
         code.LoadLocal(var->id);
+}
+
+void IdentExpr::GenAddr(Bytecode &code) const
+{
+    if (var->is_global)
+        code.LoadByte(var->id + 1);
+    else
+        code.LoadAddress(var->id);
 }
 
 void FieldExpr::Gen(Bytecode &code) const
@@ -344,18 +347,33 @@ void FieldExpr::Gen(Bytecode &code) const
     //code.LoadLocal(fld->id);
 }
 
+void FieldExpr::GenAddr(Bytecode &code) const
+{
+    code.LoadByte(fld->id);
+}
+
 void SelectExpr::Gen(Bytecode &code) const
 {
-    const int index = Addr();
-    if (inst->IsGlobal())
-        code.LoadGlobal(index);
-    else
-        code.LoadLocal(index);
+    GenAddr(code);
+    code.Load();
+}
+
+void SelectExpr::GenAddr(Bytecode &code) const
+{
+    inst->GenAddr(code);
+    fld->GenAddr(code);
+    code.AddInt();
 }
 
 void IndexExpr::Gen(Bytecode &code) const
 {
-    ary->Gen(code);
+    GenAddr(code);
+    code.Load();
+}
+
+void IndexExpr::GenAddr(Bytecode &code) const
+{
+    ary->GenAddr(code);
     idx->Gen(code);
     code.AddInt();
 }
@@ -551,6 +569,15 @@ void UnaryExpr::Gen(Bytecode &code) const
     }
 }
 
+void UnaryExpr::GenAddr(Bytecode &code) const
+{
+    if (kind == TK::STAR) {
+        // deref *i = ...
+        r->Gen(code);
+        return;
+    }
+}
+
 void AssignExpr::Gen(Bytecode &code) const
 {
     if (kind == TK::EQ) {
@@ -587,20 +614,8 @@ void AssignExpr::Gen(Bytecode &code) const
         }
     }
 
-    if (lval->IsAbsAddr()) {
-        // absolute address from pointer variable
-        const int index = lval->Addr();
-        code.LoadLocal(index);
-        code.Store();
-    }
-    else {
-        // relative address from variable id
-        const int index = lval->Addr();
-        if (lval->IsGlobal())
-            code.StoreGlobal(index);
-        else
-            code.StoreLocal(index);
-    }
+    lval->GenAddr(code);
+    code.Store();
 }
 
 void IncDecExpr::Gen(Bytecode &code) const

@@ -143,6 +143,17 @@
     twice(&i)
     AssertI(26, i)
 
+  // array variable
+  ---
+    - a [8]int
+    - i = 9
+    a[2] = 87
+    AssertI(87, a[2])
+    a[5] = 92
+    AssertI(92, a[5])
+    i = a[2] + a[5]
+    AssertI(179, i)
+
   //------------------------------
   print(test_count, "tests done.")
 
