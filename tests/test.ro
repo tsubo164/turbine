@@ -154,6 +154,17 @@
     i = a[2] + a[5]
     AssertI(179, i)
 
+  // array variable with const expression
+  ---
+    - a [2 + 8]int
+    - i = 7
+    a[2] = 8
+    AssertI(8, a[2])
+    a[5] = 2
+    AssertI(2, a[5])
+    i = a[2] + a[5]
+    AssertI(10, i)
+
   //------------------------------
   print(test_count, "tests done.")
 

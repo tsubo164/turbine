@@ -25,6 +25,7 @@ struct Expr : public Node {
     virtual bool IsNull() const { return false; }
 
     virtual void GenAddr(Bytecode &code) const {}
+    virtual bool Eval(long &result) const { result = 0; return false; }
 };
 
 struct NullExpr : public Expr {
@@ -56,6 +57,7 @@ struct IntValExpr : public Expr {
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+    bool Eval(long &result) const override final { result = val; return true; }
 };
 
 struct FltValExpr : public Expr {
@@ -165,6 +167,7 @@ struct BinaryExpr : public Expr {
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
+    bool Eval(long &result) const override final;
 };
 
 struct UnaryExpr : public Expr {
@@ -175,9 +178,11 @@ struct UnaryExpr : public Expr {
 
     int Addr() const override { return kind == TK::STAR ? r->Addr() : -1; }
     bool IsAbsAddr() const override { return kind == TK::STAR; }
+
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
     void GenAddr(Bytecode &code) const override final;
+    bool Eval(long &result) const override final;
 };
 
 struct AssignExpr : public Expr {

@@ -246,6 +246,48 @@ void Prog::Print(int depth) const
         func->Print(depth + 1);
 }
 
+// Eval
+bool BinaryExpr::Eval(long &result) const
+{
+    long L = 0;
+    long R = 0;
+    const bool okL = l->Eval(L);
+    const bool okR = r->Eval(R);
+
+    if (!okL || !okR) {
+        result = 0;
+        return false;
+    }
+
+    switch (kind) {
+    case TK::PLUS:    result = L + R; return true;
+    case TK::MINUS:   result = L - R; return true;
+    case TK::STAR:    result = L * R; return true;
+    case TK::SLASH:   result = L / R; return true;
+    case TK::PERCENT: result = L % R; return true;
+    default: result = 0; return false;
+    }
+}
+
+bool UnaryExpr::Eval(long &result) const
+{
+    long R = 0;
+    const bool okr = r->Eval(R);
+
+    if (!okr) {
+        result = 0;
+        return false;
+    }
+
+    switch (kind) {
+    case TK::PLUS:  result = +R; return true;
+    case TK::MINUS: result = -R; return true;
+    case TK::EXCL:  result = !R; return true;
+    case TK::TILDA: result = ~R; return true;
+    default: result = 0; return false;
+    }
+}
+
 // Gen
 void NilValExpr::Gen(Bytecode &code) const
 {

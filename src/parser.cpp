@@ -967,7 +967,12 @@ Type *Parser::type_spec()
             error(tok_pos(),
                     "array length expression must be integer type");
         }
-        const int len = 8;
+        long len = 0;
+        const bool ok = e->Eval(len);
+        if (!ok) {
+            error(tok_pos(),
+                    "array length expression must be compile time constant");
+        }
         expect(TK::RBRACK);
         return NewArrayType(len, type_spec());
     }
