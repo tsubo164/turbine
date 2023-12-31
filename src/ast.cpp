@@ -408,6 +408,18 @@ void SelectExpr::Gen(Bytecode &code) const
 
 void SelectExpr::GenAddr(Bytecode &code) const
 {
+    if (optimize) {
+        int base = 0;
+        int offset = 0;
+        if (inst->EvalAddr(base) && fld->EvalAddr(offset)) {
+            if (inst->IsGlobal())
+                code.LoadInt(base + offset + 1);
+            else
+                code.LoadAddress(base + offset);
+            return;
+        }
+    }
+
     inst->GenAddr(code);
     fld->GenAddr(code);
     code.AddInt();
@@ -425,16 +437,11 @@ void IndexExpr::GenAddr(Bytecode &code) const
         int base = 0;
         long index = 0;
         if (ary->EvalAddr(base) && idx->Eval(index)) {
-            const int len = ary->type->len;
-
-            if (index >= len) {
-                std::cout << "panic: runtime error: index out of range[" <<
-                    index << "] with length " << len << std::endl;
-                std::exit(1);
-            }
-
-            // index from next to base
-            code.LoadAddress(base + index + 1);
+            if (ary->IsGlobal())
+                code.LoadInt(base + index + 1);
+            else
+                // index from next to base
+                code.LoadAddress(base + index + 1);
             return;
         }
     }

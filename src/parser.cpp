@@ -322,6 +322,14 @@ Expr *Parser::primary_expr()
                 error(tok_pos(),
                         "index expression must be integer type");
             }
+            long index = 0;
+            if (idx->Eval(index)) {
+                const long len = expr->type->len;
+                if (index >= len) {
+                    error(tok_pos(), "index out of range[", std::to_string(index),
+                            "] with length ", std::to_string(len));
+                }
+            }
             expect(TK::RBRACK);
             return new IndexExpr(expr, idx);
         }
