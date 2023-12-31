@@ -28,6 +28,7 @@ int main(int argc, char **argv)
     bool print_symbols_all = false;
     bool print_bytecode = false;
     bool print_stack = false;
+    bool enable_optimize = true;
     std::string_view filename;
 
     for (int i = 1; i < argc; i++) {
@@ -56,6 +57,9 @@ int main(int argc, char **argv)
         else if (arg == "--print-stack" || arg == "-s") {
             print_stack = true;
         }
+        else if (arg == "--disable-optimize" || arg == "-d") {
+            enable_optimize = false;
+        }
         else if (arg[0] == '-') {
             std::cerr << "error: unknown option: " << arg << std::endl;
             std::exit(EXIT_FAILURE);
@@ -83,6 +87,7 @@ int main(int argc, char **argv)
     ip.EnablePrintSymbols(print_symbols, print_symbols_all);
     ip.EnablePrintBytecode(print_bytecode);
     ip.EnablePrintStack(print_stack);
+    ip.EnableOptimize(enable_optimize);
 
     int ret = ip.Run(src);
     if (print_token || print_tree || print_bytecode || print_symbols)

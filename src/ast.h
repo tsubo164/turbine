@@ -8,6 +8,8 @@
 #include "lexer.h"
 #include "type.h"
 
+void SetOptimize(bool enable);
+
 struct Node {
     Node() {}
     virtual ~Node() {}
@@ -25,7 +27,8 @@ struct Expr : public Node {
     virtual bool IsNull() const { return false; }
 
     virtual void GenAddr(Bytecode &code) const {}
-    virtual bool Eval(long &result) const { result = 0; return false; }
+    virtual bool Eval(long &result) const { return false; }
+    virtual bool EvalAddr(int &result) const { return false; }
 };
 
 struct NullExpr : public Expr {
@@ -97,6 +100,7 @@ struct IdentExpr : public Expr {
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
     void GenAddr(Bytecode &code) const override final;
+    bool EvalAddr(int &result) const override final { result = var->id; return true; }
 };
 
 struct FieldExpr : public Expr {
@@ -108,6 +112,7 @@ struct FieldExpr : public Expr {
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
     void GenAddr(Bytecode &code) const override final;
+    bool EvalAddr(int &result) const override final { result = fld->id; return true; }
 };
 
 struct SelectExpr : public Expr {

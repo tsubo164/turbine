@@ -345,6 +345,24 @@ void VM::run()
             }
             break;
 
+        case OP_INDEX:
+            {
+                const long index = pop_int();
+                const long base = pop_int();
+                const long len = stack_[base].inum;
+
+                if (index >= len) {
+                    std::cout << "panic: runtime error: index out of range[" <<
+                        index << "] with length " << len << std::endl;
+                    std::exit(1);
+                }
+
+                // index from next to base
+                const long indexed = base + index + 1;
+                push_int(indexed);
+            }
+            break;
+
         case OP_LOADTYPEN:
             push_int(static_cast<int>(TypeID::NIL));
             break;

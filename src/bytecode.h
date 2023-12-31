@@ -35,6 +35,7 @@ using Float = double;
     /* address */\
     OP(OP_LOADA,        OPERAND_WORD) \
     OP(OP_DEREF,        OPERAND_NONE) \
+    OP(OP_INDEX,        OPERAND_NONE) \
     /* arg type spec */\
     OP(OP_LOADTYPEN,    OPERAND_NONE) \
     OP(OP_LOADTYPEB,    OPERAND_NONE) \
@@ -129,6 +130,7 @@ public:
     // address
     void LoadAddress(Word id);
     void Dereference();
+    void Index();
     // arg type spec
     void LoadTypeNil();
     void LoadTypeBool();

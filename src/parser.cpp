@@ -789,7 +789,8 @@ static Expr *default_value(const Type *type)
 
     case TY::ARRAY:
         // TODO fill with zero values
-        return new NilValExpr();
+        // put len at base addr
+        return new IntValExpr(type->len);
 
     case TY::CLASS:
         // TODO

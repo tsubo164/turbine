@@ -1,6 +1,7 @@
 #include "interpreter.h"
 #include "builtin.h"
 #include "lexer.h"
+#include "ast.h"
 #include <iostream>
 #include <iomanip>
 
@@ -49,6 +50,7 @@ Int Interpreter::Run(const std::string &src)
     }
 
     // Generate bytecode
+    SetOptimize(enable_optimize_);
     GenerateCode(prog_, code_);
 
     if (print_bytecode_) {
@@ -92,6 +94,11 @@ void Interpreter::EnablePrintBytecode(bool enable)
 void Interpreter::EnablePrintStack(bool enable)
 {
     print_stack_ = enable;
+}
+
+void Interpreter::EnableOptimize(bool enable)
+{
+    enable_optimize_ = enable;
 }
 
 void Interpreter::print_token(const std::string &src) const

@@ -21,6 +21,7 @@ public:
     void EnablePrintSymbols(bool enable, bool all);
     void EnablePrintBytecode(bool enable);
     void EnablePrintStack(bool enable);
+    void EnableOptimize(bool enable);
 
 private:
     Scope scope_;
@@ -37,6 +38,7 @@ private:
     bool print_symbols_all_ = false;
     bool print_bytecode_ = false;
     bool print_stack_ = false;
+    bool enable_optimize_ = true;
     void print_token(const std::string &src) const;
 };
 

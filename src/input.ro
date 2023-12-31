@@ -1,22 +1,18 @@
-## Point
-  - x int
-  - y int
+//## Point
+//  - x int
+//  - y int
 
 # main() int
-  - i = 19
-  i = 2 + 40
+  //- i = 19
+  //i = 2 + 40
   //- j *int
   //- p Point
   //p.y = 33
   //j = &i
-  //- a [+3]int
-  //a[2] = 87
+  - a [3]int
+  a[2] = 87
+  return a[2] - 27
   //*j = 23 + i
   //return *j
   //return p.y
-  return i
-
-//# main() int
-//  - id int
-//  id = 114
-//  id + 11
+  //return i

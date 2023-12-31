@@ -170,6 +170,11 @@ void Bytecode::Dereference()
     bytes_.push_back(OP_DEREF);
 }
 
+void Bytecode::Index()
+{
+    bytes_.push_back(OP_INDEX);
+}
+
 void Bytecode::LoadTypeNil()
 {
     bytes_.push_back(OP_LOADTYPEN);

@@ -23,6 +23,11 @@
 
 static bool optimize = false;
 
+void SetOptimize(bool enable)
+{
+    optimize = enable;
+}
+
 static void print_indent(int depth)
 {
     for (int i = 0; i < depth; i++)
@@ -416,9 +421,27 @@ void IndexExpr::Gen(Bytecode &code) const
 
 void IndexExpr::GenAddr(Bytecode &code) const
 {
+    if (optimize) {
+        int base = 0;
+        long index = 0;
+        if (ary->EvalAddr(base) && idx->Eval(index)) {
+            const int len = ary->type->len;
+
+            if (index >= len) {
+                std::cout << "panic: runtime error: index out of range[" <<
+                    index << "] with length " << len << std::endl;
+                std::exit(1);
+            }
+
+            // index from next to base
+            code.LoadAddress(base + index + 1);
+            return;
+        }
+    }
+
     ary->GenAddr(code);
     idx->Gen(code);
-    code.AddInt();
+    code.Index();
 }
 
 void CallExpr::Gen(Bytecode &code) const
@@ -504,7 +527,6 @@ void BinaryExpr::Gen(Bytecode &code) const
         return;
     }
 
-    // optimize
     if (optimize) {
         long val = 0;
         bool ok;
@@ -665,6 +687,18 @@ void AssignExpr::Gen(Bytecode &code) const
 
         default:
             break;
+        }
+    }
+
+    if (optimize) {
+        int addr = 0;
+        const bool isconst = lval->EvalAddr(addr);
+        if (isconst) {
+            if (lval->IsGlobal())
+                code.StoreGlobal(addr);
+            else
+                code.StoreLocal(addr);
+            return;
         }
     }
 
