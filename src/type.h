@@ -5,6 +5,7 @@
 #include <string>
 
 struct Class;
+struct Func;
 
 enum class TY {
     NIL,
@@ -13,6 +14,7 @@ enum class TY {
     FLOAT,
     STRING,
     CLASS,
+    FUNC,
     PTR,
     ARRAY,
     ANY,
@@ -26,6 +28,7 @@ struct Type {
     const TY kind;
     const Type *underlying;
     const Class *clss;
+    const Func *func;
     int len = 0;
 
     int Size() const;
@@ -36,12 +39,14 @@ struct Type {
     bool IsFloat() const { return kind == TY::FLOAT; }
     bool IsString() const { return kind == TY::STRING; }
     bool IsClass() const { return kind == TY::CLASS; }
+    bool IsFunc() const { return kind == TY::FUNC; }
     bool IsPtr() const { return kind == TY::PTR; }
     bool IsArray() const { return kind == TY::ARRAY; }
     bool IsAny() const { return kind == TY::ANY; }
 };
 
 Type *NewBoolType();
+Type *NewFuncType(Func *func);
 Type *NewPtrType(Type *underlying);
 Type *NewArrayType(int len, Type *underlying);
 

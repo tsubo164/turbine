@@ -19,7 +19,7 @@ libtest: libtest.out
 	./$@.out
 
 libtest.out: libtest.o test.o ../src/librock.a
-	$(CC) -o $@ $^
+	$(CC) -g -o $@ $^
 
 %.o:%.cpp
 	$(CC) -std=c++17 -g -c $<

@@ -8,6 +8,13 @@ Type *NewBoolType()
     return &t;
 }
 
+Type *NewFuncType(Func *func)
+{
+    Type *t = new Type(TY::FUNC);
+    t->func = func;
+    return t;
+}
+
 Type *NewPtrType(Type *underlying)
 {
     Type *t = new Type(TY::PTR);
@@ -45,6 +52,7 @@ static const char *type_kind_string(TY kind)
     case TY::FLOAT: return "float";
     case TY::STRING: return "string";
     case TY::CLASS: return "class";
+    case TY::FUNC: return "#";
     case TY::PTR: return "*";
     case TY::ARRAY: return "[]";
     case TY::ANY: return "any";

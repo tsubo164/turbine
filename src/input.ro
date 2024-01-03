@@ -1,21 +1,18 @@
-## Point
-  - x int
-  - y int
+//- foo #(n int) int
+//
+//## Var
+//    - name      string
+//    //- type      *Type
+//    - id        int
+//    - is_global bool
 
-- a [2]int
+# add(x int, y int) int
+  - z = x + y
+  return z
+
+- g int = 99
 
 # main() int
-  //- i = 19
-  //i = 2 + 40
-  //- j *int
-  - p Point
-  p.y = 33
-  //j = &i
-  //- a [3]int
-  a[1] = 87
-  //return a[2] - 27
-  //*j = 23 + i
-  //return *j
-  return a[1]
-  //return p.y
-  //return i
+  - i = 19
+  print("add(13, 17) =>", add(13, 17))
+  return i
