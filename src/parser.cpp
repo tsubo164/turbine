@@ -273,13 +273,13 @@ Expr *Parser::primary_expr()
 
         if (tok->kind == TK::IDENT) {
             if (peek() == TK::LPAREN) {
-                Func *func = scope_->FindFunc(tok->sval);
-                if (!func) {
+                const Var *var = scope_->FindFunc(tok->sval);
+                if (!var) {
                     error(tok->pos,
                             "undefined identifier: '", tok->sval, "'");
                 }
 
-                CallExpr *call = new CallExpr(func, tok->pos);
+                CallExpr *call = new CallExpr(var, tok->pos);
                 expr = arg_list(call);
             }
             else {
@@ -801,6 +801,7 @@ static Expr *default_value(const Type *type)
         return new IntValExpr(type->len);
 
     case TY::CLASS:
+    case TY::FUNC:
         // TODO
         return new NilValExpr();
 
@@ -960,6 +961,7 @@ BlockStmt *Parser::block_stmt(Func *func)
 }
 
 // type_spec = "bool" | "int" | "float" | "string" | identifier
+// func_type = "#" param_list type_spec?
 Type *Parser::type_spec()
 {
     Type *parent = nullptr;
@@ -984,6 +986,13 @@ Type *Parser::type_spec()
         }
         expect(TK::RBRACK);
         return NewArrayType(len, type_spec());
+    }
+
+    if (consume(TK::HASH)) {
+        Func *func = scope_->DefineFunc("_");
+        param_list(func);
+        ret_type(func);
+        return NewFuncType(func);
     }
 
     if (consume(TK::BOOL)) {
@@ -1055,13 +1064,52 @@ void Parser::param_list(Func *func)
 
 void Parser::ret_type(Func *func)
 {
-    if (consume(TK::NEWLINE)) {
+    const TK next = peek();
+
+    if (next == TK::NEWLINE)
         func->type = new Type(TY::NIL);
-    }
-    else {
+    else
         func->type = type_spec();
-        expect(TK::NEWLINE);
+}
+
+// func_def = "#" identifier param_list type_spec? newline block_stmt
+FuncDef *Parser::func_def2()
+{
+    expect(TK::HASH);
+    expect(TK::IDENT);
+
+    // signature
+    std::string_view name = tok_str();
+    Func *func = scope_->DeclareFunc();
+
+    // params
+    param_list(func);
+    ret_type(func);
+    expect(TK::NEWLINE);
+
+    // func var
+    if (scope_->FindVar(name)) {
+        // error
+        return nullptr;
     }
+    Var *var = scope_->DefineVar(name, NewFuncType(func));
+
+    // func body
+    func_ = func;
+
+    enter_scope(func);
+    BlockStmt *body = block_stmt();
+    // TODO control flow check to allow implicit return
+    body->AddStmt(new ReturnStmt(new NullExpr()));
+    leave_scope();
+
+    func_ = nullptr;
+
+    // XXX temp
+    FuncDef *fdef = new FuncDef(var, body);
+    fdef->funclit_id = funclit_id_++;
+
+    return fdef;
 }
 
 // func_def = "#" identifier param_list type_spec? newline block_stmt
@@ -1083,12 +1131,19 @@ FuncDef *Parser::func_def()
     param_list(func);
     // return type
     ret_type(func);
+    expect(TK::NEWLINE);
 
     // func body
     func_ = func;
-    BlockStmt *body = block_stmt(func);
+
+    enter_scope(func);
+    BlockStmt *body = block_stmt();
+
     // TODO control flow check to allow implicit return
     body->AddStmt(new ReturnStmt(new NullExpr()));
+
+    leave_scope();
+
     func_ = nullptr;
 
     return new FuncDef(func, body);
@@ -1102,10 +1157,18 @@ Prog *Parser::program()
         const TokenKind next = peek();
 
         if (next == TK::HASH) {
-            FuncDef *fdef = func_def();
+            FuncDef *fdef = func_def2();
 
-            if (fdef->func->name == "main")
-                prog->main_func = fdef->func;
+            // TODO remove this
+            if (fdef->var->name == "main")
+                prog->main_func = fdef->var;
+
+            {
+                // TODO clean up
+                Expr *ident = new IdentExpr(fdef->var);
+                Expr *init = new IntValExpr(fdef->funclit_id);
+                prog->AddGlobalVar(new ExprStmt(new AssignExpr(ident, init, TK::EQ)));
+            }
 
             prog->AddFuncDef(fdef);
             continue;

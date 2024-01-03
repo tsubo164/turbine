@@ -21,6 +21,9 @@ private:
     const std::string *src_;
     Func *func_ = nullptr;
 
+    // TODO remove this
+    int funclit_id_ = 0;
+
     // token buffer
     std::array<Token,8> tokbuf_;
     Token *curr_  = &tokbuf_[0];
@@ -83,6 +86,7 @@ private:
     void field_list(Class *clss);
     void param_list(Func *func);
     void ret_type(Func *func);
+    FuncDef *func_def2();
     FuncDef *func_def();
 
     // error

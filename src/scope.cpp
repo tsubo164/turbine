@@ -167,6 +167,18 @@ int Scope::FieldCount() const
     return flds_.size();
 }
 
+Func *Scope::DeclareFunc()
+{
+    Scope *param_scope = OpenChild();
+
+    std::string_view name = "_";
+    const int next_id = -1;
+    const bool is_builtin = level_ == 0;
+    Func *func = new Func(name, next_id, param_scope, is_builtin);
+
+    return func;
+}
+
 Func *Scope::DefineFunc(std::string_view name)
 {
     if (FindFunc(name))
@@ -183,11 +195,11 @@ Func *Scope::DefineFunc(std::string_view name)
     return func;
 }
 
-Func *Scope::FindFunc(std::string_view name) const
+const Var *Scope::FindFunc(std::string_view name) const
 {
-    const auto it = funcs_.find(name);
-    if (it != funcs_.end()) {
-        return it->second;
+    const Var *var = FindVar(name);
+    if (var && var->type->IsFunc()) {
+        return const_cast<Var *>(var);
     }
 
     if (parent_)
@@ -270,8 +282,13 @@ void Scope::Print(int depth) const
     for (auto it: vars_) {
         const Var *var = it.second;
 
+        const char *tag = nullptr;
+        if (var->type->IsFunc())
+            tag = "[fnc] ";
+        else
+            tag = "[var] ";
         std::cout << header <<
-            "[var] " << var->name <<
+            tag << var->name <<
             " @" << var->id <<
             " " << var->type << std::endl;
     }

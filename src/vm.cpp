@@ -385,7 +385,9 @@ void VM::run()
 
         case OP_CALL:
             {
-                const Word func_index = fetch_word();
+                const int var_id = fetch_word();
+                const Value func_var = get_global(var_id);
+                const Word func_index = func_var.inum;
                 const Int func_addr = code_->GetFunctionAddress(func_index);
 
                 Call call;

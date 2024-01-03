@@ -475,6 +475,7 @@ void CallExpr::Gen(Bytecode &code) const
                 code.LoadTypeString();
                 break;
             case TY::CLASS:
+            case TY::FUNC:
             case TY::PTR:
             case TY::ARRAY:
             case TY::ANY:
@@ -490,7 +491,7 @@ void CallExpr::Gen(Bytecode &code) const
             arg->Gen(code);
     }
 
-    code.CallFunction(func->id, func->IsBuiltin());
+    code.CallFunction(var->id, func->IsBuiltin());
 }
 
 void BinaryExpr::Gen(Bytecode &code) const
@@ -878,7 +879,7 @@ void ExprStmt::Gen(Bytecode &code) const
 
 void FuncDef::Gen(Bytecode &code) const
 {
-    code.RegisterFunction(func->id, func->ParamCount());
+    code.RegisterFunction(funclit_id, func->ParamCount());
 
     // local vars
     code.Allocate(func->scope->TotalVarSize());
@@ -899,7 +900,7 @@ void Prog::Gen(Bytecode &code) const
         gvar->Gen(code);
 
     // call main
-    code.CallFunction(main_func->id, main_func->IsBuiltin());
+    code.CallFunction(main_func->id, main_func->type->func->IsBuiltin());
     code.Exit();
 
     // global funcs

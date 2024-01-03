@@ -93,9 +93,9 @@ public:
     Field *FindField(std::string_view name) const;
     int FieldCount() const;
 
+    Func *DeclareFunc();
     Func *DefineFunc(std::string_view name);
-    // TODO should return const Func *
-    Func *FindFunc(std::string_view name) const;
+    const Var *FindFunc(std::string_view name) const;
 
     Class *DefineClass(std::string_view name);
     Class *FindClass(std::string_view name) const;
@@ -112,6 +112,7 @@ private:
     const int level_;
     int var_offset_ = 0;
 
+    // TODO remove func_
     const Func *func_ = nullptr;
     const Class *clss_ = nullptr;
 

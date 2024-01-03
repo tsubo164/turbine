@@ -141,8 +141,10 @@ struct IndexExpr : public Expr {
 
 struct CallExpr : public Expr {
     CallExpr(Func *f, Pos p) : Expr(f->type), func(f), pos(p) {}
+    CallExpr(const Var *v, Pos p) : Expr(v->type->func->type), func(v->type->func), var(v), pos(p) {}
     std::vector<Expr*> args;
     const Func *func;
+    const Var *var;
     const Pos pos;
 
     void AddArg(Expr *e) { args.push_back(e); }
@@ -308,9 +310,15 @@ struct ExprStmt : public Stmt {
 
 struct FuncDef : public Node {
     FuncDef(Func *f, BlockStmt *b) : func(f), block(b) {}
+    FuncDef(Var *v, BlockStmt *b) : func(v->type->func), var(v), block(b) {}
     ~FuncDef() {}
-    Func *func = nullptr;
+    // TODO remove this
+    const Func *func = nullptr;
+    const Var *var = nullptr;
+
     std::unique_ptr<BlockStmt> block;
+    // TODO make FuncLitExpr and remove this
+    int funclit_id = 0;
 
     void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
@@ -325,7 +333,7 @@ struct Prog: public Node {
     std::vector<std::unique_ptr<FuncDef>> funcs;
     std::vector<std::unique_ptr<Stmt>> gvars;
     // TODO remove this
-    const Func *main_func = nullptr;
+    const Var *main_func = nullptr;
 
     void Print(int depth = 0) const override final;
     void Gen(Bytecode &code) const override final;

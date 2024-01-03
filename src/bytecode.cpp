@@ -699,7 +699,9 @@ Int Bytecode::print_op(int op, int operand, Int address) const
         break;
 
     case OP_CALL:
-        text += " = @" + std::to_string(GetFunctionAddress(ReadWord(addr)));
+        // TODO function id could be retrived if we have OP_CALL_STATIC
+        // to call functions that are defined statically
+        //text += " = @" + std::to_string(GetFunctionAddress(ReadWord(addr)));
         break;
 
     case OP_LOADLOCAL: case OP_LOADGLOBAL:
