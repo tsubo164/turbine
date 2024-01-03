@@ -149,19 +149,20 @@ CallExpr *Parser::arg_list(CallExpr *call)
         while (consume(TK::COMMA));
     }
 
-    if (call->func->HasSpecialVar()) {
+    const Func *func = call->var->type->func;
+    if (func->HasSpecialVar()) {
         call->AddArg(new IntValExpr(call->pos.y));
     }
 
     {
         const int argc = call->ArgCount();
-        const int paramc = call->func->RequiredParamCount();
+        const int paramc = func->RequiredParamCount();
         if (argc < paramc)
             error(tok_pos(), "too few arguments");
 
         for (int i = 0; i < argc; i++) {
             const Expr *arg = call->GetArg(i);
-            const Var *param = call->func->GetParam(i);
+            const Var *param = func->GetParam(i);
 
             if (!param)
                 error(tok_pos(), "too many arguments");
@@ -745,9 +746,9 @@ Stmt *Parser::ret_stmt()
 
     assert(func_);
 
-    if (func_->type->kind != expr->type->kind) {
+    if (func_->return_type->kind != expr->type->kind) {
         error(exprpos, "type mismatch: function type '",
-            TypeString(func_->type), "': expression type '",
+            TypeString(func_->return_type), "': expression type '",
             TypeString(expr->type), "'");
     }
 
@@ -989,7 +990,7 @@ Type *Parser::type_spec()
     }
 
     if (consume(TK::HASH)) {
-        Func *func = scope_->DefineFunc("_");
+        Func *func = scope_->DeclareFunc();
         param_list(func);
         ret_type(func);
         return NewFuncType(func);
@@ -1067,13 +1068,13 @@ void Parser::ret_type(Func *func)
     const TK next = peek();
 
     if (next == TK::NEWLINE)
-        func->type = new Type(TY::NIL);
+        func->return_type = new Type(TY::NIL);
     else
-        func->type = type_spec();
+        func->return_type = type_spec();
 }
 
 // func_def = "#" identifier param_list type_spec? newline block_stmt
-FuncDef *Parser::func_def2()
+FuncDef *Parser::func_def()
 {
     expect(TK::HASH);
     expect(TK::IDENT);
@@ -1112,43 +1113,6 @@ FuncDef *Parser::func_def2()
     return fdef;
 }
 
-// func_def = "#" identifier param_list type_spec? newline block_stmt
-FuncDef *Parser::func_def()
-{
-    expect(TK::HASH);
-    expect(TK::IDENT);
-
-    // func name
-    Func *func = scope_->DefineFunc(tok_str());
-    if (!func) {
-        const std::string msg =
-            "re-defined function: '" +
-            std::string(tok_str()) + "'";
-        Error(msg, *src_, tok_pos());
-    }
-
-    // params
-    param_list(func);
-    // return type
-    ret_type(func);
-    expect(TK::NEWLINE);
-
-    // func body
-    func_ = func;
-
-    enter_scope(func);
-    BlockStmt *body = block_stmt();
-
-    // TODO control flow check to allow implicit return
-    body->AddStmt(new ReturnStmt(new NullExpr()));
-
-    leave_scope();
-
-    func_ = nullptr;
-
-    return new FuncDef(func, body);
-}
-
 Prog *Parser::program()
 {
     Prog *prog = new Prog(scope_);
@@ -1157,7 +1121,7 @@ Prog *Parser::program()
         const TokenKind next = peek();
 
         if (next == TK::HASH) {
-            FuncDef *fdef = func_def2();
+            FuncDef *fdef = func_def();
 
             // TODO remove this
             if (fdef->var->name == "main")

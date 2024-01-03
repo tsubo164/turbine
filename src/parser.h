@@ -86,7 +86,6 @@ private:
     void field_list(Class *clss);
     void param_list(Func *func);
     void ret_type(Func *func);
-    FuncDef *func_def2();
     FuncDef *func_def();
 
     // error

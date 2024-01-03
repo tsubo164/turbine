@@ -1,5 +1,5 @@
-//- foo #(n int) int
-//
+- foo #(n int) int
+
 //## Var
 //    - name      string
 //    //- type      *Type

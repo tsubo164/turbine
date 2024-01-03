@@ -140,10 +140,9 @@ struct IndexExpr : public Expr {
 };
 
 struct CallExpr : public Expr {
-    CallExpr(Func *f, Pos p) : Expr(f->type), func(f), pos(p) {}
-    CallExpr(const Var *v, Pos p) : Expr(v->type->func->type), func(v->type->func), var(v), pos(p) {}
+    CallExpr(const Var *v, Pos p)
+        : Expr(v->type->func->return_type), var(v), pos(p) {}
     std::vector<Expr*> args;
-    const Func *func;
     const Var *var;
     const Pos pos;
 

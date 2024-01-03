@@ -171,27 +171,9 @@ Func *Scope::DeclareFunc()
 {
     Scope *param_scope = OpenChild();
 
-    std::string_view name = "_";
-    const int next_id = -1;
     const bool is_builtin = level_ == 0;
-    Func *func = new Func(name, next_id, param_scope, is_builtin);
+    Func *func = new Func(param_scope, is_builtin);
 
-    return func;
-}
-
-Func *Scope::DefineFunc(std::string_view name)
-{
-    if (FindFunc(name))
-        return nullptr;
-
-    Scope *func_scope = OpenChild();
-
-    const int next_id = funcs_.size();
-    const bool is_builtin = level_ == 0;
-    Func *func = new Func(name, next_id, func_scope, is_builtin);
-    funcs_.insert({name, func});
-
-    func_scope->func_ = func;
     return func;
 }
 
@@ -210,8 +192,8 @@ const Var *Scope::FindFunc(std::string_view name) const
 
 Class *Scope::DefineClass(std::string_view name)
 {
-    const auto it = funcs_.find(name);
-    if (it != funcs_.end())
+    const auto it = clsses_.find(name);
+    if (it != clsses_.end())
         return nullptr;
 
     Scope *clss_scope = OpenChild();
@@ -304,10 +286,7 @@ void Scope::Print(int depth) const
 
     for (auto scope: children_) {
 
-        if (scope->func_)
-            std::cout << header <<
-                "[func] " << scope->func_->name << std::endl;
-        else if (scope->clss_)
+        if (scope->clss_)
             std::cout << header <<
                 "[clss] " << scope->clss_->name << std::endl;
 
