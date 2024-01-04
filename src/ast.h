@@ -140,10 +140,12 @@ struct IndexExpr : public Expr {
 };
 
 struct CallExpr : public Expr {
-    CallExpr(const Var *v, Pos p)
-        : Expr(v->type->func->return_type), var(v), pos(p) {}
+    CallExpr(const Expr *e, Pos p)
+        : Expr(e->type->func->return_type), expr(e), pos(p) {}
     std::vector<Expr*> args;
-    const Var *var;
+    const Expr *expr;
+    // TODO need func for easy access?
+    // const Func *func;
     const Pos pos;
 
     void AddArg(Expr *e) { args.push_back(e); }

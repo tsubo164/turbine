@@ -120,9 +120,8 @@ void IndexExpr::Print(int depth) const
 
 void CallExpr::Print(int depth) const
 {
-    print_node("CallExpr", depth, false);
-    std::cout << "\"" << var->name << "\" " <<
-        type << std::endl;
+    print_node("CallExpr", depth);
+    expr->Print(depth + 1);
     for (auto arg: args)
         arg->Print(depth + 1);
 }
@@ -453,7 +452,8 @@ void IndexExpr::GenAddr(Bytecode &code) const
 
 void CallExpr::Gen(Bytecode &code) const
 {
-    const Func *func = var->type->func;
+    // TODO need CallExpr::func?
+    const Func *func = expr->type->func;
 
     if (func->IsVariadic()) {
         for (auto arg: args) {
@@ -493,7 +493,11 @@ void CallExpr::Gen(Bytecode &code) const
             arg->Gen(code);
     }
 
-    code.CallFunction(var->id, func->IsBuiltin());
+    // TODO remove this by doing expr->Gen()
+    int addr = 0;
+    if (expr->EvalAddr(addr)) {
+        code.CallFunction(addr, func->IsBuiltin());
+    }
 }
 
 void BinaryExpr::Gen(Bytecode &code) const

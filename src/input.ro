@@ -1,4 +1,4 @@
-- foo #(n int) int
+//- foo #(n int) int
 
 //## Var
 //    - name      string
@@ -10,9 +10,11 @@
   - z = x + y
   return z
 
-- g int = 99
+//- g int = 99
 
 # main() int
-  - i = 19
-  print("add(13, 17) =>", add(13, 17))
-  return i
+  //- i = 19
+  //- f = add
+  //print("add(13, 17) =>", add(13, 17))
+  //return f(11, 22)
+  return add(11, 22)

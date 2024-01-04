@@ -140,8 +140,6 @@ void Parser::leave_scope()
 
 CallExpr *Parser::arg_list(CallExpr *call)
 {
-    expect(TK::LPAREN);
-
     if (peek() != TK::RPAREN) {
         do {
             call->AddArg(expression());
@@ -149,30 +147,27 @@ CallExpr *Parser::arg_list(CallExpr *call)
         while (consume(TK::COMMA));
     }
 
-    const Func *func = call->var->type->func;
-    if (func->HasSpecialVar()) {
+    const Func *func = call->expr->type->func;
+    if (func->HasSpecialVar())
         call->AddArg(new IntValExpr(call->pos.y));
-    }
 
-    {
-        const int argc = call->ArgCount();
-        const int paramc = func->RequiredParamCount();
-        if (argc < paramc)
-            error(tok_pos(), "too few arguments");
+    const int argc = call->ArgCount();
+    const int paramc = func->RequiredParamCount();
+    if (argc < paramc)
+        error(tok_pos(), "too few arguments");
 
-        for (int i = 0; i < argc; i++) {
-            const Expr *arg = call->GetArg(i);
-            const Var *param = func->GetParam(i);
+    for (int i = 0; i < argc; i++) {
+        const Expr *arg = call->GetArg(i);
+        const Var *param = func->GetParam(i);
 
-            if (!param)
-                error(tok_pos(), "too many arguments");
+        if (!param)
+            error(tok_pos(), "too many arguments");
 
-            // TODO arg needs to know its pos
-            if (!MatchType(arg->type, param->type)) {
-                error(tok_pos(), "type mismatch: parameter type '",
-                    TypeString(param->type), "': argument type '",
-                    TypeString(arg->type), "'");
-            }
+        // TODO arg needs to know its pos
+        if (!MatchType(arg->type, param->type)) {
+            error(tok_pos(), "type mismatch: parameter type '",
+                TypeString(param->type), "': argument type '",
+                TypeString(arg->type), "'");
         }
     }
 
@@ -273,26 +268,23 @@ Expr *Parser::primary_expr()
         const Token *tok = gettok();
 
         if (tok->kind == TK::IDENT) {
-            if (peek() == TK::LPAREN) {
-                const Var *var = scope_->FindFunc(tok->sval);
-                if (!var) {
-                    error(tok->pos,
-                            "undefined identifier: '", tok->sval, "'");
-                }
-
-                CallExpr *call = new CallExpr(var, tok->pos);
-                expr = arg_list(call);
+            Var *var = scope_->FindVar(tok->sval);
+            if (!var) {
+                error(tok_pos(),
+                        "undefined identifier: '", tok_str(), "'");
             }
-            else {
-                Var *var = scope_->FindVar(tok->sval);
-                if (!var) {
-                    const std::string msg = "undefined identifier: '" +
-                        std::string(tok_str()) + "'";
-                    Error(msg, *src_, tok_pos());
-                }
 
-                expr = new IdentExpr(var);
+            expr = new IdentExpr(var);
+            continue;
+        }
+        else if (tok->kind == TK::LPAREN) {
+            if (!expr || !expr->type->IsFunc()) {
+                error(tok_pos(),
+                        "call operator must be used for function type");
             }
+            // TODO func signature check
+            CallExpr *call = new CallExpr(expr, tok->pos);
+            expr = arg_list(call);
             continue;
         }
         else if (tok->kind == TK::PERIOD) {
