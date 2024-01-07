@@ -15,11 +15,10 @@ Type *NewFuncType(Func *func)
     return t;
 }
 
-Type *NewPtrType(Type *underlying)
+Type *NewPtrType(const Type *underlying)
 {
     Type *t = new Type(TY::PTR);
     t->underlying = underlying;
-
     return t;
 }
 
@@ -28,7 +27,6 @@ Type *NewArrayType(int len, Type *underlying)
     Type *t = new Type(TY::ARRAY);
     t->len = len;
     t->underlying = underlying;
-
     return t;
 }
 
@@ -62,17 +60,15 @@ static const char *type_kind_string(TY kind)
     return nullptr;
 }
 
-std::string TypeString(const Type *type)
+std::string TypeString(const Type *T)
 {
     std::string s;
 
-    for (const Type *t = type; t; t = t->underlying) {
-        if (t->kind == TY::ARRAY) {
+    for (const Type *t = T; t; t = t->underlying) {
+        if (t->kind == TY::ARRAY)
             s += "[" + std::to_string(t->len) + "]";
-        }
-        else {
+        else
             s += type_kind_string(t->kind);
-        }
     }
 
     return s;
@@ -85,15 +81,16 @@ bool MatchType(const Type *t1, const Type *t2)
     return t1->kind == t2->kind;
 }
 
-const Type *DuplicateType(const Type *t)
+Type *DuplicateType(const Type *t)
 {
     Type *dup = new Type(t->kind);
+    dup->underlying = t->underlying;
     dup->clss = t->clss;
-
+    dup->func = t->func;
     return dup;
 }
 
-std::ostream &operator<<(std::ostream &os, const Type *type)
+std::ostream &operator<<(std::ostream &os, const Type *t)
 {
-    return os << TypeString(type);
+    return os << TypeString(t);
 }

@@ -1,20 +1,14 @@
 //- foo #(n int) int
 
-//## Var
-//    - name      string
-//    //- type      *Type
-//    - id        int
-//    - is_global bool
+# seven() int
+  return 7
 
 # add(x int, y int) int
   - z = x + y
   return z
 
-//- g int = 99
+- g = add
 
 # main() int
-  //- i = 19
-  //- f = add
-  //print("add(13, 17) =>", add(13, 17))
-  //return f(11, 22)
-  return add(11, 22)
+  - f = add
+  return g(11, 22)

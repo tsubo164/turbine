@@ -47,13 +47,13 @@ struct Type {
 
 Type *NewBoolType();
 Type *NewFuncType(Func *func);
-Type *NewPtrType(Type *underlying);
+Type *NewPtrType(const Type *underlying);
 Type *NewArrayType(int len, Type *underlying);
 
 bool MatchType(const Type *t1, const Type *t2);
-const Type *DuplicateType(const Type *t);
+Type *DuplicateType(const Type *t);
 
-std::string TypeString(const Type *type);
-std::ostream &operator<<(std::ostream &os, const Type *type);
+std::string TypeString(const Type *t);
+std::ostream &operator<<(std::ostream &os, const Type *t);
 
 #endif // _H

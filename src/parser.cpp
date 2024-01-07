@@ -349,8 +349,7 @@ Expr *Parser::unary_expr()
 
     if (tok->kind == TK::AMP) {
         Expr *expr = unary_expr();
-        Type *type = new Type(TY::PTR);
-        type->underlying = expr->type;
+        Type *type = NewPtrType(expr->type);
         return new UnaryExpr(expr, type, tok->kind);
     }
     if (tok->kind == TK::STAR) {
@@ -820,7 +819,7 @@ Stmt *Parser::var_decl()
 
     // var anme
     std::string_view name = tok_str();
-    const Type *type = nullptr;
+    Type *type = nullptr;
     Expr *init = nullptr;
 
     // type and init
