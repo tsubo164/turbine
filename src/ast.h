@@ -64,33 +64,30 @@ struct NilValExpr : public Expr {
 };
 
 struct BoolValExpr : public Expr {
-    BoolValExpr(bool b) : Expr(new Type(TY::BOOL)), val(b)
+    BoolValExpr(bool b) : Expr(new Type(TY::BOOL))
     {
         // XXX TEST ==============
         kind = T_BOLLIT;
         Expr::val.i = b;
     }
-    bool val;
 };
 
 struct IntValExpr : public Expr {
-    IntValExpr(long l) : Expr(new Type(TY::INT)), val(l)
+    IntValExpr(long l) : Expr(new Type(TY::INT))
     {
         // XXX TEST ==============
         kind = T_INTLIT;
         Expr::val.i = l;
     }
-    long val;
 };
 
 struct FltValExpr : public Expr {
-    FltValExpr(double d) : Expr(new Type(TY::FLOAT)), val(d)
+    FltValExpr(double d) : Expr(new Type(TY::FLOAT))
     {
         // XXX TEST ==============
         kind = T_FLTLIT;
         Expr::val.f = d;
     }
-    double val;
 };
 
 struct StrValExpr : public Expr {
@@ -107,63 +104,56 @@ struct StrValExpr : public Expr {
 };
 
 struct ConvertExpr : public Expr {
-    ConvertExpr(Expr *e, const Type *totype) : Expr(totype), expr(e)
+    ConvertExpr(Expr *e, const Type *totype) : Expr(totype)
     {
         // XXX TEST ==============
         kind = T_CONV;
         Expr::l = e;
     }
-    std::unique_ptr<Expr> expr;
 };
 
 struct IdentExpr : public Expr {
-    IdentExpr(Var *v) : Expr(v->type), var(v)
+    IdentExpr(Var *v) : Expr(v->type)
     {
         // XXX TEST ==============
         kind = T_IDENT;
         Expr::var = v;
     }
-    const Var *var;
 };
 
 struct FieldExpr : public Expr {
-    FieldExpr(const Field *f) : Expr(f->type), fld(f)
+    FieldExpr(const Field *f) : Expr(f->type)
     {
         // XXX TEST ==============
         kind = T_FIELD;
         Expr::fld = f;
     }
-    const Field *fld;
 };
 
 struct SelectExpr : public Expr {
-    SelectExpr(Expr *i, Expr *f) : Expr(f->type), inst(i), fld(f)
+    SelectExpr(Expr *inst, Expr *fld) : Expr(fld->type)
     {
         // XXX TEST ==============
         kind = T_SELECT;
         Expr::l = inst;
         Expr::r = fld;
     }
-    Expr *inst;
-    Expr *fld;
 };
 
 struct IndexExpr : public Expr {
-    IndexExpr(Expr *a, Expr *i)
-        : Expr(a->type->underlying), ary(a), idx(i)
+    IndexExpr(Expr *ary, Expr *idx)
+        : Expr(ary->type->underlying)
     {
         // XXX TEST ==============
         kind = T_INDEX;
-        Expr::l = a;
-        Expr::r = i;
+        Expr::l = ary;
+        Expr::r = idx;
     }
-    std::unique_ptr<Expr> ary;
-    std::unique_ptr<Expr> idx;
 };
 
 struct CallExpr : public Expr {
     CallExpr(Expr *e, Pos p)
-        : Expr(e->type->func->return_type), expr(e)//, pos(p)
+        : Expr(e->type->func->return_type)
     {
         // XXX TEST ==============
         kind = T_CALL;
@@ -171,7 +161,6 @@ struct CallExpr : public Expr {
         Expr::pos = p;
     }
     //std::vector<Expr*> args;
-    const Expr *expr;
     // TODO need func for easy access?
     // const Func *func;
     //const Pos pos;
@@ -188,10 +177,10 @@ struct CallExpr : public Expr {
 
 struct BinaryExpr : public Expr {
     BinaryExpr(Expr *L, Expr *R, TK k)
-        : Expr(L->type), l(L), r(R), kind(k)
+        : Expr(L->type)
     {
         // XXX TEST ==============
-        switch (kind) {
+        switch (k) {
         case TK::PLUS:         Expr::kind = T_ADD; break;
         case TK::MINUS:        Expr::kind = T_SUB; break;
         case TK::STAR:         Expr::kind = T_MUL; break;
@@ -218,10 +207,10 @@ struct BinaryExpr : public Expr {
         Expr::r = R;
     }
     BinaryExpr(Expr *L, Expr *R, Type *t, TK k)
-        : Expr(t), l(L), r(R), kind(k)
+        : Expr(t)
     {
         // XXX TEST ==============
-        switch (kind) {
+        switch (k) {
         case TK::PLUS:         Expr::kind = T_ADD; break;
         case TK::MINUS:        Expr::kind = T_SUB; break;
         case TK::STAR:         Expr::kind = T_MUL; break;
@@ -247,16 +236,13 @@ struct BinaryExpr : public Expr {
         Expr::l = L;
         Expr::r = R;
     }
-    std::unique_ptr<Expr> l;
-    std::unique_ptr<Expr> r;
-    TK kind;
 };
 
 struct UnaryExpr : public Expr {
-    UnaryExpr(Expr *R, const Type *t, TK k) : Expr(t), r(R), kind(k)
+    UnaryExpr(Expr *R, const Type *t, TK k) : Expr(t)
     {
         // XXX TEST ==============
-        switch (kind) {
+        switch (k) {
         case TK::AMP:    Expr::kind = T_ADR; break;
         case TK::PLUS:   Expr::kind = T_POS; break;
         case TK::MINUS:  Expr::kind = T_NEG; break;
@@ -267,10 +253,10 @@ struct UnaryExpr : public Expr {
         }
         Expr::l = R;
     }
-    UnaryExpr(Expr *R, TK k) : Expr(R->type), r(R), kind(k)
+    UnaryExpr(Expr *R, TK k) : Expr(R->type)
     {
         // XXX TEST ==============
-        switch (kind) {
+        switch (k) {
         case TK::AMP:    Expr::kind = T_ADR; break;
         case TK::PLUS:   Expr::kind = T_POS; break;
         case TK::MINUS:  Expr::kind = T_NEG; break;
@@ -281,16 +267,14 @@ struct UnaryExpr : public Expr {
         }
         Expr::l = R;
     }
-    std::unique_ptr<Expr> r;
-    const TK kind;
 };
 
 struct AssignExpr : public Expr {
     AssignExpr(Expr *l, Expr *r, TK k)
-        : Expr(l->type), lval(l), rval(r), kind(k)
+        : Expr(l->type)
     {
         // XXX TEST ==============
-        switch (kind) {
+        switch (k) {
         case TK::EQ:        Expr::kind = T_ASSN; break;
         case TK::PLUSEQ:    Expr::kind = T_AADD; break;
         case TK::MINUSEQ:   Expr::kind = T_ASUB; break;
@@ -302,24 +286,19 @@ struct AssignExpr : public Expr {
         Expr::l = l;
         Expr::r = r;
     }
-    std::unique_ptr<Expr> lval;
-    std::unique_ptr<Expr> rval;
-    TK kind;
 };
 
 struct IncDecExpr : public Expr {
-    IncDecExpr(Expr *e, TK k) : Expr(e->type), lval(e), kind(k)
+    IncDecExpr(Expr *e, TK k) : Expr(e->type)
     {
         // XXX TEST ==============
-        switch (kind) {
+        switch (k) {
         case TK::PLUS2:    Expr::kind = T_INC; break;
         case TK::MINUS2:   Expr::kind = T_DEC; break;
         default:       Expr::kind = T_ADD; break;
         }
         Expr::l = e;
     }
-    std::unique_ptr<Expr> lval;
-    TK kind;
 };
 
 struct Stmt : public Node {

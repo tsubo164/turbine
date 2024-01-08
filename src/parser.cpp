@@ -147,7 +147,7 @@ CallExpr *Parser::arg_list(CallExpr *call)
         while (consume(TK::COMMA));
     }
 
-    const Func *func = call->expr->type->func;
+    const Func *func = call->l->type->func;
     if (func->HasSpecialVar())
         call->AddArg(new IntValExpr(call->pos.y));
 

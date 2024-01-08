@@ -3,24 +3,6 @@
 #include <iostream>
 #include <limits>
 
-#define EMIT(code, ty, op) \
-    do { \
-    if ((ty)->IsInt() || (ty)->IsBool()) \
-        (code).op##Int(); \
-    else if ((ty)->IsFloat()) \
-        (code).op##Float(); \
-    } while (0)
-
-#define EMITS(code, ty, op, ops) \
-    do { \
-    if ((ty)->IsInt() || (ty)->IsBool()) \
-        (code).op##Int(); \
-    else if ((ty)->IsFloat()) \
-        (code).op##Float(); \
-    else if ((ty)->IsString()) \
-        (code).ops##String(); \
-    } while (0)
-
 static bool optimize = false;
 
 void SetOptimize(bool enable)
