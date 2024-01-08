@@ -127,6 +127,62 @@ int Addr(const Expr *e)
     }
 }
 
+static bool eval_binary(const Expr *e, long *result)
+{
+    long L = 0, R = 0;
+
+    if (!EvalExpr(e->l, &L))
+        return false;
+
+    if (!EvalExpr(e->r, &R))
+        return false;
+
+    switch (e->kind) {
+    case T_ADD: *result = L + R; return true;
+    case T_SUB: *result = L - R; return true;
+    case T_MUL: *result = L * R; return true;
+    case T_DIV: *result = L / R; return true;
+    case T_REM: *result = L % R; return true;
+    default: return false;
+    }
+}
+
+static bool eval_unary(const Expr *e, long *result)
+{
+    long L = 0;
+
+    if (!EvalExpr(e->l, &L))
+        return false;
+
+    switch (e->kind) {
+    case T_POS:  *result = +L; return true;
+    case T_NEG:  *result = -L; return true;
+    case T_LNOT: *result = !L; return true;
+    case T_NOT:  *result = ~L; return true;
+    default: return false;
+    }
+}
+
+bool EvalExpr(const Expr *e, long *result)
+{
+    switch (e->kind) {
+    case T_INTLIT:
+        *result = e->val.i;
+        return true;
+
+    case T_ADD: case T_SUB:
+    case T_MUL: case T_DIV: case T_REM:
+        return eval_binary(e, result);
+
+    case T_POS: case T_NEG:
+    case T_LNOT: case T_NOT:
+        return eval_unary(e, result);
+
+    default:
+        return false;
+    }
+}
+
 #define EMIT(code, ty, op) \
     do { \
     if ((ty)->IsInt() || (ty)->IsBool()) \

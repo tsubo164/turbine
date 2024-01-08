@@ -316,7 +316,7 @@ Expr *Parser::primary_expr()
                         "index expression must be integer type");
             }
             long index = 0;
-            if (idx->Eval(index)) {
+            if (EvalExpr(idx, &index)) {
                 const long len = expr->type->len;
                 if (index >= len) {
                     error(tok_pos(), "index out of range[", std::to_string(index),
@@ -973,8 +973,7 @@ Type *Parser::type_spec()
                     "array length expression must be integer type");
         }
         long len = 0;
-        const bool ok = e->Eval(len);
-        if (!ok) {
+        if (!EvalExpr(e, &len)) {
             error(tok_pos(),
                     "array length expression must be compile time constant");
         }

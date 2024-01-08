@@ -46,7 +46,6 @@ struct Expr : public Node {
     // const Func *func;
     Pos pos;
 
-    virtual bool Eval(long &result) const { return false; }
     virtual bool EvalAddr(int &result) const { return false; }
 
     void Print(int depth) const override final {}
@@ -87,8 +86,6 @@ struct IntValExpr : public Expr {
         Expr::val.i = l;
     }
     long val;
-
-    bool Eval(long &result) const override final { result = val; return true; }
 };
 
 struct FltValExpr : public Expr {
@@ -262,8 +259,6 @@ struct BinaryExpr : public Expr {
     std::unique_ptr<Expr> l;
     std::unique_ptr<Expr> r;
     TK kind;
-
-    bool Eval(long &result) const override final;
 };
 
 struct UnaryExpr : public Expr {
@@ -297,8 +292,6 @@ struct UnaryExpr : public Expr {
     }
     std::unique_ptr<Expr> r;
     const TK kind;
-
-    bool Eval(long &result) const override final;
 };
 
 struct AssignExpr : public Expr {

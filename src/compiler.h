@@ -101,7 +101,9 @@ void print_expr(const Expr *e, int depth);
 
 bool IsNull(const Expr *e);
 bool IsGlobal(const Expr *e);
+
 int Addr(const Expr *e);
+bool EvalExpr(const Expr *e, long *result);
 
 class Bytecode;
 void gen_expr(Bytecode *code, const Expr *e);

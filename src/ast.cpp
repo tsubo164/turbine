@@ -139,47 +139,6 @@ void Prog::Print(int depth) const
         func->Print(depth + 1);
 }
 
-// Eval
-bool BinaryExpr::Eval(long &result) const
-{
-    long L = 0, R = 0;
-    bool ok;
-
-    ok = l->Eval(L);
-    if (!ok)
-        return false;
-    ok = r->Eval(R);
-    if (!ok)
-        return false;
-
-    switch (kind) {
-    case TK::PLUS:    result = L + R; return true;
-    case TK::MINUS:   result = L - R; return true;
-    case TK::STAR:    result = L * R; return true;
-    case TK::SLASH:   result = L / R; return true;
-    case TK::PERCENT: result = L % R; return true;
-    default: return false;
-    }
-}
-
-bool UnaryExpr::Eval(long &result) const
-{
-    long R = 0;
-    bool ok;
-
-    ok = r->Eval(R);
-    if (!ok)
-        return false;
-
-    switch (kind) {
-    case TK::PLUS:  result = +R; return true;
-    case TK::MINUS: result = -R; return true;
-    case TK::EXCL:  result = !R; return true;
-    case TK::TILDA: result = ~R; return true;
-    default: return false;
-    }
-}
-
 // Gen
 void NopStmt::Gen(Bytecode &code) const
 {
