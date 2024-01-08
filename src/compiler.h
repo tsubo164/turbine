@@ -8,8 +8,9 @@
 #include <ctype.h>
 
 
-#define NALLOC(n,type) calloc((n),sizeof(type))
-#define CALLOC(type) NALLOC(1,type)
+#define NALLOC(n,type) ((type*) calloc((n),sizeof(type)))
+//#define CALLOC(type) NALLOC(1,type)
+#define CALLOC(type) (new type())
 
 
 enum KindTag {
@@ -95,9 +96,10 @@ typedef struct TokInfo {
     char type;
 } TokInfo;
 
-struct Expr;
 const TokInfo *find_tokinfo(int kind);
-void print_expr(const Expr *e, int depth);
+
+struct Expr;
+//Expr *NewNullExpr(void);
 
 bool IsNull(const Expr *e);
 bool IsGlobal(const Expr *e);
@@ -105,6 +107,8 @@ bool IsGlobal(const Expr *e);
 int Addr(const Expr *e);
 bool EvalExpr(const Expr *e, long *result);
 bool EvalAddr(const Expr *e, int *result);
+
+void print_expr(const Expr *e, int depth);
 
 class Bytecode;
 void gen_expr(Bytecode *code, const Expr *e);

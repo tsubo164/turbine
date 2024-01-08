@@ -2,6 +2,12 @@
 #include "scope.h"
 #include "error.h"
 
+Type *NewNilType()
+{
+    static Type t(TY::NIL);
+    return &t;
+}
+
 Type *NewBoolType()
 {
     static Type t(TY::BOOL);

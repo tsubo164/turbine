@@ -45,6 +45,7 @@ struct Type {
     bool IsAny() const { return kind == TY::ANY; }
 };
 
+Type *NewNilType();
 Type *NewBoolType();
 Type *NewFuncType(Func *func);
 Type *NewPtrType(const Type *underlying);

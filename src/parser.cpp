@@ -564,7 +564,7 @@ OrStmt *Parser::or_stmt()
 
     if (consume(TK::NEWLINE)) {
         // or (else)
-        cond = new NullExpr();
+        cond = NewNullExpr();
     }
     else {
         // or if (else if)
@@ -615,9 +615,9 @@ Stmt *Parser::for_stmt()
 
     if (consume(TK::NEWLINE)) {
         // infinite loop
-        init = new NullExpr();
+        init = NewNullExpr();
         cond = new IntValExpr(1);
-        post = new NullExpr();
+        post = NewNullExpr();
     }
     else {
         Expr *e = expression();
@@ -632,9 +632,9 @@ Stmt *Parser::for_stmt()
         }
         else if (consume(TK::NEWLINE)) {
             // while style
-            init = new NullExpr();
+            init = NewNullExpr();
             cond = e;
-            post = new NullExpr();
+            post = NewNullExpr();
         }
         else {
             const Token *tok = gettok();
@@ -711,7 +711,7 @@ CaseStmt *Parser::case_stmt(TK kind)
         while (consume(TK::COMMA));
     }
     else if (kind == TK::DEFAULT) {
-        cases->AddCond(new NullExpr());
+        cases->AddCond(NewNullExpr());
     }
 
     expect(TK::NEWLINE);
@@ -730,7 +730,7 @@ Stmt *Parser::ret_stmt()
     Expr *expr = nullptr;
 
     if (consume(TK::NEWLINE)) {
-        expr = new NullExpr();
+        expr = NewNullExpr();
     }
     else {
         expr = expression();
@@ -1093,7 +1093,7 @@ FuncDef *Parser::func_def()
     enter_scope(func);
     BlockStmt *body = block_stmt();
     // TODO control flow check to allow implicit return
-    body->AddStmt(new ReturnStmt(new NullExpr()));
+    body->AddStmt(new ReturnStmt(NewNullExpr()));
     leave_scope();
 
     func_ = nullptr;

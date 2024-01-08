@@ -28,6 +28,7 @@ typedef union Val {
 } Val;
 
 struct Expr : public Node {
+    Expr() {}
     Expr(const Type *t) : type(t) {}
     const Type *type;
 
@@ -47,13 +48,14 @@ struct Expr : public Node {
     Pos pos;
 };
 
-struct NullExpr : public Expr {
-    NullExpr() : Expr(new Type(TY::NIL))
-    {
-        // XXX TEST ==============
-        kind = T_NUL;
-    }
-};
+inline
+Expr *NewNullExpr(void)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = NewNilType();
+    e->kind = T_NUL;
+    return e;
+}
 
 struct NilValExpr : public Expr {
     NilValExpr() : Expr(new Type(TY::NIL))
