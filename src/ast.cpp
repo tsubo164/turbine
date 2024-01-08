@@ -51,81 +51,6 @@ int StrValExpr::ConvertEscSeq()
 }
 
 // Print
-void NilValExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void BoolValExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void IntValExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void FltValExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void StrValExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void ConvertExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void IdentExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void FieldExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void SelectExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void IndexExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void CallExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void BinaryExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void UnaryExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void AssignExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
-void IncDecExpr::Print(int depth) const
-{
-    print_expr(this, depth);
-}
-
 void NopStmt::Print(int depth) const
 {
     print_node("NopStmt", depth);
@@ -141,7 +66,7 @@ void BlockStmt::Print(int depth) const
 void OrStmt::Print(int depth) const
 {
     print_node("OrStmt", depth);
-    cond->Print(depth + 1);
+    print_expr(cond.get(), depth + 1);
     body->Print(depth + 1);
 }
 
@@ -155,9 +80,9 @@ void IfStmt::Print(int depth) const
 void ForStmt::Print(int depth) const
 {
     print_node("ForStmt", depth);
-    init->Print(depth + 1);
-    cond->Print(depth + 1);
-    post->Print(depth + 1);
+    print_expr(init.get(), depth + 1);
+    print_expr(cond.get(), depth + 1);
+    print_expr(post.get(), depth + 1);
     body->Print(depth + 1);
 }
 
@@ -172,7 +97,7 @@ void CaseStmt::Print(int depth) const
     print_node("CaseStmt", depth, false);
     std::cout << "\"" << kind << "\"" << std::endl;;
     for (auto &cond: conds)
-        cond->Print(depth + 1);
+        print_expr(cond.get(), depth + 1);
     body->Print(depth + 1);
 }
 
@@ -186,13 +111,13 @@ void SwitchStmt::Print(int depth) const
 void ReturnStmt::Print(int depth) const
 {
     print_node("ReturnStmt", depth);
-    expr->Print(depth + 1);
+    print_expr(expr.get(), depth + 1);
 }
 
 void ExprStmt::Print(int depth) const
 {
     print_node("ExprStmt", depth);
-    expr->Print(depth + 1);
+    print_expr(expr.get(), depth + 1);
 }
 
 void FuncDef::Print(int depth) const
@@ -270,7 +195,7 @@ void OrStmt::Gen(Bytecode &code) const
 {
     Int next = 0;
 
-    if (!cond->IsNull()) {
+    if (!IsNull(cond.get())) {
         // cond
         gen_expr(&code, cond.get());
         next = code.JumpIfZero(-1);
@@ -279,7 +204,7 @@ void OrStmt::Gen(Bytecode &code) const
     // true
     body->Gen(code);
 
-    if (!cond->IsNull()) {
+    if (!IsNull(cond.get())) {
         // close
         const Int addr = code.Jump(-1);
         code.PushOrClose(addr);

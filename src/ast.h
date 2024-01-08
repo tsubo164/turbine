@@ -46,13 +46,10 @@ struct Expr : public Node {
     // const Func *func;
     Pos pos;
 
-    virtual int Addr() const { return -1; }
-    virtual bool IsAbsAddr() const { return false; }
-    virtual bool IsGlobal() const { return false; }
-    virtual bool IsNull() const { return false; }
-
     virtual bool Eval(long &result) const { return false; }
     virtual bool EvalAddr(int &result) const { return false; }
+
+    void Print(int depth) const override final {}
     void Gen(Bytecode &code) const override final {}
 };
 
@@ -62,9 +59,6 @@ struct NullExpr : public Expr {
         // XXX TEST ==============
         kind = T_NUL;
     }
-
-    void Print(int depth) const override final {}
-    bool IsNull() const override final { return true; }
 };
 
 struct NilValExpr : public Expr {
@@ -73,8 +67,6 @@ struct NilValExpr : public Expr {
         // XXX TEST ==============
         kind = T_NILLIT;
     }
-
-    void Print(int depth) const override final;
 };
 
 struct BoolValExpr : public Expr {
@@ -85,8 +77,6 @@ struct BoolValExpr : public Expr {
         Expr::val.i = b;
     }
     bool val;
-
-    void Print(int depth) const override final;
 };
 
 struct IntValExpr : public Expr {
@@ -98,7 +88,6 @@ struct IntValExpr : public Expr {
     }
     long val;
 
-    void Print(int depth) const override final;
     bool Eval(long &result) const override final { result = val; return true; }
 };
 
@@ -110,8 +99,6 @@ struct FltValExpr : public Expr {
         Expr::val.f = d;
     }
     double val;
-
-    void Print(int depth) const override final;
 };
 
 struct StrValExpr : public Expr {
@@ -125,8 +112,6 @@ struct StrValExpr : public Expr {
     //std::string converted;
 
     int ConvertEscSeq();
-
-    void Print(int depth) const override final;
 };
 
 struct ConvertExpr : public Expr {
@@ -137,8 +122,6 @@ struct ConvertExpr : public Expr {
         Expr::l = e;
     }
     std::unique_ptr<Expr> expr;
-
-    void Print(int depth) const override final;
 };
 
 struct IdentExpr : public Expr {
@@ -150,10 +133,6 @@ struct IdentExpr : public Expr {
     }
     const Var *var;
 
-    int Addr() const override { return var->id; }
-    bool IsGlobal() const override { return var->is_global; }
-
-    void Print(int depth) const override final;
     bool EvalAddr(int &result) const override final { result = var->id; return true; }
 };
 
@@ -166,9 +145,6 @@ struct FieldExpr : public Expr {
     }
     const Field *fld;
 
-    int Addr() const override { return fld->id; }
-
-    void Print(int depth) const override final;
     bool EvalAddr(int &result) const override final { result = fld->id; return true; }
 };
 
@@ -182,11 +158,6 @@ struct SelectExpr : public Expr {
     }
     Expr *inst;
     Expr *fld;
-
-    int Addr() const override { return inst->Addr() + fld->Addr(); }
-    bool IsGlobal() const override { return inst->IsGlobal(); }
-
-    void Print(int depth) const override final;
 };
 
 struct IndexExpr : public Expr {
@@ -200,8 +171,6 @@ struct IndexExpr : public Expr {
     }
     std::unique_ptr<Expr> ary;
     std::unique_ptr<Expr> idx;
-
-    void Print(int depth) const override final;
 };
 
 struct CallExpr : public Expr {
@@ -227,8 +196,6 @@ struct CallExpr : public Expr {
             return nullptr;
         return args[index];
     }
-
-    void Print(int depth) const override final;
 };
 
 struct BinaryExpr : public Expr {
@@ -296,7 +263,6 @@ struct BinaryExpr : public Expr {
     std::unique_ptr<Expr> r;
     TK kind;
 
-    void Print(int depth) const override final;
     bool Eval(long &result) const override final;
 };
 
@@ -332,10 +298,6 @@ struct UnaryExpr : public Expr {
     std::unique_ptr<Expr> r;
     const TK kind;
 
-    int Addr() const override { return kind == TK::STAR ? r->Addr() : -1; }
-    bool IsAbsAddr() const override { return kind == TK::STAR; }
-
-    void Print(int depth) const override final;
     bool Eval(long &result) const override final;
 };
 
@@ -359,8 +321,6 @@ struct AssignExpr : public Expr {
     std::unique_ptr<Expr> lval;
     std::unique_ptr<Expr> rval;
     TK kind;
-
-    void Print(int depth) const override final;
 };
 
 struct IncDecExpr : public Expr {
@@ -376,8 +336,6 @@ struct IncDecExpr : public Expr {
     }
     std::unique_ptr<Expr> lval;
     TK kind;
-
-    void Print(int depth) const override final;
 };
 
 struct Stmt : public Node {

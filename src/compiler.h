@@ -1,6 +1,7 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -97,6 +98,10 @@ typedef struct TokInfo {
 struct Expr;
 const TokInfo *find_tokinfo(int kind);
 void print_expr(const Expr *e, int depth);
+
+bool IsNull(const Expr *e);
+bool IsGlobal(const Expr *e);
+int Addr(const Expr *e);
 
 class Bytecode;
 void gen_expr(Bytecode *code, const Expr *e);

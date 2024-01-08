@@ -91,6 +91,42 @@ const TokInfo *find_tokinfo(int kind)
     return &table[0];
 }
 
+bool IsNull(const Expr *e)
+{
+    return e->kind == T_NUL;
+}
+
+bool IsGlobal(const Expr *e)
+{
+    switch (e->kind) {
+    case T_IDENT:
+        return e->var->is_global;
+
+    case T_SELECT:
+        return IsGlobal(e->l);
+
+    default:
+        return false;
+    }
+}
+
+int Addr(const Expr *e)
+{
+    switch (e->kind) {
+    case T_IDENT:
+        return e->var->id;
+
+    case T_FIELD:
+        return e->fld->id;
+
+    case T_SELECT:
+        return Addr(e->l) + Addr(e->r);
+
+    default:
+        return -1;
+    }
+}
+
 #define EMIT(code, ty, op) \
     do { \
     if ((ty)->IsInt() || (ty)->IsBool()) \
@@ -458,7 +494,7 @@ void gen_expr(Bytecode *code, const Expr *e)
         return;
 
     case T_ADR:
-        code->LoadAddress(e->l->Addr());
+        code->LoadAddress(Addr(e->l));
         return;
 
     case T_POS:
@@ -492,17 +528,17 @@ void gen_expr(Bytecode *code, const Expr *e)
         return;
 
     case T_INC:
-        if (e->l->IsGlobal())
-            code->IncGlobal(e->l->Addr());
+        if (IsGlobal(e->l))
+            code->IncGlobal(Addr(e->l));
         else
-            code->IncLocal(e->l->Addr());
+            code->IncLocal(Addr(e->l));
         return;
 
     case T_DEC:
-        if (e->l->IsGlobal())
-            code->DecGlobal(e->l->Addr());
+        if (IsGlobal(e->l))
+            code->DecGlobal(Addr(e->l));
         else
-            code->DecLocal(e->l->Addr());
+            code->DecLocal(Addr(e->l));
         return;
     }
 }
