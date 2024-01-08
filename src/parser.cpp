@@ -138,26 +138,26 @@ void Parser::leave_scope()
     scope_ = scope_->Close();
 }
 
-CallExpr *Parser::arg_list(CallExpr *call)
+Expr *Parser::arg_list(Expr *call)
 {
     if (peek() != TK::RPAREN) {
         do {
-            call->AddArg(expression());
+            AddArg(call, expression());
         }
         while (consume(TK::COMMA));
     }
 
     const Func *func = call->l->type->func;
     if (func->HasSpecialVar())
-        call->AddArg(NewIntLitExpr(call->pos.y));
+        AddArg(call, NewIntLitExpr(call->pos.y));
 
-    const int argc = call->ArgCount();
+    const int argc = ArgCount(call);
     const int paramc = func->RequiredParamCount();
     if (argc < paramc)
         error(tok_pos(), "too few arguments");
 
     for (int i = 0; i < argc; i++) {
-        const Expr *arg = call->GetArg(i);
+        const Expr *arg = GetArg(call, i);
         const Var *param = func->GetParam(i);
 
         if (!param)
@@ -197,7 +197,7 @@ Expr *Parser::conv_expr(TK kind)
         break;
     }
 
-    return new ConvertExpr(expr, to_type);
+    return NewConversionExpr(expr, to_type);
 }
 
 // primary_expr =
@@ -249,7 +249,7 @@ Expr *Parser::primary_expr()
                     "special variable '", tok_str(),
                     "' not declared in parameters");
         }
-        return new IdentExpr(var);
+        return NewIdentExpr(var);
     }
 
     const TK next = peek();
@@ -274,7 +274,7 @@ Expr *Parser::primary_expr()
                         "undefined identifier: '", tok_str(), "'");
             }
 
-            expr = new IdentExpr(var);
+            expr = NewIdentExpr(var);
             continue;
         }
         else if (tok->kind == TK::LPAREN) {
@@ -283,7 +283,7 @@ Expr *Parser::primary_expr()
                         "call operator must be used for function type");
             }
             // TODO func signature check
-            CallExpr *call = new CallExpr(expr, tok->pos);
+            Expr *call = NewCallExpr(expr, tok->pos);
             expr = arg_list(call);
             continue;
         }
@@ -302,7 +302,7 @@ Expr *Parser::primary_expr()
 
             Field *fld = expr->type->clss->FindField(tok_str());
 
-            expr = new SelectExpr(expr, new FieldExpr(fld));
+            expr = NewSelectExpr(expr, NewFieldExpr(fld));
             continue;
         }
         else if (tok->kind == TK::LBRACK) {
@@ -324,7 +324,7 @@ Expr *Parser::primary_expr()
                 }
             }
             expect(TK::RBRACK);
-            return new IndexExpr(expr, idx);
+            return NewIndexExpr(expr, idx);
         }
         else {
             if (!expr) {
@@ -351,7 +351,7 @@ Expr *Parser::unary_expr()
     if (kind == TK::AMP) {
         Expr *expr = unary_expr();
         Type *type = NewPtrType(expr->type);
-        return new UnaryExpr(expr, type, kind);
+        return NewUnaryExpr(expr, type, kind);
     }
     if (kind == TK::STAR) {
         Expr *expr = unary_expr();
@@ -359,8 +359,8 @@ Expr *Parser::unary_expr()
             error(tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
-        const Type *type = DuplicateType(expr->type->underlying);
-        return new UnaryExpr(expr, type, kind);
+        Type *type = DuplicateType(expr->type->underlying);
+        return NewUnaryExpr(expr, type, kind);
     }
 
     switch (kind) {
@@ -368,7 +368,10 @@ Expr *Parser::unary_expr()
     case TK::MINUS:
     case TK::EXCL:
     case TK::TILDA:
-        return new UnaryExpr(unary_expr(), kind);
+        {
+            Expr *e = unary_expr();
+            return NewUnaryExpr(e, const_cast<Type*>(e->type), kind);
+        }
 
     default:
         ungettok();
@@ -399,7 +402,7 @@ Expr *Parser::mul_expr()
                     TypeString(x->type) + " and " + TypeString(y->type);
                 Error(msg, *src_, tok->pos);
             }
-            x = new BinaryExpr(x, y, tok->kind);
+            x = NewBinaryExpr(x, y, tok->kind);
             break;
 
         default:
@@ -430,7 +433,7 @@ Expr *Parser::add_expr()
                     TypeString(expr->type) + " and " + TypeString(l->type);
                 Error(msg, *src_, tok->pos);
             }
-            expr = new BinaryExpr(expr, l, tok->kind);
+            expr = NewBinaryExpr(expr, l, tok->kind);
             break;
 
         default:
@@ -463,7 +466,7 @@ Expr *Parser::rel_expr()
                         TypeString(l->type), " and ",
                         TypeString(r->type));
             }
-            l = new BinaryExpr(l, r, new Type(TY::BOOL), tok->kind);
+            l = NewRelationalExpr(l, r, tok->kind);
             continue;
 
         default:
@@ -483,7 +486,7 @@ Expr *Parser::logand_expr()
 
         switch (tok->kind) {
         case TK::AMP2:
-            expr = new BinaryExpr(expr, rel_expr(), tok->kind);
+            expr = NewBinaryExpr(expr, rel_expr(), tok->kind);
             continue;
 
         default:
@@ -503,7 +506,7 @@ Expr *Parser::logor_expr()
 
         switch (tok->kind) {
         case TK::BAR2:
-            expr = new BinaryExpr(expr, logand_expr(), tok->kind);
+            expr = NewBinaryExpr(expr, logand_expr(), tok->kind);
             continue;
 
         default:
@@ -537,7 +540,7 @@ Expr *Parser::assign_expr()
                 TypeString(lval->type), "': r-value type '",
                 TypeString(rval->type), "'");
         }
-        return new AssignExpr(lval, rval, kind);
+        return NewAssignExpr(lval, rval, kind);
 
     case TK::PLUS2:
     case TK::MINUS2:
@@ -545,7 +548,7 @@ Expr *Parser::assign_expr()
             error(tok->pos,
                     "type mismatch: ++/-- must be used for int");
         }
-        return new IncDecExpr(lval, kind);
+        return NewIncDecExpr(lval, kind);
 
     default:
         ungettok();
@@ -846,8 +849,8 @@ Stmt *Parser::var_decl()
     expect(TK::NEWLINE);
 
     Var *var = scope_->DefineVar(name, type);
-    Expr *ident = new IdentExpr(var);
-    return new ExprStmt(new AssignExpr(ident, init, TK::EQ));
+    Expr *ident = NewIdentExpr(var);
+    return new ExprStmt(NewAssignExpr(ident, init, TK::EQ));
 }
 
 Field *Parser::field_decl()
@@ -1121,9 +1124,9 @@ Prog *Parser::program()
 
             {
                 // TODO clean up
-                Expr *ident = new IdentExpr(const_cast<Var *>(fdef->var));
+                Expr *ident = NewIdentExpr(const_cast<Var *>(fdef->var));
                 Expr *init = NewIntLitExpr(fdef->funclit_id);
-                prog->AddGlobalVar(new ExprStmt(new AssignExpr(ident, init, TK::EQ)));
+                prog->AddGlobalVar(new ExprStmt(NewAssignExpr(ident, init, TK::EQ)));
             }
 
             prog->AddFuncDef(fdef);

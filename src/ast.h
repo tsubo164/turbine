@@ -50,6 +50,18 @@ struct Expr : public Node {
 };
 
 inline
+void AddArg(Expr *e, Expr *arg) { e->args.push_back(arg); }
+inline
+int ArgCount(Expr *e) { return e->args.size(); }
+inline
+const Expr *GetArg(Expr *e, int index)
+{
+    if (index < 0 || index >= ArgCount(e))
+        return nullptr;
+    return e->args[index];
+}
+
+inline
 int ConvertEscSeq(std::string_view s, std::string &converted)
 {
     return ConvertEscapeSequence(s, converted);
@@ -113,203 +125,165 @@ Expr *NewStringLitExpr(std::string_view s)
     return e;
 }
 
-struct ConvertExpr : public Expr {
-    ConvertExpr(Expr *e, const Type *totype) : Expr(totype)
-    {
-        // XXX TEST ==============
-        kind = T_CONV;
-        Expr::l = e;
-    }
-};
+inline
+Expr *NewConversionExpr(Expr *from, Type *to)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = to;
+    e->kind = T_CONV;
+    e->l = from;
+    return e;
+}
 
-struct IdentExpr : public Expr {
-    IdentExpr(Var *v) : Expr(v->type)
-    {
-        // XXX TEST ==============
-        kind = T_IDENT;
-        Expr::var = v;
-    }
-};
+inline
+Expr *NewIdentExpr(Var *v)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = v->type;
+    e->kind = T_IDENT;
+    e->var = v;
+    return e;
+}
 
-struct FieldExpr : public Expr {
-    FieldExpr(const Field *f) : Expr(f->type)
-    {
-        // XXX TEST ==============
-        kind = T_FIELD;
-        Expr::fld = f;
-    }
-};
+inline
+Expr *NewFieldExpr(Field *f)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = f->type;
+    e->kind = T_FIELD;
+    e->fld = f;
+    return e;
+}
 
-struct SelectExpr : public Expr {
-    SelectExpr(Expr *inst, Expr *fld) : Expr(fld->type)
-    {
-        // XXX TEST ==============
-        kind = T_SELECT;
-        Expr::l = inst;
-        Expr::r = fld;
-    }
-};
+inline
+Expr *NewSelectExpr(Expr *inst, Expr *fld)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = fld->type;
+    e->kind = T_SELECT;
+    e->l = inst;
+    e->r = fld;
+    return e;
+}
 
-struct IndexExpr : public Expr {
-    IndexExpr(Expr *ary, Expr *idx)
-        : Expr(ary->type->underlying)
-    {
-        // XXX TEST ==============
-        kind = T_INDEX;
-        Expr::l = ary;
-        Expr::r = idx;
-    }
-};
+inline
+Expr *NewIndexExpr(Expr *ary, Expr *idx)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = ary->type->underlying;
+    e->kind = T_INDEX;
+    e->l = ary;
+    e->r = idx;
+    return e;
+}
 
-struct CallExpr : public Expr {
-    CallExpr(Expr *e, Pos p)
-        : Expr(e->type->func->return_type)
-    {
-        // XXX TEST ==============
-        kind = T_CALL;
-        Expr::l = e;
-        Expr::pos = p;
-    }
-    //std::vector<Expr*> args;
-    // TODO need func for easy access?
-    // const Func *func;
-    //const Pos pos;
+inline
+Expr *NewCallExpr(Expr *callee, Pos p)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = callee->type->func->return_type;
+    e->kind = T_CALL;
+    e->l = callee;
+    e->pos = p;
+    return e;
+}
 
-    void AddArg(Expr *e) { args.push_back(e); }
-    int ArgCount() const { return args.size(); }
-    const Expr *GetArg(int index)
-    {
-        if (index < 0 || index >= ArgCount())
-            return nullptr;
-        return args[index];
+inline
+Expr *NewBinaryExpr(Expr *L, Expr *R, TK k)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = L->type;
+    switch (k) {
+    case TK::PLUS:    e->kind = T_ADD; break;
+    case TK::MINUS:   e->kind = T_SUB; break;
+    case TK::STAR:    e->kind = T_MUL; break;
+    case TK::SLASH:   e->kind = T_DIV; break;
+    case TK::PERCENT: e->kind = T_REM; break;
+    case TK::BAR:     e->kind = T_OR;  break;
+    case TK::BAR2:    e->kind = T_LOR; break;
+    case TK::AMP:     e->kind = T_AND; break;
+    case TK::AMP2:    e->kind = T_LAND; break;
+    case TK::EXCL:    e->kind = T_LNOT; break;
+    case TK::CARET:   e->kind = T_XOR; break;
+    case TK::TILDA:   e->kind = T_NOT; break;
+    case TK::LT2:     e->kind = T_SHL; break;
+    case TK::GT2:     e->kind = T_SHR; break;
+    default:          e->kind = T_NUL; break;
     }
-};
+    e->l = L;
+    e->r = R;
+    return e;
+}
 
-struct BinaryExpr : public Expr {
-    BinaryExpr(Expr *L, Expr *R, TK k)
-        : Expr(L->type)
-    {
-        // XXX TEST ==============
-        switch (k) {
-        case TK::PLUS:         Expr::kind = T_ADD; break;
-        case TK::MINUS:        Expr::kind = T_SUB; break;
-        case TK::STAR:         Expr::kind = T_MUL; break;
-        case TK::SLASH:        Expr::kind = T_DIV; break;
-        case TK::PERCENT:      Expr::kind = T_REM; break;
-        case TK::BAR:          Expr::kind = T_OR;  break;
-        case TK::BAR2:         Expr::kind = T_LOR; break;
-        case TK::AMP:          Expr::kind = T_AND; break;
-        case TK::AMP2:         Expr::kind = T_LAND; break;
-        case TK::EQ2:          Expr::kind = T_EQ;  break;
-        case TK::EXCLEQ:       Expr::kind = T_NEQ; break;
-        case TK::EXCL:         Expr::kind = T_LNOT; break;
-        case TK::CARET:        Expr::kind = T_XOR; break;
-        case TK::TILDA:        Expr::kind = T_NOT; break;
-        case TK::LT2:          Expr::kind = T_SHL; break;
-        case TK::GT2:          Expr::kind = T_SHR; break;
-        case TK::LT:           Expr::kind = T_LT; break;
-        case TK::GT:           Expr::kind = T_GT; break;
-        case TK::LTE:          Expr::kind = T_LTE; break;
-        case TK::GTE:          Expr::kind = T_GTE; break;
-        default:       Expr::kind = T_ADD; break;
-        }
-        Expr::l = L;
-        Expr::r = R;
+inline
+Expr *NewRelationalExpr(Expr *L, Expr *R, TK k)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = NewBoolType();
+    switch (k) {
+    case TK::EQ2:     e->kind = T_EQ;  break;
+    case TK::EXCLEQ:  e->kind = T_NEQ; break;
+    case TK::LT:      e->kind = T_LT; break;
+    case TK::GT:      e->kind = T_GT; break;
+    case TK::LTE:     e->kind = T_LTE; break;
+    case TK::GTE:     e->kind = T_GTE; break;
+    default:          e->kind = T_NUL; break;
     }
-    BinaryExpr(Expr *L, Expr *R, Type *t, TK k)
-        : Expr(t)
-    {
-        // XXX TEST ==============
-        switch (k) {
-        case TK::PLUS:         Expr::kind = T_ADD; break;
-        case TK::MINUS:        Expr::kind = T_SUB; break;
-        case TK::STAR:         Expr::kind = T_MUL; break;
-        case TK::SLASH:        Expr::kind = T_DIV; break;
-        case TK::PERCENT:      Expr::kind = T_REM; break;
-        case TK::BAR:          Expr::kind = T_OR;  break;
-        case TK::BAR2:         Expr::kind = T_LOR; break;
-        case TK::AMP:          Expr::kind = T_AND; break;
-        case TK::AMP2:         Expr::kind = T_LAND; break;
-        case TK::EQ2:          Expr::kind = T_EQ;  break;
-        case TK::EXCLEQ:       Expr::kind = T_NEQ; break;
-        case TK::EXCL:         Expr::kind = T_LNOT; break;
-        case TK::CARET:        Expr::kind = T_XOR; break;
-        case TK::TILDA:        Expr::kind = T_NOT; break;
-        case TK::LT2:          Expr::kind = T_SHL; break;
-        case TK::GT2:          Expr::kind = T_SHR; break;
-        case TK::LT:           Expr::kind = T_LT; break;
-        case TK::GT:           Expr::kind = T_GT; break;
-        case TK::LTE:          Expr::kind = T_LTE; break;
-        case TK::GTE:          Expr::kind = T_GTE; break;
-        default:       Expr::kind = T_ADD; break;
-        }
-        Expr::l = L;
-        Expr::r = R;
-    }
-};
+    e->l = L;
+    e->r = R;
+    return e;
+}
 
-struct UnaryExpr : public Expr {
-    UnaryExpr(Expr *R, const Type *t, TK k) : Expr(t)
-    {
-        // XXX TEST ==============
-        switch (k) {
-        case TK::AMP:    Expr::kind = T_ADR; break;
-        case TK::PLUS:   Expr::kind = T_POS; break;
-        case TK::MINUS:  Expr::kind = T_NEG; break;
-        case TK::EXCL:   Expr::kind = T_LNOT; break;
-        case TK::TILDA:  Expr::kind = T_NOT; break;
-        case TK::STAR:   Expr::kind = T_DRF; break;
-        default:       Expr::kind = T_NUL; break;
-        }
-        Expr::l = R;
+inline
+Expr *NewUnaryExpr(Expr *L, Type *t, TK k)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = t;
+    switch (k) {
+    case TK::AMP:    e->kind = T_ADR; break;
+    case TK::PLUS:   e->kind = T_POS; break;
+    case TK::MINUS:  e->kind = T_NEG; break;
+    case TK::EXCL:   e->kind = T_LNOT; break;
+    case TK::TILDA:  e->kind = T_NOT; break;
+    case TK::STAR:   e->kind = T_DRF; break;
+    default:         e->kind = T_NUL; break;
     }
-    UnaryExpr(Expr *R, TK k) : Expr(R->type)
-    {
-        // XXX TEST ==============
-        switch (k) {
-        case TK::AMP:    Expr::kind = T_ADR; break;
-        case TK::PLUS:   Expr::kind = T_POS; break;
-        case TK::MINUS:  Expr::kind = T_NEG; break;
-        case TK::EXCL:   Expr::kind = T_LNOT; break;
-        case TK::TILDA:  Expr::kind = T_NOT; break;
-        case TK::STAR:   Expr::kind = T_DRF; break;
-        default:       Expr::kind = T_NUL; break;
-        }
-        Expr::l = R;
-    }
-};
+    e->l = L;
+    return e;
+}
 
-struct AssignExpr : public Expr {
-    AssignExpr(Expr *l, Expr *r, TK k)
-        : Expr(l->type)
-    {
-        // XXX TEST ==============
-        switch (k) {
-        case TK::EQ:        Expr::kind = T_ASSN; break;
-        case TK::PLUSEQ:    Expr::kind = T_AADD; break;
-        case TK::MINUSEQ:   Expr::kind = T_ASUB; break;
-        case TK::STAREQ:    Expr::kind = T_AMUL; break;
-        case TK::SLASHEQ:   Expr::kind = T_ADIV; break;
-        case TK::PERCENTEQ: Expr::kind = T_AREM; break;
-        default:       Expr::kind = T_NUL; break;
-        }
-        Expr::l = l;
-        Expr::r = r;
+inline
+Expr *NewAssignExpr(Expr *l, Expr *r, TK k)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = l->type;
+    switch (k) {
+    case TK::EQ:        e->kind = T_ASSN; break;
+    case TK::PLUSEQ:    e->kind = T_AADD; break;
+    case TK::MINUSEQ:   e->kind = T_ASUB; break;
+    case TK::STAREQ:    e->kind = T_AMUL; break;
+    case TK::SLASHEQ:   e->kind = T_ADIV; break;
+    case TK::PERCENTEQ: e->kind = T_AREM; break;
+    default:            e->kind = T_NUL; break;
     }
-};
+    e->l = l;
+    e->r = r;
+    return e;
+}
 
-struct IncDecExpr : public Expr {
-    IncDecExpr(Expr *e, TK k) : Expr(e->type)
-    {
-        // XXX TEST ==============
-        switch (k) {
-        case TK::PLUS2:    Expr::kind = T_INC; break;
-        case TK::MINUS2:   Expr::kind = T_DEC; break;
-        default:       Expr::kind = T_ADD; break;
-        }
-        Expr::l = e;
+inline
+Expr *NewIncDecExpr(Expr *l, TK k)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = l->type;
+    switch (k) {
+    case TK::PLUS2:  e->kind = T_INC; break;
+    case TK::MINUS2: e->kind = T_DEC; break;
+    default:         e->kind = T_NUL; break;
     }
-};
+    e->l = l;
+    return e;
+}
 
 struct Stmt : public Node {
 };

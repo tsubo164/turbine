@@ -53,7 +53,7 @@ private:
     void leave_scope();
 
     // expression
-    CallExpr *arg_list(CallExpr *fcall);
+    Expr *arg_list(Expr *call);
     Expr *conv_expr(TK kind);
     Expr *primary_expr();
     Expr *unary_expr();
