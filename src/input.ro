@@ -10,5 +10,6 @@
 - g = add
 
 # main() int
-  - f = add
-  return g(11, 22)
+  - b = true
+  - f = nil
+  return 13 + 4

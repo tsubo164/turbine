@@ -4,7 +4,7 @@ OPT     := -g
 CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors --std=c++17 -c
 RM      := rm -f
 
-SRCS    := ast builtin bytecode codegen gc error escseq interpreter lexer \
+SRCS    := ast ast2 builtin bytecode codegen gc error escseq interpreter lexer \
            parser scope type vm
 
 .PHONY: all clean run test

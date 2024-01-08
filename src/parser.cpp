@@ -346,28 +346,29 @@ Expr *Parser::primary_expr()
 Expr *Parser::unary_expr()
 {
     const Token *tok = gettok();
+    const TK kind = tok->kind;
 
-    if (tok->kind == TK::AMP) {
+    if (kind == TK::AMP) {
         Expr *expr = unary_expr();
         Type *type = NewPtrType(expr->type);
-        return new UnaryExpr(expr, type, tok->kind);
+        return new UnaryExpr(expr, type, kind);
     }
-    if (tok->kind == TK::STAR) {
+    if (kind == TK::STAR) {
         Expr *expr = unary_expr();
         if (!expr->type->IsPtr()) {
             error(tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
         const Type *type = DuplicateType(expr->type->underlying);
-        return new UnaryExpr(expr, type, tok->kind);
+        return new UnaryExpr(expr, type, kind);
     }
 
-    switch (tok->kind) {
+    switch (kind) {
     case TK::PLUS:
     case TK::MINUS:
     case TK::EXCL:
     case TK::TILDA:
-        return new UnaryExpr(unary_expr(), tok->kind);
+        return new UnaryExpr(unary_expr(), kind);
 
     default:
         ungettok();
@@ -521,8 +522,9 @@ Expr *Parser::assign_expr()
     Expr *lval = logor_expr();
     Expr *rval = nullptr;
     const Token *tok = gettok();
+    const TK kind = tok->kind;
 
-    switch (tok->kind) {
+    switch (kind) {
     case TK::EQ:
     case TK::PLUSEQ:
     case TK::MINUSEQ:
@@ -535,7 +537,7 @@ Expr *Parser::assign_expr()
                 TypeString(lval->type), "': r-value type '",
                 TypeString(rval->type), "'");
         }
-        return new AssignExpr(lval, rval, tok->kind);
+        return new AssignExpr(lval, rval, kind);
 
     case TK::PLUS2:
     case TK::MINUS2:
@@ -543,7 +545,7 @@ Expr *Parser::assign_expr()
             error(tok->pos,
                     "type mismatch: ++/-- must be used for int");
         }
-        return new IncDecExpr(lval, tok->kind);
+        return new IncDecExpr(lval, kind);
 
     default:
         ungettok();
@@ -1120,7 +1122,7 @@ Prog *Parser::program()
 
             {
                 // TODO clean up
-                Expr *ident = new IdentExpr(fdef->var);
+                Expr *ident = new IdentExpr(const_cast<Var *>(fdef->var));
                 Expr *init = new IntValExpr(fdef->funclit_id);
                 prog->AddGlobalVar(new ExprStmt(new AssignExpr(ident, init, TK::EQ)));
             }

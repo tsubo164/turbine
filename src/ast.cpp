@@ -53,115 +53,77 @@ int StrValExpr::ConvertEscSeq()
 // Print
 void NilValExpr::Print(int depth) const
 {
-    print_node("NilValExpr", depth, false);
-    std::cout << type << std::endl;
+    print_expr(this, depth);
 }
 
 void BoolValExpr::Print(int depth) const
 {
-    print_node("BoolValExpr", depth, false);
-    std::cout << val << " " << type << std::endl;
+    print_expr(this, depth);
 }
 
 void IntValExpr::Print(int depth) const
 {
-    print_node("IntValExpr", depth, false);
-    std::cout << val << " " << type << std::endl;
+    print_expr(this, depth);
 }
 
 void FltValExpr::Print(int depth) const
 {
-    print_node("FltValExpr", depth, false);
-    std::cout << val << " " << type << std::endl;
+    print_expr(this, depth);
 }
 
 void StrValExpr::Print(int depth) const
 {
-    print_node("StrValExpr", depth, false);
-    std::cout << "\"" << val << "\"" <<
-        " " << type << std::endl;
+    print_expr(this, depth);
 }
 
 void ConvertExpr::Print(int depth) const
 {
-    print_node("ConvertExpr", depth, false);
-    std::cout << type << std::endl;
-    expr->Print(depth + 1);
+    print_expr(this, depth);
 }
 
 void IdentExpr::Print(int depth) const
 {
-    print_node("IdentExpr", depth, false);
-    std::cout << "\"" << var->name << "\" @" << var->id <<
-        " " << type << std::endl;
+    print_expr(this, depth);
 }
 
 void FieldExpr::Print(int depth) const
 {
-    print_node("FieldExpr", depth, false);
-    std::cout << fld->name << " @" << fld->id <<
-        " " << type << std::endl;
+    print_expr(this, depth);
 }
 
 void SelectExpr::Print(int depth) const
 {
-    print_node("SelectExpr", depth);
-    inst->Print(depth + 1);
-    fld->Print(depth + 1);
+    print_expr(this, depth);
 }
 
 void IndexExpr::Print(int depth) const
 {
-    print_node("IndexExpr", depth, false);
-    std::cout << type << std::endl;
-    ary->Print(depth + 1);
-    idx->Print(depth + 1);
+    print_expr(this, depth);
 }
 
 void CallExpr::Print(int depth) const
 {
-    print_node("CallExpr", depth);
-    expr->Print(depth + 1);
-    for (auto arg: args)
-        arg->Print(depth + 1);
+    print_expr(this, depth);
 }
 
 void BinaryExpr::Print(int depth) const
 {
-    print_node("BinaryExpr", depth, false);
-    std::cout << "\"" << kind << "\" ";
-    std::cout << type << std::endl;
-
-    l->Print(depth + 1);
-    r->Print(depth + 1);
+    print_expr(this, depth);
 }
 
 void UnaryExpr::Print(int depth) const
 {
-    print_node("UnaryExpr", depth, false);
-    std::cout << "\"" << kind << "\" ";
-    std::cout << type << std::endl;
-
-    r->Print(depth + 1);
+    print_expr(this, depth);
 }
 
 void AssignExpr::Print(int depth) const
 {
-    print_node("AssignExpr", depth, false);
-    std::cout << "\"" << kind << "\" ";
-    std::cout << type << std::endl;
-
-    lval->Print(depth + 1);
-    rval->Print(depth + 1);
+    print_expr(this, depth);
 }
 
 void IncDecExpr::Print(int depth) const
 {
-    print_node("IncDecExpr", depth, false);
-    std::cout << "\"" << kind << "\" ";
-    std::cout << type << std::endl;
-
-    lval->Print(depth + 1);
+    print_expr(this, depth);
 }
 
 void NopStmt::Print(int depth) const
@@ -294,456 +256,6 @@ bool UnaryExpr::Eval(long &result) const
 }
 
 // Gen
-void NilValExpr::Gen(Bytecode &code) const
-{
-    code.LoadByte(0);
-}
-
-void BoolValExpr::Gen(Bytecode &code) const
-{
-    code.LoadByte(val);
-}
-
-void IntValExpr::Gen(Bytecode &code) const
-{
-    constexpr Int bytemin = std::numeric_limits<Byte>::min();
-    constexpr Int bytemax = std::numeric_limits<Byte>::max();
-
-    if (val >= bytemin && val <= bytemax)
-        code.LoadByte(val);
-    else
-        code.LoadInt(val);
-}
-
-void FltValExpr::Gen(Bytecode &code) const
-{
-    code.LoadFloat(val);
-}
-
-void StrValExpr::Gen(Bytecode &code) const
-{
-    std::string_view s;
-
-    if (converted.empty())
-        s = val;
-    else
-        s = std::string_view(converted.c_str(), converted.length());
-
-    const Word id = code.RegisterConstString(s);
-    code.LoadString(id);
-}
-
-void ConvertExpr::Gen(Bytecode &code) const
-{
-    expr->Gen(code);
-
-    const TY from = expr->type->kind;
-    const TY to = type->kind;
-
-    switch (from) {
-    case TY::BOOL:
-        switch (to) {
-        case TY::BOOL:  break;
-        case TY::INT:   code.BoolToInt(); break;
-        case TY::FLOAT: code.BoolToFloat(); break;
-        default: break;
-        }
-        break;
-
-    case TY::INT:
-        switch (to) {
-        case TY::BOOL:  code.IntToBool(); break;
-        case TY::INT:   break;
-        case TY::FLOAT: code.IntToFloat(); break;
-        default: break;
-        }
-        break;
-
-    case TY::FLOAT:
-        switch (to) {
-        case TY::BOOL:  code.FloatToBool(); break;
-        case TY::INT:   code.FloatToInt(); break;
-        case TY::FLOAT: break;
-        default: break;
-        }
-        break;
-
-    default:
-        break;
-    }
-}
-
-void IdentExpr::Gen(Bytecode &code) const
-{
-    if (var->is_global)
-        code.LoadGlobal(var->id);
-    else
-        code.LoadLocal(var->id);
-}
-
-void IdentExpr::GenAddr(Bytecode &code) const
-{
-    if (var->is_global)
-        code.LoadByte(var->id + 1);
-    else
-        code.LoadAddress(var->id);
-}
-
-void FieldExpr::Gen(Bytecode &code) const
-{
-    //code.LoadLocal(fld->id);
-}
-
-void FieldExpr::GenAddr(Bytecode &code) const
-{
-    code.LoadByte(fld->id);
-}
-
-void SelectExpr::Gen(Bytecode &code) const
-{
-    GenAddr(code);
-    code.Load();
-}
-
-void SelectExpr::GenAddr(Bytecode &code) const
-{
-    if (optimize) {
-        int base = 0;
-        int offset = 0;
-        if (inst->EvalAddr(base) && fld->EvalAddr(offset)) {
-            if (inst->IsGlobal())
-                code.LoadInt(base + offset + 1);
-            else
-                code.LoadAddress(base + offset);
-            return;
-        }
-    }
-
-    inst->GenAddr(code);
-    fld->GenAddr(code);
-    code.AddInt();
-}
-
-void IndexExpr::Gen(Bytecode &code) const
-{
-    GenAddr(code);
-    code.Load();
-}
-
-void IndexExpr::GenAddr(Bytecode &code) const
-{
-    if (optimize) {
-        int base = 0;
-        long index = 0;
-        if (ary->EvalAddr(base) && idx->Eval(index)) {
-            if (ary->IsGlobal())
-                code.LoadInt(base + index + 1);
-            else
-                // index from next to base
-                code.LoadAddress(base + index + 1);
-            return;
-        }
-    }
-
-    ary->GenAddr(code);
-    idx->Gen(code);
-    code.Index();
-}
-
-void CallExpr::Gen(Bytecode &code) const
-{
-    // TODO need CallExpr::func?
-    const Func *func = expr->type->func;
-
-    if (func->IsVariadic()) {
-        for (auto arg: args) {
-            // arg value
-            arg->Gen(code);
-
-            switch (arg->type->kind) {
-            case TY::NIL:
-                code.LoadTypeNil();
-                break;
-            case TY::BOOL:
-                code.LoadTypeBool();
-                break;
-            case TY::INT:
-                code.LoadTypeInt();
-                break;
-            case TY::FLOAT:
-                code.LoadTypeFloat();
-                break;
-            case TY::STRING:
-                code.LoadTypeString();
-                break;
-            case TY::CLASS:
-            case TY::FUNC:
-            case TY::PTR:
-            case TY::ARRAY:
-            case TY::ANY:
-                code.LoadTypeNil();
-                break;
-            }
-        }
-        // arg count
-        code.LoadByte(args.size());
-    }
-    else {
-        for (auto arg: args)
-            arg->Gen(code);
-    }
-
-    // TODO remove this by doing expr->Gen()
-    int addr = 0;
-    if (expr->EvalAddr(addr)) {
-        code.CallFunction(addr, func->IsBuiltin());
-    }
-}
-
-void BinaryExpr::Gen(Bytecode &code) const
-{
-    if (kind == TK::BAR2) {
-        Int ELSE = 0;
-        Int EXIT = 0;
-
-        // eval
-        l->Gen(code);
-        ELSE = code.JumpIfZero(-1);
-
-        // true
-        code.LoadByte(1);
-        EXIT = code.Jump(-1);
-
-        // false
-        code.BackPatch(ELSE);
-        r->Gen(code);
-        code.BackPatch(EXIT);
-
-        return;
-    }
-    else if (kind == TK::AMP2) {
-        Int ELSE = 0;
-        Int EXIT = 0;
-
-        // eval
-        l->Gen(code);
-        ELSE = code.JumpIfZero(-1);
-
-        // true
-        r->Gen(code);
-        EXIT = code.Jump(-1);
-
-        // false
-        code.BackPatch(ELSE);
-        code.LoadByte(0);
-        code.BackPatch(EXIT);
-
-        return;
-    }
-
-    if (optimize) {
-        long val = 0;
-        bool ok;
-        ok = Eval(val);
-        if (ok) {
-            code.LoadInt(val);
-            return;
-        }
-    }
-
-    l->Gen(code);
-    r->Gen(code);
-
-    switch (kind) {
-    case TK::PLUS:
-        EMITS(code, type, Add, Concat);
-        return;
-
-    case TK::MINUS:
-        EMIT(code, type, Sub);
-        return;
-
-    case TK::STAR:
-        EMIT(code, type, Mul);
-        return;
-
-    case TK::SLASH:
-        EMIT(code, type, Div);
-        return;
-
-    case TK::PERCENT:
-        EMIT(code, type, Rem);
-        return;
-
-    case TK::EQ2:
-        EMITS(code, l->type, Equal, Equal);
-        return;
-
-    case TK::EXCLEQ:
-        EMITS(code, l->type, NotEqual, NotEqual);
-        return;
-
-    case TK::LT:
-        EMIT(code, l->type, Less);
-        return;
-
-    case TK::LTE:
-        EMIT(code, l->type, LessEqual);
-        return;
-
-    case TK::GT:
-        EMIT(code, l->type, Greater);
-        return;
-
-    case TK::GTE:
-        EMIT(code, l->type, GreaterEqual);
-        return;
-
-    case TK::AMP:
-        code.And();
-        return;
-
-    case TK::BAR:
-        code.Or();
-        return;
-
-    case TK::CARET:
-        code.Xor();
-        return;
-
-    case TK::LT2:
-        code.ShiftLeft();
-        return;
-
-    case TK::GT2:
-        code.ShiftRight();
-        return;
-
-    default:
-        return;
-    }
-}
-
-void UnaryExpr::Gen(Bytecode &code) const
-{
-    if (kind == TK::AMP) {
-        const int index = r->Addr();
-        code.LoadAddress(index);
-        return;
-    }
-
-    r->Gen(code);
-
-    switch (kind) {
-    case TK::PLUS:
-        return;
-
-    case TK::MINUS:
-        EMIT(code, type, Negate);
-        return;
-
-    case TK::EXCL:
-        code.SetIfZero();
-        return;
-
-    case TK::TILDA:
-        code.Not();
-        return;
-
-    case TK::STAR:
-        code.Dereference();
-        return;
-
-    default:
-        return;
-    }
-}
-
-void UnaryExpr::GenAddr(Bytecode &code) const
-{
-    if (kind == TK::STAR) {
-        // deref *i = ...
-        r->Gen(code);
-        return;
-    }
-}
-
-void AssignExpr::Gen(Bytecode &code) const
-{
-    if (kind == TK::EQ) {
-        // rval first
-        rval->Gen(code);
-    }
-    else {
-        lval->Gen(code);
-        rval->Gen(code);
-
-        switch (kind) {
-        case TK::PLUSEQ:
-            EMITS(code, type, Add, Concat);
-            break;
-
-        case TK::MINUSEQ:
-            EMIT(code, type, Sub);
-            break;
-
-        case TK::STAREQ:
-            EMIT(code, type, Mul);
-            break;
-
-        case TK::SLASHEQ:
-            EMIT(code, type, Div);
-            break;
-
-        case TK::PERCENTEQ:
-            EMIT(code, type, Rem);
-            break;
-
-        default:
-            break;
-        }
-    }
-
-    if (optimize) {
-        int addr = 0;
-        const bool isconst = lval->EvalAddr(addr);
-        if (isconst) {
-            if (lval->IsGlobal())
-                code.StoreGlobal(addr);
-            else
-                code.StoreLocal(addr);
-            return;
-        }
-    }
-
-    lval->GenAddr(code);
-    code.Store();
-}
-
-void IncDecExpr::Gen(Bytecode &code) const
-{
-    const int index = lval->Addr();
-
-    switch (kind) {
-    case TK::PLUS2:
-        if (lval->IsGlobal())
-            code.IncGlobal(index);
-        else
-            code.IncLocal(index);
-        return;
-
-    case TK::MINUS2:
-        if (lval->IsGlobal())
-            code.DecGlobal(index);
-        else
-            code.DecLocal(index);
-        return;
-
-    default:
-        return;
-    }
-}
-
 void NopStmt::Gen(Bytecode &code) const
 {
 }
@@ -760,7 +272,7 @@ void OrStmt::Gen(Bytecode &code) const
 
     if (!cond->IsNull()) {
         // cond
-        cond->Gen(code);
+        gen_expr(&code, cond.get());
         next = code.JumpIfZero(-1);
     }
 
@@ -790,7 +302,7 @@ void ForStmt::Gen(Bytecode &code) const
 {
     // init
     code.BeginFor();
-    init->Gen(code);
+    gen_expr(&code, init.get());
 
     // body
     const Int begin = code.NextAddr();
@@ -798,10 +310,10 @@ void ForStmt::Gen(Bytecode &code) const
 
     // post
     code.BackPatchContinues();
-    post->Gen(code);
+    gen_expr(&code, post.get());
 
     // cond
-    cond->Gen(code);
+    gen_expr(&code, cond.get());
     const Int exit = code.JumpIfZero(-1);
     code.Jump(begin);
 
@@ -831,7 +343,7 @@ void CaseStmt::Gen(Bytecode &code) const
             Int tru = 0;
             Int fls = 0;
             code.DuplicateTop();
-            cond->Gen(code);
+            gen_expr(&code, cond.get());
             code.EqualInt();
             fls = code.JumpIfZero(-1);
             tru = code.Jump(-1);
@@ -860,7 +372,7 @@ void SwitchStmt::Gen(Bytecode &code) const
 {
     // init
     code.BeginSwitch();
-    cond->Gen(code);
+    gen_expr(&code, cond.get());
 
     // cases
     for (const auto &cs: cases)
@@ -874,13 +386,13 @@ void SwitchStmt::Gen(Bytecode &code) const
 
 void ReturnStmt::Gen(Bytecode &code) const
 {
-    expr->Gen(code);
+    gen_expr(&code, expr.get());
     code.Return();
 }
 
 void ExprStmt::Gen(Bytecode &code) const
 {
-    expr->Gen(code);
+    gen_expr(&code, expr.get());
 }
 
 void FuncDef::Gen(Bytecode &code) const
