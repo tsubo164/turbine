@@ -47,6 +47,9 @@ struct Type {
 
 Type *NewNilType();
 Type *NewBoolType();
+Type *NewIntType();
+Type *NewFloatType();
+Type *NewStringType();
 Type *NewFuncType(Func *func);
 Type *NewPtrType(const Type *underlying);
 Type *NewArrayType(int len, Type *underlying);

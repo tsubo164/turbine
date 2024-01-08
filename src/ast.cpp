@@ -27,11 +27,6 @@ static void print_node(const char *name, int depth, bool end_line = true)
         std::cout << ' ';
 }
 
-int StrValExpr::ConvertEscSeq()
-{
-    return ConvertEscapeSequence(val, converted);
-}
-
 // Print
 void NopStmt::Print(int depth) const
 {

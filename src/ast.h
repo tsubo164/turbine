@@ -7,6 +7,7 @@
 #include "scope.h"
 #include "lexer.h"
 #include "type.h"
+#include "escseq.h"
 
 // XXX TEST ==============
 #include "compiler.h"
@@ -49,6 +50,12 @@ struct Expr : public Node {
 };
 
 inline
+int ConvertEscSeq(std::string_view s, std::string &converted)
+{
+    return ConvertEscapeSequence(s, converted);
+}
+
+inline
 Expr *NewNullExpr(void)
 {
     Expr *e = CALLOC(Expr);
@@ -57,53 +64,54 @@ Expr *NewNullExpr(void)
     return e;
 }
 
-struct NilValExpr : public Expr {
-    NilValExpr() : Expr(new Type(TY::NIL))
-    {
-        // XXX TEST ==============
-        kind = T_NILLIT;
-    }
-};
+inline
+Expr *NewNilLitExpr(void)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = NewNilType();
+    e->kind = T_NILLIT;
+    return e;
+}
 
-struct BoolValExpr : public Expr {
-    BoolValExpr(bool b) : Expr(new Type(TY::BOOL))
-    {
-        // XXX TEST ==============
-        kind = T_BOLLIT;
-        Expr::val.i = b;
-    }
-};
+inline
+Expr *NewBoolLitExpr(bool b)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = NewBoolType();
+    e->kind = T_BOLLIT;
+    e->val.i = b;
+    return e;
+}
 
-struct IntValExpr : public Expr {
-    IntValExpr(long l) : Expr(new Type(TY::INT))
-    {
-        // XXX TEST ==============
-        kind = T_INTLIT;
-        Expr::val.i = l;
-    }
-};
+inline
+Expr *NewIntLitExpr(long l)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = NewIntType();
+    e->kind = T_INTLIT;
+    e->val.i = l;
+    return e;
+}
 
-struct FltValExpr : public Expr {
-    FltValExpr(double d) : Expr(new Type(TY::FLOAT))
-    {
-        // XXX TEST ==============
-        kind = T_FLTLIT;
-        Expr::val.f = d;
-    }
-};
+inline
+Expr *NewFloatLitExpr(double d)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = NewFloatType();
+    e->kind = T_FLTLIT;
+    e->val.f = d;
+    return e;
+}
 
-struct StrValExpr : public Expr {
-    StrValExpr(std::string_view s) : Expr(new Type(TY::STRING)), val(s)
-    {
-        // XXX TEST ==============
-        kind = T_STRLIT;
-        Expr::val.sv = s;
-    }
-    std::string_view val;
-    //std::string converted;
-
-    int ConvertEscSeq();
-};
+inline
+Expr *NewStringLitExpr(std::string_view s)
+{
+    Expr *e = CALLOC(Expr);
+    e->type = NewStringType();
+    e->kind = T_STRLIT;
+    e->val.sv = s;
+    return e;
+}
 
 struct ConvertExpr : public Expr {
     ConvertExpr(Expr *e, const Type *totype) : Expr(totype)

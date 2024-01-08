@@ -149,7 +149,7 @@ CallExpr *Parser::arg_list(CallExpr *call)
 
     const Func *func = call->l->type->func;
     if (func->HasSpecialVar())
-        call->AddArg(new IntValExpr(call->pos.y));
+        call->AddArg(NewIntLitExpr(call->pos.y));
 
     const int argc = call->ArgCount();
     const int paramc = func->RequiredParamCount();
@@ -208,25 +208,25 @@ Expr *Parser::conv_expr(TK kind)
 Expr *Parser::primary_expr()
 {
     if (consume(TK::NIL))
-        return new NilValExpr();
+        return NewNilLitExpr();
 
     if (consume(TK::TRUE))
-        return new BoolValExpr(true);
+        return NewBoolLitExpr(true);
 
     if (consume(TK::FALSE))
-        return new BoolValExpr(false);
+        return NewBoolLitExpr(false);
 
     if (consume(TK::INTLIT))
-        return new IntValExpr(tok_int());
+        return NewIntLitExpr(tok_int());
 
     if (consume(TK::FLTLIT))
-        return new FltValExpr(tok_float());
+        return NewFloatLitExpr(tok_float());
 
     if (consume(TK::STRLIT)) {
-        StrValExpr *e = new StrValExpr(tok_str());
+        Expr *e = NewStringLitExpr(tok_str());
         const Token *tok = curtok();
         if (tok->has_escseq) {
-            const int errpos = e->ConvertEscSeq();
+            const int errpos = ConvertEscSeq(e->val.sv, e->converted);
             if (errpos != -1) {
                 Pos pos = tok->pos;
                 pos.x += errpos + 1;
@@ -616,7 +616,7 @@ Stmt *Parser::for_stmt()
     if (consume(TK::NEWLINE)) {
         // infinite loop
         init = NewNullExpr();
-        cond = new IntValExpr(1);
+        cond = NewIntLitExpr(1);
         post = NewNullExpr();
     }
     else {
@@ -778,26 +778,26 @@ static Expr *default_value(const Type *type)
 {
     switch (type->kind) {
     case TY::BOOL:
-        return new BoolValExpr(false);
+        return NewBoolLitExpr(false);
     case TY::INT:
-        return new IntValExpr(0);
+        return NewIntLitExpr(0);
     case TY::FLOAT:
-        return new FltValExpr(0.0);
+        return NewFloatLitExpr(0.0);
     case TY::STRING:
-        return new StrValExpr("");
+        return NewStringLitExpr("");
 
     case TY::PTR:
-        return new NilValExpr();
+        return NewNilLitExpr();
 
     case TY::ARRAY:
         // TODO fill with zero values
         // put len at base addr
-        return new IntValExpr(type->len);
+        return NewIntLitExpr(type->len);
 
     case TY::CLASS:
     case TY::FUNC:
         // TODO
-        return new NilValExpr();
+        return NewNilLitExpr();
 
     case TY::NIL:
     case TY::ANY:
@@ -1122,7 +1122,7 @@ Prog *Parser::program()
             {
                 // TODO clean up
                 Expr *ident = new IdentExpr(const_cast<Var *>(fdef->var));
-                Expr *init = new IntValExpr(fdef->funclit_id);
+                Expr *init = NewIntLitExpr(fdef->funclit_id);
                 prog->AddGlobalVar(new ExprStmt(new AssignExpr(ident, init, TK::EQ)));
             }
 

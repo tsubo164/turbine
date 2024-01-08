@@ -14,6 +14,24 @@ Type *NewBoolType()
     return &t;
 }
 
+Type *NewIntType()
+{
+    static Type t(TY::INT);
+    return &t;
+}
+
+Type *NewFloatType()
+{
+    static Type t(TY::FLOAT);
+    return &t;
+}
+
+Type *NewStringType()
+{
+    static Type t(TY::STRING);
+    return &t;
+}
+
 Type *NewFuncType(Func *func)
 {
     Type *t = new Type(TY::FUNC);
