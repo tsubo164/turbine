@@ -183,6 +183,22 @@ bool EvalExpr(const Expr *e, long *result)
     }
 }
 
+bool EvalAddr(const Expr *e, int *result)
+{
+    switch (e->kind) {
+    case T_IDENT:
+        *result = e->var->id;
+        return true;
+
+    case T_FIELD:
+        *result = e->fld->id;
+        return true;
+
+    default:
+        return false;
+    }
+}
+
 #define EMIT(code, ty, op) \
     do { \
     if ((ty)->IsInt() || (ty)->IsBool()) \
@@ -281,7 +297,7 @@ static void gen_call(Bytecode *code, const Expr *e)
 
     // TODO remove this by doing expr->Gen()
     int addr = 0;
-    if (e->l->EvalAddr(addr)) {
+    if (EvalAddr(e->l, &addr)) {
         code->CallFunction(addr, func->IsBuiltin());
     }
 }

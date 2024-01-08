@@ -104,6 +104,7 @@ bool IsGlobal(const Expr *e);
 
 int Addr(const Expr *e);
 bool EvalExpr(const Expr *e, long *result);
+bool EvalAddr(const Expr *e, int *result);
 
 class Bytecode;
 void gen_expr(Bytecode *code, const Expr *e);

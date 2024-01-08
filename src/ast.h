@@ -16,8 +16,8 @@ void SetOptimize(bool enable);
 struct Node {
     Node() {}
     virtual ~Node() {}
-    virtual void Print(int depth = 0) const = 0;
-    virtual void Gen(Bytecode &code) const = 0;
+    virtual void Print(int depth = 0) const {};
+    virtual void Gen(Bytecode &code) const {};
 };
 
 typedef union Val {
@@ -45,11 +45,6 @@ struct Expr : public Node {
     // TODO need func for easy access?
     // const Func *func;
     Pos pos;
-
-    virtual bool EvalAddr(int &result) const { return false; }
-
-    void Print(int depth) const override final {}
-    void Gen(Bytecode &code) const override final {}
 };
 
 struct NullExpr : public Expr {
@@ -129,8 +124,6 @@ struct IdentExpr : public Expr {
         Expr::var = v;
     }
     const Var *var;
-
-    bool EvalAddr(int &result) const override final { result = var->id; return true; }
 };
 
 struct FieldExpr : public Expr {
@@ -141,8 +134,6 @@ struct FieldExpr : public Expr {
         Expr::fld = f;
     }
     const Field *fld;
-
-    bool EvalAddr(int &result) const override final { result = fld->id; return true; }
 };
 
 struct SelectExpr : public Expr {
