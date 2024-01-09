@@ -27,7 +27,11 @@ enum KindTag {
     T_BRK,
     T_CNT,
     T_SWT,
-    T_EXP,
+    T_CASE,
+    T_DFLT,
+    T_NOP,
+    T_EXPR,
+    T_BLOCK,
     T_END_OF_KEYWORD,
     /* identifier */
     T_FIELD, //FIXME
@@ -99,7 +103,7 @@ typedef struct TokInfo {
 const TokInfo *find_tokinfo(int kind);
 
 struct Expr;
-//Expr *NewNullExpr(void);
+struct Stmt;
 
 bool IsNull(const Expr *e);
 bool IsGlobal(const Expr *e);
@@ -109,6 +113,9 @@ bool EvalExpr(const Expr *e, long *result);
 bool EvalAddr(const Expr *e, int *result);
 
 void print_expr(const Expr *e, int depth);
+
+// stmt
+void PrintStmt(const Stmt *s, int depth);
 
 class Bytecode;
 void gen_expr(Bytecode *code, const Expr *e);

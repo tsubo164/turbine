@@ -16,7 +16,11 @@ static const TokInfo table[] = {
     { T_BRK,     "break" },
     { T_CNT,     "continue" },
     { T_SWT,     "switch" },
-    { T_EXP,     "expr" },
+    { T_CASE,    "case" },
+    { T_DFLT,    "default" },
+    { T_NOP,     "nop" },
+    { T_EXPR,    "expr" },
+    { T_BLOCK,   "block" },
     { T_END_OF_KEYWORD,   "end_of_keyword" },
     // identifier
     { T_FIELD,   "field",  'v' },
@@ -78,6 +82,13 @@ static const TokInfo table[] = {
     // eof
     { T_EOF,     "eof" },
 };
+
+// make an array of size 1 if table covers all kinds
+// other wise size -1 which leads to compile error
+// to avoid missing string impl of tokens
+#define MISSING_TOKEN_STRING_IMPL \
+    (sizeof(table)/sizeof(table[0])==T_EOF+1?1:-1)
+//static const int assert_impl[MISSING_TOKEN_STRING_IMPL] = {0};
 
 const TokInfo *find_tokinfo(int kind)
 {
@@ -678,6 +689,9 @@ void print_expr(const Expr *e, int depth)
     const TokInfo *info;
     int i;
 
+    if (e->kind == T_NUL)
+        return;
+
     // indentation
     for (i = 0; i < depth; i++) {
         printf("  ");
@@ -709,4 +723,66 @@ void print_expr(const Expr *e, int depth)
         print_expr(e->l, depth + 1);
     if (e->r)
         print_expr(e->r, depth + 1);
+}
+
+void PrintStmt(const Stmt *s, int depth)
+{
+    const TokInfo *info;
+    int i;
+
+    // indentation
+    for (i = 0; i < depth; i++) {
+        printf("  ");
+    }
+
+    // basic info
+    info = find_tokinfo(s->kind);
+    printf("%d. <%s>", depth, info->str);
+
+    // extra value
+    /*
+    switch (info->type) {
+    case 'i':
+        printf(" (%ld)", s->val.i);
+        break;
+    case 'f':
+        printf(" (%g)", s->val.f);
+        break;
+    case 's':
+        printf(" (%s)", std::string(s->val.sv).c_str());
+        break;
+    case 'v':
+        printf(" (%s)", std::string(s->var->name).c_str());
+        break;
+    }
+    */
+    printf("\n");
+
+    // children
+    for (const auto &stmt: s->stmts)
+        stmt->Print(depth + 1);
+
+    for (const auto &stmt: s->orstmts)
+        stmt->Print(depth + 1);
+
+    //for (const auto &cs: s->cases)
+    //    cs->Print(depth + 1);
+
+    for (auto &cond: s->conds)
+        print_expr(cond, depth + 1);
+
+    if (s->init)
+        print_expr(s->init, depth + 1);
+    if (s->cond)
+        print_expr(s->cond, depth + 1);
+    if (s->post)
+        print_expr(s->post, depth + 1);
+    if (s->body)
+        s->body->Print(depth + 1);
+    /*
+    if (s->l)
+        print_expr(s->l, depth + 1);
+    if (s->r)
+        print_expr(s->r, depth + 1);
+    */
 }

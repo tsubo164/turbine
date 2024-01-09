@@ -12,4 +12,23 @@
 # main() int
   - b = true
   - f = nil
+  nop
+  if true
+    nop
+  or
+    nop
+
+  - i int
+  for i = 0; i < 42; i++
+    nop
+    continue
+    break
+
+  switch (1)
+  case 11
+    nop
+  case 21
+    nop
+  default
+    nop
   return 13 + 4

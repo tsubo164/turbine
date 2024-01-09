@@ -30,56 +30,64 @@ static void print_node(const char *name, int depth, bool end_line = true)
 // Print
 void NopStmt::Print(int depth) const
 {
-    print_node("NopStmt", depth);
+    PrintStmt(this, depth);
+    //print_node("NopStmt", depth);
 }
 
 void BlockStmt::Print(int depth) const
 {
-    print_node("BlockStmt", depth);
-    for (const auto &stmt: stmts)
-        stmt->Print(depth + 1);
+    PrintStmt(this, depth);
+    //print_node("BlockStmt", depth);
+    //for (const auto &stmt: stmts)
+    //    stmt->Print(depth + 1);
 }
 
 void OrStmt::Print(int depth) const
 {
-    print_node("OrStmt", depth);
-    print_expr(cond.get(), depth + 1);
-    body->Print(depth + 1);
+    PrintStmt(this, depth);
+    //print_node("OrStmt", depth);
+    //print_expr(cond.get(), depth + 1);
+    //body->Print(depth + 1);
 }
 
 void IfStmt::Print(int depth) const
 {
-    print_node("IfStmt", depth);
-    for (const auto &stmt: orstmts)
-        stmt->Print(depth + 1);
+    PrintStmt(this, depth);
+    //print_node("IfStmt", depth);
+    //for (const auto &stmt: orstmts)
+    //    stmt->Print(depth + 1);
 }
 
 void ForStmt::Print(int depth) const
 {
-    print_node("ForStmt", depth);
-    print_expr(init.get(), depth + 1);
-    print_expr(cond.get(), depth + 1);
-    print_expr(post.get(), depth + 1);
-    body->Print(depth + 1);
+    PrintStmt(this, depth);
+    //print_node("ForStmt", depth);
+    //print_expr(init.get(), depth + 1);
+    //print_expr(cond.get(), depth + 1);
+    //print_expr(post.get(), depth + 1);
+    //body->Print(depth + 1);
 }
 
 void JumpStmt::Print(int depth) const
 {
-    print_node("JumpStmt", depth, false);
-    std::cout << "\"" << kind << "\"" << std::endl;;
+    PrintStmt(this, depth);
+    //print_node("JumpStmt", depth, false);
+    //std::cout << "\"" << kind << "\"" << std::endl;;
 }
 
 void CaseStmt::Print(int depth) const
 {
-    print_node("CaseStmt", depth, false);
-    std::cout << "\"" << kind << "\"" << std::endl;;
-    for (auto &cond: conds)
-        print_expr(cond.get(), depth + 1);
-    body->Print(depth + 1);
+    PrintStmt(this, depth);
+    //print_node("CaseStmt", depth, false);
+    //std::cout << "\"" << kind << "\"" << std::endl;;
+    //for (auto &cond: conds)
+    //    print_expr(cond.get(), depth + 1);
+    //body->Print(depth + 1);
 }
 
 void SwitchStmt::Print(int depth) const
 {
+    //PrintStmt(this, depth);
     print_node("SwitchStmt", depth);
     for (const auto &cs: cases)
         cs->Print(depth + 1);
@@ -131,16 +139,16 @@ void OrStmt::Gen(Bytecode &code) const
 {
     Int next = 0;
 
-    if (!IsNull(cond.get())) {
+    if (!IsNull(cond)) {
         // cond
-        gen_expr(&code, cond.get());
+        gen_expr(&code, cond);
         next = code.JumpIfZero(-1);
     }
 
     // true
     body->Gen(code);
 
-    if (!IsNull(cond.get())) {
+    if (!IsNull(cond)) {
         // close
         const Int addr = code.Jump(-1);
         code.PushOrClose(addr);
@@ -163,7 +171,7 @@ void ForStmt::Gen(Bytecode &code) const
 {
     // init
     code.BeginFor();
-    gen_expr(&code, init.get());
+    gen_expr(&code, init);
 
     // body
     const Int begin = code.NextAddr();
@@ -171,10 +179,10 @@ void ForStmt::Gen(Bytecode &code) const
 
     // post
     code.BackPatchContinues();
-    gen_expr(&code, post.get());
+    gen_expr(&code, post);
 
     // cond
-    gen_expr(&code, cond.get());
+    gen_expr(&code, cond);
     const Int exit = code.JumpIfZero(-1);
     code.Jump(begin);
 
@@ -204,7 +212,7 @@ void CaseStmt::Gen(Bytecode &code) const
             Int tru = 0;
             Int fls = 0;
             code.DuplicateTop();
-            gen_expr(&code, cond.get());
+            gen_expr(&code, cond);
             code.EqualInt();
             fls = code.JumpIfZero(-1);
             tru = code.Jump(-1);
