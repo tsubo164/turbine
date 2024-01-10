@@ -667,7 +667,7 @@ Stmt *Parser::for_stmt()
 
     // body
     Stmt *body = block_stmt();
-    return new ForStmt(init, cond, post, body);
+    return NewForStmt(init, cond, post, body);
 }
 
 Stmt *Parser::jump_stmt()
@@ -682,7 +682,7 @@ Stmt *Parser::jump_stmt()
 
     expect(TK::NEWLINE);
 
-    return new JumpStmt(kind);
+    return NewJumpStmt(kind);
 }
 
 Stmt *Parser::switch_stmt()
@@ -768,15 +768,15 @@ Stmt *Parser::ret_stmt()
             TypeString(expr->type), "'");
     }
 
-    return new ReturnStmt(expr);
+    return NewReturnStmt(expr);
 }
 
 Stmt *Parser::expr_stmt()
 {
-    ExprStmt *stmt = new ExprStmt(expression());
+    Stmt *s = NewExprStmt(expression());
     expect(TK::NEWLINE);
 
-    return stmt;
+    return s;
 }
 
 Stmt *Parser::scope_stmt()
@@ -791,10 +791,10 @@ Stmt *Parser::nop_stmt()
 {
     expect(TK::NOP);
 
-    NopStmt *stmt = new NopStmt();
+    Stmt *s = NewNopStmt();
     expect(TK::NEWLINE);
 
-    return stmt;
+    return s;
 }
 
 static Expr *default_value(const Type *type)
@@ -870,7 +870,7 @@ Stmt *Parser::var_decl()
 
     Var *var = scope_->DefineVar(name, type);
     Expr *ident = NewIdentExpr(var);
-    return new ExprStmt(NewAssignExpr(ident, init, TK::EQ));
+    return NewExprStmt(NewAssignExpr(ident, init, TK::EQ));
 }
 
 Field *Parser::field_decl()
@@ -1119,7 +1119,7 @@ FuncDef *Parser::func_def()
     // TODO control flow check to allow implicit return
     for (Stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
-            s->next = new ReturnStmt(NewNullExpr());
+            s->next = NewReturnStmt(NewNullExpr());
             break;
         }
     }
@@ -1153,7 +1153,7 @@ Prog *Parser::program()
                 // TODO clean up
                 Expr *ident = NewIdentExpr(const_cast<Var *>(fdef->var));
                 Expr *init = NewIntLitExpr(fdef->funclit_id);
-                prog->AddGlobalVar(new ExprStmt(NewAssignExpr(ident, init, TK::EQ)));
+                prog->AddGlobalVar(NewExprStmt(NewAssignExpr(ident, init, TK::EQ)));
             }
 
             prog->AddFuncDef(fdef);

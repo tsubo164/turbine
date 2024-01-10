@@ -300,8 +300,9 @@ struct CaseStmt;
 struct Stmt : public Node {
     int kind = 0;
 
-            Stmt *next = nullptr;
-            Stmt *children = nullptr;
+    // block
+    Stmt *next = nullptr;
+    Stmt *children = nullptr;
 #if 0
     union {
         Block blck;
@@ -320,21 +321,21 @@ struct Stmt : public Node {
     };
 #endif
     Expr* expr = nullptr;
-    Expr* init = nullptr;
     Expr* cond = nullptr;
     Expr* post = nullptr;
     Stmt* body = nullptr;
+
     std::vector<Expr*> conds;
     std::vector<CaseStmt*> cases;
 };
 
-struct NopStmt : public Stmt {
-    NopStmt()
-    {
-        // XXX TEST
-        Stmt::kind = T_NOP;
-    }
-};
+inline
+Stmt *NewNopStmt(void)
+{
+    Stmt *s = CALLOC(Stmt);
+    s->kind = T_NOP;
+    return s;
+}
 
 inline
 Stmt *NewBlockStmt(Stmt *children)
@@ -364,36 +365,29 @@ Stmt *NewIfStmt(Stmt *or_list)
     return s;
 }
 
-struct ForStmt : public Stmt {
-    ForStmt(Expr *i, Expr *c, Expr *p, Stmt *b)
-        //: init(i), cond(c), post(p), body(b)
-    {
-        // XXX TEST
-        Stmt::kind = T_FOR;
-        init = i;
-        cond = c;
-        post = p;
-        body = b;
-    }
-    //std::unique_ptr<Expr> init;
-    //std::unique_ptr<Expr> cond;
-    //std::unique_ptr<Expr> post;
-    //std::unique_ptr<BlockStmt> body;
-};
+inline
+Stmt *NewForStmt(Expr *init, Expr *cond, Expr *post, Stmt *body)
+{
+    Stmt *s = CALLOC(Stmt);
+    s->kind = T_FOR;
+    s->expr = init;
+    s->cond = cond;
+    s->post = post;
+    s->body = body;
+    return s;
+}
 
-struct JumpStmt : public Stmt {
-    JumpStmt(TK k)// : kind(k)
-    {
-        // XXX TEST
-        switch (k) {
-        case TK::BREAK:    Stmt::kind = T_BRK; break;
-        case TK::CONTINUE: Stmt::kind = T_CNT; break;
-        default:           Stmt::kind = T_NUL; break;
-        }
-
+inline
+Stmt *NewJumpStmt(TK k)
+{
+    Stmt *s = CALLOC(Stmt);
+    switch (k) {
+    case TK::BREAK:    s->kind = T_BRK; break;
+    case TK::CONTINUE: s->kind = T_CNT; break;
+    default:           s->kind = T_NUL; break;
     }
-    //TK kind;
-};
+    return s;
+}
 
 struct CaseStmt : public Stmt {
     CaseStmt(TK k)// : kind(k)
@@ -429,25 +423,23 @@ struct SwitchStmt : public Stmt {
     //std::vector<std::unique_ptr<CaseStmt>> cases;
 };
 
-struct ReturnStmt : public Stmt {
-    ReturnStmt(Expr *e) //: expr(e) {}
-    {
-        // XXX TEST
-        Stmt::kind = T_RET;
-        expr = e;
-    }
-    //std::unique_ptr<Expr> expr;
-};
+inline
+Stmt *NewReturnStmt(Expr *e)
+{
+    Stmt *s = CALLOC(Stmt);
+    s->kind = T_RET;
+    s->expr = e;
+    return s;
+}
 
-struct ExprStmt : public Stmt {
-    ExprStmt(Expr *e) //: expr(e) {}
-    {
-        // XXX TEST
-        Stmt::kind = T_EXPR;
-        expr = e;
-    }
-    //std::unique_ptr<Expr> expr;
-};
+inline
+Stmt *NewExprStmt(Expr *e)
+{
+    Stmt *s = CALLOC(Stmt);
+    s->kind = T_EXPR;
+    s->expr = e;
+    return s;
+}
 
 struct FuncDef : public Node {
     FuncDef(Func *f, Stmt *b) : func(f), block(b) {}

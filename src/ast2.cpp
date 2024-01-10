@@ -736,7 +736,7 @@ void gen_stmt(Bytecode *code, const Stmt *s)
         {
             // init
             code->BeginFor();
-            gen_expr(code, s->init);
+            gen_expr(code, s->expr);
 
             // FIXME cond first??
             // body
@@ -905,7 +905,6 @@ void PrintStmt(const Stmt *s, int depth)
         print_expr(cond, depth + 1);
 
     print_expr(s->expr, depth + 1);
-    print_expr(s->init, depth + 1);
     print_expr(s->cond, depth + 1);
     print_expr(s->post, depth + 1);
     PrintStmt(s->body, depth + 1);
