@@ -285,8 +285,6 @@ Expr *NewIncDecExpr(Expr *l, TK k)
     return e;
 }
 
-//struct CaseStmt;
-
         /*
         struct Block {
             Stmt *stmt;
@@ -300,9 +298,6 @@ Expr *NewIncDecExpr(Expr *l, TK k)
 struct Stmt : public Node {
     int kind = 0;
 
-    // block
-    Stmt *next = nullptr;
-    Stmt *children = nullptr;
 #if 0
     union {
         Block blck;
@@ -324,9 +319,9 @@ struct Stmt : public Node {
     Expr* cond = nullptr;
     Expr* post = nullptr;
     Stmt* body = nullptr;
-
-    std::vector<Expr*> conds;
-    std::vector<Stmt*> cases;
+    // children
+    Stmt *children = nullptr;
+    Stmt *next = nullptr;
 };
 
 inline
@@ -403,20 +398,15 @@ Stmt *NewCaseStmt(Stmt *conds, Stmt *body, TK k)
     return s;
 }
 
-struct SwitchStmt : public Stmt {
-    SwitchStmt(Expr *c)// : cond(c)
-        /*
-    {}
-        */
-    {
-        // XXX TEST
-        Stmt::kind = T_SWT;
-        cond = c;
-    }
-    void AddCase(Stmt *cs) { cases.emplace_back(cs); }
-    //std::unique_ptr<Expr> cond;
-    //std::vector<std::unique_ptr<CaseStmt>> cases;
-};
+inline
+Stmt *NewSwitchStmt(Expr *cond, Stmt *cases)
+{
+    Stmt *s = CALLOC(Stmt);
+    s->kind = T_SWT;
+    s->cond = cond;
+    s->children = cases;
+    return s;
+}
 
 inline
 Stmt *NewReturnStmt(Expr *e)

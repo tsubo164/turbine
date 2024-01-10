@@ -818,8 +818,8 @@ void gen_stmt(Bytecode *code, const Stmt *s)
         gen_expr(code, s->cond);
 
         // cases
-        for (const auto &cs: s->cases)
-            gen_stmt(code, cs);
+        for (Stmt *cas = s->children; cas; cas = cas->next)
+            gen_stmt(code, cas);
 
         // quit
         code->BackPatchCaseCloses();
@@ -899,12 +899,6 @@ void PrintStmt(const Stmt *s, int depth)
     // children
     for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
         PrintStmt(stmt, depth + 1);
-
-    for (const auto &cs: s->cases)
-        PrintStmt(cs, depth + 1);
-
-    for (auto &cond: s->conds)
-        print_expr(cond, depth + 1);
 
     print_expr(s->expr, depth + 1);
     print_expr(s->cond, depth + 1);

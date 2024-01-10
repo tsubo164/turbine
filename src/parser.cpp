@@ -693,7 +693,10 @@ Stmt *Parser::switch_stmt()
     // TODO int check
     expect(TK::NEWLINE);
 
-    SwitchStmt *swtch = new SwitchStmt(expr);
+    StmtList list;
+    init_list(&list);
+
+    //SwitchStmt *swtch = new SwitchStmt(expr);
 
     int default_count = 0;
 
@@ -705,17 +708,20 @@ Stmt *Parser::switch_stmt()
             if (default_count > 0) {
                 error(tok->pos, "No 'case' should come after 'default'");
             }
-            swtch->AddCase(case_stmt(tok->kind));
+            //swtch->AddCase(case_stmt(tok->kind));
+            append(&list, case_stmt(tok->kind));
             continue;
 
         case TK::DEFAULT:
-            swtch->AddCase(case_stmt(tok->kind));
+            //swtch->AddCase(case_stmt(tok->kind));
+            append(&list, case_stmt(tok->kind));
             default_count++;
             continue;
 
         default:
             ungettok();
-            return swtch;
+            //return swtch;
+            return NewSwitchStmt(expr, list.head.next);
         }
     }
 }
