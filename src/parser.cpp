@@ -1159,7 +1159,7 @@ FuncDef *Parser::func_def()
     func_ = nullptr;
 
     // XXX temp
-    FuncDef *fdef = new FuncDef(var, body);
+    FuncDef *fdef = NewFuncDef(var, body);
     fdef->funclit_id = funclit_id_++;
 
     return fdef;

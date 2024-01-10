@@ -841,6 +841,16 @@ void gen_stmt(Bytecode *code, const Stmt *s)
     }
 }
 
+void gen_funcdef(Bytecode *code, const FuncDef *f)
+{
+    code->RegisterFunction(f->funclit_id, f->func->ParamCount());
+
+    // local vars
+    code->Allocate(f->func->scope->TotalVarSize());
+
+    gen_stmt(code, f->body);
+}
+
 void print_expr(const Expr *e, int depth)
 {
     const TokInfo *info;
@@ -907,4 +917,22 @@ void PrintStmt(const Stmt *s, int depth)
     print_expr(s->cond, depth + 1);
     print_expr(s->post, depth + 1);
     PrintStmt(s->body, depth + 1);
+}
+
+void print_funcdef(const FuncDef *f, int depth)
+{
+    if (!f)
+        return;
+
+    // indentation
+    for (int i = 0; i < depth; i++)
+        printf("  ");
+
+    // basic info
+    printf("%d. <func_def> \"%s\"", depth, std::string(f->var->name).c_str());
+    printf(" %s", TypeString(f->var->type->func->return_type).c_str());
+    printf("\n");
+
+    // children
+    PrintStmt(f->body, depth + 1);
 }

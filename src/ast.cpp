@@ -308,6 +308,19 @@ Stmt *NewExprStmt(Expr *e)
     return s;
 }
 
+
+//--------------------------------
+// FuncDef
+FuncDef *NewFuncDef(Var *v, Stmt *body)
+{
+    FuncDef *f = CALLOC(FuncDef);
+    f->var = v;
+    f->body = body;
+    f->func = v->type->func;
+    f->funclit_id = 0;
+    return f;
+}
+
 static bool optimize = false;
 
 void SetOptimize(bool enable)
@@ -332,15 +345,6 @@ static void print_node(const char *name, int depth, bool end_line = true)
         std::cout << ' ';
 }
 
-// Print
-void FuncDef::Print(int depth) const
-{
-    print_node("FuncDef", depth, false);
-    std::cout << "\"" << var->name << "\" " <<
-        func->return_type << std::endl;
-    PrintStmt(block, depth + 1);
-}
-
 void Prog::Print(int depth) const
 {
     print_node("Prog", depth);
@@ -349,18 +353,7 @@ void Prog::Print(int depth) const
         PrintStmt(gvar.get(), depth + 1);
 
     for (const auto &func: funcs)
-        func->Print(depth + 1);
-}
-
-// Gen
-void FuncDef::Gen(Bytecode &code) const
-{
-    code.RegisterFunction(funclit_id, func->ParamCount());
-
-    // local vars
-    code.Allocate(func->scope->TotalVarSize());
-
-    gen_stmt(&code, block);
+        print_funcdef(func.get(), depth + 1);
 }
 
 void Prog::Gen(Bytecode &code) const
@@ -381,5 +374,5 @@ void Prog::Gen(Bytecode &code) const
 
     // global funcs
     for (const auto &func: funcs)
-        func->Gen(code);
+        gen_funcdef(&code, func.get());
 }

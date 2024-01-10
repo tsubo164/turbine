@@ -93,22 +93,16 @@ Stmt *NewSwitchStmt(Expr *cond, Stmt *cases);
 Stmt *NewReturnStmt(Expr *e);
 Stmt *NewExprStmt(Expr *e);
 
-struct FuncDef : public Node {
-    FuncDef(Func *f, Stmt *b) : func(f), block(b) {}
-    FuncDef(Var *v, Stmt *b) : func(v->type->func), var(v), block(b) {}
-    ~FuncDef() {}
+typedef struct FuncDef {
     // TODO remove this
-    const Func *func = nullptr;
-    const Var *var = nullptr;
-
-    //std::unique_ptr<BlockStmt> block;
-    Stmt* block = nullptr;
+    const Func *func;
+    const Var *var;
+    Stmt* body;
     // TODO make FuncLitExpr and remove this
-    int funclit_id = 0;
+    int funclit_id;
+} FuncDef;
 
-    void Print(int depth) const override final;
-    void Gen(Bytecode &code) const override final;
-};
+FuncDef *NewFuncDef(Var *v, Stmt *body);
 
 struct Prog: public Node {
     Prog(Scope *sc) : scope(sc) {}
