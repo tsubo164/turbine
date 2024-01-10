@@ -291,9 +291,12 @@ struct CaseStmt;
 
 struct Stmt : public Node {
     int kind = 0;
-    std::vector<std::unique_ptr<Stmt>> stmts;
+    std::vector<Stmt*> stmts;
+    //std::vector<std::unique_ptr<Stmt>> stmts;
     //std::unique_ptr<Expr> cond;
     //std::unique_ptr<BlockStmt> body;
+    //std::unique_ptr<Expr> expr;
+    Expr* expr = nullptr;
     Expr* init = nullptr;
     Expr* cond = nullptr;
     Expr* post = nullptr;
@@ -302,6 +305,10 @@ struct Stmt : public Node {
     std::vector<Expr*> conds;
     //std::vector<CaseStmt*> cases;
     //std::vector<std::unique_ptr<CaseStmt>> cases;
+    std::vector<CaseStmt*> cases;
+
+    void Print(int depth) const override {}
+    //void Gen(Bytecode &code) const override {}
 };
 
 struct NopStmt : public Stmt {
@@ -311,7 +318,6 @@ struct NopStmt : public Stmt {
         Stmt::kind = T_NOP;
     }
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -325,7 +331,6 @@ struct BlockStmt : public Stmt {
 
     void AddStmt(Stmt *stmt) { stmts.emplace_back(stmt); }
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -341,7 +346,6 @@ struct OrStmt : public Stmt {
     //std::unique_ptr<Expr> cond;
     //std::unique_ptr<BlockStmt> body;
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -356,7 +360,6 @@ struct IfStmt : public Stmt {
 
     void AddOr(OrStmt *ors) { orstmts.emplace_back(ors); }
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -376,7 +379,6 @@ struct ForStmt : public Stmt {
     //std::unique_ptr<Expr> post;
     //std::unique_ptr<BlockStmt> body;
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -393,7 +395,6 @@ struct JumpStmt : public Stmt {
     }
     TK kind;
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -415,39 +416,47 @@ struct CaseStmt : public Stmt {
     //void AddBody(BlockStmt *b) { body.reset(b); }
     void AddBody(BlockStmt *b) { body = b; }
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
 struct SwitchStmt : public Stmt {
-    SwitchStmt(Expr *c) : cond(c) {}
+    SwitchStmt(Expr *c)// : cond(c)
         /*
+    {}
+        */
     {
         // XXX TEST
         Stmt::kind = T_SWT;
+        cond = c;
     }
-        */
     void AddCase(CaseStmt *cs) { cases.emplace_back(cs); }
-    std::unique_ptr<Expr> cond;
-    std::vector<std::unique_ptr<CaseStmt>> cases;
+    //std::unique_ptr<Expr> cond;
+    //std::vector<std::unique_ptr<CaseStmt>> cases;
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
 struct ReturnStmt : public Stmt {
-    ReturnStmt(Expr *e) : expr(e) {}
-    std::unique_ptr<Expr> expr;
+    ReturnStmt(Expr *e) //: expr(e) {}
+    {
+        // XXX TEST
+        Stmt::kind = T_RET;
+        expr = e;
+    }
+    //std::unique_ptr<Expr> expr;
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
 struct ExprStmt : public Stmt {
-    ExprStmt(Expr *e) : expr(e) {}
-    std::unique_ptr<Expr> expr;
+    ExprStmt(Expr *e) //: expr(e) {}
+    {
+        // XXX TEST
+        Stmt::kind = T_EXPR;
+        expr = e;
+    }
+    //std::unique_ptr<Expr> expr;
 
-    void Print(int depth) const override final;
     void Gen(Bytecode &code) const override final;
 };
 
@@ -459,7 +468,8 @@ struct FuncDef : public Node {
     const Func *func = nullptr;
     const Var *var = nullptr;
 
-    std::unique_ptr<BlockStmt> block;
+    //std::unique_ptr<BlockStmt> block;
+    BlockStmt* block = nullptr;
     // TODO make FuncLitExpr and remove this
     int funclit_id = 0;
 

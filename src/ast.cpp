@@ -28,89 +28,12 @@ static void print_node(const char *name, int depth, bool end_line = true)
 }
 
 // Print
-void NopStmt::Print(int depth) const
-{
-    PrintStmt(this, depth);
-    //print_node("NopStmt", depth);
-}
-
-void BlockStmt::Print(int depth) const
-{
-    PrintStmt(this, depth);
-    //print_node("BlockStmt", depth);
-    //for (const auto &stmt: stmts)
-    //    stmt->Print(depth + 1);
-}
-
-void OrStmt::Print(int depth) const
-{
-    PrintStmt(this, depth);
-    //print_node("OrStmt", depth);
-    //print_expr(cond.get(), depth + 1);
-    //body->Print(depth + 1);
-}
-
-void IfStmt::Print(int depth) const
-{
-    PrintStmt(this, depth);
-    //print_node("IfStmt", depth);
-    //for (const auto &stmt: orstmts)
-    //    stmt->Print(depth + 1);
-}
-
-void ForStmt::Print(int depth) const
-{
-    PrintStmt(this, depth);
-    //print_node("ForStmt", depth);
-    //print_expr(init.get(), depth + 1);
-    //print_expr(cond.get(), depth + 1);
-    //print_expr(post.get(), depth + 1);
-    //body->Print(depth + 1);
-}
-
-void JumpStmt::Print(int depth) const
-{
-    PrintStmt(this, depth);
-    //print_node("JumpStmt", depth, false);
-    //std::cout << "\"" << kind << "\"" << std::endl;;
-}
-
-void CaseStmt::Print(int depth) const
-{
-    PrintStmt(this, depth);
-    //print_node("CaseStmt", depth, false);
-    //std::cout << "\"" << kind << "\"" << std::endl;;
-    //for (auto &cond: conds)
-    //    print_expr(cond.get(), depth + 1);
-    //body->Print(depth + 1);
-}
-
-void SwitchStmt::Print(int depth) const
-{
-    //PrintStmt(this, depth);
-    print_node("SwitchStmt", depth);
-    for (const auto &cs: cases)
-        cs->Print(depth + 1);
-}
-
-void ReturnStmt::Print(int depth) const
-{
-    print_node("ReturnStmt", depth);
-    print_expr(expr.get(), depth + 1);
-}
-
-void ExprStmt::Print(int depth) const
-{
-    print_node("ExprStmt", depth);
-    print_expr(expr.get(), depth + 1);
-}
-
 void FuncDef::Print(int depth) const
 {
     print_node("FuncDef", depth, false);
     std::cout << "\"" << var->name << "\" " <<
         func->return_type << std::endl;
-    block->Print(depth + 1);
+    PrintStmt(block, depth + 1);
 }
 
 void Prog::Print(int depth) const
@@ -241,7 +164,7 @@ void SwitchStmt::Gen(Bytecode &code) const
 {
     // init
     code.BeginSwitch();
-    gen_expr(&code, cond.get());
+    gen_expr(&code, cond);
 
     // cases
     for (const auto &cs: cases)
@@ -255,13 +178,13 @@ void SwitchStmt::Gen(Bytecode &code) const
 
 void ReturnStmt::Gen(Bytecode &code) const
 {
-    gen_expr(&code, expr.get());
+    gen_expr(&code, expr);
     code.Return();
 }
 
 void ExprStmt::Gen(Bytecode &code) const
 {
-    gen_expr(&code, expr.get());
+    gen_expr(&code, expr);
 }
 
 void FuncDef::Gen(Bytecode &code) const

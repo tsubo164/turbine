@@ -18,6 +18,7 @@ static const TokInfo table[] = {
     { T_SWT,     "switch" },
     { T_CASE,    "case" },
     { T_DFLT,    "default" },
+    { T_RET,     "return" },
     { T_NOP,     "nop" },
     { T_EXPR,    "expr" },
     { T_BLOCK,   "block" },
@@ -689,7 +690,7 @@ void print_expr(const Expr *e, int depth)
     const TokInfo *info;
     int i;
 
-    if (e->kind == T_NUL)
+    if (!e || e->kind == T_NUL)
         return;
 
     // indentation
@@ -730,59 +731,34 @@ void PrintStmt(const Stmt *s, int depth)
     const TokInfo *info;
     int i;
 
+    if (!s)
+        return;
+
     // indentation
-    for (i = 0; i < depth; i++) {
+    for (i = 0; i < depth; i++)
         printf("  ");
-    }
 
     // basic info
     info = find_tokinfo(s->kind);
     printf("%d. <%s>", depth, info->str);
-
-    // extra value
-    /*
-    switch (info->type) {
-    case 'i':
-        printf(" (%ld)", s->val.i);
-        break;
-    case 'f':
-        printf(" (%g)", s->val.f);
-        break;
-    case 's':
-        printf(" (%s)", std::string(s->val.sv).c_str());
-        break;
-    case 'v':
-        printf(" (%s)", std::string(s->var->name).c_str());
-        break;
-    }
-    */
     printf("\n");
 
     // children
     for (const auto &stmt: s->stmts)
-        stmt->Print(depth + 1);
+        PrintStmt(stmt, depth + 1);
 
     for (const auto &stmt: s->orstmts)
-        stmt->Print(depth + 1);
+        PrintStmt(stmt, depth + 1);
 
-    //for (const auto &cs: s->cases)
-    //    cs->Print(depth + 1);
+    for (const auto &cs: s->cases)
+        PrintStmt(cs, depth + 1);
 
     for (auto &cond: s->conds)
         print_expr(cond, depth + 1);
 
-    if (s->init)
-        print_expr(s->init, depth + 1);
-    if (s->cond)
-        print_expr(s->cond, depth + 1);
-    if (s->post)
-        print_expr(s->post, depth + 1);
-    if (s->body)
-        s->body->Print(depth + 1);
-    /*
-    if (s->l)
-        print_expr(s->l, depth + 1);
-    if (s->r)
-        print_expr(s->r, depth + 1);
-    */
+    print_expr(s->expr, depth + 1);
+    print_expr(s->init, depth + 1);
+    print_expr(s->cond, depth + 1);
+    print_expr(s->post, depth + 1);
+    PrintStmt(s->body, depth + 1);
 }

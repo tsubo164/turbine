@@ -29,6 +29,7 @@ enum KindTag {
     T_SWT,
     T_CASE,
     T_DFLT,
+    T_RET,
     T_NOP,
     T_EXPR,
     T_BLOCK,
