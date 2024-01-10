@@ -285,146 +285,31 @@ Expr *NewIncDecExpr(Expr *l, TK k)
     return e;
 }
 
-        /*
-        struct Block {
-            Stmt *stmt;
-            Stmt *next;
-        };
-        struct Case {
-            Expr *cond;
-            Stmt *stmt;
-        };
-        */
-struct Stmt : public Node {
-    int kind = 0;
 
-#if 0
-    union {
-        Block blck;
-        Case cas;
-        /*
-        struct Block {
-            Stmt *stmt;
-            Stmt *next;
-        } blck;
+//--------------------------------
+// Stmt
+typedef struct Stmt {
+    int kind;
 
-        struct Case {
-            Expr *cond;
-            Stmt *stmt;
-        } cas;
-        */
-    };
-#endif
-    Expr* expr = nullptr;
-    Expr* cond = nullptr;
-    Expr* post = nullptr;
-    Stmt* body = nullptr;
+    Expr* expr;
+    Expr* cond;
+    Expr* post;
+    Stmt* body;
     // children
-    Stmt *children = nullptr;
-    Stmt *next = nullptr;
-};
+    Stmt *children;
+    Stmt *next;
+} Stmt;
 
-inline
-Stmt *NewNopStmt(void)
-{
-    Stmt *s = CALLOC(Stmt);
-    s->kind = T_NOP;
-    return s;
-}
-
-inline
-Stmt *NewBlockStmt(Stmt *children)
-{
-    Stmt *s = CALLOC(Stmt);
-    s->kind = T_BLOCK;
-    s->children = children;
-    return s;
-}
-
-inline
-Stmt *NewOrStmt(Expr *cond, Stmt *body)
-{
-    Stmt *s = CALLOC(Stmt);
-    s->kind = T_ELS;
-    s->cond = cond;
-    s->body = body;
-    return s;
-}
-
-inline
-Stmt *NewIfStmt(Stmt *or_list)
-{
-    Stmt *s = CALLOC(Stmt);
-    s->kind = T_IF;
-    s->children = or_list;
-    return s;
-}
-
-inline
-Stmt *NewForStmt(Expr *init, Expr *cond, Expr *post, Stmt *body)
-{
-    Stmt *s = CALLOC(Stmt);
-    s->kind = T_FOR;
-    s->expr = init;
-    s->cond = cond;
-    s->post = post;
-    s->body = body;
-    return s;
-}
-
-inline
-Stmt *NewJumpStmt(TK k)
-{
-    Stmt *s = CALLOC(Stmt);
-    switch (k) {
-    case TK::BREAK:    s->kind = T_BRK; break;
-    case TK::CONTINUE: s->kind = T_CNT; break;
-    default:           s->kind = T_NUL; break;
-    }
-    return s;
-}
-
-inline
-Stmt *NewCaseStmt(Stmt *conds, Stmt *body, TK k)
-{
-    Stmt *s = CALLOC(Stmt);
-    switch (k) {
-    case TK::CASE:    s->kind = T_CASE; break;
-    case TK::DEFAULT: s->kind = T_DFLT; break;
-    default:          s->kind = T_NUL; break;
-    }
-    s->children = conds;
-    s->body = body;
-    return s;
-}
-
-inline
-Stmt *NewSwitchStmt(Expr *cond, Stmt *cases)
-{
-    Stmt *s = CALLOC(Stmt);
-    s->kind = T_SWT;
-    s->cond = cond;
-    s->children = cases;
-    return s;
-}
-
-inline
-Stmt *NewReturnStmt(Expr *e)
-{
-    Stmt *s = CALLOC(Stmt);
-    s->kind = T_RET;
-    s->expr = e;
-    return s;
-}
-
-inline
-Stmt *NewExprStmt(Expr *e)
-{
-    Stmt *s = CALLOC(Stmt);
-    s->kind = T_EXPR;
-    s->expr = e;
-    return s;
-}
+Stmt *NewNopStmt(void);
+Stmt *NewBlockStmt(Stmt *children);
+Stmt *NewOrStmt(Expr *cond, Stmt *body);
+Stmt *NewIfStmt(Stmt *or_list);
+Stmt *NewForStmt(Expr *init, Expr *cond, Expr *post, Stmt *body);
+Stmt *NewJumpStmt(TK k);
+Stmt *NewCaseStmt(Stmt *conds, Stmt *body, TK k);
+Stmt *NewSwitchStmt(Expr *cond, Stmt *cases);
+Stmt *NewReturnStmt(Expr *e);
+Stmt *NewExprStmt(Expr *e);
 
 struct FuncDef : public Node {
     FuncDef(Func *f, Stmt *b) : func(f), block(b) {}
