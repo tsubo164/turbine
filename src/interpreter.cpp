@@ -38,7 +38,7 @@ Int Interpreter::Run(const std::string &src)
 
     if (print_tree_) {
         print_header("tree");
-        prog_->Print();
+        print_prog(prog_, 0);
     }
 
     if (print_symbols_) {
@@ -51,7 +51,7 @@ Int Interpreter::Run(const std::string &src)
 
     // Generate bytecode
     SetOptimize(enable_optimize_);
-    GenerateCode(prog_, code_);
+    GenerateCode(&code_, prog_);
 
     if (print_bytecode_) {
         print_header("bytecode");

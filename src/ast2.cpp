@@ -851,6 +851,27 @@ void gen_funcdef(Bytecode *code, const FuncDef *f)
     gen_stmt(code, f->body);
 }
 
+void gen_prog(Bytecode *code, const Prog *p)
+{
+    if (!p->main_func) {
+        std::cerr << "'main' function not found" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    // global vars
+    code->Allocate(p->scope->VarSize());
+    for (const auto &gvar: p->gvars)
+        gen_stmt(code, gvar.get());
+
+    // call main
+    code->CallFunction(p->main_func->id, p->main_func->type->func->IsBuiltin());
+    code->Exit();
+
+    // global funcs
+    for (const auto &func: p->funcs)
+        gen_funcdef(code, func.get());
+}
+
 void print_expr(const Expr *e, int depth)
 {
     const TokInfo *info;
@@ -935,4 +956,25 @@ void print_funcdef(const FuncDef *f, int depth)
 
     // children
     PrintStmt(f->body, depth + 1);
+}
+
+void print_prog(const Prog *p, int depth)
+{
+    if (!p)
+        return;
+
+    // indentation
+    for (int i = 0; i < depth; i++)
+        printf("  ");
+
+    // basic info
+    printf("%d. <prog>", depth);
+    printf("\n");
+
+    // children
+    for (const auto &gvar: p->gvars)
+        PrintStmt(gvar.get(), depth + 1);
+
+    for (const auto &func: p->funcs)
+        print_funcdef(func.get(), depth + 1);
 }

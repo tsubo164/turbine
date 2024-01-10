@@ -14,13 +14,6 @@
 
 void SetOptimize(bool enable);
 
-struct Node {
-    Node() {}
-    virtual ~Node() {}
-    virtual void Print(int depth = 0) const {};
-    virtual void Gen(Bytecode &code) const {};
-};
-
 typedef union Val {
     long i;
     double f;
@@ -104,7 +97,7 @@ typedef struct FuncDef {
 
 FuncDef *NewFuncDef(Var *v, Stmt *body);
 
-struct Prog: public Node {
+struct Prog {
     Prog(Scope *sc) : scope(sc) {}
     void AddFuncDef(FuncDef *func) { funcs.emplace_back(func); }
     void AddGlobalVar(Stmt *gvar) { gvars.emplace_back(gvar); }
@@ -114,9 +107,6 @@ struct Prog: public Node {
     std::vector<std::unique_ptr<Stmt>> gvars;
     // TODO remove this
     const Var *main_func = nullptr;
-
-    void Print(int depth = 0) const override final;
-    void Gen(Bytecode &code) const override final;
 };
 
 #endif // _H

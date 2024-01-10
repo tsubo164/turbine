@@ -1153,7 +1153,6 @@ FuncDef *Parser::func_def()
             break;
         }
     }
-    //body->AddStmt(new ReturnStmt(NewNullExpr()));
     leave_scope();
 
     func_ = nullptr;

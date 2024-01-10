@@ -108,6 +108,7 @@ const TokInfo *find_tokinfo(int kind);
 struct Expr;
 struct Stmt;
 struct FuncDef;
+struct Prog;
 
 bool IsNull(const Expr *e);
 bool IsGlobal(const Expr *e);
@@ -120,6 +121,7 @@ bool EvalAddr(const Expr *e, int *result);
 void print_expr(const Expr *e, int depth);
 void PrintStmt(const Stmt *s, int depth);
 void print_funcdef(const FuncDef *f, int depth);
+void print_prog(const Prog *p, int depth);
 
 // codegen
 class Bytecode;
@@ -127,6 +129,7 @@ void gen_expr(Bytecode *code, const Expr *e);
 void gen_addr(Bytecode *code, const Expr *e);
 void gen_stmt(Bytecode *code, const Stmt *s);
 void gen_funcdef(Bytecode *code, const FuncDef *f);
+void gen_prog(Bytecode *code, const Prog *p);
 
 
 // str

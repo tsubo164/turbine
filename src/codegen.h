@@ -4,6 +4,6 @@
 #include "bytecode.h"
 #include "ast.h"
 
-void GenerateCode(const Node *tree, Bytecode &code);
+void GenerateCode(Bytecode *code, const Prog *prog);
 
 #endif // _H

@@ -1,7 +1,7 @@
 #include "codegen.h"
 
-void GenerateCode(const Node *tree, Bytecode &code)
+void GenerateCode(Bytecode *code, const Prog *prog)
 {
-    tree->Gen(code);
-    code.End();
+    gen_prog(code, prog);
+    code->End();
 }
