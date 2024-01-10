@@ -118,9 +118,12 @@ void print_expr(const Expr *e, int depth);
 // stmt
 void PrintStmt(const Stmt *s, int depth);
 
+// codegen
 class Bytecode;
 void gen_expr(Bytecode *code, const Expr *e);
 void gen_addr(Bytecode *code, const Expr *e);
+
+void gen_stmt(Bytecode *code, const Stmt *s);
 
 
 #endif // _H

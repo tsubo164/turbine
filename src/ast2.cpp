@@ -685,6 +685,154 @@ void gen_addr(Bytecode *code, const Expr *e)
     }
 }
 
+void gen_stmt(Bytecode *code, const Stmt *s)
+{
+    switch (s->kind) {
+
+    case T_NOP:
+        return;
+
+    case T_BLOCK:
+        for (const auto &stmt: s->stmts)
+            gen_stmt(code, stmt);
+        return;
+
+    case T_ELS:
+        {
+            Int next = 0;
+
+            if (!IsNull(s->cond)) {
+                // cond
+                gen_expr(code, s->cond);
+                next = code->JumpIfZero(-1);
+            }
+
+            // true
+            gen_stmt(code, s->body);
+
+            if (!IsNull(s->cond)) {
+                // close
+                const Int addr = code->Jump(-1);
+                code->PushOrClose(addr);
+                code->BackPatch(next);
+            }
+        }
+        return;
+
+    case T_IF:
+        code->BeginIf();
+
+        for (const auto &stmt: s->orstmts)
+            gen_stmt(code, stmt);
+
+        // exit
+        code->BackPatchOrCloses();
+        return;
+
+    case T_FOR:
+        {
+            // init
+            code->BeginFor();
+            gen_expr(code, s->init);
+
+            // FIXME cond first??
+            // body
+            const Int begin = code->NextAddr();
+            gen_stmt(code, s->body);
+
+            // post
+            code->BackPatchContinues();
+            gen_expr(code, s->post);
+
+            // cond
+            gen_expr(code, s->cond);
+            const Int exit = code->JumpIfZero(-1);
+            code->Jump(begin);
+
+            // exit
+            code->BackPatch(exit);
+            code->BackPatchBreaks();
+        }
+        return;
+
+    case T_BRK:
+        {
+            const Int addr = code->Jump(-1);
+            code->PushBreak(addr);
+        }
+        return;
+
+    case T_CNT:
+        {
+            const Int addr = code->Jump(-1);
+            code->PushContinue(addr);
+        }
+        return;
+
+    case T_CASE:
+        {
+            Int exit = 0;
+
+            std::vector<Int> trues;
+            // eval conds
+            for (auto &cond: s->conds) {
+                Int tru = 0;
+                Int fls = 0;
+                code->DuplicateTop();
+                gen_expr(code, cond);
+                code->EqualInt();
+                fls = code->JumpIfZero(-1);
+                tru = code->Jump(-1);
+                code->BackPatch(fls);
+                trues.push_back(tru);
+            }
+            // all conds false -> close case
+            exit = code->Jump(-1);
+            // one of cond true -> go to body
+            for (auto t: trues)
+                code->BackPatch(t);
+
+            // body
+            gen_stmt(code, s->body);
+
+            // close
+            const Int addr = code->Jump(-1);
+            code->PushCaseClose(addr);
+            code->BackPatch(exit);
+        }
+        return;
+
+    case T_DFLT:
+        // body
+        gen_stmt(code, s->body);
+        return;
+
+    case T_SWT:
+        // init
+        code->BeginSwitch();
+        gen_expr(code, s->cond);
+
+        // cases
+        for (const auto &cs: s->cases)
+            gen_stmt(code, cs);
+
+        // quit
+        code->BackPatchCaseCloses();
+        // remove cond val
+        code->Pop();
+        return;
+
+    case T_RET:
+        gen_expr(code, s->expr);
+        code->Return();
+        return;
+
+    case T_EXPR:
+        gen_expr(code, s->expr);
+        return;
+    }
+}
+
 void print_expr(const Expr *e, int depth)
 {
     const TokInfo *info;
