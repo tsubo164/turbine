@@ -76,7 +76,7 @@ private:
     Stmt *expr_stmt();
     Stmt *scope_stmt();
     Stmt *nop_stmt();
-    BlockStmt *block_stmt(Func *func = nullptr);
+    Stmt *block_stmt(Func *func = nullptr);
 
     //
     Type *type_spec();

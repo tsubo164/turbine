@@ -285,31 +285,60 @@ Expr *NewIncDecExpr(Expr *l, TK k)
     return e;
 }
 
-struct BlockStmt;
+//struct BlockStmt;
 struct OrStmt;
 struct CaseStmt;
 
+        /*
+        struct Block {
+            Stmt *stmt;
+            Stmt *next;
+        };
+        struct Case {
+            Expr *cond;
+            Stmt *stmt;
+        };
+        */
 struct Stmt : public Node {
     int kind = 0;
-    std::vector<Stmt*> stmts;
-    //std::vector<std::unique_ptr<Stmt>> stmts;
-    //std::unique_ptr<Expr> cond;
-    //std::unique_ptr<BlockStmt> body;
-    //std::unique_ptr<Expr> expr;
+
+            Stmt *next = nullptr;
+            Stmt *children = nullptr;
+#if 0
+    union {
+        Block blck;
+        Case cas;
+        /*
+        struct Block {
+            Stmt *stmt;
+            Stmt *next;
+        } blck;
+
+        struct Case {
+            Expr *cond;
+            Stmt *stmt;
+        } cas;
+        */
+    };
+#endif
     Expr* expr = nullptr;
     Expr* init = nullptr;
     Expr* cond = nullptr;
     Expr* post = nullptr;
-    BlockStmt* body = nullptr;
+    Stmt* body = nullptr;
     std::vector<OrStmt*> orstmts;
     std::vector<Expr*> conds;
-    //std::vector<CaseStmt*> cases;
-    //std::vector<std::unique_ptr<CaseStmt>> cases;
     std::vector<CaseStmt*> cases;
-
-    void Print(int depth) const override {}
-    //void Gen(Bytecode &code) const override {}
 };
+
+inline
+Stmt *NewBlockStmt(Stmt *children)
+{
+    Stmt *s = CALLOC(Stmt);
+    s->kind = T_BLOCK;
+    s->children = children;
+    return s;
+}
 
 struct NopStmt : public Stmt {
     NopStmt()
@@ -319,19 +348,8 @@ struct NopStmt : public Stmt {
     }
 };
 
-struct BlockStmt : public Stmt {
-    BlockStmt()
-    {
-        // XXX TEST
-        Stmt::kind = T_BLOCK;
-    }
-    //std::vector<std::unique_ptr<Stmt>> stmts;
-
-    void AddStmt(Stmt *stmt) { stmts.emplace_back(stmt); }
-};
-
 struct OrStmt : public Stmt {
-    OrStmt(Expr *cond_, BlockStmt *body_)
+    OrStmt(Expr *cond_, Stmt *body_)
         //: cond(cond_), body(body_)
     {
         // XXX TEST
@@ -344,7 +362,7 @@ struct OrStmt : public Stmt {
 };
 
 struct IfStmt : public Stmt {
-    IfStmt(Expr *cond, BlockStmt *body)
+    IfStmt(Expr *cond, Stmt *body)
     {
         // XXX TEST
         Stmt::kind = T_IF;
@@ -356,7 +374,7 @@ struct IfStmt : public Stmt {
 };
 
 struct ForStmt : public Stmt {
-    ForStmt(Expr *i, Expr *c, Expr *p, BlockStmt *b)
+    ForStmt(Expr *i, Expr *c, Expr *p, Stmt *b)
         //: init(i), cond(c), post(p), body(b)
     {
         // XXX TEST
@@ -402,7 +420,7 @@ struct CaseStmt : public Stmt {
 
     void AddCond(Expr *cond) { conds.emplace_back(cond); }
     //void AddBody(BlockStmt *b) { body.reset(b); }
-    void AddBody(BlockStmt *b) { body = b; }
+    void AddBody(Stmt *b) { body = b; }
 };
 
 struct SwitchStmt : public Stmt {
@@ -441,15 +459,15 @@ struct ExprStmt : public Stmt {
 };
 
 struct FuncDef : public Node {
-    FuncDef(Func *f, BlockStmt *b) : func(f), block(b) {}
-    FuncDef(Var *v, BlockStmt *b) : func(v->type->func), var(v), block(b) {}
+    FuncDef(Func *f, Stmt *b) : func(f), block(b) {}
+    FuncDef(Var *v, Stmt *b) : func(v->type->func), var(v), block(b) {}
     ~FuncDef() {}
     // TODO remove this
     const Func *func = nullptr;
     const Var *var = nullptr;
 
     //std::unique_ptr<BlockStmt> block;
-    BlockStmt* block = nullptr;
+    Stmt* block = nullptr;
     // TODO make FuncLitExpr and remove this
     int funclit_id = 0;
 

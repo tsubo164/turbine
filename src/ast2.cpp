@@ -687,13 +687,16 @@ void gen_addr(Bytecode *code, const Expr *e)
 
 void gen_stmt(Bytecode *code, const Stmt *s)
 {
+    if (!s)
+        return;
+
     switch (s->kind) {
 
     case T_NOP:
         return;
 
     case T_BLOCK:
-        for (const auto &stmt: s->stmts)
+        for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt(code, stmt);
         return;
 
@@ -892,7 +895,7 @@ void PrintStmt(const Stmt *s, int depth)
     printf("\n");
 
     // children
-    for (const auto &stmt: s->stmts)
+    for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
         PrintStmt(stmt, depth + 1);
 
     for (const auto &stmt: s->orstmts)

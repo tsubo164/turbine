@@ -575,7 +575,7 @@ OrStmt *Parser::or_stmt()
         expect(TK::NEWLINE);
     }
 
-    BlockStmt *body = block_stmt();
+    Stmt *body = block_stmt();
 
     return new OrStmt(cond, body);
 }
@@ -586,7 +586,7 @@ Stmt *Parser::if_stmt()
     Expr *cond = expression();
     expect(TK::NEWLINE);
 
-    BlockStmt *body = block_stmt();
+    Stmt *body = block_stmt();
     IfStmt *ifs = new IfStmt(cond, body);
 
     bool endor = false;
@@ -646,7 +646,7 @@ Stmt *Parser::for_stmt()
     }
 
     // body
-    BlockStmt *body = block_stmt();
+    Stmt *body = block_stmt();
     return new ForStmt(init, cond, post, body);
 }
 
@@ -719,7 +719,7 @@ CaseStmt *Parser::case_stmt(TK kind)
 
     expect(TK::NEWLINE);
 
-    BlockStmt *body = block_stmt();
+    Stmt *body = block_stmt();
     cases->AddBody(body);
 
     return cases;
@@ -896,9 +896,25 @@ Class *Parser::class_decl()
     //return new ClasDef(clss);
 }
 
-BlockStmt *Parser::block_stmt(Func *func)
+struct StmtList {
+    Stmt head;
+    Stmt *tail;
+};
+static void init_list(StmtList *list)
 {
-    BlockStmt *block = new BlockStmt();
+    list->head.next = NULL;
+    list->tail = &list->head;
+}
+static void append(StmtList *list, Stmt *s)
+{
+    list->tail->next = s;
+    list->tail = s;
+}
+
+Stmt *Parser::block_stmt(Func *func)
+{
+    StmtList list;
+    init_list(&list);
 
     enter_scope(func);
     expect(TK::BLOCKBEGIN);
@@ -907,35 +923,35 @@ BlockStmt *Parser::block_stmt(Func *func)
         const TokenKind next = peek();
 
         if (next == TK::MINUS) {
-            block->AddStmt(var_decl());
+            append(&list, var_decl());
             continue;
         }
         else if (next == TK::IF) {
-            block->AddStmt(if_stmt());
+            append(&list, if_stmt());
             continue;
         }
         else if (next == TK::FOR) {
-            block->AddStmt(for_stmt());
+            append(&list, for_stmt());
             continue;
         }
         else if (next == TK::BREAK || next == TK::CONTINUE) {
-            block->AddStmt(jump_stmt());
+            append(&list, jump_stmt());
             continue;
         }
         else if (next == TK::SWITCH) {
-            block->AddStmt(switch_stmt());
+            append(&list, switch_stmt());
             continue;
         }
         else if (next == TK::RETURN) {
-            block->AddStmt(ret_stmt());
+            append(&list, ret_stmt());
             continue;
         }
         else if (next == TK::MINUS3) {
-            block->AddStmt(scope_stmt());
+            append(&list, scope_stmt());
             continue;
         }
         else if (next == TK::NOP) {
-            block->AddStmt(nop_stmt());
+            append(&list, nop_stmt());
             continue;
         }
         else if (next == TK::NEWLINE) {
@@ -946,7 +962,7 @@ BlockStmt *Parser::block_stmt(Func *func)
             break;
         }
         else {
-            block->AddStmt(expr_stmt());
+            append(&list, expr_stmt());
             continue;
         }
     }
@@ -954,7 +970,7 @@ BlockStmt *Parser::block_stmt(Func *func)
     expect(TK::BLOCKEND);
     leave_scope();
 
-    return block;
+    return NewBlockStmt(list.head.next);
 }
 
 // type_spec = "bool" | "int" | "float" | "string" | identifier
@@ -1094,9 +1110,15 @@ FuncDef *Parser::func_def()
     func_ = func;
 
     enter_scope(func);
-    BlockStmt *body = block_stmt();
+    Stmt *body = block_stmt();
     // TODO control flow check to allow implicit return
-    body->AddStmt(new ReturnStmt(NewNullExpr()));
+    for (Stmt *s = body->children; s; s = s->next) {
+        if (!s->next) {
+            s->next = new ReturnStmt(NewNullExpr());
+            break;
+        }
+    }
+    //body->AddStmt(new ReturnStmt(NewNullExpr()));
     leave_scope();
 
     func_ = nullptr;
