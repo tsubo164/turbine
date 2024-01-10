@@ -34,6 +34,8 @@ enum KindTag {
     T_EXPR,
     T_BLOCK,
     T_END_OF_KEYWORD,
+    /* list */
+    T_EXPRLIST,
     /* identifier */
     T_FIELD, //FIXME
     T_IDENT,
@@ -124,6 +126,11 @@ void gen_expr(Bytecode *code, const Expr *e);
 void gen_addr(Bytecode *code, const Expr *e);
 
 void gen_stmt(Bytecode *code, const Stmt *s);
+
+
+// str
+#include <string_view>
+int ConvertEscSeq(std::string_view s, std::string &converted);
 
 
 #endif // _H

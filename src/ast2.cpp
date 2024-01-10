@@ -23,6 +23,8 @@ static const TokInfo table[] = {
     { T_EXPR,    "expr" },
     { T_BLOCK,   "block" },
     { T_END_OF_KEYWORD,   "end_of_keyword" },
+    // list
+    { T_EXPRLIST, "expr_list" },
     // identifier
     { T_FIELD,   "field",  'v' },
     { T_IDENT,   "ident",  'v' },
@@ -129,7 +131,7 @@ int Addr(const Expr *e)
         return e->var->id;
 
     case T_FIELD:
-        return e->fld->id;
+        return e->field->id;
 
     case T_SELECT:
         return Addr(e->l) + Addr(e->r);
@@ -203,7 +205,7 @@ bool EvalAddr(const Expr *e, int *result)
         return true;
 
     case T_FIELD:
-        *result = e->fld->id;
+        *result = e->field->id;
         return true;
 
     default:
@@ -270,7 +272,8 @@ static void gen_call(Bytecode *code, const Expr *e)
     const Func *func = e->l->type->func;
 
     if (func->IsVariadic()) {
-        for (auto arg: e->args) {
+        int argc = 0;
+        for (const Expr *arg = e->list; arg; arg = arg->next, argc++) {
             // arg value
             gen_expr(code, arg);
 
@@ -300,10 +303,10 @@ static void gen_call(Bytecode *code, const Expr *e)
             }
         }
         // arg count
-        code->LoadByte(e->args.size());
+        code->LoadByte(argc);
     }
     else {
-        for (auto arg: e->args)
+        for (const Expr *arg = e->list; arg; arg = arg->next)
             gen_expr(code, arg);
     }
 
@@ -639,7 +642,7 @@ void gen_addr(Bytecode *code, const Expr *e)
         return;
 
     case T_FIELD:
-        code->LoadByte(e->fld->id);
+        code->LoadByte(e->field->id);
         return;
 
     case T_SELECT:

@@ -2,10 +2,30 @@
 #include "error.h"
 #include <iostream>
 
-struct StmtList {
+typedef struct ExprList {
+    Expr head;
+    Expr *tail;
+    int count;
+} ExprList;
+
+static void init_expr_list(ExprList *list)
+{
+    list->head.next = NULL;
+    list->tail = &list->head;
+    list->count = 0;
+}
+
+static void append_expr(ExprList *list, Expr *e)
+{
+    list->tail->next = e;
+    list->tail = e;
+    list->count++;
+}
+
+typedef struct StmtList {
     Stmt head;
     Stmt *tail;
-};
+} StmtList;
 
 static void init_list(StmtList *list)
 {
@@ -157,24 +177,29 @@ void Parser::leave_scope()
 
 Expr *Parser::arg_list(Expr *call)
 {
+    ExprList list;
+    init_expr_list(&list);
+
     if (peek() != TK::RPAREN) {
         do {
-            AddArg(call, expression());
+            append_expr(&list, expression());
         }
         while (consume(TK::COMMA));
     }
 
     const Func *func = call->l->type->func;
     if (func->HasSpecialVar())
-        AddArg(call, NewIntLitExpr(call->pos.y));
+        append_expr(&list, NewIntLitExpr(call->pos.y));
 
-    const int argc = ArgCount(call);
+    call->list = list.head.next;
+
+    const int argc = list.count;
     const int paramc = func->RequiredParamCount();
     if (argc < paramc)
         error(tok_pos(), "too few arguments");
 
-    for (int i = 0; i < argc; i++) {
-        const Expr *arg = GetArg(call, i);
+    const Expr *arg = call->list;
+    for (int i = 0; i < argc; i++, arg = arg->next) {
         const Var *param = func->GetParam(i);
 
         if (!param)
