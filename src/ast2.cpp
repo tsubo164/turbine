@@ -778,11 +778,13 @@ void gen_stmt(Bytecode *code, const Stmt *s)
 
             std::vector<Int> trues;
             // eval conds
-            for (auto &cond: s->conds) {
+            //for (auto &cond: s->conds) {
+            for (Stmt *cond = s->children; cond; cond = cond->next) {
                 Int tru = 0;
                 Int fls = 0;
                 code->DuplicateTop();
-                gen_expr(code, cond);
+                //gen_expr(code, cond);
+                gen_stmt(code, cond);
                 code->EqualInt();
                 fls = code->JumpIfZero(-1);
                 tru = code->Jump(-1);

@@ -720,29 +720,28 @@ Stmt *Parser::switch_stmt()
     }
 }
 
-CaseStmt *Parser::case_stmt(TK kind)
+Stmt *Parser::case_stmt(TK kind)
 {
     // TODO make this last by adding ListExpr
-    CaseStmt *cases = new CaseStmt(kind);
+    StmtList list;
+    init_list(&list);
 
     if (kind == TK::CASE) {
         do {
             Expr *expr = expression();
             // TODO const int check
-            cases->AddCond(expr);
+            append(&list, NewExprStmt(expr));
         }
         while (consume(TK::COMMA));
     }
     else if (kind == TK::DEFAULT) {
-        cases->AddCond(NewNullExpr());
+        append(&list, NewExprStmt(NewNullExpr()));
     }
 
     expect(TK::NEWLINE);
 
     Stmt *body = block_stmt();
-    cases->AddBody(body);
-
-    return cases;
+    return NewCaseStmt(list.head.next, body, kind);
 }
 
 Stmt *Parser::ret_stmt()

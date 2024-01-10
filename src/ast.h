@@ -285,7 +285,7 @@ Expr *NewIncDecExpr(Expr *l, TK k)
     return e;
 }
 
-struct CaseStmt;
+//struct CaseStmt;
 
         /*
         struct Block {
@@ -326,7 +326,7 @@ struct Stmt : public Node {
     Stmt* body = nullptr;
 
     std::vector<Expr*> conds;
-    std::vector<CaseStmt*> cases;
+    std::vector<Stmt*> cases;
 };
 
 inline
@@ -389,24 +389,19 @@ Stmt *NewJumpStmt(TK k)
     return s;
 }
 
-struct CaseStmt : public Stmt {
-    CaseStmt(TK k)// : kind(k)
-    {
-        // XXX TEST
-        switch (k) {
-        case TK::CASE:    Stmt::kind = T_CASE; break;
-        case TK::DEFAULT: Stmt::kind = T_DFLT; break;
-        default:          Stmt::kind = T_NUL; break;
-        }
+inline
+Stmt *NewCaseStmt(Stmt *conds, Stmt *body, TK k)
+{
+    Stmt *s = CALLOC(Stmt);
+    switch (k) {
+    case TK::CASE:    s->kind = T_CASE; break;
+    case TK::DEFAULT: s->kind = T_DFLT; break;
+    default:          s->kind = T_NUL; break;
     }
-    //std::vector<std::unique_ptr<Expr>> conds;
-    //std::unique_ptr<BlockStmt> body;
-    //TK kind;
-
-    void AddCond(Expr *cond) { conds.emplace_back(cond); }
-    //void AddBody(BlockStmt *b) { body.reset(b); }
-    void AddBody(Stmt *b) { body = b; }
-};
+    s->children = conds;
+    s->body = body;
+    return s;
+}
 
 struct SwitchStmt : public Stmt {
     SwitchStmt(Expr *c)// : cond(c)
@@ -418,7 +413,7 @@ struct SwitchStmt : public Stmt {
         Stmt::kind = T_SWT;
         cond = c;
     }
-    void AddCase(CaseStmt *cs) { cases.emplace_back(cs); }
+    void AddCase(Stmt *cs) { cases.emplace_back(cs); }
     //std::unique_ptr<Expr> cond;
     //std::vector<std::unique_ptr<CaseStmt>> cases;
 };

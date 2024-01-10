@@ -71,7 +71,7 @@ private:
     Stmt *for_stmt();
     Stmt *jump_stmt();
     Stmt *switch_stmt();
-    CaseStmt *case_stmt(TK kind);
+    Stmt *case_stmt(TK kind);
     Stmt *ret_stmt();
     Stmt *expr_stmt();
     Stmt *scope_stmt();
