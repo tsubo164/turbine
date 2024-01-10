@@ -285,8 +285,6 @@ Expr *NewIncDecExpr(Expr *l, TK k)
     return e;
 }
 
-//struct BlockStmt;
-struct OrStmt;
 struct CaseStmt;
 
         /*
@@ -326,9 +324,16 @@ struct Stmt : public Node {
     Expr* cond = nullptr;
     Expr* post = nullptr;
     Stmt* body = nullptr;
-    std::vector<OrStmt*> orstmts;
     std::vector<Expr*> conds;
     std::vector<CaseStmt*> cases;
+};
+
+struct NopStmt : public Stmt {
+    NopStmt()
+    {
+        // XXX TEST
+        Stmt::kind = T_NOP;
+    }
 };
 
 inline
@@ -340,38 +345,24 @@ Stmt *NewBlockStmt(Stmt *children)
     return s;
 }
 
-struct NopStmt : public Stmt {
-    NopStmt()
-    {
-        // XXX TEST
-        Stmt::kind = T_NOP;
-    }
-};
+inline
+Stmt *NewOrStmt(Expr *cond, Stmt *body)
+{
+    Stmt *s = CALLOC(Stmt);
+    s->kind = T_ELS;
+    s->cond = cond;
+    s->body = body;
+    return s;
+}
 
-struct OrStmt : public Stmt {
-    OrStmt(Expr *cond_, Stmt *body_)
-        //: cond(cond_), body(body_)
-    {
-        // XXX TEST
-        Stmt::kind = T_ELS;
-        cond = cond_;
-        body = body_;
-    }
-    //std::unique_ptr<Expr> cond;
-    //std::unique_ptr<BlockStmt> body;
-};
-
-struct IfStmt : public Stmt {
-    IfStmt(Expr *cond, Stmt *body)
-    {
-        // XXX TEST
-        Stmt::kind = T_IF;
-        AddOr(new OrStmt(cond, body));
-    }
-    //std::vector<std::unique_ptr<OrStmt>> orstmts;
-
-    void AddOr(OrStmt *ors) { orstmts.emplace_back(ors); }
-};
+inline
+Stmt *NewIfStmt(Stmt *or_list)
+{
+    Stmt *s = CALLOC(Stmt);
+    s->kind = T_IF;
+    s->children = or_list;
+    return s;
+}
 
 struct ForStmt : public Stmt {
     ForStmt(Expr *i, Expr *c, Expr *p, Stmt *b)

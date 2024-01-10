@@ -2,6 +2,23 @@
 #include "error.h"
 #include <iostream>
 
+struct StmtList {
+    Stmt head;
+    Stmt *tail;
+};
+
+static void init_list(StmtList *list)
+{
+    list->head.next = NULL;
+    list->tail = &list->head;
+}
+
+static void append(StmtList *list, Stmt *s)
+{
+    list->tail->next = s;
+    list->tail = s;
+}
+
 void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
         std::string_view s2, std::string_view s3,
         std::string_view s4, std::string_view s5) const
@@ -561,7 +578,7 @@ Expr *Parser::expression()
     return assign_expr();
 }
 
-OrStmt *Parser::or_stmt()
+Stmt *Parser::or_stmt()
 {
     Expr *cond = nullptr;
 
@@ -577,7 +594,7 @@ OrStmt *Parser::or_stmt()
 
     Stmt *body = block_stmt();
 
-    return new OrStmt(cond, body);
+    return NewOrStmt(cond, body);
 }
 
 Stmt *Parser::if_stmt()
@@ -586,8 +603,11 @@ Stmt *Parser::if_stmt()
     Expr *cond = expression();
     expect(TK::NEWLINE);
 
+    StmtList list;
+    init_list(&list);
+
     Stmt *body = block_stmt();
-    IfStmt *ifs = new IfStmt(cond, body);
+    append(&list, NewOrStmt(cond, body));
 
     bool endor = false;
 
@@ -598,14 +618,14 @@ Stmt *Parser::if_stmt()
                 endor = true;
             }
 
-            ifs->AddOr(or_stmt());
+            append(&list, or_stmt());
         }
         else {
             endor = true;
         }
     }
 
-    return ifs;
+    return NewIfStmt(list.head.next);
 }
 
 Stmt *Parser::for_stmt()
@@ -894,21 +914,6 @@ Class *Parser::class_decl()
 
     return nullptr;
     //return new ClasDef(clss);
-}
-
-struct StmtList {
-    Stmt head;
-    Stmt *tail;
-};
-static void init_list(StmtList *list)
-{
-    list->head.next = NULL;
-    list->tail = &list->head;
-}
-static void append(StmtList *list, Stmt *s)
-{
-    list->tail->next = s;
-    list->tail = s;
 }
 
 Stmt *Parser::block_stmt(Func *func)

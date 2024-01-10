@@ -725,7 +725,7 @@ void gen_stmt(Bytecode *code, const Stmt *s)
     case T_IF:
         code->BeginIf();
 
-        for (const auto &stmt: s->orstmts)
+        for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt(code, stmt);
 
         // exit
@@ -896,9 +896,6 @@ void PrintStmt(const Stmt *s, int depth)
 
     // children
     for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
-        PrintStmt(stmt, depth + 1);
-
-    for (const auto &stmt: s->orstmts)
         PrintStmt(stmt, depth + 1);
 
     for (const auto &cs: s->cases)
