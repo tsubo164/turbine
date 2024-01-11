@@ -8,6 +8,9 @@
 #include <ctype.h>
 
 
+#include "bytecode.h"
+#include "ast.h"
+
 #define NALLOC(n,type) ((type*) calloc((n),sizeof(type)))
 //#define CALLOC(type) NALLOC(1,type)
 #define CALLOC(type) (new type())
@@ -125,11 +128,14 @@ void print_prog(const Prog *p, int depth);
 
 // codegen
 class Bytecode;
+void GenerateCode(Bytecode *code, const Prog *prog);
+/*
 void gen_expr(Bytecode *code, const Expr *e);
 void gen_addr(Bytecode *code, const Expr *e);
 void gen_stmt(Bytecode *code, const Stmt *s);
 void gen_funcdef(Bytecode *code, const FuncDef *f);
 void gen_prog(Bytecode *code, const Prog *p);
+*/
 
 
 // str

@@ -3,7 +3,6 @@
 
 #include <istream>
 #include "bytecode.h"
-#include "codegen.h"
 #include "parser.h"
 #include "lexer.h"
 #include "scope.h"
