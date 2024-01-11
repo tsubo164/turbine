@@ -38,7 +38,7 @@ Int Interpreter::Run(const std::string &src)
 
     if (print_tree_) {
         print_header("tree");
-        print_prog(prog_, 0);
+        PrintProg(prog_, 0);
     }
 
     if (print_symbols_) {

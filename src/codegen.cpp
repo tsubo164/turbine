@@ -1,5 +1,12 @@
 #include "compiler.h"
 
+static bool optimize = false;
+
+void SetOptimize(bool enable)
+{
+    optimize = enable;
+}
+
 #define EMIT(code, ty, op) \
     do { \
     if ((ty)->IsInt() || (ty)->IsBool()) \

@@ -121,21 +121,12 @@ bool EvalExpr(const Expr *e, long *result);
 bool EvalAddr(const Expr *e, int *result);
 
 // print
-void print_expr(const Expr *e, int depth);
-void PrintStmt(const Stmt *s, int depth);
-void print_funcdef(const FuncDef *f, int depth);
-void print_prog(const Prog *p, int depth);
+void PrintProg(const Prog *p, int depth);
+
 
 // codegen
 class Bytecode;
 void GenerateCode(Bytecode *code, const Prog *prog);
-/*
-void gen_expr(Bytecode *code, const Expr *e);
-void gen_addr(Bytecode *code, const Expr *e);
-void gen_stmt(Bytecode *code, const Stmt *s);
-void gen_funcdef(Bytecode *code, const FuncDef *f);
-void gen_prog(Bytecode *code, const Prog *p);
-*/
 
 
 // str
