@@ -1166,7 +1166,11 @@ FuncDef *Parser::func_def()
 
 Prog *Parser::program()
 {
-    Prog *prog = new Prog(scope_);
+    Prog *prog = NewProg(scope_);
+    FuncDef *tail = NULL;
+
+    StmtList list;
+    init_list(&list);
 
     for (;;) {
         const TokenKind next = peek();
@@ -1182,10 +1186,17 @@ Prog *Parser::program()
                 // TODO clean up
                 Expr *ident = NewIdentExpr(const_cast<Var *>(fdef->var));
                 Expr *init = NewIntLitExpr(fdef->funclit_id);
-                prog->AddGlobalVar(NewExprStmt(NewAssignExpr(ident, init, TK::EQ)));
+                append(&list, NewExprStmt(NewAssignExpr(ident, init, TK::EQ)));
             }
 
-            prog->AddFuncDef(fdef);
+            if (!prog->funcs) {
+                prog->funcs = fdef;
+                tail = prog->funcs;
+            }
+            else {
+                tail->next = fdef;
+                tail = fdef;
+            }
             continue;
         }
 
@@ -1195,7 +1206,7 @@ Prog *Parser::program()
         }
 
         if (next == TK::MINUS) {
-            prog->AddGlobalVar(var_decl());
+            append(&list, var_decl());
             continue;
         }
 
@@ -1214,5 +1225,6 @@ Prog *Parser::program()
         Error(msg, *src_, tok->pos);
     }
 
+    prog->gvars = list.head.next;
     return prog;
 }

@@ -860,16 +860,16 @@ void gen_prog(Bytecode *code, const Prog *p)
 
     // global vars
     code->Allocate(p->scope->VarSize());
-    for (const auto &gvar: p->gvars)
-        gen_stmt(code, gvar.get());
+    for (const Stmt *gvar = p->gvars; gvar; gvar = gvar->next)
+        gen_stmt(code, gvar);
 
     // call main
     code->CallFunction(p->main_func->id, p->main_func->type->func->IsBuiltin());
     code->Exit();
 
     // global funcs
-    for (const auto &func: p->funcs)
-        gen_funcdef(code, func.get());
+    for (const FuncDef *func = p->funcs; func; func = func->next)
+        gen_funcdef(code, func);
 }
 
 void print_expr(const Expr *e, int depth)
@@ -972,9 +972,9 @@ void print_prog(const Prog *p, int depth)
     printf("\n");
 
     // children
-    for (const auto &gvar: p->gvars)
-        PrintStmt(gvar.get(), depth + 1);
+    for (const Stmt *gvar = p->gvars; gvar; gvar = gvar->next)
+        PrintStmt(gvar, depth + 1);
 
-    for (const auto &func: p->funcs)
-        print_funcdef(func.get(), depth + 1);
+    for (const FuncDef *func = p->funcs; func; func = func->next)
+        print_funcdef(func, depth + 1);
 }

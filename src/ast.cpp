@@ -318,7 +318,18 @@ FuncDef *NewFuncDef(Var *v, Stmt *body)
     f->body = body;
     f->func = v->type->func;
     f->funclit_id = 0;
+    f->next = NULL;
     return f;
+}
+
+Prog *NewProg(Scope *sc)
+{
+    Prog *p = CALLOC(Prog);
+    p->scope = sc;
+    p->funcs = NULL;
+    p->gvars = NULL;
+    p->main_func = NULL;
+    return p;
 }
 
 static bool optimize = false;

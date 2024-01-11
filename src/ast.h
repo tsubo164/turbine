@@ -86,6 +86,9 @@ Stmt *NewSwitchStmt(Expr *cond, Stmt *cases);
 Stmt *NewReturnStmt(Expr *e);
 Stmt *NewExprStmt(Expr *e);
 
+
+//--------------------------------
+// FuncDef
 typedef struct FuncDef {
     // TODO remove this
     const Func *func;
@@ -93,20 +96,23 @@ typedef struct FuncDef {
     Stmt* body;
     // TODO make FuncLitExpr and remove this
     int funclit_id;
+
+    struct FuncDef *next;
 } FuncDef;
 
 FuncDef *NewFuncDef(Var *v, Stmt *body);
 
-struct Prog {
-    Prog(Scope *sc) : scope(sc) {}
-    void AddFuncDef(FuncDef *func) { funcs.emplace_back(func); }
-    void AddGlobalVar(Stmt *gvar) { gvars.emplace_back(gvar); }
 
+//--------------------------------
+// Prog
+typedef struct Prog {
     const Scope *scope;
-    std::vector<std::unique_ptr<FuncDef>> funcs;
-    std::vector<std::unique_ptr<Stmt>> gvars;
+    FuncDef *funcs;
+    Stmt* gvars;
     // TODO remove this
-    const Var *main_func = nullptr;
-};
+    const Var *main_func;
+} Prog;
+
+Prog *NewProg(Scope *sc);
 
 #endif // _H
