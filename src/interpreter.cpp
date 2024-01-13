@@ -30,7 +30,7 @@ Int Interpreter::Run(const std::string &src)
 
     // Print token
     if (print_token_) {
-        print_token(src);
+        PrintToken(tok, !print_token_raw_);
         if (!print_tree_ && !print_symbols_ && !print_bytecode_) {
             return 0;
         }
@@ -102,67 +102,4 @@ void Interpreter::EnablePrintStack(bool enable)
 void Interpreter::EnableOptimize(bool enable)
 {
     enable_optimize_ = enable;
-}
-
-void Interpreter::print_token(const std::string &src) const
-{
-    Lexer lexer;
-
-    lexer.SetInput(src);
-    Token token;
-    Token *tok = &token;
-    int indent = 0;
-    bool bol = true;
-
-    print_header("token");
-
-    for (;;) {
-        lexer.Get(tok);
-
-        if (print_token_raw_) {
-            std::cout << "(" <<
-                std::setw(4) << tok->pos.y << ", " <<
-                std::setw(3) << tok->pos.x << ") ";
-            std::cout << tok->kind;
-
-            if (tok->kind == TK_IDENT)
-                std::cout << " (" << tok->sval << ")";
-            if (tok->kind == TK_INTLIT)
-                std::cout << " (" << tok->ival << ")";
-            if (tok->kind == TK_FLTLIT)
-                std::cout << " (" << tok->fval << ")";
-            if (tok->kind == TK_STRLIT)
-                std::cout << " (\"" << tok->sval << "\")";
-
-            std::cout << std::endl;
-        }
-        else {
-            if (tok->kind == TK_BLOCKBEGIN) {
-                indent++;
-                continue;
-            }
-            else if (tok->kind == TK_BLOCKEND) {
-                indent--;
-                continue;
-            }
-
-            if (bol) {
-                bol = false;
-                for (int i = 0; i < indent; i++)
-                    std::cout << "....";
-            }
-
-            if (tok->kind == TK_NEWLINE) {
-                std::cout << tok->kind << std::endl;
-                bol = true;
-            }
-            else if (tok->kind != TK_BLOCKBEGIN && tok->kind != TK_BLOCKEND) {
-                std::cout << tok->kind << ' ';
-            }
-        }
-
-        if (tok->kind == TK_EOF)
-            break;
-    }
-    std::cout << std::endl;
 }

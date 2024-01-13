@@ -38,7 +38,6 @@ private:
     bool print_bytecode_ = false;
     bool print_stack_ = false;
     bool enable_optimize_ = true;
-    void print_token(const std::string &src) const;
 };
 
 #endif // _H

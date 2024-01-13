@@ -101,42 +101,7 @@ typedef struct Token {
     void set(TK k, Pos p);
 } Token;
 
-class Lexer {
-public:
-    Lexer();
-    ~Lexer();
-
-    void SetInput(const std::string &src);
-    void Get(Token *tok);
-
-private:
-    // src text
-    const std::string *src_ {};
-    std::string::const_iterator it_;
-    Pos pos_;
-    int prevx = 0;
-
-    // indent
-    std::stack <int>indent_stack_;
-    int unread_blockend_ = 0;
-    bool is_line_begin_ = true;
-
-    int get();
-    int peek();
-    void unget();
-    bool eof() const;
-    int curr() const;
-
-    void scan_number(Token *tok, Pos pos);
-    void scan_char_literal(Token *tok, Pos pos);
-    void scan_word(Token *tok, Pos pos);
-    void scan_string(Token *tok, Pos pos);
-    int count_indent();
-    TK scan_indent(Token *tok);
-    void scan_line_comment();
-    void scan_block_comment(Pos pos);
-};
-
 const Token *Tokenize(const char *src);
+void PrintToken(const Token *token, bool format);
 
 #endif // _H

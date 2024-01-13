@@ -4,6 +4,7 @@
 #include "compiler.h"
 
 #include <unordered_map>
+#include <iomanip>
 #include <cstdlib>
 #include <cassert>
 
@@ -129,6 +130,42 @@ void Token::set(TK k, Pos p)
     kind = k;
     pos = p;
 }
+
+class Lexer {
+public:
+    Lexer();
+    ~Lexer();
+
+    void SetInput(const std::string &src);
+    void Get(Token *tok);
+
+private:
+    // src text
+    const std::string *src_ {};
+    std::string::const_iterator it_;
+    Pos pos_;
+    int prevx = 0;
+
+    // indent
+    std::stack <int>indent_stack_;
+    int unread_blockend_ = 0;
+    bool is_line_begin_ = true;
+
+    int get();
+    int peek();
+    void unget();
+    bool eof() const;
+    int curr() const;
+
+    void scan_number(Token *tok, Pos pos);
+    void scan_char_literal(Token *tok, Pos pos);
+    void scan_word(Token *tok, Pos pos);
+    void scan_string(Token *tok, Pos pos);
+    int count_indent();
+    TK scan_indent(Token *tok);
+    void scan_line_comment();
+    void scan_block_comment(Pos pos);
+};
 
 Lexer::Lexer()
 {
@@ -808,4 +845,58 @@ const Token *Tokenize(const char *src)
     }
 
     return head;
+}
+
+void PrintToken(const Token *token, bool format)
+{
+    int indent = 0;
+    bool bol = true;
+
+    for (const Token *tok = token; tok; tok = tok->next) {
+
+        if (!format) {
+            std::cout << "(" <<
+                std::setw(4) << tok->pos.y << ", " <<
+                std::setw(3) << tok->pos.x << ") ";
+            std::cout << tok->kind;
+
+            if (tok->kind == TK_IDENT)
+                std::cout << " (" << tok->sval << ")";
+            if (tok->kind == TK_INTLIT)
+                std::cout << " (" << tok->ival << ")";
+            if (tok->kind == TK_FLTLIT)
+                std::cout << " (" << tok->fval << ")";
+            if (tok->kind == TK_STRLIT)
+                std::cout << " (\"" << tok->sval << "\")";
+
+            std::cout << std::endl;
+        }
+        else {
+            if (tok->kind == TK_BLOCKBEGIN) {
+                indent++;
+                continue;
+            }
+            else if (tok->kind == TK_BLOCKEND) {
+                indent--;
+                continue;
+            }
+
+            if (bol) {
+                bol = false;
+                for (int i = 0; i < indent; i++)
+                    std::cout << "....";
+            }
+
+            if (tok->kind == TK_NEWLINE) {
+                std::cout << tok->kind << std::endl;
+                bol = true;
+            }
+            else if (tok->kind != TK_BLOCKBEGIN && tok->kind != TK_BLOCKEND) {
+                std::cout << tok->kind << ' ';
+            }
+        }
+
+        if (tok->kind == TK_EOF)
+            break;
+    }
 }
