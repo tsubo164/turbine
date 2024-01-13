@@ -7,124 +7,124 @@
 #include <cstdlib>
 #include <cassert>
 
-static const std::unordered_map<std::string_view, TokenKind> keywords = {
-    {"nil",      TK::NIL},
-    {"true",     TK::TRUE},
-    {"false",    TK::FALSE},
-    {"bool",     TK::BOOL},
-    {"int",      TK::INT},
-    {"float",    TK::FLOAT},
-    {"string",   TK::STRING},
-    {"if",       TK::IF},
-    {"or",       TK::OR},
-    {"else",     TK::ELSE},
-    {"for",      TK::FOR},
-    {"break",    TK::BREAK},
-    {"continue", TK::CONTINUE},
-    {"switch",   TK::SWITCH},
-    {"case",     TK::CASE},
-    {"default",  TK::DEFAULT},
-    {"return",   TK::RETURN},
-    {"nop",      TK::NOP},
+static const std::unordered_map<std::string_view, TK> keywords = {
+    {"nil",      TK_NIL},
+    {"true",     TK_TRUE},
+    {"false",    TK_FALSE},
+    {"bool",     TK_BOOL},
+    {"int",      TK_INT},
+    {"float",    TK_FLOAT},
+    {"string",   TK_STRING},
+    {"if",       TK_IF},
+    {"or",       TK_OR},
+    {"else",     TK_ELSE},
+    {"for",      TK_FOR},
+    {"break",    TK_BREAK},
+    {"continue", TK_CONTINUE},
+    {"switch",   TK_SWITCH},
+    {"case",     TK_CASE},
+    {"default",  TK_DEFAULT},
+    {"return",   TK_RETURN},
+    {"nop",      TK_NOP},
     // special vars
-    {"$caller_line", TK::CALLER_LINE},
+    {"$caller_line", TK_CALLER_LINE},
 };
 
-static TokenKind keyword_or_identifier(std::string_view word)
+static TK keyword_or_identifier(std::string_view word)
 {
     const auto it = keywords.find(word);
 
     if (it != keywords.end())
         return it->second;
 
-    return TK::IDENT;
+    return TK_IDENT;
 }
 
-static const char *tok_kind_string(TokenKind kind)
+static const char *tok_kind_string(TK kind)
 {
     switch (kind) {
-    case TK::UNKNOWN:    return "unknown";
-    case TK::INTLIT:     return "integer_literal";
-    case TK::FLTLIT:     return "float_literal";
-    case TK::STRLIT:     return "string_literal";
-    case TK::IDENT:      return "identifier";
-    case TK::EQ:         return "=";
-    case TK::PLUSEQ:     return "+=";
-    case TK::MINUSEQ:    return "-=";
-    case TK::STAREQ:     return "*=";
-    case TK::SLASHEQ:    return "/=";
-    case TK::PERCENTEQ:  return "%=";
-    case TK::EQ2:        return "==";
-    case TK::EXCLEQ:     return "!=";
-    case TK::EXCL:       return "!";
-    case TK::CARET:      return "^";
-    case TK::TILDA:      return "~";
-    case TK::LT2:        return "<<";
-    case TK::GT2:        return ">>";
-    case TK::LT:         return "<";
-    case TK::GT:         return ">";
-    case TK::LTE:        return "<=";
-    case TK::GTE:        return ">=";
-    case TK::PLUS:       return "+";
-    case TK::MINUS:      return "-";
-    case TK::STAR:       return "*";
-    case TK::SLASH:      return "/";
-    case TK::PERCENT:    return "%";
-    case TK::BAR:        return "|";
-    case TK::BAR2:       return "||";
-    case TK::AMP:        return "&";
-    case TK::AMP2:       return "&&";
-    case TK::PERIOD:     return ".";
-    case TK::PLUS2:      return "++";
-    case TK::MINUS2:     return "--";
-    case TK::HASH:       return "#";
-    case TK::HASH2:      return "##";
-    case TK::NIL:        return "nil";
-    case TK::TRUE:       return "true";
-    case TK::FALSE:      return "false";
-    case TK::BOOL:       return "bool";
-    case TK::INT:        return "int";
-    case TK::FLOAT:      return "float";
-    case TK::STRING:     return "string";
-    case TK::IF:         return "if";
-    case TK::OR:         return "or";
-    case TK::ELSE:       return "else";
-    case TK::FOR:        return "for";
-    case TK::BREAK:      return "break";
-    case TK::CONTINUE:   return "continue";
-    case TK::SWITCH:     return "switch";
-    case TK::CASE:       return "case";
-    case TK::DEFAULT:    return "default";
-    case TK::RETURN:     return "return";
-    case TK::NOP:        return "nop";
-    case TK::MINUS3:     return "---";
-    case TK::COMMA:      return ",";
-    case TK::SEMICOLON:  return ";";
-    case TK::LPAREN:     return "(";
-    case TK::RPAREN:     return ")";
-    case TK::LBRACK:     return "[";
-    case TK::RBRACK:     return "]";
-    case TK::BLOCKBEGIN: return "block_begin";
-    case TK::BLOCKEND:   return "block_end";
-    case TK::NEWLINE:    return "\\n";
-    case TK::CALLER_LINE:return "$caller_line";
-    case TK::EOF_:       return "end_of_file";
+    case TK_UNKNOWN:    return "unknown";
+    case TK_INTLIT:     return "integer_literal";
+    case TK_FLTLIT:     return "float_literal";
+    case TK_STRLIT:     return "string_literal";
+    case TK_IDENT:      return "identifier";
+    case TK_EQ:         return "=";
+    case TK_PLUSEQ:     return "+=";
+    case TK_MINUSEQ:    return "-=";
+    case TK_STAREQ:     return "*=";
+    case TK_SLASHEQ:    return "/=";
+    case TK_PERCENTEQ:  return "%=";
+    case TK_EQ2:        return "==";
+    case TK_EXCLEQ:     return "!=";
+    case TK_EXCL:       return "!";
+    case TK_CARET:      return "^";
+    case TK_TILDA:      return "~";
+    case TK_LT2:        return "<<";
+    case TK_GT2:        return ">>";
+    case TK_LT:         return "<";
+    case TK_GT:         return ">";
+    case TK_LTE:        return "<=";
+    case TK_GTE:        return ">=";
+    case TK_PLUS:       return "+";
+    case TK_MINUS:      return "-";
+    case TK_STAR:       return "*";
+    case TK_SLASH:      return "/";
+    case TK_PERCENT:    return "%";
+    case TK_BAR:        return "|";
+    case TK_BAR2:       return "||";
+    case TK_AMP:        return "&";
+    case TK_AMP2:       return "&&";
+    case TK_PERIOD:     return ".";
+    case TK_PLUS2:      return "++";
+    case TK_MINUS2:     return "--";
+    case TK_HASH:       return "#";
+    case TK_HASH2:      return "##";
+    case TK_NIL:        return "nil";
+    case TK_TRUE:       return "true";
+    case TK_FALSE:      return "false";
+    case TK_BOOL:       return "bool";
+    case TK_INT:        return "int";
+    case TK_FLOAT:      return "float";
+    case TK_STRING:     return "string";
+    case TK_IF:         return "if";
+    case TK_OR:         return "or";
+    case TK_ELSE:       return "else";
+    case TK_FOR:        return "for";
+    case TK_BREAK:      return "break";
+    case TK_CONTINUE:   return "continue";
+    case TK_SWITCH:     return "switch";
+    case TK_CASE:       return "case";
+    case TK_DEFAULT:    return "default";
+    case TK_RETURN:     return "return";
+    case TK_NOP:        return "nop";
+    case TK_MINUS3:     return "---";
+    case TK_COMMA:      return ",";
+    case TK_SEMICOLON:  return ";";
+    case TK_LPAREN:     return "(";
+    case TK_RPAREN:     return ")";
+    case TK_LBRACK:     return "[";
+    case TK_RBRACK:     return "]";
+    case TK_BLOCKBEGIN: return "block_begin";
+    case TK_BLOCKEND:   return "block_end";
+    case TK_NEWLINE:    return "\\n";
+    case TK_CALLER_LINE:return "$caller_line";
+    case TK_EOF:       return "end_of_file";
     }
     ERROR_NO_CASE(kind);
     return nullptr;
 }
 
-const char *GetTokenKindString(TokenKind kind)
+const char *GetTokenKindString(TK kind)
 {
     return tok_kind_string(kind);
 }
 
-std::ostream &operator<<(std::ostream &os, TokenKind kind)
+std::ostream &operator<<(std::ostream &os, TK kind)
 {
     return os << tok_kind_string(kind);
 }
 
-void Token::set(TokenKind k, Pos p)
+void Token::set(TK k, Pos p)
 {
     kind = k;
     pos = p;
@@ -200,15 +200,15 @@ void Lexer::Get(Token *tok)
 
     if (unread_blockend_ > 0) {
         unread_blockend_--;
-        tok->set(TK::BLOCKEND, pos_);
+        tok->set(TK_BLOCKEND, pos_);
         return;
     }
 
     if (is_line_begin_) {
         is_line_begin_ = false;
 
-        const TokenKind kind = scan_indent(tok);
-        if (kind == TK::BLOCKBEGIN || kind == TK::BLOCKEND)
+        const TK kind = scan_indent(tok);
+        if (kind == TK_BLOCKBEGIN || kind == TK_BLOCKEND)
             return;
     }
 
@@ -232,11 +232,11 @@ void Lexer::Get(Token *tok)
             ch = get();
 
             if (ch == '=') {
-                tok->set(TK::EQ2, pos);
+                tok->set(TK_EQ2, pos);
             }
             else {
                 unget();
-                tok->set(TK::EQ, pos);
+                tok->set(TK_EQ, pos);
             }
             return;
         }
@@ -245,36 +245,36 @@ void Lexer::Get(Token *tok)
             ch = get();
 
             if (ch == '=') {
-                tok->set(TK::EXCLEQ, pos);
+                tok->set(TK_EXCLEQ, pos);
             }
             else {
                 unget();
-                tok->set(TK::EXCL, pos);
+                tok->set(TK_EXCL, pos);
             }
             return;
         }
 
         if (ch == '^') {
-            tok->set(TK::CARET, pos);
+            tok->set(TK_CARET, pos);
             return;
         }
 
         if (ch == '~') {
-            tok->set(TK::TILDA, pos);
+            tok->set(TK_TILDA, pos);
             return;
         }
 
         if (ch == '<') {
             ch = get();
             if (ch == '<') {
-                tok->set(TK::LT2, pos);
+                tok->set(TK_LT2, pos);
             }
             else if (ch == '=') {
-                tok->set(TK::LTE, pos);
+                tok->set(TK_LTE, pos);
             }
             else {
                 unget();
-                tok->set(TK::LT, pos);
+                tok->set(TK_LT, pos);
             }
             return;
         }
@@ -282,14 +282,14 @@ void Lexer::Get(Token *tok)
         if (ch == '>') {
             ch = get();
             if (ch == '>') {
-                tok->set(TK::GT2, pos);
+                tok->set(TK_GT2, pos);
             }
             else if (ch == '=') {
-                tok->set(TK::GTE, pos);
+                tok->set(TK_GTE, pos);
             }
             else {
                 unget();
-                tok->set(TK::GT, pos);
+                tok->set(TK_GT, pos);
             }
             return;
         }
@@ -297,14 +297,14 @@ void Lexer::Get(Token *tok)
         if (ch == '+') {
             ch = get();
             if (ch == '+') {
-                tok->set(TK::PLUS2, pos);
+                tok->set(TK_PLUS2, pos);
             }
             else if (ch == '=') {
-                tok->set(TK::PLUSEQ, pos);
+                tok->set(TK_PLUSEQ, pos);
             }
             else {
                 unget();
-                tok->set(TK::PLUS, pos);
+                tok->set(TK_PLUS, pos);
             }
             return;
         }
@@ -312,22 +312,22 @@ void Lexer::Get(Token *tok)
         if (ch == '-') {
             ch = get();
             if (ch == '-') {
-                //tok->set(TK::MINUS2, pos);
+                //tok->set(TK_MINUS2, pos);
                 ch = get();
                 if (ch == '-') {
-                    tok->set(TK::MINUS3, pos);
+                    tok->set(TK_MINUS3, pos);
                 }
                 else {
                     unget();
-                    tok->set(TK::MINUS2, pos);
+                    tok->set(TK_MINUS2, pos);
                 }
             }
             else if (ch == '=') {
-                tok->set(TK::MINUSEQ, pos);
+                tok->set(TK_MINUSEQ, pos);
             }
             else {
                 unget();
-                tok->set(TK::MINUS, pos);
+                tok->set(TK_MINUS, pos);
             }
             return;
         }
@@ -335,11 +335,11 @@ void Lexer::Get(Token *tok)
         if (ch == '*') {
             ch = get();
             if (ch == '=') {
-                tok->set(TK::STAREQ, pos);
+                tok->set(TK_STAREQ, pos);
             }
             else {
                 unget();
-                tok->set(TK::STAR, pos);
+                tok->set(TK_STAR, pos);
             }
             return;
         }
@@ -355,11 +355,11 @@ void Lexer::Get(Token *tok)
                 continue;
             }
             else if (ch == '=') {
-                tok->set(TK::SLASHEQ, pos);
+                tok->set(TK_SLASHEQ, pos);
             }
             else {
                 unget();
-                tok->set(TK::SLASH, pos);
+                tok->set(TK_SLASH, pos);
             }
             return;
         }
@@ -367,11 +367,11 @@ void Lexer::Get(Token *tok)
         if (ch == '%') {
             ch = get();
             if (ch == '=') {
-                tok->set(TK::PERCENTEQ, pos);
+                tok->set(TK_PERCENTEQ, pos);
             }
             else {
                 unget();
-                tok->set(TK::PERCENT, pos);
+                tok->set(TK_PERCENT, pos);
             }
             return;
         }
@@ -379,11 +379,11 @@ void Lexer::Get(Token *tok)
         if (ch == '|') {
             ch = get();
             if (ch == '|') {
-                tok->set(TK::BAR2, pos);
+                tok->set(TK_BAR2, pos);
             }
             else {
                 unget();
-                tok->set(TK::BAR, pos);
+                tok->set(TK_BAR, pos);
             }
             return;
         }
@@ -391,47 +391,47 @@ void Lexer::Get(Token *tok)
         if (ch == '&') {
             ch = get();
             if (ch == '&') {
-                tok->set(TK::AMP2, pos);
+                tok->set(TK_AMP2, pos);
             }
             else {
                 unget();
-                tok->set(TK::AMP, pos);
+                tok->set(TK_AMP, pos);
             }
             return;
         }
 
         if (ch == '.') {
-            tok->set(TK::PERIOD, pos);
+            tok->set(TK_PERIOD, pos);
             return;
         }
 
         if (ch == ',') {
-            tok->set(TK::COMMA, pos);
+            tok->set(TK_COMMA, pos);
             return;
         }
 
         if (ch == ';') {
-            tok->set(TK::SEMICOLON, pos);
+            tok->set(TK_SEMICOLON, pos);
             return;
         }
 
         if (ch == '(') {
-            tok->set(TK::LPAREN, pos);
+            tok->set(TK_LPAREN, pos);
             return;
         }
 
         if (ch == ')') {
-            tok->set(TK::RPAREN, pos);
+            tok->set(TK_RPAREN, pos);
             return;
         }
 
         if (ch == '[') {
-            tok->set(TK::LBRACK, pos);
+            tok->set(TK_LBRACK, pos);
             return;
         }
 
         if (ch == ']') {
-            tok->set(TK::RBRACK, pos);
+            tok->set(TK_RBRACK, pos);
             return;
         }
 
@@ -445,7 +445,7 @@ void Lexer::Get(Token *tok)
         if (ch == '$') {
             unget();
             scan_word(tok, pos);
-            if (tok->kind == TK::IDENT) {
+            if (tok->kind == TK_IDENT) {
                 const std::string msg =
                     "unknown special variables: '$" +
                     std::string(tok->sval) + "'";
@@ -463,23 +463,23 @@ void Lexer::Get(Token *tok)
         if (ch == '#') {
             ch = get();
             if (ch == '#') {
-                tok->set(TK::HASH2, pos);
+                tok->set(TK_HASH2, pos);
             }
             else {
                 unget();
-                tok->set(TK::HASH, pos);
+                tok->set(TK_HASH, pos);
             }
             return;
         }
 
         if (ch == '\n') {
-            tok->set(TK::NEWLINE, pos);
+            tok->set(TK_NEWLINE, pos);
             is_line_begin_ = true;
             return;
         }
 
         if (ch == EOF) {
-            tok->set(TK::EOF_, pos);
+            tok->set(TK_EOF, pos);
             return;
         }
 
@@ -492,7 +492,7 @@ void Lexer::Get(Token *tok)
         return;
     }
 
-    tok->set(TK::EOF_, pos_);
+    tok->set(TK_EOF, pos_);
 }
 
 static bool isfp(int ch)
@@ -550,11 +550,11 @@ void Lexer::scan_number(Token *tok, Pos pos)
 
     if (fpnum) {
         tok->fval = strtod(&(*start), &end);
-        tok->set(TK::FLTLIT, pos);
+        tok->set(TK_FLTLIT, pos);
     }
     else {
         tok->ival = strtol(&(*start), &end, base);
-        tok->set(TK::INTLIT, pos);
+        tok->set(TK_INTLIT, pos);
     }
 
     assert(end && (len == (end - &(*start))));
@@ -574,7 +574,7 @@ void Lexer::scan_char_literal(Token *tok, Pos pos)
     }
 
     tok->ival = ch;
-    tok->set(TK::INTLIT, pos);
+    tok->set(TK_INTLIT, pos);
 
     ch = get();
     if (ch != '\'') {
@@ -614,7 +614,7 @@ void Lexer::scan_word(Token *tok, Pos pos)
     unget();
 
     const std::string_view word(&(*start), len);
-    const TokenKind kind = keyword_or_identifier(word);
+    const TK kind = keyword_or_identifier(word);
 
     tok->sval = intern(buf);
     tok->set(kind, pos);
@@ -657,7 +657,7 @@ void Lexer::scan_string(Token *tok, Pos pos)
 
     tok->has_escseq = backslashes > 0;
     tok->sval = intern(buf);
-    tok->set(TK::STRLIT, pos);
+    tok->set(TK_STRLIT, pos);
 }
 
 int Lexer::count_indent()
@@ -700,14 +700,14 @@ int Lexer::count_indent()
     return indent;
 }
 
-TokenKind Lexer::scan_indent(Token *tok)
+TK Lexer::scan_indent(Token *tok)
 {
     const int indent = count_indent();
 
     if (indent > indent_stack_.top()) {
         // push indent
         indent_stack_.push(indent);
-        tok->set(TK::BLOCKBEGIN, pos_);
+        tok->set(TK_BLOCKBEGIN, pos_);
 
         // BlockBegin alwasy starts at beginning of line
         tok->pos.x = 1;
@@ -722,7 +722,7 @@ TokenKind Lexer::scan_indent(Token *tok)
             indent_stack_.pop();
 
             if (indent == indent_stack_.top()) {
-                tok->set(TK::BLOCKEND, pos_);
+                tok->set(TK_BLOCKEND, pos_);
                 return tok->kind;
             }
 

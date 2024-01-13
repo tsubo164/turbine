@@ -126,21 +126,21 @@ Expr *NewBinaryExpr(Expr *L, Expr *R, TK k)
     Expr *e = CALLOC(Expr);
     e->type = L->type;
     switch (k) {
-    case TK::PLUS:    e->kind = T_ADD; break;
-    case TK::MINUS:   e->kind = T_SUB; break;
-    case TK::STAR:    e->kind = T_MUL; break;
-    case TK::SLASH:   e->kind = T_DIV; break;
-    case TK::PERCENT: e->kind = T_REM; break;
-    case TK::BAR:     e->kind = T_OR;  break;
-    case TK::BAR2:    e->kind = T_LOR; break;
-    case TK::AMP:     e->kind = T_AND; break;
-    case TK::AMP2:    e->kind = T_LAND; break;
-    case TK::EXCL:    e->kind = T_LNOT; break;
-    case TK::CARET:   e->kind = T_XOR; break;
-    case TK::TILDA:   e->kind = T_NOT; break;
-    case TK::LT2:     e->kind = T_SHL; break;
-    case TK::GT2:     e->kind = T_SHR; break;
-    default:          e->kind = T_NUL; break;
+    case TK_PLUS:    e->kind = T_ADD; break;
+    case TK_MINUS:   e->kind = T_SUB; break;
+    case TK_STAR:    e->kind = T_MUL; break;
+    case TK_SLASH:   e->kind = T_DIV; break;
+    case TK_PERCENT: e->kind = T_REM; break;
+    case TK_BAR:     e->kind = T_OR;  break;
+    case TK_BAR2:    e->kind = T_LOR; break;
+    case TK_AMP:     e->kind = T_AND; break;
+    case TK_AMP2:    e->kind = T_LAND; break;
+    case TK_EXCL:    e->kind = T_LNOT; break;
+    case TK_CARET:   e->kind = T_XOR; break;
+    case TK_TILDA:   e->kind = T_NOT; break;
+    case TK_LT2:     e->kind = T_SHL; break;
+    case TK_GT2:     e->kind = T_SHR; break;
+    default:         e->kind = T_NUL; break;
     }
     e->l = L;
     e->r = R;
@@ -152,13 +152,13 @@ Expr *NewRelationalExpr(Expr *L, Expr *R, TK k)
     Expr *e = CALLOC(Expr);
     e->type = NewBoolType();
     switch (k) {
-    case TK::EQ2:     e->kind = T_EQ;  break;
-    case TK::EXCLEQ:  e->kind = T_NEQ; break;
-    case TK::LT:      e->kind = T_LT; break;
-    case TK::GT:      e->kind = T_GT; break;
-    case TK::LTE:     e->kind = T_LTE; break;
-    case TK::GTE:     e->kind = T_GTE; break;
-    default:          e->kind = T_NUL; break;
+    case TK_EQ2:     e->kind = T_EQ;  break;
+    case TK_EXCLEQ:  e->kind = T_NEQ; break;
+    case TK_LT:      e->kind = T_LT; break;
+    case TK_GT:      e->kind = T_GT; break;
+    case TK_LTE:     e->kind = T_LTE; break;
+    case TK_GTE:     e->kind = T_GTE; break;
+    default:         e->kind = T_NUL; break;
     }
     e->l = L;
     e->r = R;
@@ -170,13 +170,13 @@ Expr *NewUnaryExpr(Expr *L, Type *t, TK k)
     Expr *e = CALLOC(Expr);
     e->type = t;
     switch (k) {
-    case TK::AMP:    e->kind = T_ADR; break;
-    case TK::PLUS:   e->kind = T_POS; break;
-    case TK::MINUS:  e->kind = T_NEG; break;
-    case TK::EXCL:   e->kind = T_LNOT; break;
-    case TK::TILDA:  e->kind = T_NOT; break;
-    case TK::STAR:   e->kind = T_DRF; break;
-    default:         e->kind = T_NUL; break;
+    case TK_AMP:    e->kind = T_ADR; break;
+    case TK_PLUS:   e->kind = T_POS; break;
+    case TK_MINUS:  e->kind = T_NEG; break;
+    case TK_EXCL:   e->kind = T_LNOT; break;
+    case TK_TILDA:  e->kind = T_NOT; break;
+    case TK_STAR:   e->kind = T_DRF; break;
+    default:        e->kind = T_NUL; break;
     }
     e->l = L;
     return e;
@@ -187,13 +187,13 @@ Expr *NewAssignExpr(Expr *l, Expr *r, TK k)
     Expr *e = CALLOC(Expr);
     e->type = l->type;
     switch (k) {
-    case TK::EQ:        e->kind = T_ASSN; break;
-    case TK::PLUSEQ:    e->kind = T_AADD; break;
-    case TK::MINUSEQ:   e->kind = T_ASUB; break;
-    case TK::STAREQ:    e->kind = T_AMUL; break;
-    case TK::SLASHEQ:   e->kind = T_ADIV; break;
-    case TK::PERCENTEQ: e->kind = T_AREM; break;
-    default:            e->kind = T_NUL; break;
+    case TK_EQ:        e->kind = T_ASSN; break;
+    case TK_PLUSEQ:    e->kind = T_AADD; break;
+    case TK_MINUSEQ:   e->kind = T_ASUB; break;
+    case TK_STAREQ:    e->kind = T_AMUL; break;
+    case TK_SLASHEQ:   e->kind = T_ADIV; break;
+    case TK_PERCENTEQ: e->kind = T_AREM; break;
+    default:           e->kind = T_NUL; break;
     }
     e->l = l;
     e->r = r;
@@ -205,9 +205,9 @@ Expr *NewIncDecExpr(Expr *l, TK k)
     Expr *e = CALLOC(Expr);
     e->type = l->type;
     switch (k) {
-    case TK::PLUS2:  e->kind = T_INC; break;
-    case TK::MINUS2: e->kind = T_DEC; break;
-    default:         e->kind = T_NUL; break;
+    case TK_PLUS2:  e->kind = T_INC; break;
+    case TK_MINUS2: e->kind = T_DEC; break;
+    default:        e->kind = T_NUL; break;
     }
     e->l = l;
     return e;
@@ -263,9 +263,9 @@ Stmt *NewJumpStmt(TK k)
 {
     Stmt *s = CALLOC(Stmt);
     switch (k) {
-    case TK::BREAK:    s->kind = T_BRK; break;
-    case TK::CONTINUE: s->kind = T_CNT; break;
-    default:           s->kind = T_NUL; break;
+    case TK_BREAK:    s->kind = T_BRK; break;
+    case TK_CONTINUE: s->kind = T_CNT; break;
+    default:          s->kind = T_NUL; break;
     }
     return s;
 }
@@ -274,9 +274,9 @@ Stmt *NewCaseStmt(Stmt *conds, Stmt *body, TK k)
 {
     Stmt *s = CALLOC(Stmt);
     switch (k) {
-    case TK::CASE:    s->kind = T_CASE; break;
-    case TK::DEFAULT: s->kind = T_DFLT; break;
-    default:          s->kind = T_NUL; break;
+    case TK_CASE:    s->kind = T_CASE; break;
+    case TK_DEFAULT: s->kind = T_DFLT; break;
+    default:         s->kind = T_NUL; break;
     }
     s->children = conds;
     s->body = body;

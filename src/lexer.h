@@ -5,90 +5,89 @@
 #include <string>
 #include <stack>
 
-enum class TokenKind {
-    UNKNOWN = 0,
+enum TK {
+    TK_UNKNOWN = 0,
     // factor
-    INTLIT,
-    FLTLIT,
-    STRLIT,
-    IDENT,
+    TK_INTLIT,
+    TK_FLTLIT,
+    TK_STRLIT,
+    TK_IDENT,
     // operator
-    EQ,
-    PLUSEQ,
-    MINUSEQ,
-    STAREQ,
-    SLASHEQ,
-    PERCENTEQ,
-    EQ2,
-    EXCLEQ,
-    EXCL,
-    CARET,
-    TILDA,
-    LT2,
-    GT2,
-    LT,
-    GT,
-    LTE,
-    GTE,
-    PLUS,
-    MINUS,
-    STAR,
-    SLASH,
-    PERCENT,
-    BAR,
-    BAR2,
-    AMP,
-    AMP2,
-    PERIOD,
-    PLUS2,
-    MINUS2,
-    HASH,
-    HASH2,
+    TK_EQ,
+    TK_PLUSEQ,
+    TK_MINUSEQ,
+    TK_STAREQ,
+    TK_SLASHEQ,
+    TK_PERCENTEQ,
+    TK_EQ2,
+    TK_EXCLEQ,
+    TK_EXCL,
+    TK_CARET,
+    TK_TILDA,
+    TK_LT2,
+    TK_GT2,
+    TK_LT,
+    TK_GT,
+    TK_LTE,
+    TK_GTE,
+    TK_PLUS,
+    TK_MINUS,
+    TK_STAR,
+    TK_SLASH,
+    TK_PERCENT,
+    TK_BAR,
+    TK_BAR2,
+    TK_AMP,
+    TK_AMP2,
+    TK_PERIOD,
+    TK_PLUS2,
+    TK_MINUS2,
+    TK_HASH,
+    TK_HASH2,
     // keyword
-    NIL,
-    TRUE,
-    FALSE,
-    BOOL,
-    INT,
-    FLOAT,
-    STRING,
-    IF,
-    OR,
-    ELSE,
-    FOR,
-    BREAK,
-    CONTINUE,
-    SWITCH,
-    CASE,
-    DEFAULT,
-    RETURN,
-    NOP,
+    TK_NIL,
+    TK_TRUE,
+    TK_FALSE,
+    TK_BOOL,
+    TK_INT,
+    TK_FLOAT,
+    TK_STRING,
+    TK_IF,
+    TK_OR,
+    TK_ELSE,
+    TK_FOR,
+    TK_BREAK,
+    TK_CONTINUE,
+    TK_SWITCH,
+    TK_CASE,
+    TK_DEFAULT,
+    TK_RETURN,
+    TK_NOP,
     // separator
-    MINUS3,
-    COMMA,
-    SEMICOLON,
-    LPAREN,
-    RPAREN,
-    LBRACK,
-    RBRACK,
-    BLOCKBEGIN,
-    BLOCKEND,
-    NEWLINE,
+    TK_MINUS3,
+    TK_COMMA,
+    TK_SEMICOLON,
+    TK_LPAREN,
+    TK_RPAREN,
+    TK_LBRACK,
+    TK_RBRACK,
+    TK_BLOCKBEGIN,
+    TK_BLOCKEND,
+    TK_NEWLINE,
     // special var
-    CALLER_LINE,
-    EOF_,
+    TK_CALLER_LINE,
+    TK_EOF,
 };
-using TK = TokenKind;
 
-const char *GetTokenKindString(TokenKind kind);
-std::ostream &operator<<(std::ostream &os, TokenKind kind);
+const char *GetTokenKindString(TK kind);
+std::ostream &operator<<(std::ostream &os, TK kind);
 
 struct Pos {
     int x = 0, y = 1;
 };
 
 struct Token {
-    TokenKind kind = TK::UNKNOWN;
+    TK kind = TK_UNKNOWN;
     Pos pos;
 
     long ival = 0;
@@ -96,7 +95,7 @@ struct Token {
     bool has_escseq = false;
     const char *sval;
 
-    void set(TokenKind k, Pos p);
+    void set(TK k, Pos p);
 };
 
 class Lexer {
@@ -130,7 +129,7 @@ private:
     void scan_word(Token *tok, Pos pos);
     void scan_string(Token *tok, Pos pos);
     int count_indent();
-    TokenKind scan_indent(Token *tok);
+    TK scan_indent(Token *tok);
     void scan_line_comment();
     void scan_block_comment(Pos pos);
 };

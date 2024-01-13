@@ -43,9 +43,9 @@ private:
     long tok_int() const;
     double tok_float() const;
     const char *tok_str() const;
-    TokenKind peek();
-    void expect(TokenKind kind);
-    bool consume(TokenKind kind);
+    TK peek();
+    void expect(TK kind);
+    bool consume(TK kind);
 
     // scope
     void enter_scope(Func *func = nullptr);

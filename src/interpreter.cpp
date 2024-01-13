@@ -122,23 +122,23 @@ void Interpreter::print_token(const std::string &src) const
                 std::setw(3) << tok->pos.x << ") ";
             std::cout << tok->kind;
 
-            if (tok->kind == TK::IDENT)
+            if (tok->kind == TK_IDENT)
                 std::cout << " (" << tok->sval << ")";
-            if (tok->kind == TK::INTLIT)
+            if (tok->kind == TK_INTLIT)
                 std::cout << " (" << tok->ival << ")";
-            if (tok->kind == TK::FLTLIT)
+            if (tok->kind == TK_FLTLIT)
                 std::cout << " (" << tok->fval << ")";
-            if (tok->kind == TK::STRLIT)
+            if (tok->kind == TK_STRLIT)
                 std::cout << " (\"" << tok->sval << "\")";
 
             std::cout << std::endl;
         }
         else {
-            if (tok->kind == TK::BLOCKBEGIN) {
+            if (tok->kind == TK_BLOCKBEGIN) {
                 indent++;
                 continue;
             }
-            else if (tok->kind == TK::BLOCKEND) {
+            else if (tok->kind == TK_BLOCKEND) {
                 indent--;
                 continue;
             }
@@ -149,16 +149,16 @@ void Interpreter::print_token(const std::string &src) const
                     std::cout << "....";
             }
 
-            if (tok->kind == TK::NEWLINE) {
+            if (tok->kind == TK_NEWLINE) {
                 std::cout << tok->kind << std::endl;
                 bol = true;
             }
-            else if (tok->kind != TK::BLOCKBEGIN && tok->kind != TK::BLOCKEND) {
+            else if (tok->kind != TK_BLOCKBEGIN && tok->kind != TK_BLOCKEND) {
                 std::cout << tok->kind << ' ';
             }
         }
 
-        if (tok->kind == TK::EOF_)
+        if (tok->kind == TK_EOF)
             break;
     }
     std::cout << std::endl;
