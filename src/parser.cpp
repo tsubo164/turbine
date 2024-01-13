@@ -102,15 +102,15 @@ const char *Parser::tok_str() const
     return curr_->sval;
 }
 
-TK Parser::peek()
+int Parser::peek()
 {
     const Token *tok = gettok();
-    const TK kind = tok->kind;
+    const int kind = tok->kind;
     ungettok();
     return kind;
 }
 
-void Parser::expect(TK kind)
+void Parser::expect(int kind)
 {
     const Token *tok = gettok();
     if (tok->kind != kind) {
@@ -120,7 +120,7 @@ void Parser::expect(TK kind)
     }
 }
 
-bool Parser::consume(TK kind)
+bool Parser::consume(int kind)
 {
     if (peek() == kind) {
         gettok();
@@ -194,7 +194,7 @@ Expr *Parser::arg_list(Expr *call)
     return call;
 }
 
-Expr *Parser::conv_expr(TK kind)
+Expr *Parser::conv_expr(int kind)
 {
     Type *to_type = type_spec();
     const Pos tokpos = tok_pos();
@@ -270,7 +270,7 @@ Expr *Parser::primary_expr()
         return NewIdentExpr(var);
     }
 
-    const TK next = peek();
+    const int next = peek();
     switch (next) {
     case TK_BOOL:
     case TK_INT:
@@ -364,7 +364,7 @@ Expr *Parser::primary_expr()
 Expr *Parser::unary_expr()
 {
     const Token *tok = gettok();
-    const TK kind = tok->kind;
+    const int kind = tok->kind;
 
     if (kind == TK_AMP) {
         Expr *expr = unary_expr();
@@ -543,7 +543,7 @@ Expr *Parser::assign_expr()
     Expr *lval = logor_expr();
     Expr *rval = nullptr;
     const Token *tok = gettok();
-    const TK kind = tok->kind;
+    const int kind = tok->kind;
 
     switch (kind) {
     case TK_EQ:
@@ -674,7 +674,7 @@ Stmt *Parser::for_stmt()
 Stmt *Parser::jump_stmt()
 {
     const Token *tok = gettok();
-    const TK kind = tok->kind;
+    const int kind = tok->kind;
 
     if (kind == TK_BREAK) {
     }
@@ -709,12 +709,10 @@ Stmt *Parser::switch_stmt()
             if (default_count > 0) {
                 error(tok->pos, "No 'case' should come after 'default'");
             }
-            //swtch->AddCase(case_stmt(tok->kind));
             append(&list, case_stmt(tok->kind));
             continue;
 
         case TK_DEFAULT:
-            //swtch->AddCase(case_stmt(tok->kind));
             append(&list, case_stmt(tok->kind));
             default_count++;
             continue;
@@ -727,7 +725,7 @@ Stmt *Parser::switch_stmt()
     }
 }
 
-Stmt *Parser::case_stmt(TK kind)
+Stmt *Parser::case_stmt(int kind)
 {
     // TODO make this last by adding ListExpr
     StmtList list;
@@ -931,7 +929,7 @@ Stmt *Parser::block_stmt(Func *func)
     expect(TK_BLOCKBEGIN);
 
     for (;;) {
-        const TK next = peek();
+        const int next = peek();
 
         if (next == TK_MINUS) {
             append(&list, var_decl());
@@ -1087,7 +1085,7 @@ void Parser::param_list(Func *func)
 
 void Parser::ret_type(Func *func)
 {
-    const TK next = peek();
+    const int next = peek();
 
     if (next == TK_NEWLINE)
         func->return_type = new Type(TY::NIL);
@@ -1149,7 +1147,7 @@ Prog *Parser::program()
     init_list(&list);
 
     for (;;) {
-        const TK next = peek();
+        const int next = peek();
 
         if (next == TK_HASH) {
             FuncDef *fdef = func_def();

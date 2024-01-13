@@ -80,7 +80,7 @@ typedef struct Pos {
 } Pos;
 
 typedef struct Token {
-    TK kind;
+    int kind;
     Pos pos;
     union {
         long ival;
@@ -94,6 +94,6 @@ typedef struct Token {
 
 const Token *Tokenize(const char *src);
 void PrintToken(const Token *token, bool format);
-const char *TokenKindString(TK kind);
+const char *TokenKindString(int kind);
 
 #endif // _H

@@ -53,11 +53,11 @@ Expr *NewFieldExpr(Field *f);
 Expr *NewSelectExpr(Expr *inst, Expr *fld);
 Expr *NewIndexExpr(Expr *ary, Expr *idx);
 Expr *NewCallExpr(Expr *callee, Pos p);
-Expr *NewBinaryExpr(Expr *L, Expr *R, TK k);
-Expr *NewRelationalExpr(Expr *L, Expr *R, TK k);
-Expr *NewUnaryExpr(Expr *L, Type *t, TK k);
-Expr *NewAssignExpr(Expr *l, Expr *r, TK k);
-Expr *NewIncDecExpr(Expr *l, TK k);
+Expr *NewBinaryExpr(Expr *L, Expr *R, int k);
+Expr *NewRelationalExpr(Expr *L, Expr *R, int k);
+Expr *NewUnaryExpr(Expr *L, Type *t, int k);
+Expr *NewAssignExpr(Expr *l, Expr *r, int k);
+Expr *NewIncDecExpr(Expr *l, int k);
 
 
 //--------------------------------
@@ -79,8 +79,8 @@ Stmt *NewBlockStmt(Stmt *children);
 Stmt *NewOrStmt(Expr *cond, Stmt *body);
 Stmt *NewIfStmt(Stmt *or_list);
 Stmt *NewForStmt(Expr *init, Expr *cond, Expr *post, Stmt *body);
-Stmt *NewJumpStmt(TK k);
-Stmt *NewCaseStmt(Stmt *conds, Stmt *body, TK k);
+Stmt *NewJumpStmt(int k);
+Stmt *NewCaseStmt(Stmt *conds, Stmt *body, int k);
 Stmt *NewSwitchStmt(Expr *cond, Stmt *cases);
 Stmt *NewReturnStmt(Expr *e);
 Stmt *NewExprStmt(Expr *e);

@@ -121,7 +121,7 @@ Expr *NewCallExpr(Expr *callee, Pos p)
     return e;
 }
 
-Expr *NewBinaryExpr(Expr *L, Expr *R, TK k)
+Expr *NewBinaryExpr(Expr *L, Expr *R, int k)
 {
     Expr *e = CALLOC(Expr);
     e->type = L->type;
@@ -147,7 +147,7 @@ Expr *NewBinaryExpr(Expr *L, Expr *R, TK k)
     return e;
 }
 
-Expr *NewRelationalExpr(Expr *L, Expr *R, TK k)
+Expr *NewRelationalExpr(Expr *L, Expr *R, int k)
 {
     Expr *e = CALLOC(Expr);
     e->type = NewBoolType();
@@ -165,7 +165,7 @@ Expr *NewRelationalExpr(Expr *L, Expr *R, TK k)
     return e;
 }
 
-Expr *NewUnaryExpr(Expr *L, Type *t, TK k)
+Expr *NewUnaryExpr(Expr *L, Type *t, int k)
 {
     Expr *e = CALLOC(Expr);
     e->type = t;
@@ -182,7 +182,7 @@ Expr *NewUnaryExpr(Expr *L, Type *t, TK k)
     return e;
 }
 
-Expr *NewAssignExpr(Expr *l, Expr *r, TK k)
+Expr *NewAssignExpr(Expr *l, Expr *r, int k)
 {
     Expr *e = CALLOC(Expr);
     e->type = l->type;
@@ -200,7 +200,7 @@ Expr *NewAssignExpr(Expr *l, Expr *r, TK k)
     return e;
 }
 
-Expr *NewIncDecExpr(Expr *l, TK k)
+Expr *NewIncDecExpr(Expr *l, int k)
 {
     Expr *e = CALLOC(Expr);
     e->type = l->type;
@@ -259,7 +259,7 @@ Stmt *NewForStmt(Expr *init, Expr *cond, Expr *post, Stmt *body)
     return s;
 }
 
-Stmt *NewJumpStmt(TK k)
+Stmt *NewJumpStmt(int k)
 {
     Stmt *s = CALLOC(Stmt);
     switch (k) {
@@ -270,7 +270,7 @@ Stmt *NewJumpStmt(TK k)
     return s;
 }
 
-Stmt *NewCaseStmt(Stmt *conds, Stmt *body, TK k)
+Stmt *NewCaseStmt(Stmt *conds, Stmt *body, int k)
 {
     Stmt *s = CALLOC(Stmt);
     switch (k) {

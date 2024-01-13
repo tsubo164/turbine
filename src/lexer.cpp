@@ -50,9 +50,11 @@ static TK keyword_or_identifier(const char *word)
     return TK_IDENT;
 }
 
-static const char *tok_kind_string(TK kind)
+static const char *tok_kind_string(int kind)
 {
-    switch (kind) {
+    const TK k = static_cast<TK>(kind);
+
+    switch (k) {
     case TK_UNKNOWN:    return "unknown";
     case TK_INTLIT:     return "integer_literal";
     case TK_FLTLIT:     return "float_literal";
@@ -124,7 +126,7 @@ static const char *tok_kind_string(TK kind)
     return nullptr;
 }
 
-const char *TokenKindString(TK kind)
+const char *TokenKindString(int kind)
 {
     return tok_kind_string(kind);
 }
@@ -166,7 +168,7 @@ private:
     void scan_word(Token *tok, Pos pos);
     void scan_string(Token *tok, Pos pos);
     int count_indent();
-    TK scan_indent(Token *tok);
+    int scan_indent(Token *tok);
     void scan_line_comment();
     void scan_block_comment(Pos pos);
 };
@@ -248,7 +250,7 @@ void Lexer::Get(Token *tok)
     if (is_line_begin_) {
         is_line_begin_ = false;
 
-        const TK kind = scan_indent(tok);
+        const int kind = scan_indent(tok);
         if (kind == TK_BLOCKBEGIN || kind == TK_BLOCKEND)
             return;
     }
@@ -737,7 +739,7 @@ int Lexer::count_indent()
     return indent;
 }
 
-TK Lexer::scan_indent(Token *tok)
+int Lexer::scan_indent(Token *tok)
 {
     const int indent = count_indent();
 

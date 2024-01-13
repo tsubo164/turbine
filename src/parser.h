@@ -38,9 +38,9 @@ private:
     long tok_int() const;
     double tok_float() const;
     const char *tok_str() const;
-    TK peek();
-    void expect(TK kind);
-    bool consume(TK kind);
+    int peek();
+    void expect(int kind);
+    bool consume(int kind);
 
     // scope
     void enter_scope(Func *func = nullptr);
@@ -49,7 +49,7 @@ private:
 
     // expression
     Expr *arg_list(Expr *call);
-    Expr *conv_expr(TK kind);
+    Expr *conv_expr(int kind);
     Expr *primary_expr();
     Expr *unary_expr();
     Expr *mul_expr();
@@ -66,7 +66,7 @@ private:
     Stmt *for_stmt();
     Stmt *jump_stmt();
     Stmt *switch_stmt();
-    Stmt *case_stmt(TK kind);
+    Stmt *case_stmt(int kind);
     Stmt *ret_stmt();
     Stmt *expr_stmt();
     Stmt *scope_stmt();
