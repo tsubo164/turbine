@@ -785,3 +785,27 @@ void Lexer::scan_block_comment(Pos pos)
         }
     }
 }
+
+const Token *Tokenize(const char *src)
+{
+    std::string tmp(src);
+    Lexer lexer;
+    lexer.SetInput(tmp);
+
+    Token *head = CALLOC(Token);
+    Token *tail = head;
+
+    for (;;) {
+        Token *t = CALLOC(Token);
+        lexer.Get(t);
+
+        tail->next = t;
+        t->prev = tail;
+        tail = t;
+
+        if (t->kind == TK_EOF)
+            break;
+    }
+
+    return head;
+}

@@ -25,6 +25,9 @@ Int Interpreter::Run(const std::string &src)
     // Builtin functions
     DefineBuiltinFuncs(&scope_);
 
+    // Tokenize
+    const Token *tok = Tokenize(src.c_str());
+
     // Print token
     if (print_token_) {
         print_token(src);
@@ -34,7 +37,7 @@ Int Interpreter::Run(const std::string &src)
     }
 
     // Compile source
-    prog_ = parser_.Parse(src, &scope_);
+    prog_ = Parse(src, tok, &scope_);
 
     if (print_tree_) {
         print_header("tree");

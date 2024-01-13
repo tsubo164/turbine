@@ -86,7 +86,7 @@ struct Pos {
     int x = 0, y = 1;
 };
 
-struct Token {
+typedef struct Token {
     TK kind = TK_UNKNOWN;
     Pos pos;
 
@@ -95,8 +95,11 @@ struct Token {
     bool has_escseq = false;
     const char *sval;
 
+    struct Token *prev;
+    struct Token *next;
+
     void set(TK k, Pos p);
-};
+} Token;
 
 class Lexer {
 public:
@@ -133,5 +136,7 @@ private:
     void scan_line_comment();
     void scan_block_comment(Pos pos);
 };
+
+const Token *Tokenize(const char *src);
 
 #endif // _H

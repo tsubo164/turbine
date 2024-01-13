@@ -13,10 +13,9 @@ public:
     Parser() {}
     ~Parser() {}
 
-    Prog *Parse(const std::string &src, Scope *scope);
+    Prog *Parse(const std::string &src, const Token *tok, Scope *scope);
 
 private:
-    Lexer lexer_;
     Scope *scope_ = nullptr;
     const std::string *src_;
     Func *func_ = nullptr;
@@ -24,12 +23,8 @@ private:
     // TODO remove this
     int funclit_id_ = 0;
 
-    // token buffer
-    std::array<Token,8> tokbuf_;
-    Token *curr_  = &tokbuf_[0];
-    Token *head_  = &tokbuf_[0];
-    Token *begin_ = &tokbuf_[0];
-    Token *end_   = &tokbuf_[tokbuf_.size()-1];
+    // current token
+    const Token *curr_;
 
     // token get
     Token *next() const;
@@ -94,5 +89,7 @@ private:
             std::string_view s4 = {}, std::string_view s5 = {}) const;
     Prog *program();
 };
+
+Prog *Parse(const std::string &src, const Token *tok, Scope *scope);
 
 #endif // _H

@@ -54,32 +54,16 @@ void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
     Error(msg, *src_, pos);
 }
 
-Prog *Parser::Parse(const std::string &src, Scope *scope)
+Prog *Parser::Parse(const std::string &src, const Token *tok, Scope *scope)
 {
     src_ = &src;
-    lexer_.SetInput(src);
+    curr_ = tok;
     scope_ = scope;
 
     // global (file) scope
     enter_scope();
 
     return program();
-}
-
-Token *Parser::next() const
-{
-    if (curr_ == end_)
-        return begin_;
-    else
-        return curr_ + 1;
-}
-
-Token *Parser::prev() const
-{
-    if (curr_ == begin_)
-        return end_;
-    else
-        return curr_ - 1;
 }
 
 const Token *Parser::curtok() const
@@ -89,21 +73,13 @@ const Token *Parser::curtok() const
 
 const Token *Parser::gettok()
 {
-    if (curr_ != head_) {
-        curr_ = next();
-        return curr_;
-    }
-    else {
-        curr_ = next();
-        lexer_.Get(curr_);
-        head_ = curr_;
-        return curr_;
-    }
+    curr_ = curr_->next;
+    return curr_;
 }
 
 void Parser::ungettok()
 {
-    curr_ = prev();
+    curr_ = curr_->prev;
 }
 
 Pos Parser::tok_pos() const
@@ -1229,3 +1205,10 @@ Prog *Parser::program()
     prog->gvars = list.head.next;
     return prog;
 }
+
+Prog *Parse(const std::string &src, const Token *tok, Scope *scope)
+{
+    Parser parser;
+    return parser.Parse(src, tok, scope);
+}
+
