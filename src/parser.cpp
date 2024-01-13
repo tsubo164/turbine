@@ -115,7 +115,7 @@ void Parser::expect(TK kind)
     const Token *tok = gettok();
     if (tok->kind != kind) {
         const std::string msg =
-            std::string("expected '") + GetTokenKindString(kind) + "'";
+            std::string("expected '") + TokenKindString(kind) + "'";
         Error(msg, *src_, tok->pos);
     }
 }
@@ -347,7 +347,7 @@ Expr *Parser::primary_expr()
         else {
             if (!expr) {
                 const std::string msg = "unknown token: \"" +
-                    std::string(GetTokenKindString(tok->kind)) + "\"";
+                    std::string(TokenKindString(tok->kind)) + "\"";
                 Error(msg, *src_, tok->pos);
             }
 
@@ -1037,7 +1037,7 @@ Type *Parser::type_spec()
     else {
         const Token *tok = gettok();
         error(tok->pos, "not a type name: '",
-                GetTokenKindString(tok->kind), "'");
+                TokenKindString(tok->kind), "'");
     }
 
     return type;
@@ -1198,7 +1198,7 @@ Prog *Parser::program()
 
         const Token *tok = gettok();
         const std::string msg = std::string("error: unexpected token: '") +
-            GetTokenKindString(next) + "'";
+            TokenKindString(next) + "'";
         Error(msg, *src_, tok->pos);
     }
 

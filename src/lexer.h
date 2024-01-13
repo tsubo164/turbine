@@ -1,10 +1,6 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include <iostream>
-#include <string>
-#include <stack>
-
 enum TK {
     TK_UNKNOWN = 0,
     // factor
@@ -79,29 +75,25 @@ enum TK {
     TK_EOF,
 };
 
-const char *GetTokenKindString(TK kind);
-std::ostream &operator<<(std::ostream &os, TK kind);
-
-struct Pos {
-    int x = 0, y = 1;
-};
+typedef struct Pos {
+    int x, y;
+} Pos;
 
 typedef struct Token {
-    TK kind = TK_UNKNOWN;
+    TK kind;
     Pos pos;
-
-    long ival = 0;
-    double fval = 0.0;
-    bool has_escseq = false;
-    const char *sval;
-
+    union {
+        long ival;
+        double fval;
+        bool has_escseq;
+        const char *sval;
+    };
     struct Token *prev;
     struct Token *next;
-
-    void set(TK k, Pos p);
 } Token;
 
 const Token *Tokenize(const char *src);
 void PrintToken(const Token *token, bool format);
+const char *TokenKindString(TK kind);
 
 #endif // _H
