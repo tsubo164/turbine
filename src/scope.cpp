@@ -4,12 +4,12 @@
 #include <iostream>
 
 // Func
-void Func::DeclareParam(std::string_view name, const Type *type)
+void Func::DeclareParam(const char *name, const Type *type)
 {
     const Var *var = scope->DefineVar(name, type);
     params_.push_back(var);
 
-    if (name == "...")
+    if (!strcmp(name, "..."))
         ellipsis_index_ = ParamCount() - 1;
 
     if (name[0] == '$')
@@ -105,7 +105,7 @@ bool Scope::IsGlobal() const
     return level_ == 1;
 }
 
-Var *Scope::DefineVar(std::string_view name, const Type *type)
+Var *Scope::DefineVar(const char *name, const Type *type)
 {
     const auto found = vars_.find(name);
     if (found != vars_.end()) {
@@ -120,7 +120,7 @@ Var *Scope::DefineVar(std::string_view name, const Type *type)
     return var;
 }
 
-Var *Scope::FindVar(std::string_view name, bool find_in_parents) const
+Var *Scope::FindVar(const char *name, bool find_in_parents) const
 {
     const auto it = vars_.find(name);
     if (it != vars_.end()) {
@@ -177,7 +177,7 @@ Func *Scope::DeclareFunc()
     return func;
 }
 
-const Var *Scope::FindFunc(std::string_view name) const
+const Var *Scope::FindFunc(const char *name) const
 {
     const Var *var = FindVar(name);
     if (var && var->type->IsFunc()) {

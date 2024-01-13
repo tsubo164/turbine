@@ -1,6 +1,8 @@
 #include "lexer.h"
 #include "error.h"
 #include "escseq.h"
+#include "compiler.h"
+
 #include <unordered_map>
 #include <cstdlib>
 #include <cassert>
@@ -588,21 +590,33 @@ static bool isword(int ch)
 
 void Lexer::scan_word(Token *tok, Pos pos)
 {
+    static char buf[128] = {'\0'};
+    char *p = buf;
+
     auto start = it_;
     int len = 0;
 
     const int first = get();
-    if (first == '$' || isword(first))
+    if (first == '$' || isword(first)) {
+        *p++ = first;
         len++;
+    }
 
-    for (int ch = get(); isword(ch); ch = get())
+    for (int ch = get(); isword(ch); ch = get()) {
+        *p++ = ch;
         len++;
+        if (len == sizeof(buf)) {
+            // error
+        }
+    }
+    *p = '\0';
 
     unget();
 
     const std::string_view word(&(*start), len);
     const TokenKind kind = keyword_or_identifier(word);
 
+    tok->sval_ = intern(buf);
     tok->sval = word;
     tok->set(kind, pos);
 }

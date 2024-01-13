@@ -126,6 +126,11 @@ std::string_view Parser::tok_str() const
     return curr_->sval;
 }
 
+const char *Parser::tok_str_() const
+{
+    return curr_->sval_;
+}
+
 TokenKind Parser::peek()
 {
     const Token *tok = gettok();
@@ -285,7 +290,7 @@ Expr *Parser::primary_expr()
     }
 
     if (consume(TK::CALLER_LINE)) {
-        Var *var = scope_->FindVar(tok_str());
+        Var *var = scope_->FindVar(tok_str_());
         if (!var) {
             error(tok_pos(),
                     "special variable '", tok_str(),
@@ -310,7 +315,7 @@ Expr *Parser::primary_expr()
         const Token *tok = gettok();
 
         if (tok->kind == TK::IDENT) {
-            Var *var = scope_->FindVar(tok->sval);
+            Var *var = scope_->FindVar(tok->sval_);
             if (!var) {
                 error(tok_pos(),
                         "undefined identifier: '", tok_str(), "'");
@@ -866,14 +871,14 @@ Stmt *Parser::var_decl()
     expect(TK::MINUS);
     expect(TK::IDENT);
 
-    if (scope_->FindVar(tok_str(), false)) {
+    if (scope_->FindVar(tok_str_(), false)) {
         const std::string msg = "re-defined variable: '" +
             std::string(tok_str()) + "'";
         Error(msg, *src_, tok_pos());
     }
 
     // var anme
-    std::string_view name = tok_str();
+    const char *name_ = tok_str_();
     Type *type = nullptr;
     Expr *init = nullptr;
 
@@ -898,7 +903,7 @@ Stmt *Parser::var_decl()
 
     expect(TK::NEWLINE);
 
-    Var *var = scope_->DefineVar(name, type);
+    Var *var = scope_->DefineVar(name_, type);
     Expr *ident = NewIdentExpr(var);
     return NewExprStmt(NewAssignExpr(ident, init, TK::EQ));
 }
@@ -1090,15 +1095,15 @@ void Parser::param_list(Func *func)
 
     do {
         const Type *type = nullptr;
-        std::string_view name;
+        const char *name;
 
         if (consume(TK::CALLER_LINE)) {
-            name = tok_str();
+            name = tok_str_();
             type = new Type(TY::INT);
         }
         else {
             expect(TK::IDENT);
-            name = tok_str();
+            name = tok_str_();
             type = type_spec();
         }
 
@@ -1126,7 +1131,7 @@ FuncDef *Parser::func_def()
     expect(TK::IDENT);
 
     // signature
-    std::string_view name = tok_str();
+    const char *name = tok_str_();
     Func *func = scope_->DeclareFunc();
 
     // params
@@ -1179,7 +1184,8 @@ Prog *Parser::program()
             FuncDef *fdef = func_def();
 
             // TODO remove this
-            if (fdef->var->name == "main")
+            //if (fdef->var->name == "main")
+            if (!strcmp(fdef->var->name, "main"))
                 prog->main_func = fdef->var;
 
             {

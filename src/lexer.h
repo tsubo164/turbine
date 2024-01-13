@@ -96,6 +96,7 @@ struct Token {
     double fval = 0.0;
     bool has_escseq = false;
     std::string_view sval;
+    const char *sval_;
 
     void set(TokenKind k, Pos p);
 };

@@ -13,15 +13,15 @@
 struct Type;
 class Scope;
 
-struct Var {
-    Var(std::string_view Name, const Type *t, int ID, bool global)
+typedef struct Var {
+    Var(const char *Name, const Type *t, int ID, bool global)
         : name(Name), type(t), id(ID), is_global(global) {}
 
-    std::string_view name;
+    const char *name;
     const Type *type;
     const int id;
     const bool is_global;
-};
+} Var;
 
 struct Func {
     Func(Scope *sc, bool builtin = false)
@@ -30,7 +30,7 @@ struct Func {
     Scope *scope;
     const Type *return_type = nullptr;
 
-    void DeclareParam(std::string_view name, const Type *type);
+    void DeclareParam(const char *name, const Type *type);
     const Var *GetParam(int index) const;
     int RequiredParamCount() const;
     int ParamCount() const;
@@ -84,15 +84,15 @@ public:
     Scope *Close() const;
     bool IsGlobal() const;
 
-    Var *DefineVar(std::string_view name, const Type *type);
-    Var *FindVar(std::string_view name, bool find_in_parents = true) const;
+    Var *DefineVar(const char *name, const Type *type);
+    Var *FindVar(const char *name, bool find_in_parents = true) const;
 
     Field *DefineFild(std::string_view name);
     Field *FindField(std::string_view name) const;
     int FieldCount() const;
 
     Func *DeclareFunc();
-    const Var *FindFunc(std::string_view name) const;
+    const Var *FindFunc(const char *name) const;
 
     Class *DefineClass(std::string_view name);
     Class *FindClass(std::string_view name) const;
