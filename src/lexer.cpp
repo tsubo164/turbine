@@ -3,45 +3,50 @@
 #include "escseq.h"
 #include "compiler.h"
 
-#include <unordered_map>
-#include <iomanip>
 #include <string>
 #include <stack>
 
 #include <assert.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-static const std::unordered_map<std::string_view, TK> keywords = {
-    {"nil",      TK_NIL},
-    {"true",     TK_TRUE},
-    {"false",    TK_FALSE},
-    {"bool",     TK_BOOL},
-    {"int",      TK_INT},
-    {"float",    TK_FLOAT},
-    {"string",   TK_STRING},
-    {"if",       TK_IF},
-    {"or",       TK_OR},
-    {"else",     TK_ELSE},
-    {"for",      TK_FOR},
-    {"break",    TK_BREAK},
-    {"continue", TK_CONTINUE},
-    {"switch",   TK_SWITCH},
-    {"case",     TK_CASE},
-    {"default",  TK_DEFAULT},
-    {"return",   TK_RETURN},
-    {"nop",      TK_NOP},
+typedef struct TokInfo2 {
+    TK kind;
+    const char *str;
+    char type;
+} TokInfo2;
+
+static const TokInfo2 keywords[] = {
+    { TK_NIL,      "nil"      },
+    { TK_TRUE,     "true"     },
+    { TK_FALSE,    "false"    },
+    { TK_BOOL,     "bool"     },
+    { TK_INT,      "int"      },
+    { TK_FLOAT,    "float"    },
+    { TK_STRING,   "string"   },
+    { TK_IF,       "if"       },
+    { TK_OR,       "or"       },
+    { TK_ELSE,     "else"     },
+    { TK_FOR,      "for"      },
+    { TK_BREAK,    "break"    },
+    { TK_CONTINUE, "continue" },
+    { TK_SWITCH,   "switch"   },
+    { TK_CASE,     "case"     },
+    { TK_DEFAULT,  "default"  },
+    { TK_RETURN,   "return"   },
+    { TK_NOP,      "nop"      },
     // special vars
-    {"$caller_line", TK_CALLER_LINE},
+    { TK_CALLER_LINE, "$caller_line" },
+    { TK_UNKNOWN,  NULL,  },
 };
 
-static TK keyword_or_identifier(std::string_view word)
+static TK keyword_or_identifier(const char *word)
 {
-    const auto it = keywords.find(word);
-
-    if (it != keywords.end())
-        return it->second;
-
+    for (const TokInfo2 *info = keywords; info->kind; info++) {
+        if (!strcmp(word, info->str))
+            return info->kind;
+    }
     return TK_IDENT;
 }
 
@@ -628,8 +633,6 @@ void Lexer::scan_word(Token *tok, Pos pos)
 {
     static char buf[128] = {'\0'};
     char *p = buf;
-
-    auto start = it_;
     int len = 0;
 
     const int first = get();
@@ -649,9 +652,7 @@ void Lexer::scan_word(Token *tok, Pos pos)
 
     unget();
 
-    const std::string_view word(&(*start), len);
-    const TK kind = keyword_or_identifier(word);
-
+    const TK kind = keyword_or_identifier(buf);
     tok->sval = intern(buf);
     set(tok, kind, pos);
 }
