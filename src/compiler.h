@@ -20,9 +20,12 @@ enum KindTag {
     T_NUL,
     /* type */
     T_NIL,
+    T_TRU,
+    T_FLS,
     T_BOL,
     T_INT,
     T_FLT,
+    T_STR,
     /* stmt */
     T_IF,
     T_FOR,
@@ -53,7 +56,17 @@ enum KindTag {
     /* separator */
     T_LPAREN,
     T_RPAREN,
+    T_LBRACK,
+    T_RBRACK,
     T_SEM,
+    T_BLOCKBEGIN,
+    T_BLOCKEND,
+    T_DASH3,
+    T_DOT,
+    T_COMMA,
+    T_HASH,
+    T_HASH2,
+    T_NEWLINE,
     /* binop */
     T_ADD,
     T_SUB,
@@ -96,6 +109,8 @@ enum KindTag {
     T_AMUL,
     T_ADIV,
     T_AREM,
+    //
+    T_CALLER_LINE,
     /* eof */
     T_EOF
 };

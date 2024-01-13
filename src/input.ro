@@ -33,4 +33,4 @@
     nop
   99 + 11
   print(false, 42, 3.14, nil, "Hello")
-  return 13 + 4
+ asserts int

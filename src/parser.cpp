@@ -156,11 +156,11 @@ Expr *Parser::arg_list(Expr *call)
     ExprList list;
     init_expr_list(&list);
 
-    if (peek() != TK_RPAREN) {
+    if (peek() != T_RPAREN) {
         do {
             append_expr(&list, expression());
         }
-        while (consume(TK_COMMA));
+        while (consume(T_COMMA));
     }
 
     const Func *func = call->l->type->func;
@@ -189,7 +189,7 @@ Expr *Parser::arg_list(Expr *call)
         }
     }
 
-    expect(TK_RPAREN);
+    expect(T_RPAREN);
 
     return call;
 }
@@ -199,9 +199,9 @@ Expr *Parser::conv_expr(int kind)
     Type *to_type = type_spec();
     const Pos tokpos = tok_pos();
 
-    expect(TK_LPAREN);
+    expect(T_LPAREN);
     Expr *expr = expression();
-    expect(TK_RPAREN);
+    expect(T_RPAREN);
 
     switch (expr->type->kind) {
     case TY::BOOL:
@@ -225,13 +225,13 @@ Expr *Parser::conv_expr(int kind)
 //     primary_expr selector
 Expr *Parser::primary_expr()
 {
-    if (consume(TK_NIL))
+    if (consume(T_NIL))
         return NewNilLitExpr();
 
-    if (consume(TK_TRUE))
+    if (consume(T_TRU))
         return NewBoolLitExpr(true);
 
-    if (consume(TK_FALSE))
+    if (consume(T_FLS))
         return NewBoolLitExpr(false);
 
     if (consume(T_INTLIT))
@@ -240,7 +240,7 @@ Expr *Parser::primary_expr()
     if (consume(T_FLTLIT))
         return NewFloatLitExpr(tok_float());
 
-    if (consume(TK_STRLIT)) {
+    if (consume(T_STRLIT)) {
         Expr *e = NewStringLitExpr(tok_str());
         const Token *tok = curtok();
         if (tok->has_escseq) {
@@ -254,13 +254,13 @@ Expr *Parser::primary_expr()
         return e;
     }
 
-    if (consume(TK_LPAREN)) {
+    if (consume(T_LPAREN)) {
         Expr *e = expression();
-        expect(TK_RPAREN);
+        expect(T_RPAREN);
         return e;
     }
 
-    if (consume(TK_CALLER_LINE)) {
+    if (consume(T_CALLER_LINE)) {
         Var *var = scope_->FindVar(tok_str());
         if (!var) {
             error(tok_pos(),
@@ -272,9 +272,9 @@ Expr *Parser::primary_expr()
 
     const int next = peek();
     switch (next) {
-    case TK_BOOL:
-    case TK_INT:
-    case TK_FLOAT:
+    case T_BOL:
+    case T_INT:
+    case T_FLT:
         return conv_expr(next);
     default:
         break;
@@ -285,7 +285,7 @@ Expr *Parser::primary_expr()
     for (;;) {
         const Token *tok = gettok();
 
-        if (tok->kind == TK_IDENT) {
+        if (tok->kind == T_IDENT) {
             Var *var = scope_->FindVar(tok->sval);
             if (!var) {
                 error(tok_pos(),
@@ -295,7 +295,7 @@ Expr *Parser::primary_expr()
             expr = NewIdentExpr(var);
             continue;
         }
-        else if (tok->kind == TK_LPAREN) {
+        else if (tok->kind == T_LPAREN) {
             if (!expr || !expr->type->IsFunc()) {
                 error(tok_pos(),
                         "call operator must be used for function type");
@@ -305,7 +305,7 @@ Expr *Parser::primary_expr()
             expr = arg_list(call);
             continue;
         }
-        else if (tok->kind == TK_PERIOD) {
+        else if (tok->kind == T_DOT) {
             // TODO FIX
             if (!expr || !expr->type) {
                 std::cerr << "error: no type" << std::endl;
@@ -316,14 +316,14 @@ Expr *Parser::primary_expr()
                 exit(EXIT_FAILURE);
             }
 
-            expect(TK_IDENT);
+            expect(T_IDENT);
 
             Field *fld = expr->type->clss->FindField(tok_str());
 
             expr = NewSelectExpr(expr, NewFieldExpr(fld));
             continue;
         }
-        else if (tok->kind == TK_LBRACK) {
+        else if (tok->kind == T_LBRACK) {
             if (!expr->type->IsArray()) {
                 error(tok_pos(),
                         "index operator must be used for array type");
@@ -341,7 +341,7 @@ Expr *Parser::primary_expr()
                             "] with length ", std::to_string(len));
                 }
             }
-            expect(TK_RBRACK);
+            expect(T_RBRACK);
             return NewIndexExpr(expr, idx);
         }
         else {
@@ -366,29 +366,31 @@ Expr *Parser::unary_expr()
     const Token *tok = gettok();
     const int kind = tok->kind;
 
-    if (kind == TK_AMP) {
+    if (kind == T_AND) {
         Expr *expr = unary_expr();
         Type *type = NewPtrType(expr->type);
-        return NewUnaryExpr(expr, type, kind);
+        return NewUnaryExpr(expr, type, /*T_ADR*/kind);
     }
-    if (kind == TK_STAR) {
+    if (kind == T_MUL) {
         Expr *expr = unary_expr();
         if (!expr->type->IsPtr()) {
             error(tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
         Type *type = DuplicateType(expr->type->underlying);
-        return NewUnaryExpr(expr, type, kind);
+        return NewUnaryExpr(expr, type, /*T_DRF*/kind);
     }
 
     switch (kind) {
-    case TK_PLUS:
-    case TK_MINUS:
-    case TK_EXCL:
-    case TK_TILDA:
+    case T_ADD:
+    case T_SUB:
+    case T_LNOT:
+    case T_NOT:
         {
             Expr *e = unary_expr();
-            return NewUnaryExpr(e, const_cast<Type*>(e->type), kind);
+            return NewUnaryExpr(e, const_cast<Type*>(e->type),
+                    //kind == T_SUB ? T_NEG : kind);
+                    kind);
         }
 
     default:
@@ -408,12 +410,12 @@ Expr *Parser::mul_expr()
         const Token *tok = gettok();
 
         switch (tok->kind) {
-        case TK_STAR:
-        case TK_SLASH:
-        case TK_PERCENT:
-        case TK_AMP:
-        case TK_LT2:
-        case TK_GT2:
+        case T_MUL:
+        case T_DIV:
+        case T_REM:
+        case T_AND:
+        case T_SHL:
+        case T_SHR:
             y = unary_expr();
             if (!MatchType(x->type, y->type)) {
                 const std::string msg = std::string("type mismatch: ") +
@@ -441,10 +443,10 @@ Expr *Parser::add_expr()
         Expr *l;
 
         switch (tok->kind) {
-        case TK_PLUS:
-        case TK_MINUS:
-        case TK_BAR:
-        case TK_CARET:
+        case T_ADD:
+        case T_SUB:
+        case T_OR:
+        case T_XOR:
             l = mul_expr();
             if (!MatchType(expr->type, l->type)) {
                 const std::string msg = std::string("type mismatch: ") +
@@ -472,12 +474,12 @@ Expr *Parser::rel_expr()
         const Token *tok = gettok();
 
         switch (tok->kind) {
-        case TK_EQ2:
-        case TK_EXCLEQ:
-        case TK_LT:
-        case TK_GT:
-        case TK_LTE:
-        case TK_GTE:
+        case T_EQ:
+        case T_NEQ:
+        case T_LT:
+        case T_GT:
+        case T_LTE:
+        case T_GTE:
             r = add_expr();
             if (!MatchType(l->type, r->type)) {
                 error(tok->pos, "type mismatch: ",
@@ -503,7 +505,7 @@ Expr *Parser::logand_expr()
         const Token *tok = gettok();
 
         switch (tok->kind) {
-        case TK_AMP2:
+        case T_LAND:
             expr = NewBinaryExpr(expr, rel_expr(), tok->kind);
             continue;
 
@@ -523,7 +525,7 @@ Expr *Parser::logor_expr()
         const Token *tok = gettok();
 
         switch (tok->kind) {
-        case TK_BAR2:
+        case T_LOR:
             expr = NewBinaryExpr(expr, logand_expr(), tok->kind);
             continue;
 
@@ -546,12 +548,12 @@ Expr *Parser::assign_expr()
     const int kind = tok->kind;
 
     switch (kind) {
-    case TK_EQ:
-    case TK_PLUSEQ:
-    case TK_MINUSEQ:
-    case TK_STAREQ:
-    case TK_SLASHEQ:
-    case TK_PERCENTEQ:
+    case T_ASSN:
+    case T_AADD:
+    case T_ASUB:
+    case T_AMUL:
+    case T_ADIV:
+    case T_AREM:
         rval = expression();
         if (!MatchType(lval->type, rval->type)) {
             error(tok->pos, "type mismatch: l-value type '",
@@ -560,8 +562,8 @@ Expr *Parser::assign_expr()
         }
         return NewAssignExpr(lval, rval, kind);
 
-    case TK_PLUS2:
-    case TK_MINUS2:
+    case T_INC:
+    case T_DEC:
         if (!lval->type->IsInt()) {
             error(tok->pos,
                     "type mismatch: ++/-- must be used for int");
@@ -583,14 +585,14 @@ Stmt *Parser::or_stmt()
 {
     Expr *cond = nullptr;
 
-    if (consume(TK_NEWLINE)) {
+    if (consume(T_NEWLINE)) {
         // or (else)
         cond = NewNullExpr();
     }
     else {
         // or if (else if)
         cond = expression();
-        expect(TK_NEWLINE);
+        expect(T_NEWLINE);
     }
 
     Stmt *body = block_stmt();
@@ -600,9 +602,9 @@ Stmt *Parser::or_stmt()
 
 Stmt *Parser::if_stmt()
 {
-    expect(TK_IF);
+    expect(T_IF);
     Expr *cond = expression();
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     StmtList list;
     init_list(&list);
@@ -613,8 +615,8 @@ Stmt *Parser::if_stmt()
     bool endor = false;
 
     while (!endor) {
-        if (consume(TK_OR)) {
-            if (peek() == TK_NEWLINE) {
+        if (consume(T_OR)) {
+            if (peek() == T_NEWLINE) {
                 // last 'or' (else)
                 endor = true;
             }
@@ -631,13 +633,13 @@ Stmt *Parser::if_stmt()
 
 Stmt *Parser::for_stmt()
 {
-    expect(TK_FOR);
+    expect(T_FOR);
 
     Expr *init = nullptr;
     Expr *cond = nullptr;
     Expr *post = nullptr;
 
-    if (consume(TK_NEWLINE)) {
+    if (consume(T_NEWLINE)) {
         // infinite loop
         init = NewNullExpr();
         cond = NewIntLitExpr(1);
@@ -646,15 +648,15 @@ Stmt *Parser::for_stmt()
     else {
         Expr *e = expression();
 
-        if (consume(TK_SEMICOLON)) {
+        if (consume(T_SEM)) {
             // traditional for
             init = e;
             cond = expression();
-            expect(TK_SEMICOLON);
+            expect(T_SEM);
             post = expression();
-            expect(TK_NEWLINE);
+            expect(T_NEWLINE);
         }
-        else if (consume(TK_NEWLINE)) {
+        else if (consume(T_NEWLINE)) {
             // while style
             init = NewNullExpr();
             cond = e;
@@ -676,23 +678,23 @@ Stmt *Parser::jump_stmt()
     const Token *tok = gettok();
     const int kind = tok->kind;
 
-    if (kind == TK_BREAK) {
+    if (kind == T_BRK) {
     }
-    else if (kind == TK_CONTINUE) {
+    else if (kind == T_CNT) {
     }
 
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     return NewJumpStmt(kind);
 }
 
 Stmt *Parser::switch_stmt()
 {
-    expect(TK_SWITCH);
+    expect(T_SWT);
 
     Expr *expr = expression();
     // TODO int check
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     StmtList list;
     init_list(&list);
@@ -705,14 +707,14 @@ Stmt *Parser::switch_stmt()
         const Token *tok = gettok();
 
         switch (tok->kind) {
-        case TK_CASE:
+        case T_CASE:
             if (default_count > 0) {
                 error(tok->pos, "No 'case' should come after 'default'");
             }
             append(&list, case_stmt(tok->kind));
             continue;
 
-        case TK_DEFAULT:
+        case T_DFLT:
             append(&list, case_stmt(tok->kind));
             default_count++;
             continue;
@@ -731,19 +733,19 @@ Stmt *Parser::case_stmt(int kind)
     StmtList list;
     init_list(&list);
 
-    if (kind == TK_CASE) {
+    if (kind == T_CASE) {
         do {
             Expr *expr = expression();
             // TODO const int check
             append(&list, NewExprStmt(expr));
         }
-        while (consume(TK_COMMA));
+        while (consume(T_COMMA));
     }
-    else if (kind == TK_DEFAULT) {
+    else if (kind == T_DFLT) {
         append(&list, NewExprStmt(NewNullExpr()));
     }
 
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     Stmt *body = block_stmt();
     return NewCaseStmt(list.head.next, body, kind);
@@ -751,17 +753,17 @@ Stmt *Parser::case_stmt(int kind)
 
 Stmt *Parser::ret_stmt()
 {
-    expect(TK_RETURN);
+    expect(T_RET);
 
     const Pos exprpos = tok_pos();
     Expr *expr = nullptr;
 
-    if (consume(TK_NEWLINE)) {
+    if (consume(T_NEWLINE)) {
         expr = NewNullExpr();
     }
     else {
         expr = expression();
-        expect(TK_NEWLINE);
+        expect(T_NEWLINE);
     }
 
     assert(func_);
@@ -778,25 +780,25 @@ Stmt *Parser::ret_stmt()
 Stmt *Parser::expr_stmt()
 {
     Stmt *s = NewExprStmt(expression());
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     return s;
 }
 
 Stmt *Parser::scope_stmt()
 {
-    expect(TK_MINUS3);
-    expect(TK_NEWLINE);
+    expect(T_DASH3);
+    expect(T_NEWLINE);
 
     return block_stmt();
 }
 
 Stmt *Parser::nop_stmt()
 {
-    expect(TK_NOP);
+    expect(T_NOP);
 
     Stmt *s = NewNopStmt();
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     return s;
 }
@@ -837,8 +839,8 @@ static Expr *default_value(const Type *type)
 //          | "-" identifier type = expression newline
 Stmt *Parser::var_decl()
 {
-    expect(TK_MINUS);
-    expect(TK_IDENT);
+    expect(T_SUB);
+    expect(T_IDENT);
 
     if (scope_->FindVar(tok_str(), false)) {
         const std::string msg = "re-defined variable: '" +
@@ -852,7 +854,7 @@ Stmt *Parser::var_decl()
     Expr *init = nullptr;
 
     // type and init
-    if (consume(TK_EQ)) {
+    if (consume(T_ASSN)) {
         // "- x = 42"
         init = expression();
         type = DuplicateType(init->type);
@@ -860,7 +862,7 @@ Stmt *Parser::var_decl()
     else {
         type = type_spec();
 
-        if (consume(TK_EQ)) {
+        if (consume(T_ASSN)) {
             // "- x int = 42"
             init = expression();
         }
@@ -870,17 +872,17 @@ Stmt *Parser::var_decl()
         }
     }
 
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     Var *var = scope_->DefineVar(name, type);
     Expr *ident = NewIdentExpr(var);
-    return NewExprStmt(NewAssignExpr(ident, init, TK_EQ));
+    return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
 
 Field *Parser::field_decl()
 {
-    expect(TK_MINUS);
-    expect(TK_IDENT);
+    expect(T_SUB);
+    expect(T_IDENT);
 
     if (scope_->FindField(tok_str())) {
         std::cerr
@@ -892,15 +894,15 @@ Field *Parser::field_decl()
 
     Field *fld = scope_->DefineFild(tok_str());
     fld->type = type_spec();
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     return fld;
 }
 
 Class *Parser::class_decl()
 {
-    expect(TK_HASH2);
-    expect(TK_IDENT);
+    expect(T_HASH2);
+    expect(T_IDENT);
 
     // class name
     Class *clss = scope_->DefineClass(tok_str());
@@ -909,11 +911,11 @@ Class *Parser::class_decl()
         std::exit(EXIT_FAILURE);
     }
 
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
     enter_scope(clss);
-    expect(TK_BLOCKBEGIN);
+    expect(T_BLOCKBEGIN);
     field_list(clss);
-    expect(TK_BLOCKEND);
+    expect(T_BLOCKEND);
     leave_scope();
 
     return nullptr;
@@ -926,48 +928,48 @@ Stmt *Parser::block_stmt(Func *func)
     init_list(&list);
 
     enter_scope(func);
-    expect(TK_BLOCKBEGIN);
+    expect(T_BLOCKBEGIN);
 
     for (;;) {
         const int next = peek();
 
-        if (next == TK_MINUS) {
+        if (next == T_SUB) {
             append(&list, var_decl());
             continue;
         }
-        else if (next == TK_IF) {
+        else if (next == T_IF) {
             append(&list, if_stmt());
             continue;
         }
-        else if (next == TK_FOR) {
+        else if (next == T_FOR) {
             append(&list, for_stmt());
             continue;
         }
-        else if (next == TK_BREAK || next == TK_CONTINUE) {
+        else if (next == T_BRK || next == T_CNT) {
             append(&list, jump_stmt());
             continue;
         }
-        else if (next == TK_SWITCH) {
+        else if (next == T_SWT) {
             append(&list, switch_stmt());
             continue;
         }
-        else if (next == TK_RETURN) {
+        else if (next == T_RET) {
             append(&list, ret_stmt());
             continue;
         }
-        else if (next == TK_MINUS3) {
+        else if (next == T_DASH3) {
             append(&list, scope_stmt());
             continue;
         }
-        else if (next == TK_NOP) {
+        else if (next == T_NOP) {
             append(&list, nop_stmt());
             continue;
         }
-        else if (next == TK_NEWLINE) {
+        else if (next == T_NEWLINE) {
             gettok();
             continue;
         }
-        else if (next == TK_BLOCKEND) {
+        else if (next == T_BLOCKEND) {
             break;
         }
         else {
@@ -976,7 +978,7 @@ Stmt *Parser::block_stmt(Func *func)
         }
     }
 
-    expect(TK_BLOCKEND);
+    expect(T_BLOCKEND);
     leave_scope();
 
     return NewBlockStmt(list.head.next);
@@ -989,11 +991,11 @@ Type *Parser::type_spec()
     Type *parent = nullptr;
     Type *type = nullptr;
 
-    if (consume(TK_STAR)) {
+    if (consume(T_MUL)) {
         return NewPtrType(type_spec());
     }
 
-    if (consume(TK_LBRACK)) {
+    if (consume(T_LBRACK)) {
         parent = new Type(TY::ARRAY);
         Expr *e = expression();
         if (!e->type->IsInt()) {
@@ -1005,30 +1007,30 @@ Type *Parser::type_spec()
             error(tok_pos(),
                     "array length expression must be compile time constant");
         }
-        expect(TK_RBRACK);
+        expect(T_RBRACK);
         return NewArrayType(len, type_spec());
     }
 
-    if (consume(TK_HASH)) {
+    if (consume(T_HASH)) {
         Func *func = scope_->DeclareFunc();
         param_list(func);
         ret_type(func);
         return NewFuncType(func);
     }
 
-    if (consume(TK_BOOL)) {
+    if (consume(T_BOL)) {
         type = NewBoolType();
     }
-    else if (consume(TK_INT)) {
+    else if (consume(T_INT)) {
         type = new Type(TY::INT);
     }
-    else if (consume(TK_FLOAT)) {
+    else if (consume(T_FLT)) {
         type = new Type(TY::FLOAT);
     }
-    else if (consume(TK_STRING)) {
+    else if (consume(T_STR)) {
         type = new Type(TY::STRING);
     }
-    else if (consume(TK_IDENT)) {
+    else if (consume(T_IDENT)) {
         type = new Type(TY::CLASS);
         type->clss = scope_->FindClass(tok_str());
     }
@@ -1043,51 +1045,51 @@ Type *Parser::type_spec()
 
 void Parser::field_list(Class *clss)
 {
-    expect(TK_MINUS);
+    expect(T_SUB);
 
     do {
-        expect(TK_IDENT);
+        expect(T_IDENT);
         const char *name = tok_str();
 
         clss->DeclareField(name, type_spec());
-        expect(TK_NEWLINE);
+        expect(T_NEWLINE);
     }
-    while (consume(TK_MINUS));
+    while (consume(T_SUB));
 }
 
 void Parser::param_list(Func *func)
 {
-    expect(TK_LPAREN);
+    expect(T_LPAREN);
 
-    if (consume(TK_RPAREN))
+    if (consume(T_RPAREN))
         return;
 
     do {
         const Type *type = nullptr;
         const char *name;
 
-        if (consume(TK_CALLER_LINE)) {
+        if (consume(T_CALLER_LINE)) {
             name = tok_str();
             type = new Type(TY::INT);
         }
         else {
-            expect(TK_IDENT);
+            expect(T_IDENT);
             name = tok_str();
             type = type_spec();
         }
 
         func->DeclareParam(name, type);
     }
-    while (consume(TK_COMMA));
+    while (consume(T_COMMA));
 
-    expect(TK_RPAREN);
+    expect(T_RPAREN);
 }
 
 void Parser::ret_type(Func *func)
 {
     const int next = peek();
 
-    if (next == TK_NEWLINE)
+    if (next == T_NEWLINE)
         func->return_type = new Type(TY::NIL);
     else
         func->return_type = type_spec();
@@ -1096,8 +1098,8 @@ void Parser::ret_type(Func *func)
 // func_def = "#" identifier param_list type_spec? newline block_stmt
 FuncDef *Parser::func_def()
 {
-    expect(TK_HASH);
-    expect(TK_IDENT);
+    expect(T_HASH);
+    expect(T_IDENT);
 
     // signature
     const char *name = tok_str();
@@ -1106,7 +1108,7 @@ FuncDef *Parser::func_def()
     // params
     param_list(func);
     ret_type(func);
-    expect(TK_NEWLINE);
+    expect(T_NEWLINE);
 
     // func var
     if (scope_->FindVar(name)) {
@@ -1149,7 +1151,7 @@ Prog *Parser::program()
     for (;;) {
         const int next = peek();
 
-        if (next == TK_HASH) {
+        if (next == T_HASH) {
             FuncDef *fdef = func_def();
 
             // TODO remove this
@@ -1161,7 +1163,7 @@ Prog *Parser::program()
                 // TODO clean up
                 Expr *ident = NewIdentExpr(const_cast<Var *>(fdef->var));
                 Expr *init = NewIntLitExpr(fdef->funclit_id);
-                append(&list, NewExprStmt(NewAssignExpr(ident, init, TK_EQ)));
+                append(&list, NewExprStmt(NewAssignExpr(ident, init, T_ASSN)));
             }
 
             if (!prog->funcs) {
@@ -1175,17 +1177,17 @@ Prog *Parser::program()
             continue;
         }
 
-        if (next == TK_HASH2) {
+        if (next == T_HASH2) {
             class_decl();
             continue;
         }
 
-        if (next == TK_MINUS) {
+        if (next == T_SUB) {
             append(&list, var_decl());
             continue;
         }
 
-        if (next == TK_NEWLINE) {
+        if (next == T_NEWLINE) {
             gettok();
             continue;
         }

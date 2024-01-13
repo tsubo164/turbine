@@ -126,21 +126,21 @@ Expr *NewBinaryExpr(Expr *L, Expr *R, int k)
     Expr *e = CALLOC(Expr);
     e->type = L->type;
     switch (k) {
-    case TK_PLUS:    e->kind = T_ADD; break;
-    case TK_MINUS:   e->kind = T_SUB; break;
-    case TK_STAR:    e->kind = T_MUL; break;
-    case TK_SLASH:   e->kind = T_DIV; break;
-    case TK_PERCENT: e->kind = T_REM; break;
-    case TK_BAR:     e->kind = T_OR;  break;
-    case TK_BAR2:    e->kind = T_LOR; break;
-    case TK_AMP:     e->kind = T_AND; break;
-    case TK_AMP2:    e->kind = T_LAND; break;
-    case TK_EXCL:    e->kind = T_LNOT; break;
-    case TK_CARET:   e->kind = T_XOR; break;
-    case TK_TILDA:   e->kind = T_NOT; break;
-    case TK_LT2:     e->kind = T_SHL; break;
-    case TK_GT2:     e->kind = T_SHR; break;
-    default:         e->kind = T_NUL; break;
+    case T_ADD: e->kind = T_ADD; break;
+    case T_SUB: e->kind = T_SUB; break;
+    case T_MUL: e->kind = T_MUL; break;
+    case T_DIV: e->kind = T_DIV; break;
+    case T_REM: e->kind = T_REM; break;
+    case T_OR:  e->kind = T_OR;  break;
+    case T_LOR: e->kind = T_LOR; break;
+    case T_AND: e->kind = T_AND; break;
+    case T_LAND:e->kind = T_LAND; break;
+    case T_LNOT:e->kind = T_LNOT; break;
+    case T_XOR: e->kind = T_XOR; break;
+    case T_NOT: e->kind = T_NOT; break;
+    case T_SHL: e->kind = T_SHL; break;
+    case T_SHR: e->kind = T_SHR; break;
+    default:    e->kind = T_NUL; break;
     }
     e->l = L;
     e->r = R;
@@ -152,13 +152,13 @@ Expr *NewRelationalExpr(Expr *L, Expr *R, int k)
     Expr *e = CALLOC(Expr);
     e->type = NewBoolType();
     switch (k) {
-    case TK_EQ2:     e->kind = T_EQ;  break;
-    case TK_EXCLEQ:  e->kind = T_NEQ; break;
-    case TK_LT:      e->kind = T_LT; break;
-    case TK_GT:      e->kind = T_GT; break;
-    case TK_LTE:     e->kind = T_LTE; break;
-    case TK_GTE:     e->kind = T_GTE; break;
-    default:         e->kind = T_NUL; break;
+    case T_EQ:   e->kind = T_EQ;  break;
+    case T_NEQ:  e->kind = T_NEQ; break;
+    case T_LT:   e->kind = T_LT; break;
+    case T_GT:   e->kind = T_GT; break;
+    case T_LTE:  e->kind = T_LTE; break;
+    case T_GTE:  e->kind = T_GTE; break;
+    default:     e->kind = T_NUL; break;
     }
     e->l = L;
     e->r = R;
@@ -170,13 +170,13 @@ Expr *NewUnaryExpr(Expr *L, Type *t, int k)
     Expr *e = CALLOC(Expr);
     e->type = t;
     switch (k) {
-    case TK_AMP:    e->kind = T_ADR; break;
-    case TK_PLUS:   e->kind = T_POS; break;
-    case TK_MINUS:  e->kind = T_NEG; break;
-    case TK_EXCL:   e->kind = T_LNOT; break;
-    case TK_TILDA:  e->kind = T_NOT; break;
-    case TK_STAR:   e->kind = T_DRF; break;
-    default:        e->kind = T_NUL; break;
+    case T_AND:  e->kind = T_ADR; break;
+    case T_ADD:  e->kind = T_POS; break;
+    case T_SUB:  e->kind = T_NEG; break;
+    case T_LNOT: e->kind = T_LNOT; break;
+    case T_NOT:  e->kind = T_NOT; break;
+    case T_MUL:  e->kind = T_DRF; break;
+    default:     e->kind = T_NUL; break;
     }
     e->l = L;
     return e;
@@ -187,12 +187,12 @@ Expr *NewAssignExpr(Expr *l, Expr *r, int k)
     Expr *e = CALLOC(Expr);
     e->type = l->type;
     switch (k) {
-    case TK_EQ:        e->kind = T_ASSN; break;
-    case TK_PLUSEQ:    e->kind = T_AADD; break;
-    case TK_MINUSEQ:   e->kind = T_ASUB; break;
-    case TK_STAREQ:    e->kind = T_AMUL; break;
-    case TK_SLASHEQ:   e->kind = T_ADIV; break;
-    case TK_PERCENTEQ: e->kind = T_AREM; break;
+    case T_ASSN:  e->kind = T_ASSN; break;
+    case T_AADD:  e->kind = T_AADD; break;
+    case T_ASUB:  e->kind = T_ASUB; break;
+    case T_AMUL:  e->kind = T_AMUL; break;
+    case T_ADIV:  e->kind = T_ADIV; break;
+    case T_AREM:  e->kind = T_AREM; break;
     default:           e->kind = T_NUL; break;
     }
     e->l = l;
@@ -205,8 +205,8 @@ Expr *NewIncDecExpr(Expr *l, int k)
     Expr *e = CALLOC(Expr);
     e->type = l->type;
     switch (k) {
-    case TK_PLUS2:  e->kind = T_INC; break;
-    case TK_MINUS2: e->kind = T_DEC; break;
+    case T_INC:  e->kind = T_INC; break;
+    case T_DEC: e->kind = T_DEC; break;
     default:        e->kind = T_NUL; break;
     }
     e->l = l;
@@ -263,9 +263,9 @@ Stmt *NewJumpStmt(int k)
 {
     Stmt *s = CALLOC(Stmt);
     switch (k) {
-    case TK_BREAK:    s->kind = T_BRK; break;
-    case TK_CONTINUE: s->kind = T_CNT; break;
-    default:          s->kind = T_NUL; break;
+    case T_BRK: s->kind = T_BRK; break;
+    case T_CNT: s->kind = T_CNT; break;
+    default:    s->kind = T_NUL; break;
     }
     return s;
 }
@@ -274,9 +274,9 @@ Stmt *NewCaseStmt(Stmt *conds, Stmt *body, int k)
 {
     Stmt *s = CALLOC(Stmt);
     switch (k) {
-    case TK_CASE:    s->kind = T_CASE; break;
-    case TK_DEFAULT: s->kind = T_DFLT; break;
-    default:         s->kind = T_NUL; break;
+    case T_CASE: s->kind = T_CASE; break;
+    case T_DFLT: s->kind = T_DFLT; break;
+    default:     s->kind = T_NUL; break;
     }
     s->children = conds;
     s->body = body;
