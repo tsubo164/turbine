@@ -44,14 +44,14 @@ int Func::ParamCount() const
 }
 
 // Class
-void Class::DeclareField(std::string_view name, const Type *type)
+void Class::DeclareField(const char *name, const Type *type)
 {
     Field *f = scope->DefineFild(name);
     f->type = type;
     nflds_++;
 }
 
-Field *Class::FindField(std::string_view name) const
+Field *Class::FindField(const char *name) const
 {
     return scope->FindField(name);
 }
@@ -136,7 +136,7 @@ Var *Scope::FindVar(const char *name, bool find_in_parents) const
     return nullptr;
 }
 
-Field *Scope::DefineFild(std::string_view name)
+Field *Scope::DefineFild(const char *name)
 {
     const auto found = flds_.find(name);
     if (found != flds_.end()) {
@@ -149,7 +149,7 @@ Field *Scope::DefineFild(std::string_view name)
     return fld;
 }
 
-Field *Scope::FindField(std::string_view name) const
+Field *Scope::FindField(const char *name) const
 {
     const auto it = flds_.find(name);
     if (it != flds_.end()) {
@@ -190,7 +190,7 @@ const Var *Scope::FindFunc(const char *name) const
     return nullptr;
 }
 
-Class *Scope::DefineClass(std::string_view name)
+Class *Scope::DefineClass(const char *name)
 {
     const auto it = clsses_.find(name);
     if (it != clsses_.end())
@@ -206,7 +206,7 @@ Class *Scope::DefineClass(std::string_view name)
     return clss;
 }
 
-Class *Scope::FindClass(std::string_view name) const
+Class *Scope::FindClass(const char *name) const
 {
     const auto it = clsses_.find(name);
     if (it != clsses_.end())

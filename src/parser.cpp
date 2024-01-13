@@ -347,7 +347,7 @@ Expr *Parser::primary_expr()
 
             expect(TK::IDENT);
 
-            Field *fld = expr->type->clss->FindField(tok_str());
+            Field *fld = expr->type->clss->FindField(tok_str_());
 
             expr = NewSelectExpr(expr, NewFieldExpr(fld));
             continue;
@@ -913,7 +913,7 @@ Field *Parser::field_decl()
     expect(TK::MINUS);
     expect(TK::IDENT);
 
-    if (scope_->FindField(tok_str())) {
+    if (scope_->FindField(tok_str_())) {
         std::cerr
             << "error: re-defined variable: '"
             << tok_str() << "'"
@@ -921,7 +921,7 @@ Field *Parser::field_decl()
         std::exit(EXIT_FAILURE);
     }
 
-    Field *fld = scope_->DefineFild(tok_str());
+    Field *fld = scope_->DefineFild(tok_str_());
     fld->type = type_spec();
     expect(TK::NEWLINE);
 
@@ -934,7 +934,7 @@ Class *Parser::class_decl()
     expect(TK::IDENT);
 
     // class name
-    Class *clss = scope_->DefineClass(tok_str());
+    Class *clss = scope_->DefineClass(tok_str_());
     if (!clss) {
         std::cerr << "error: re-defined class: '" << tok_str() << "'" << std::endl;
         std::exit(EXIT_FAILURE);
@@ -1061,7 +1061,7 @@ Type *Parser::type_spec()
     }
     else if (consume(TK::IDENT)) {
         type = new Type(TY::CLASS);
-        type->clss = scope_->FindClass(tok_str());
+        type->clss = scope_->FindClass(tok_str_());
     }
     else {
         const Token *tok = gettok();
@@ -1078,7 +1078,7 @@ void Parser::field_list(Class *clss)
 
     do {
         expect(TK::IDENT);
-        std::string_view name = tok_str();
+        const char *name = tok_str_();
 
         clss->DeclareField(name, type_spec());
         expect(TK::NEWLINE);

@@ -1,7 +1,6 @@
 #ifndef SCOPE_H
 #define SCOPE_H
 
-#include <string_view>
 #include <vector>
 #include <map>
 
@@ -46,26 +45,25 @@ private:
     int ellipsis_index_ = -1;
 };
 
-struct Field {
-    Field(std::string_view Name, int ID)
+typedef struct Field {
+    Field(const char *Name, int ID)
         : name(Name), id(ID) {}
 
-    std::string_view name;
-    const int id;
-
+    const char *name;
+    int id;
     const Type *type = nullptr;
-};
+} Field;
 
 struct Class {
-    Class(std::string_view Name, int ID, Scope *sc)
+    Class(const char *Name, int ID, Scope *sc)
         : name(Name), id(ID), scope(sc) {}
 
-    std::string_view name;
+    const char *name;
     const int id;
     Scope *scope;
 
-    void DeclareField(std::string_view name, const Type *type);
-    Field *FindField(std::string_view name) const;
+    void DeclareField(const char *name, const Type *type);
+    Field *FindField(const char *name) const;
     int FieldCount() const;
 
     int Size() const;
@@ -87,15 +85,15 @@ public:
     Var *DefineVar(const char *name, const Type *type);
     Var *FindVar(const char *name, bool find_in_parents = true) const;
 
-    Field *DefineFild(std::string_view name);
-    Field *FindField(std::string_view name) const;
+    Field *DefineFild(const char *name);
+    Field *FindField(const char *name) const;
     int FieldCount() const;
 
     Func *DeclareFunc();
     const Var *FindFunc(const char *name) const;
 
-    Class *DefineClass(std::string_view name);
-    Class *FindClass(std::string_view name) const;
+    Class *DefineClass(const char *name);
+    Class *FindClass(const char *name) const;
 
     int VarSize() const;
     int TotalVarSize() const;
@@ -111,10 +109,10 @@ private:
 
     const Class *clss_ = nullptr;
 
-    std::map<std::string_view,Var*> vars_;
-    std::map<std::string_view,Func*> funcs_;
-    std::map<std::string_view,Field*> flds_;
-    std::map<std::string_view,Class*> clsses_;
+    std::map<const char *,Var*> vars_;
+    std::map<const char *,Func*> funcs_;
+    std::map<const char *,Field*> flds_;
+    std::map<const char *,Class*> clsses_;
 
     int next_var_id() const;
     int max_var_id() const;
