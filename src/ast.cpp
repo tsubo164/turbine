@@ -1,3 +1,4 @@
+#include "compiler.h"
 #include "ast.h"
 #include "escseq.h"
 #include <iostream>
@@ -454,7 +455,7 @@ void print_expr(const Expr *e, int depth)
     }
 
     // basic info
-    info = find_tokinfo(e->kind);
+    info = LookupKindInfo(e->kind);
     printf("%d. <%s>", depth, info->str);
 
     // extra value
@@ -494,7 +495,7 @@ void PrintStmt(const Stmt *s, int depth)
         printf("  ");
 
     // basic info
-    info = find_tokinfo(s->kind);
+    info = LookupKindInfo(s->kind);
     printf("%d. <%s>", depth, info->str);
     printf("\n");
 

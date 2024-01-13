@@ -3,6 +3,7 @@
 
 #include <string>
 #include "lexer.h"
+#include "compiler.h"
 
 void InternalError(const std::string &msg, const std::string &filename, int line);
 void Error(const std::string &msg, const std::string &src, Pos pos);

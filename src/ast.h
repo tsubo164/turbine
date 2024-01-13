@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <vector>
+#include <string>
+
 #include "bytecode.h"
 #include "scope.h"
 #include "lexer.h"
@@ -10,8 +12,9 @@
 #include "escseq.h"
 
 // XXX TEST ==============
-#include "compiler.h"
+//#include "compiler.h"
 
+/*
 void SetOptimize(bool enable);
 
 typedef union Val {
@@ -113,5 +116,6 @@ typedef struct Prog {
 } Prog;
 
 Prog *NewProg(Scope *sc);
+*/
 
 #endif // _H

@@ -16,117 +16,115 @@
 #define CALLOC(type) (new type())
 
 
-enum KindTag {
-    T_NUL,
-    /* type */
-    T_NIL,
-    T_TRU,
-    T_FLS,
-    T_BOL,
-    T_INT,
-    T_FLT,
-    T_STR,
-    /* stmt */
-    T_IF,
-    T_FOR,
-    T_ELS,
-    T_BRK,
-    T_CNT,
-    T_SWT,
-    T_CASE,
-    T_DFLT,
-    T_RET,
-    T_NOP,
-    T_EXPR,
-    T_BLOCK,
-    T_END_OF_KEYWORD,
-    /* list */
-    T_EXPRLIST,
-    /* identifier */
-    T_FIELD, //FIXME
-    T_IDENT,
-    T_FUNC,
-    T_VAR,
-    /* literal */
-    T_NILLIT,
-    T_BOLLIT,
-    T_INTLIT,
-    T_FLTLIT,
-    T_STRLIT,
-    /* separator */
-    T_LPAREN,
-    T_RPAREN,
-    T_LBRACK,
-    T_RBRACK,
-    T_SEM,
-    T_BLOCKBEGIN,
-    T_BLOCKEND,
-    T_DASH3,
-    T_DOT,
-    T_COMMA,
-    T_HASH,
-    T_HASH2,
-    T_NEWLINE,
-    /* binop */
-    T_ADD,
-    T_SUB,
-    T_MUL,
-    T_DIV,
-    T_REM,
-    //
-    T_EQ,
-    T_NEQ,
-    T_LT,
-    T_LTE,
-    T_GT,
-    T_GTE,
-    //
-    T_SHL,
-    T_SHR,
-    T_OR,
-    T_XOR,
-    T_AND,
-    T_LOR,
-    T_LAND,
-    //
-    T_SELECT,
-    T_INDEX,
-    T_CALL,
-    /* unary */
-    T_LNOT,
-    T_POS,
-    T_NEG,
-    T_ADR,
-    T_DRF,
-    T_NOT,
-    T_INC,
-    T_DEC,
-    T_CONV,
-    /* assign */
-    T_ASSN,
-    T_AADD,
-    T_ASUB,
-    T_AMUL,
-    T_ADIV,
-    T_AREM,
-    //
-    T_CALLER_LINE,
-    /* eof */
-    T_EOF
-};
 
-typedef struct TokInfo {
-    int kind;
-    const char *str;
-    char type;
-} TokInfo;
-
-const TokInfo *find_tokinfo(int kind);
-
+//--------------------------------
+// AST
 struct Expr;
 struct Stmt;
 struct FuncDef;
 struct Prog;
+
+void SetOptimize(bool enable);
+
+typedef union Val {
+    long i;
+    double f;
+    const char *s;
+} Val;
+
+
+//--------------------------------
+// Expr
+typedef struct Expr {
+    int kind;
+    const Type *type;
+
+    Expr *l;
+    Expr *r;
+    Expr *list;
+    Expr *next;
+
+    Var *var;
+    Field *field;
+
+    // TODO remove init later
+    Val val = {0};
+    std::string converted;
+    Pos pos;
+} Expr;
+
+Expr *NewNullExpr(void);
+Expr *NewNilLitExpr(void);
+Expr *NewBoolLitExpr(bool b);
+Expr *NewIntLitExpr(long l);
+Expr *NewFloatLitExpr(double d);
+Expr *NewStringLitExpr(const char *s);
+Expr *NewConversionExpr(Expr *from, Type *to);
+Expr *NewIdentExpr(Var *v);
+Expr *NewFieldExpr(Field *f);
+Expr *NewSelectExpr(Expr *inst, Expr *fld);
+Expr *NewIndexExpr(Expr *ary, Expr *idx);
+Expr *NewCallExpr(Expr *callee, Pos p);
+Expr *NewBinaryExpr(Expr *L, Expr *R, int k);
+Expr *NewRelationalExpr(Expr *L, Expr *R, int k);
+Expr *NewUnaryExpr(Expr *L, Type *t, int k);
+Expr *NewAssignExpr(Expr *l, Expr *r, int k);
+Expr *NewIncDecExpr(Expr *l, int k);
+
+
+//--------------------------------
+// Stmt
+typedef struct Stmt {
+    int kind;
+
+    Expr* expr;
+    Expr* cond;
+    Expr* post;
+    Stmt* body;
+    // children
+    Stmt *children;
+    Stmt *next;
+} Stmt;
+
+Stmt *NewNopStmt(void);
+Stmt *NewBlockStmt(Stmt *children);
+Stmt *NewOrStmt(Expr *cond, Stmt *body);
+Stmt *NewIfStmt(Stmt *or_list);
+Stmt *NewForStmt(Expr *init, Expr *cond, Expr *post, Stmt *body);
+Stmt *NewJumpStmt(int k);
+Stmt *NewCaseStmt(Stmt *conds, Stmt *body, int k);
+Stmt *NewSwitchStmt(Expr *cond, Stmt *cases);
+Stmt *NewReturnStmt(Expr *e);
+Stmt *NewExprStmt(Expr *e);
+
+
+//--------------------------------
+// FuncDef
+typedef struct FuncDef {
+    // TODO remove this
+    const Func *func;
+    const Var *var;
+    Stmt* body;
+    // TODO make FuncLitExpr and remove this
+    int funclit_id;
+
+    struct FuncDef *next;
+} FuncDef;
+
+FuncDef *NewFuncDef(Var *v, Stmt *body);
+
+
+//--------------------------------
+// Prog
+typedef struct Prog {
+    const Scope *scope;
+    FuncDef *funcs;
+    Stmt* gvars;
+    // TODO remove this
+    const Var *main_func;
+} Prog;
+
+Prog *NewProg(Scope *sc);
 
 bool IsNull(const Expr *e);
 bool IsGlobal(const Expr *e);

@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "lexer.h"
+#include "compiler.h"
 #include "scope.h"
 #include "type.h"
 #include "ast.h"

@@ -615,7 +615,7 @@ Stmt *Parser::if_stmt()
     bool endor = false;
 
     while (!endor) {
-        if (consume(T_OR)) {
+        if (consume(T_ELS)) {
             if (peek() == T_NEWLINE) {
                 // last 'or' (else)
                 endor = true;
@@ -699,8 +699,6 @@ Stmt *Parser::switch_stmt()
     StmtList list;
     init_list(&list);
 
-    //SwitchStmt *swtch = new SwitchStmt(expr);
-
     int default_count = 0;
 
     for (;;) {
@@ -721,7 +719,6 @@ Stmt *Parser::switch_stmt()
 
         default:
             ungettok();
-            //return swtch;
             return NewSwitchStmt(expr, list.head.next);
         }
     }

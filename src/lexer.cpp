@@ -1,7 +1,8 @@
+#include "compiler.h"
+
 #include "lexer.h"
 #include "error.h"
 #include "escseq.h"
-#include "compiler.h"
 
 #include <string>
 #include <stack>
@@ -11,39 +12,124 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct TokInfo2 {
-    int kind;
-    const char *str;
-    char type;
-} TokInfo2;
-
-static const TokInfo2 keywords[] = {
-    { T_NIL,      "nil"      },
-    { T_TRU,     "true"     },
-    { T_FLS,    "false"    },
-    { T_BOL,     "bool"     },
-    { T_INT,      "int"      },
-    { T_FLT,    "float"    },
-    { T_STR,   "string"   },
-    { T_IF,       "if"       },
-    { T_OR,       "or"       },
-    { T_ELS,     "else"     },
-    { T_FOR,      "for"      },
-    { T_BRK,    "break"    },
-    { T_CNT, "continue" },
-    { T_SWT,   "switch"   },
-    { T_CASE,     "case"     },
-    { T_DFLT,  "default"  },
-    { T_RET,   "return"   },
-    { T_NOP,      "nop"      },
-    // special vars
+static const TokInfo table[] = {
+    { T_NUL,        "nul" },
+    // type
+    { T_keyword_begin, "keyword_begin" },
+    { T_NIL,        "nil" },
+    { T_TRU,        "true" },
+    { T_FLS,        "false" },
+    { T_BOL,        "bool" },
+    { T_INT,        "int" },
+    { T_FLT,        "float" },
+    { T_STR,        "string" },
+    // stmt
+    { T_IF,         "if" },
+    { T_FOR,        "for" },
+    { T_ELS,        "or" },
+    { T_BRK,        "break" },
+    { T_CNT,        "continue" },
+    { T_SWT,        "switch" },
+    { T_CASE,       "case" },
+    { T_DFLT,       "default" },
+    { T_RET,        "return" },
+    { T_NOP,        "nop" },
+    { T_EXPR,       "expr" },
+    { T_BLOCK,      "block" },
+    // special
     { T_CALLER_LINE, "$caller_line" },
-    { T_NUL,  NULL,  },
+    { T_keyword_end, "keyword_end" },
+    // list
+    { T_EXPRLIST,   "xpr_list" },
+    // identifier
+    { T_FIELD,      "field" },
+    { T_IDENT,      "ident" },
+    { T_FUNC,       "func" },
+    { T_VAR,        "var" },
+    // literal
+    { T_NILLIT,     "nil_lit" },
+    { T_BOLLIT,     "bool_lit" },
+    { T_INTLIT,     "int_lit" },
+    { T_FLTLIT,     "float_lit" },
+    { T_STRLIT,     "string_lit" },
+    // separator
+    { T_LPAREN,     "(" },
+    { T_RPAREN,     ")" },
+    { T_LBRACK,     "[" },
+    { T_RBRACK,     "]" },
+    { T_SEM,        ";" },
+    { T_BLOCKBEGIN,     "block_begin" },
+    { T_BLOCKEND,   "block_end" },
+    { T_DASH3,      "---" },
+    { T_DOT,        "." },
+    { T_COMMA,      "," },
+    { T_HASH,       "#" },
+    { T_HASH2,      "##" },
+    { T_NEWLINE,    "\\n" },
+    // binary
+    { T_ADD,        "+" },
+    { T_SUB,        "-" },
+    { T_MUL,        "*" },
+    { T_DIV,        "/" },
+    { T_REM,        "%" },
+    // relational
+    { T_EQ,         "==" },
+    { T_NEQ,        "!=" },
+    { T_LT,         "<" },
+    { T_LTE,        "<=" },
+    { T_GT,         ">" },
+    { T_GTE,        ">=" },
+    // bitwise
+    { T_SHL,        "<<" },
+    { T_SHR,        ">>" },
+    { T_OR,         "|" },
+    { T_XOR,        "^" },
+    { T_AND,        "&" },
+    { T_LOR,        "||" },
+    { T_LAND,       "&&" },
+    // array, struct, func
+    { T_SELECT,     "select" },
+    { T_INDEX,      "index" },
+    { T_CALL,       "call" },
+    // unary
+    { T_LNOT,       "!" },
+    { T_POS,        "+(pos)" },
+    { T_NEG,        "-(neg)" },
+    { T_ADR,        "&(addr)" },
+    { T_DRF,        "*(deref)" },
+    { T_NOT,        "~" },
+    { T_INC,        "++" },
+    { T_DEC,        "--" },
+    { T_CONV,       "conversion" },
+    // assign
+    { T_ASSN,       "=" },
+    { T_AADD,       "+=" },
+    { T_ASUB,       "-=" },
+    { T_AMUL,       "*=" },
+    { T_ADIV,       "/=" },
+    { T_AREM,       "%=" },
+    // eof
+    { T_EOF,        "EOF" },
 };
 
-static int keyword_or_identifier(const char *word)
+static_assert(sizeof(table)/sizeof(table[0])==T_EOF+1, "MISSING_TOKEN_STRING");
+
+const TokInfo *LookupKindInfo(int kind)
 {
-    for (const TokInfo2 *info = keywords; info->kind; info++) {
+    int N = sizeof(table)/sizeof(table[0]);
+    int i;
+
+    for (i = 0; i < N; i++) {
+        if (kind == table[i].kind)
+            return &table[i];
+    }
+    return &table[0];
+}
+
+static int keyword_or_ident(const char *word)
+{
+    for (int i = T_keyword_begin + 1; i < T_keyword_end; i++) {
+        const TokInfo *info = &table[i];
         if (!strcmp(word, info->str))
             return info->kind;
     }
@@ -52,7 +138,7 @@ static int keyword_or_identifier(const char *word)
 
 const char *TokenKindString(int kind)
 {
-    const TokInfo *info = find_tokinfo(kind);
+    const TokInfo *info = LookupKindInfo(kind);
     return info->str;
 }
 
@@ -579,7 +665,7 @@ void Lexer::scan_word(Token *tok, Pos pos)
 
     unget();
 
-    const int kind = keyword_or_identifier(buf);
+    const int kind = keyword_or_ident(buf);
     tok->sval = intern(buf);
     set(tok, kind, pos);
 }
