@@ -42,8 +42,7 @@ private:
     Pos tok_pos() const;
     long tok_int() const;
     double tok_float() const;
-    std::string_view tok_str() const;
-    const char *tok_str_() const;
+    const char *tok_str() const;
     TokenKind peek();
     void expect(TokenKind kind);
     bool consume(TokenKind kind);

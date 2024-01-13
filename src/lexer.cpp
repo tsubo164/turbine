@@ -616,13 +616,15 @@ void Lexer::scan_word(Token *tok, Pos pos)
     const std::string_view word(&(*start), len);
     const TokenKind kind = keyword_or_identifier(word);
 
-    tok->sval_ = intern(buf);
-    tok->sval = word;
+    tok->sval = intern(buf);
     tok->set(kind, pos);
 }
 
 void Lexer::scan_string(Token *tok, Pos pos)
 {
+    static char buf[4096] = {'\0'};
+    char *p = buf;
+
     const Pos strpos = pos;
     auto start = it_;
     int len = 0;
@@ -634,8 +636,10 @@ void Lexer::scan_string(Token *tok, Pos pos)
         if (ch == '\\') {
             backslashes++;
             if (next == '"' || next == '\\') {
-                ch = get();
+                *p++ = ch;
                 len++;
+
+                ch = get();
             }
         }
 
@@ -644,13 +648,15 @@ void Lexer::scan_string(Token *tok, Pos pos)
             Error("unterminated string literal", *src_, strpos);
         }
 
+        *p++ = ch;
         len++;
     }
+    *p = '\0';
 
     const std::string_view str_lit(&(*start), len);
 
     tok->has_escseq = backslashes > 0;
-    tok->sval = str_lit;
+    tok->sval = intern(buf);
     tok->set(TK::STRLIT, pos);
 }
 

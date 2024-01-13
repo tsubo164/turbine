@@ -1,7 +1,6 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include <string_view>
 #include <iostream>
 #include <string>
 #include <stack>
@@ -95,8 +94,7 @@ struct Token {
     long ival = 0;
     double fval = 0.0;
     bool has_escseq = false;
-    std::string_view sval;
-    const char *sval_;
+    const char *sval;
 
     void set(TokenKind k, Pos p);
 };

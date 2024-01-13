@@ -121,14 +121,9 @@ double Parser::tok_float() const
     return curr_->fval;
 }
 
-std::string_view Parser::tok_str() const
+const char *Parser::tok_str() const
 {
     return curr_->sval;
-}
-
-const char *Parser::tok_str_() const
-{
-    return curr_->sval_;
 }
 
 TokenKind Parser::peek()
@@ -273,7 +268,7 @@ Expr *Parser::primary_expr()
         Expr *e = NewStringLitExpr(tok_str());
         const Token *tok = curtok();
         if (tok->has_escseq) {
-            const int errpos = ConvertEscSeq(e->val.sv, e->converted);
+            const int errpos = ConvertEscSeq(e->val.s, e->converted);
             if (errpos != -1) {
                 Pos pos = tok->pos;
                 pos.x += errpos + 1;
@@ -290,7 +285,7 @@ Expr *Parser::primary_expr()
     }
 
     if (consume(TK::CALLER_LINE)) {
-        Var *var = scope_->FindVar(tok_str_());
+        Var *var = scope_->FindVar(tok_str());
         if (!var) {
             error(tok_pos(),
                     "special variable '", tok_str(),
@@ -315,7 +310,7 @@ Expr *Parser::primary_expr()
         const Token *tok = gettok();
 
         if (tok->kind == TK::IDENT) {
-            Var *var = scope_->FindVar(tok->sval_);
+            Var *var = scope_->FindVar(tok->sval);
             if (!var) {
                 error(tok_pos(),
                         "undefined identifier: '", tok_str(), "'");
@@ -347,7 +342,7 @@ Expr *Parser::primary_expr()
 
             expect(TK::IDENT);
 
-            Field *fld = expr->type->clss->FindField(tok_str_());
+            Field *fld = expr->type->clss->FindField(tok_str());
 
             expr = NewSelectExpr(expr, NewFieldExpr(fld));
             continue;
@@ -871,14 +866,14 @@ Stmt *Parser::var_decl()
     expect(TK::MINUS);
     expect(TK::IDENT);
 
-    if (scope_->FindVar(tok_str_(), false)) {
+    if (scope_->FindVar(tok_str(), false)) {
         const std::string msg = "re-defined variable: '" +
             std::string(tok_str()) + "'";
         Error(msg, *src_, tok_pos());
     }
 
     // var anme
-    const char *name_ = tok_str_();
+    const char *name = tok_str();
     Type *type = nullptr;
     Expr *init = nullptr;
 
@@ -903,7 +898,7 @@ Stmt *Parser::var_decl()
 
     expect(TK::NEWLINE);
 
-    Var *var = scope_->DefineVar(name_, type);
+    Var *var = scope_->DefineVar(name, type);
     Expr *ident = NewIdentExpr(var);
     return NewExprStmt(NewAssignExpr(ident, init, TK::EQ));
 }
@@ -913,7 +908,7 @@ Field *Parser::field_decl()
     expect(TK::MINUS);
     expect(TK::IDENT);
 
-    if (scope_->FindField(tok_str_())) {
+    if (scope_->FindField(tok_str())) {
         std::cerr
             << "error: re-defined variable: '"
             << tok_str() << "'"
@@ -921,7 +916,7 @@ Field *Parser::field_decl()
         std::exit(EXIT_FAILURE);
     }
 
-    Field *fld = scope_->DefineFild(tok_str_());
+    Field *fld = scope_->DefineFild(tok_str());
     fld->type = type_spec();
     expect(TK::NEWLINE);
 
@@ -934,7 +929,7 @@ Class *Parser::class_decl()
     expect(TK::IDENT);
 
     // class name
-    Class *clss = scope_->DefineClass(tok_str_());
+    Class *clss = scope_->DefineClass(tok_str());
     if (!clss) {
         std::cerr << "error: re-defined class: '" << tok_str() << "'" << std::endl;
         std::exit(EXIT_FAILURE);
@@ -1061,7 +1056,7 @@ Type *Parser::type_spec()
     }
     else if (consume(TK::IDENT)) {
         type = new Type(TY::CLASS);
-        type->clss = scope_->FindClass(tok_str_());
+        type->clss = scope_->FindClass(tok_str());
     }
     else {
         const Token *tok = gettok();
@@ -1078,7 +1073,7 @@ void Parser::field_list(Class *clss)
 
     do {
         expect(TK::IDENT);
-        const char *name = tok_str_();
+        const char *name = tok_str();
 
         clss->DeclareField(name, type_spec());
         expect(TK::NEWLINE);
@@ -1098,12 +1093,12 @@ void Parser::param_list(Func *func)
         const char *name;
 
         if (consume(TK::CALLER_LINE)) {
-            name = tok_str_();
+            name = tok_str();
             type = new Type(TY::INT);
         }
         else {
             expect(TK::IDENT);
-            name = tok_str_();
+            name = tok_str();
             type = type_spec();
         }
 
@@ -1131,7 +1126,7 @@ FuncDef *Parser::func_def()
     expect(TK::IDENT);
 
     // signature
-    const char *name = tok_str_();
+    const char *name = tok_str();
     Func *func = scope_->DeclareFunc();
 
     // params

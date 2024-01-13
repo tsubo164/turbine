@@ -18,7 +18,6 @@ typedef union Val {
     long i;
     double f;
     const char *s;
-    std::string_view sv;
 } Val;
 
 
@@ -47,7 +46,7 @@ Expr *NewNilLitExpr(void);
 Expr *NewBoolLitExpr(bool b);
 Expr *NewIntLitExpr(long l);
 Expr *NewFloatLitExpr(double d);
-Expr *NewStringLitExpr(std::string_view s);
+Expr *NewStringLitExpr(const char *s);
 Expr *NewConversionExpr(Expr *from, Type *to);
 Expr *NewIdentExpr(Var *v);
 Expr *NewFieldExpr(Field *f);

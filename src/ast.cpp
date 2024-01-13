@@ -4,7 +4,7 @@
 #include <limits>
 
 // TODO move this to str.c
-int ConvertEscSeq(std::string_view s, std::string &converted)
+int ConvertEscSeq(const char *s, std::string &converted)
 {
     return ConvertEscapeSequence(s, converted);
 }
@@ -55,12 +55,12 @@ Expr *NewFloatLitExpr(double d)
     return e;
 }
 
-Expr *NewStringLitExpr(std::string_view s)
+Expr *NewStringLitExpr(const char *s)
 {
     Expr *e = CALLOC(Expr);
     e->type = NewStringType();
     e->kind = T_STRLIT;
-    e->val.sv = s;
+    e->val.s = s;
     return e;
 }
 
@@ -466,10 +466,10 @@ void print_expr(const Expr *e, int depth)
         printf(" (%g)", e->val.f);
         break;
     case 's':
-        printf(" (%s)", std::string(e->val.sv).c_str());
+        printf(" (%s)", e->val.s);
         break;
     case 'v':
-        printf(" (%s)", std::string(e->var->name).c_str());
+        printf(" (%s)", e->var->name);
         break;
     }
     printf("\n");

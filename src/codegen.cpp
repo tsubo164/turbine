@@ -229,7 +229,7 @@ static void gen_expr(Bytecode *code, const Expr *e)
             std::string_view s;
 
             if (e->converted.empty())
-                s = e->val.sv;
+                s = e->val.s;
             else
                 s = std::string_view(e->converted.c_str(), e->converted.length());
 

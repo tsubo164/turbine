@@ -130,8 +130,7 @@ void GenerateCode(Bytecode *code, const Prog *prog);
 
 
 // str
-#include <string_view>
-int ConvertEscSeq(std::string_view s, std::string &converted);
+int ConvertEscSeq(const char *s, std::string &converted);
 
 const char *intern(const char *str);
 
