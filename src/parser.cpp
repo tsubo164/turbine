@@ -234,10 +234,10 @@ Expr *Parser::primary_expr()
     if (consume(TK_FALSE))
         return NewBoolLitExpr(false);
 
-    if (consume(TK_INTLIT))
+    if (consume(T_INTLIT))
         return NewIntLitExpr(tok_int());
 
-    if (consume(TK_FLTLIT))
+    if (consume(T_FLTLIT))
         return NewFloatLitExpr(tok_float());
 
     if (consume(TK_STRLIT)) {
@@ -1190,7 +1190,7 @@ Prog *Parser::program()
             continue;
         }
 
-        if (next == TK_EOF) {
+        if (next == T_EOF) {
             break;
         }
 

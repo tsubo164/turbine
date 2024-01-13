@@ -56,8 +56,6 @@ static const char *tok_kind_string(int kind)
 
     switch (k) {
     case TK_UNKNOWN:    return "unknown";
-    case TK_INTLIT:     return "integer_literal";
-    case TK_FLTLIT:     return "float_literal";
     case TK_STRLIT:     return "string_literal";
     case TK_IDENT:      return "identifier";
     case TK_EQ:         return "=";
@@ -120,8 +118,14 @@ static const char *tok_kind_string(int kind)
     case TK_BLOCKEND:   return "block_end";
     case TK_NEWLINE:    return "\\n";
     case TK_CALLER_LINE:return "$caller_line";
-    case TK_EOF:       return "end_of_file";
     }
+
+    switch (kind) {
+    case T_INTLIT:     return "integer_literal";
+    case T_FLTLIT:     return "float_literal";
+    case T_EOF:       return "end_of_file";
+    }
+
     ERROR_NO_CASE(kind);
     return nullptr;
 }
@@ -132,6 +136,12 @@ const char *TokenKindString(int kind)
 }
 
 void set(Token *t, TK k, Pos p)
+{
+    t->kind = k;
+    t->pos = p;
+}
+
+void set(Token *t, int k, Pos p)
 {
     t->kind = k;
     t->pos = p;
@@ -522,7 +532,7 @@ void Lexer::Get(Token *tok)
         }
 
         if (ch == EOF) {
-            set(tok, TK_EOF, pos);
+            set(tok, T_EOF, pos);
             return;
         }
 
@@ -535,7 +545,7 @@ void Lexer::Get(Token *tok)
         return;
     }
 
-    set(tok, TK_EOF, pos_);
+    set(tok, T_EOF, pos_);
 }
 
 static bool isfp(int ch)
@@ -593,11 +603,11 @@ void Lexer::scan_number(Token *tok, Pos pos)
 
     if (fpnum) {
         tok->fval = strtod(&(*start), &end);
-        set(tok, TK_FLTLIT, pos);
+        set(tok, T_FLTLIT, pos);
     }
     else {
         tok->ival = strtol(&(*start), &end, base);
-        set(tok, TK_INTLIT, pos);
+        set(tok, T_INTLIT, pos);
     }
 
     assert(end && (len == (end - &(*start))));
@@ -617,7 +627,7 @@ void Lexer::scan_char_literal(Token *tok, Pos pos)
     }
 
     tok->ival = ch;
-    set(tok, TK_INTLIT, pos);
+    set(tok, T_INTLIT, pos);
 
     ch = get();
     if (ch != '\'') {
@@ -842,7 +852,7 @@ const Token *Tokenize(const char *src)
         t->prev = tail;
         tail = t;
 
-        if (t->kind == TK_EOF)
+        if (t->kind == T_EOF)
             break;
     }
 
@@ -863,9 +873,9 @@ void PrintToken(const Token *token, bool format)
 
             if (tok->kind == TK_IDENT)
                 printf(" (%s)", tok->sval);
-            if (tok->kind == TK_INTLIT)
+            if (tok->kind == T_INTLIT)
                 printf(" (%ld)", tok->ival);
-            if (tok->kind == TK_FLTLIT)
+            if (tok->kind == T_FLTLIT)
                 printf(" (%g)", tok->fval);
             if (tok->kind == TK_STRLIT)
                 printf(" (\"%s\")", tok->sval);
@@ -897,7 +907,7 @@ void PrintToken(const Token *token, bool format)
             }
         }
 
-        if (tok->kind == TK_EOF)
+        if (tok->kind == T_EOF)
             break;
     }
 }

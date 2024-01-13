@@ -4,8 +4,8 @@
 enum TK {
     TK_UNKNOWN = 0,
     // factor
-    TK_INTLIT,
-    TK_FLTLIT,
+    //TK_INTLIT,
+    //TK_FLTLIT,
     TK_STRLIT,
     TK_IDENT,
     // operator
@@ -72,7 +72,7 @@ enum TK {
     TK_NEWLINE,
     // special var
     TK_CALLER_LINE,
-    TK_EOF,
+    //TK_EOF,
 };
 
 typedef struct Pos {
