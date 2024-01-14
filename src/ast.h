@@ -14,7 +14,6 @@
 // XXX TEST ==============
 //#include "compiler.h"
 
-/*
 void SetOptimize(bool enable);
 
 typedef union Val {
@@ -116,6 +115,13 @@ typedef struct Prog {
 } Prog;
 
 Prog *NewProg(Scope *sc);
-*/
+
+bool IsNull(const Expr *e);
+bool IsGlobal(const Expr *e);
+
+int Addr(const Expr *e);
+bool EvalExpr(const Expr *e, long *result);
+bool EvalAddr(const Expr *e, int *result);
+void PrintProg(const Prog *p, int depth);
 
 #endif // _H

@@ -1,15 +1,5 @@
 #include "compiler.h"
 #include "ast.h"
-#include "escseq.h"
-#include <iostream>
-#include <limits>
-
-// TODO move this to str.c
-int ConvertEscSeq(const char *s, std::string &converted)
-{
-    return ConvertEscapeSequence(s, converted);
-}
-
 
 //--------------------------------
 // Expr
@@ -519,7 +509,7 @@ void print_funcdef(const FuncDef *f, int depth)
         printf("  ");
 
     // basic info
-    printf("%d. <func_def> \"%s\"", depth, std::string(f->var->name).c_str());
+    printf("%d. <func_def> \"%s\"", depth, f->var->name);
     printf(" %s", TypeString(f->var->type->func->return_type).c_str());
     printf("\n");
 
