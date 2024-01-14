@@ -245,9 +245,9 @@ Expr *Parser::primary_expr()
         Expr *e = NewStringLitExpr(tok_str());
         const Token *tok = curtok();
         if (tok->has_escseq) {
-            const int errpos = ConvertEscapeSequence(e->val.s, &e->converted);
+            const int errpos = ConvertEscapeSequence(e->sval, &e->converted);
             if (errpos != -1) {
-                printf("!! e->val.s [%s] errpos %d\n", e->val.s, errpos);
+                printf("!! e->val.s [%s] errpos %d\n", e->sval, errpos);
                 Pos pos = tok->pos;
                 pos.x += errpos + 1;
                 Error("unknown escape sequence", *src_, pos);
@@ -371,7 +371,7 @@ Expr *Parser::unary_expr()
     if (kind == T_AND) {
         Expr *expr = unary_expr();
         Type *type = NewPtrType(expr->type);
-        return NewUnaryExpr(expr, type, /*T_ADR*/kind);
+        return NewUnaryExpr(expr, type, kind);
     }
     if (kind == T_MUL) {
         Expr *expr = unary_expr();
@@ -380,7 +380,7 @@ Expr *Parser::unary_expr()
                     "type mismatch: * must be used for pointer type");
         }
         Type *type = DuplicateType(expr->type->underlying);
-        return NewUnaryExpr(expr, type, /*T_DRF*/kind);
+        return NewUnaryExpr(expr, type, kind);
     }
 
     switch (kind) {
@@ -390,9 +390,7 @@ Expr *Parser::unary_expr()
     case T_NOT:
         {
             Expr *e = unary_expr();
-            return NewUnaryExpr(e, const_cast<Type*>(e->type),
-                    //kind == T_SUB ? T_NEG : kind);
-                    kind);
+            return NewUnaryExpr(e, const_cast<Type*>(e->type), kind);
         }
 
     default:

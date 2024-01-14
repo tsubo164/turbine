@@ -1,27 +1,9 @@
 #ifndef AST_H
 #define AST_H
 
-#include <memory>
-#include <vector>
-#include <string>
-
-#include "bytecode.h"
 #include "scope.h"
 #include "token.h"
 #include "type.h"
-#include "escseq.h"
-
-// XXX TEST ==============
-//#include "compiler.h"
-
-void SetOptimize(bool enable);
-
-typedef union Val {
-    long i;
-    double f;
-    const char *s;
-} Val;
-
 
 //--------------------------------
 // Expr
@@ -37,8 +19,11 @@ typedef struct Expr {
     Var *var;
     Field *field;
 
-    // TODO remove init later
-    Val val = {0};
+    union {
+        long ival;
+        double fval;
+        const char *sval;
+    };
     const char *converted;
     Pos pos;
 } Expr;

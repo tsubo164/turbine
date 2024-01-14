@@ -15,6 +15,8 @@
 // codegen
 class Bytecode;
 struct Prog;
+
+void SetOptimize(bool enable);
 void GenerateCode(Bytecode *code, const Prog *prog);
 
 

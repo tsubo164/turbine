@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "bytecode.h"
 #include "ast.h"
 
 static bool optimize = false;
@@ -210,18 +211,18 @@ static void gen_expr(Bytecode *code, const Expr *e)
         return;
 
     case T_BOLLIT:
-        code->LoadByte(e->val.i);
+        code->LoadByte(e->ival);
         return;
 
     case T_INTLIT:
-        if (e->val.i >= 0 && e->val.i <= UINT8_MAX)
-            code->LoadByte(e->val.i);
+        if (e->ival >= 0 && e->ival <= UINT8_MAX)
+            code->LoadByte(e->ival);
         else
-            code->LoadInt(e->val.i);
+            code->LoadInt(e->ival);
         return;
 
     case T_FLTLIT:
-        code->LoadFloat(e->val.f);
+        code->LoadFloat(e->fval);
         return;
 
     case T_STRLIT:
@@ -230,7 +231,7 @@ static void gen_expr(Bytecode *code, const Expr *e)
             std::string_view s;
 
             if (!e->converted)
-                s = e->val.s;
+                s = e->sval;
             else
                 s = std::string_view(e->converted, strlen(e->converted));
 

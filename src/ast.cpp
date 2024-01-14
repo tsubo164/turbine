@@ -24,7 +24,7 @@ Expr *NewBoolLitExpr(bool b)
     Expr *e = CALLOC(Expr);
     e->type = NewBoolType();
     e->kind = T_BOLLIT;
-    e->val.i = b;
+    e->ival = b;
     return e;
 }
 
@@ -33,7 +33,7 @@ Expr *NewIntLitExpr(long l)
     Expr *e = CALLOC(Expr);
     e->type = NewIntType();
     e->kind = T_INTLIT;
-    e->val.i = l;
+    e->ival = l;
     return e;
 }
 
@@ -42,7 +42,7 @@ Expr *NewFloatLitExpr(double d)
     Expr *e = CALLOC(Expr);
     e->type = NewFloatType();
     e->kind = T_FLTLIT;
-    e->val.f = d;
+    e->fval = d;
     return e;
 }
 
@@ -51,7 +51,7 @@ Expr *NewStringLitExpr(const char *s)
     Expr *e = CALLOC(Expr);
     e->type = NewStringType();
     e->kind = T_STRLIT;
-    e->val.s = s;
+    e->sval = s;
     return e;
 }
 
@@ -117,21 +117,15 @@ Expr *NewBinaryExpr(Expr *L, Expr *R, int k)
     Expr *e = CALLOC(Expr);
     e->type = L->type;
     switch (k) {
-    case T_ADD: e->kind = T_ADD; break;
-    case T_SUB: e->kind = T_SUB; break;
-    case T_MUL: e->kind = T_MUL; break;
-    case T_DIV: e->kind = T_DIV; break;
-    case T_REM: e->kind = T_REM; break;
-    case T_OR:  e->kind = T_OR;  break;
-    case T_LOR: e->kind = T_LOR; break;
-    case T_AND: e->kind = T_AND; break;
-    case T_LAND:e->kind = T_LAND; break;
-    case T_LNOT:e->kind = T_LNOT; break;
-    case T_XOR: e->kind = T_XOR; break;
-    case T_NOT: e->kind = T_NOT; break;
-    case T_SHL: e->kind = T_SHL; break;
-    case T_SHR: e->kind = T_SHR; break;
-    default:    e->kind = T_NUL; break;
+    case T_ADD: case T_SUB: case T_MUL: case T_DIV: case T_REM:
+    case T_LOR: case T_LAND: case T_LNOT:
+    case T_AND: case T_OR: case T_XOR: case T_NOT:
+    case T_SHL: case T_SHR:
+        e->kind = k;
+        break;
+    default:
+        // error
+        break;
     }
     e->l = L;
     e->r = R;
@@ -143,13 +137,14 @@ Expr *NewRelationalExpr(Expr *L, Expr *R, int k)
     Expr *e = CALLOC(Expr);
     e->type = NewBoolType();
     switch (k) {
-    case T_EQ:   e->kind = T_EQ;  break;
-    case T_NEQ:  e->kind = T_NEQ; break;
-    case T_LT:   e->kind = T_LT; break;
-    case T_GT:   e->kind = T_GT; break;
-    case T_LTE:  e->kind = T_LTE; break;
-    case T_GTE:  e->kind = T_GTE; break;
-    default:     e->kind = T_NUL; break;
+    case T_EQ: case T_NEQ:
+    case T_LT: case T_LTE:
+    case T_GT: case T_GTE:
+        e->kind = k;
+        break;
+    default:
+        // error
+        break;
     }
     e->l = L;
     e->r = R;
@@ -159,16 +154,17 @@ Expr *NewRelationalExpr(Expr *L, Expr *R, int k)
 Expr *NewUnaryExpr(Expr *L, Type *t, int k)
 {
     Expr *e = CALLOC(Expr);
-    e->type = t;
     switch (k) {
     case T_AND:  e->kind = T_ADR; break;
     case T_ADD:  e->kind = T_POS; break;
     case T_SUB:  e->kind = T_NEG; break;
-    case T_LNOT: e->kind = T_LNOT; break;
-    case T_NOT:  e->kind = T_NOT; break;
     case T_MUL:  e->kind = T_DRF; break;
-    default:     e->kind = T_NUL; break;
+    case T_LNOT: case T_NOT: e->kind = k; break;
+    default:
+        // error
+        break;
     }
+    e->type = t;
     e->l = L;
     return e;
 }
@@ -178,13 +174,13 @@ Expr *NewAssignExpr(Expr *l, Expr *r, int k)
     Expr *e = CALLOC(Expr);
     e->type = l->type;
     switch (k) {
-    case T_ASSN:  e->kind = T_ASSN; break;
-    case T_AADD:  e->kind = T_AADD; break;
-    case T_ASUB:  e->kind = T_ASUB; break;
-    case T_AMUL:  e->kind = T_AMUL; break;
-    case T_ADIV:  e->kind = T_ADIV; break;
-    case T_AREM:  e->kind = T_AREM; break;
-    default:           e->kind = T_NUL; break;
+    case T_ASSN: case T_AADD: case T_ASUB:
+    case T_AMUL: case T_ADIV: case T_AREM:
+        e->kind = k;
+        break;
+    default:
+        // error
+        break;
     }
     e->l = l;
     e->r = r;
@@ -196,9 +192,11 @@ Expr *NewIncDecExpr(Expr *l, int k)
     Expr *e = CALLOC(Expr);
     e->type = l->type;
     switch (k) {
-    case T_INC:  e->kind = T_INC; break;
-    case T_DEC: e->kind = T_DEC; break;
-    default:        e->kind = T_NUL; break;
+    case T_INC: case T_DEC:
+        e->kind = k;
+    default:
+        // error
+        break;
     }
     e->l = l;
     return e;
@@ -399,7 +397,7 @@ bool EvalExpr(const Expr *e, long *result)
 {
     switch (e->kind) {
     case T_INTLIT:
-        *result = e->val.i;
+        *result = e->ival;
         return true;
 
     case T_ADD: case T_SUB:
@@ -431,7 +429,7 @@ bool EvalAddr(const Expr *e, int *result)
     }
 }
 
-void print_expr(const Expr *e, int depth)
+static void print_expr(const Expr *e, int depth)
 {
     const KindInfo *info;
     int i;
@@ -451,13 +449,13 @@ void print_expr(const Expr *e, int depth)
     // extra value
     switch (info->type) {
     case 'i':
-        printf(" (%ld)", e->val.i);
+        printf(" (%ld)", e->ival);
         break;
     case 'f':
-        printf(" (%g)", e->val.f);
+        printf(" (%g)", e->fval);
         break;
     case 's':
-        printf(" (%s)", e->val.s);
+        printf(" (%s)", e->sval);
         break;
     case 'v':
         printf(" (%s)", e->var->name);
@@ -472,7 +470,7 @@ void print_expr(const Expr *e, int depth)
         print_expr(e->r, depth + 1);
 }
 
-void PrintStmt(const Stmt *s, int depth)
+static void PrintStmt(const Stmt *s, int depth)
 {
     const KindInfo *info;
     int i;
@@ -499,7 +497,7 @@ void PrintStmt(const Stmt *s, int depth)
     PrintStmt(s->body, depth + 1);
 }
 
-void print_funcdef(const FuncDef *f, int depth)
+static void print_funcdef(const FuncDef *f, int depth)
 {
     if (!f)
         return;
