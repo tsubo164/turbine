@@ -3,12 +3,15 @@
 #include "error.h"
 #include <iostream>
 
+#include <stdarg.h>
+
 
 typedef struct Parser {
     Scope *scope_ = nullptr;
     Func *func_ = nullptr;
     const Token *curr_;
     const char *src_;
+    const char *filename;
 
     // TODO remove this
     int funclit_id_ = 0;
@@ -32,6 +35,14 @@ void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
     if (!s5.empty()) msg += s5;
 
     Error(msg, src_, pos);
+}
+
+static void error(const Parser *p, Pos pos, const char *fmt, ...)
+{
+    va_list args; 
+    va_start(args, fmt);
+    VError(p->src_, p->filename, pos, fmt, args);
+    va_end(args);
 }
 
 static const Token *curtok(const Parser *p)
@@ -82,9 +93,7 @@ static void expect(Parser *p, int kind)
 {
     const Token *tok = gettok(p);
     if (tok->kind != kind) {
-        const std::string msg =
-            std::string("expected '") + TokenKindString(kind) + "'";
-        Error(msg, p->src_, tok->pos);
+        error(p, tok->pos, "expected '%s'", TokenKindString(kind));
     }
 }
 
@@ -286,11 +295,11 @@ static Expr *primary_expr(Parser *p)
         else if (tok->kind == T_DOT) {
             // TODO FIX
             if (!expr || !expr->type) {
-                std::cerr << "error: no type" << std::endl;
+                fprintf(stderr, "error: no type\n");
                 exit(EXIT_FAILURE);
             }
             if (!expr->type->IsClass()) {
-                std::cerr << "error: not a class type" << std::endl;
+                fprintf(stderr, "error: not a class type\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -315,8 +324,9 @@ static Expr *primary_expr(Parser *p)
             if (EvalExpr(idx, &index)) {
                 const long len = expr->type->len;
                 if (index >= len) {
-                    p->error(tok_pos(p), "index out of range[", std::to_string(index),
-                            "] with length ", std::to_string(len));
+                    error(p, tok_pos(p),
+                            "index out of range[%d] with length %d",
+                            index, len);
                 }
             }
             expect(p, T_RBRACK);
@@ -324,9 +334,9 @@ static Expr *primary_expr(Parser *p)
         }
         else {
             if (!expr) {
-                const std::string msg = "unknown token: \"" +
-                    std::string(TokenKindString(tok->kind)) + "\"";
-                Error(msg, p->src_, tok->pos);
+                error(p, tok->pos,
+                        "unknown token for primary expression: \"%s\"",
+                        TokenKindString(tok->kind));
             }
 
             ungettok(p);
@@ -815,9 +825,8 @@ static Stmt *var_decl(Parser *p)
     expect(p, T_IDENT);
 
     if (p->scope_->FindVar(tok_str(p), false)) {
-        const std::string msg = "re-defined variable: '" +
-            std::string(tok_str(p)) + "'";
-        Error(msg, p->src_, tok_pos(p));
+        error(p, tok_pos(p),
+                "re-defined variable: '%s'", tok_str(p));
     }
 
     // var anme
@@ -873,8 +882,8 @@ static Class *class_decl(Parser *p)
     // class name
     Class *clss = p->scope_->DefineClass(tok_str(p));
     if (!clss) {
-        std::cerr << "error: re-defined class: '" << tok_str(p) << "'" << std::endl;
-        std::exit(EXIT_FAILURE);
+        fprintf(stderr, "error: re-defined class: '%s'\n", tok_str(p));
+        exit(EXIT_FAILURE);
     }
 
     expect(p, T_NEWLINE);
@@ -1145,20 +1154,22 @@ static Prog *program(Parser *p)
         }
 
         const Token *tok = gettok(p);
-        const std::string msg = std::string("error: unexpected token: '") +
-            TokenKindString(next) + "'";
-        Error(msg, p->src_, tok->pos);
+        error(p, tok->pos,
+                "error: unexpected token for global object: '%s'",
+                TokenKindString(next));
     }
 
     prog->gvars = head.next;
     return prog;
 }
 
-static Prog *parse(Parser *p, const char *src, const Token *tok, Scope *scope)
+static Prog *parse(Parser *p,
+        const char *src, const char *filename, const Token *tok, Scope *scope)
 {
     p->src_ = src;
     p->curr_ = tok;
     p->scope_ = scope;
+    p->filename = filename;
 
     // global (file) scope
     enter_scope(p, (Func *)NULL);
@@ -1168,6 +1179,8 @@ static Prog *parse(Parser *p, const char *src, const Token *tok, Scope *scope)
 
 Prog *Parse(const char *src, const Token *tok, Scope *scope)
 {
+    static const char filename[] = "fixme.ro";
+
     Parser parser;
-    return parse(&parser, src, tok, scope);
+    return parse(&parser, src, filename, tok, scope);
 }

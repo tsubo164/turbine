@@ -1,36 +1,41 @@
-- foo #(n int) int
-
-# seven() int
-  return 7
-
-# add(x int, y int) int
-  - z = x + y
-  return z
-
-- g = add
-
+//- foo #(n int) int
+//
+//# seven() int
+//  return 7
+//
+//# add(x int, y int) int
+//  - z = x + y
+//  return z
+//
+//- g = add
+//
+//# main() int
+//  - b = true
+//  - f = nil
+//  nop
+//  if true
+//    nop
+//  or
+//    nop
+//
+//  - i int
+//  for i = 0; i < 42; i++
+//    nop
+//    continue
+//    break
+//
+//  switch (1)
+//  case 11
+//    nop
+//  case 21
+//    nop
+//  default
+//    nop
+//  99 + 11
+//  print(false, 42, 3.14, nil, "Hello")
+//  return 13 + 4
 # main() int
-  - b = true
-  - f = nil
-  nop
-  if true
-    nop
-  or
-    nop
-
-  - i int
-  for i = 0; i < 42; i++
-    nop
-    continue
-    break
-
-  switch (1)
-  case 11
-    nop
-  case 21
-    nop
-  default
-    nop
-  99 + 11
-  print(false, 42, 3.14, nil, "Hello")
-  return 13 + 4
+  - a [4]int
+  //- a string
+  a[0] = 23
+  return 3
