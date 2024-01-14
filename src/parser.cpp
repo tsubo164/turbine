@@ -3,6 +3,59 @@
 #include "error.h"
 #include <iostream>
 
+
+typedef struct Parser {
+    Scope *scope_ = nullptr;
+    Func *func_ = nullptr;
+    const Token *curr_;
+    const char *src_;
+
+    // TODO remove this
+    int funclit_id_ = 0;
+
+    // expression
+    Expr *arg_list(Expr *call);
+    Expr *conv_expr(int kind);
+    Expr *primary_expr();
+    Expr *unary_expr();
+    Expr *mul_expr();
+    Expr *add_expr();
+    Expr *rel_expr();
+    Expr *logand_expr();
+    Expr *logor_expr();
+    Expr *assign_expr();
+    Expr *expression();
+
+    // statement
+    Stmt *or_stmt();
+    Stmt *if_stmt();
+    Stmt *for_stmt();
+    Stmt *jump_stmt();
+    Stmt *switch_stmt();
+    Stmt *case_stmt(int kind);
+    Stmt *ret_stmt();
+    Stmt *expr_stmt();
+    Stmt *scope_stmt();
+    Stmt *nop_stmt();
+    Stmt *block_stmt(Func *func = nullptr);
+
+    //
+    Type *type_spec();
+    Stmt *var_decl();
+    Field *field_decl();
+    Class *class_decl();
+    void field_list(Class *clss);
+    void param_list(Func *func);
+    void ret_type(Func *func);
+    FuncDef *func_def();
+
+    // error
+    void error(Pos pos, std::string_view s0, std::string_view s1 = {},
+            std::string_view s2 = {}, std::string_view s3 = {},
+            std::string_view s4 = {}, std::string_view s5 = {}) const;
+    Prog *program();
+} Parser;
+
 typedef struct ExprList {
     Expr head;
     Expr *tail;
@@ -52,79 +105,73 @@ void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
     if (!s4.empty()) msg += s4;
     if (!s5.empty()) msg += s5;
 
-    Error(msg, *src_, pos);
+    Error(msg, src_, pos);
 }
 
-Prog *Parser::Parse(const std::string &src, const Token *tok, Scope *scope)
+static const Token *curtok(const Parser *p)
 {
-    src_ = &src;
-    curr_ = tok;
-    scope_ = scope;
-
-    // global (file) scope
-    enter_scope();
-
-    return program();
+    return p->curr_;
 }
 
-const Token *Parser::curtok() const
+static const Token *gettok(Parser *p)
 {
-    return curr_;
+    p->curr_ = p->curr_->next;
+    return p->curr_;
 }
 
-const Token *Parser::gettok()
+static void ungettok(Parser *p)
 {
-    curr_ = curr_->next;
-    return curr_;
+    p->curr_ = p->curr_->prev;
 }
 
-void Parser::ungettok()
+static Pos tok_pos(const Parser *p)
 {
-    curr_ = curr_->prev;
+    return p->curr_->pos;
 }
 
-Pos Parser::tok_pos() const
+static long tok_int(const Parser *p)
 {
-    return curr_->pos;
+    return p->curr_->ival;
 }
 
-long Parser::tok_int() const
+static double tok_float(const Parser *p)
 {
-    return curr_->ival;
+    return p->curr_->fval;
 }
 
-double Parser::tok_float() const
+static const char *tok_str(const Parser *p)
 {
-    return curr_->fval;
+    return p->curr_->sval;
 }
 
-const char *Parser::tok_str() const
+static int peek(Parser *p)
 {
-    return curr_->sval;
-}
-
-int Parser::peek()
-{
-    const Token *tok = gettok();
+    /*
+    if (p->curr_->kind == T_EOF)
+        return T_EOF;
+    else
+        return p->curr_->next->kind;
+    */
+    const Token *tok = gettok(p);
     const int kind = tok->kind;
-    ungettok();
+    ungettok(p);
     return kind;
 }
 
-void Parser::expect(int kind)
+static void expect(Parser *p, int kind)
 {
-    const Token *tok = gettok();
+    const Token *tok = gettok(p);
     if (tok->kind != kind) {
         const std::string msg =
             std::string("expected '") + TokenKindString(kind) + "'";
-        Error(msg, *src_, tok->pos);
+        Error(msg, p->src_, tok->pos);
     }
 }
 
-bool Parser::consume(int kind)
+static bool consume(Parser *p, int kind)
 {
-    if (peek() == kind) {
-        gettok();
+    if (peek(p) == kind) {
+        gettok(p);
         return true;
     }
     else {
@@ -132,24 +179,24 @@ bool Parser::consume(int kind)
     }
 }
 
-void Parser::enter_scope(Func *func)
+static void enter_scope(Parser *p, Func *func)
 {
     if (func) {
-        scope_ = func->scope;
+        p->scope_ = func->scope;
     }
     else {
-        scope_ = scope_->OpenChild();
+        p->scope_ = p->scope_->OpenChild();
     }
 }
 
-void Parser::enter_scope(Class *clss)
+static void enter_scope(Parser *p, Class *clss)
 {
-    scope_ = clss->scope;
+    p->scope_ = clss->scope;
 }
 
-void Parser::leave_scope()
+static void leave_scope(Parser *p)
 {
-    scope_ = scope_->Close();
+    p->scope_ = p->scope_->Close();
 }
 
 Expr *Parser::arg_list(Expr *call)
@@ -157,11 +204,11 @@ Expr *Parser::arg_list(Expr *call)
     ExprList list;
     init_expr_list(&list);
 
-    if (peek() != T_RPAREN) {
+    if (peek(this) != T_RPAREN) {
         do {
             append_expr(&list, expression());
         }
-        while (consume(T_COMMA));
+        while (consume(this, T_COMMA));
     }
 
     const Func *func = call->l->type->func;
@@ -173,24 +220,24 @@ Expr *Parser::arg_list(Expr *call)
     const int argc = list.count;
     const int paramc = func->RequiredParamCount();
     if (argc < paramc)
-        error(tok_pos(), "too few arguments");
+        error(tok_pos(this), "too few arguments");
 
     const Expr *arg = call->list;
     for (int i = 0; i < argc; i++, arg = arg->next) {
         const Var *param = func->GetParam(i);
 
         if (!param)
-            error(tok_pos(), "too many arguments");
+            error(tok_pos(this), "too many arguments");
 
         // TODO arg needs to know its pos
         if (!MatchType(arg->type, param->type)) {
-            error(tok_pos(), "type mismatch: parameter type '",
+            error(tok_pos(this), "type mismatch: parameter type '",
                 TypeString(param->type), "': argument type '",
                 TypeString(arg->type), "'");
         }
     }
 
-    expect(T_RPAREN);
+    expect(this, T_RPAREN);
 
     return call;
 }
@@ -198,11 +245,11 @@ Expr *Parser::arg_list(Expr *call)
 Expr *Parser::conv_expr(int kind)
 {
     Type *to_type = type_spec();
-    const Pos tokpos = tok_pos();
+    const Pos tokpos = tok_pos(this);
 
-    expect(T_LPAREN);
+    expect(this, T_LPAREN);
     Expr *expr = expression();
-    expect(T_RPAREN);
+    expect(this, T_RPAREN);
 
     switch (expr->type->kind) {
     case TY::BOOL:
@@ -226,53 +273,53 @@ Expr *Parser::conv_expr(int kind)
 //     primary_expr selector
 Expr *Parser::primary_expr()
 {
-    if (consume(T_NIL))
+    if (consume(this, T_NIL))
         return NewNilLitExpr();
 
-    if (consume(T_TRU))
+    if (consume(this, T_TRU))
         return NewBoolLitExpr(true);
 
-    if (consume(T_FLS))
+    if (consume(this, T_FLS))
         return NewBoolLitExpr(false);
 
-    if (consume(T_INTLIT))
-        return NewIntLitExpr(tok_int());
+    if (consume(this, T_INTLIT))
+        return NewIntLitExpr(tok_int(this));
 
-    if (consume(T_FLTLIT))
-        return NewFloatLitExpr(tok_float());
+    if (consume(this, T_FLTLIT))
+        return NewFloatLitExpr(tok_float(this));
 
-    if (consume(T_STRLIT)) {
-        Expr *e = NewStringLitExpr(tok_str());
-        const Token *tok = curtok();
+    if (consume(this, T_STRLIT)) {
+        Expr *e = NewStringLitExpr(tok_str(this));
+        const Token *tok = curtok(this);
         if (tok->has_escseq) {
             const int errpos = ConvertEscapeSequence(e->sval, &e->converted);
             if (errpos != -1) {
                 printf("!! e->val.s [%s] errpos %d\n", e->sval, errpos);
                 Pos pos = tok->pos;
                 pos.x += errpos + 1;
-                Error("unknown escape sequence", *src_, pos);
+                Error("unknown escape sequence", src_, pos);
             }
         }
         return e;
     }
 
-    if (consume(T_LPAREN)) {
+    if (consume(this, T_LPAREN)) {
         Expr *e = expression();
-        expect(T_RPAREN);
+        expect(this, T_RPAREN);
         return e;
     }
 
-    if (consume(T_CALLER_LINE)) {
-        Var *var = scope_->FindVar(tok_str());
+    if (consume(this, T_CALLER_LINE)) {
+        Var *var = scope_->FindVar(tok_str(this));
         if (!var) {
-            error(tok_pos(),
-                    "special variable '", tok_str(),
+            error(tok_pos(this),
+                    "special variable '", tok_str(this),
                     "' not declared in parameters");
         }
         return NewIdentExpr(var);
     }
 
-    const int next = peek();
+    const int next = peek(this);
     switch (next) {
     case T_BOL:
     case T_INT:
@@ -285,13 +332,13 @@ Expr *Parser::primary_expr()
     Expr *expr = nullptr;
 
     for (;;) {
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
 
         if (tok->kind == T_IDENT) {
             Var *var = scope_->FindVar(tok->sval);
             if (!var) {
-                error(tok_pos(),
-                        "undefined identifier: '", tok_str(), "'");
+                error(tok_pos(this),
+                        "undefined identifier: '", tok_str(this), "'");
             }
 
             expr = NewIdentExpr(var);
@@ -299,7 +346,7 @@ Expr *Parser::primary_expr()
         }
         else if (tok->kind == T_LPAREN) {
             if (!expr || !expr->type->IsFunc()) {
-                error(tok_pos(),
+                error(tok_pos(this),
                         "call operator must be used for function type");
             }
             // TODO func signature check
@@ -318,42 +365,42 @@ Expr *Parser::primary_expr()
                 exit(EXIT_FAILURE);
             }
 
-            expect(T_IDENT);
+            expect(this, T_IDENT);
 
-            Field *fld = expr->type->clss->FindField(tok_str());
+            Field *fld = expr->type->clss->FindField(tok_str(this));
 
             expr = NewSelectExpr(expr, NewFieldExpr(fld));
             continue;
         }
         else if (tok->kind == T_LBRACK) {
             if (!expr->type->IsArray()) {
-                error(tok_pos(),
+                error(tok_pos(this),
                         "index operator must be used for array type");
             }
             Expr *idx = expression();
             if (!idx->type->IsInt()) {
-                error(tok_pos(),
+                error(tok_pos(this),
                         "index expression must be integer type");
             }
             long index = 0;
             if (EvalExpr(idx, &index)) {
                 const long len = expr->type->len;
                 if (index >= len) {
-                    error(tok_pos(), "index out of range[", std::to_string(index),
+                    error(tok_pos(this), "index out of range[", std::to_string(index),
                             "] with length ", std::to_string(len));
                 }
             }
-            expect(T_RBRACK);
+            expect(this, T_RBRACK);
             return NewIndexExpr(expr, idx);
         }
         else {
             if (!expr) {
                 const std::string msg = "unknown token: \"" +
                     std::string(TokenKindString(tok->kind)) + "\"";
-                Error(msg, *src_, tok->pos);
+                Error(msg, src_, tok->pos);
             }
 
-            ungettok();
+            ungettok(this);
             return expr;
         }
     }
@@ -365,7 +412,7 @@ Expr *Parser::primary_expr()
 // unary_op   = "+" | "-" | "!" | "~"
 Expr *Parser::unary_expr()
 {
-    const Token *tok = gettok();
+    const Token *tok = gettok(this);
     const int kind = tok->kind;
 
     if (kind == T_AND) {
@@ -394,7 +441,7 @@ Expr *Parser::unary_expr()
         }
 
     default:
-        ungettok();
+        ungettok(this);
         return primary_expr();
     }
 }
@@ -407,7 +454,7 @@ Expr *Parser::mul_expr()
     Expr *y;
 
     for (;;) {
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
 
         switch (tok->kind) {
         case T_MUL:
@@ -420,13 +467,13 @@ Expr *Parser::mul_expr()
             if (!MatchType(x->type, y->type)) {
                 const std::string msg = std::string("type mismatch: ") +
                     TypeString(x->type) + " and " + TypeString(y->type);
-                Error(msg, *src_, tok->pos);
+                Error(msg, src_, tok->pos);
             }
             x = NewBinaryExpr(x, y, tok->kind);
             break;
 
         default:
-            ungettok();
+            ungettok(this);
             return x;
         }
     }
@@ -439,7 +486,7 @@ Expr *Parser::add_expr()
     Expr *expr = mul_expr();
 
     for (;;) {
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
         Expr *l;
 
         switch (tok->kind) {
@@ -451,13 +498,13 @@ Expr *Parser::add_expr()
             if (!MatchType(expr->type, l->type)) {
                 const std::string msg = std::string("type mismatch: ") +
                     TypeString(expr->type) + " and " + TypeString(l->type);
-                Error(msg, *src_, tok->pos);
+                Error(msg, src_, tok->pos);
             }
             expr = NewBinaryExpr(expr, l, tok->kind);
             break;
 
         default:
-            ungettok();
+            ungettok(this);
             return expr;
         }
     }
@@ -471,7 +518,7 @@ Expr *Parser::rel_expr()
     Expr *r = nullptr;
 
     for (;;) {
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
 
         switch (tok->kind) {
         case T_EQ:
@@ -490,7 +537,7 @@ Expr *Parser::rel_expr()
             continue;
 
         default:
-            ungettok();
+            ungettok(this);
             return l;
         }
     }
@@ -502,7 +549,7 @@ Expr *Parser::logand_expr()
     Expr *expr = rel_expr();
 
     for (;;) {
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
 
         switch (tok->kind) {
         case T_LAND:
@@ -510,7 +557,7 @@ Expr *Parser::logand_expr()
             continue;
 
         default:
-            ungettok();
+            ungettok(this);
             return expr;
         }
     }
@@ -522,7 +569,7 @@ Expr *Parser::logor_expr()
     Expr *expr = logand_expr();
 
     for (;;) {
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
 
         switch (tok->kind) {
         case T_LOR:
@@ -530,7 +577,7 @@ Expr *Parser::logor_expr()
             continue;
 
         default:
-            ungettok();
+            ungettok(this);
             return expr;
         }
     }
@@ -544,7 +591,7 @@ Expr *Parser::assign_expr()
 {
     Expr *lval = logor_expr();
     Expr *rval = nullptr;
-    const Token *tok = gettok();
+    const Token *tok = gettok(this);
     const int kind = tok->kind;
 
     switch (kind) {
@@ -571,7 +618,7 @@ Expr *Parser::assign_expr()
         return NewIncDecExpr(lval, kind);
 
     default:
-        ungettok();
+        ungettok(this);
         return lval;
     }
 }
@@ -585,14 +632,14 @@ Stmt *Parser::or_stmt()
 {
     Expr *cond = nullptr;
 
-    if (consume(T_NEWLINE)) {
+    if (consume(this, T_NEWLINE)) {
         // or (else)
         cond = NewNullExpr();
     }
     else {
         // or if (else if)
         cond = expression();
-        expect(T_NEWLINE);
+        expect(this, T_NEWLINE);
     }
 
     Stmt *body = block_stmt();
@@ -602,9 +649,9 @@ Stmt *Parser::or_stmt()
 
 Stmt *Parser::if_stmt()
 {
-    expect(T_IF);
+    expect(this, T_IF);
     Expr *cond = expression();
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     StmtList list;
     init_list(&list);
@@ -615,8 +662,8 @@ Stmt *Parser::if_stmt()
     bool endor = false;
 
     while (!endor) {
-        if (consume(T_ELS)) {
-            if (peek() == T_NEWLINE) {
+        if (consume(this, T_ELS)) {
+            if (peek(this) == T_NEWLINE) {
                 // last 'or' (else)
                 endor = true;
             }
@@ -633,13 +680,13 @@ Stmt *Parser::if_stmt()
 
 Stmt *Parser::for_stmt()
 {
-    expect(T_FOR);
+    expect(this, T_FOR);
 
     Expr *init = nullptr;
     Expr *cond = nullptr;
     Expr *post = nullptr;
 
-    if (consume(T_NEWLINE)) {
+    if (consume(this, T_NEWLINE)) {
         // infinite loop
         init = NewNullExpr();
         cond = NewIntLitExpr(1);
@@ -648,23 +695,23 @@ Stmt *Parser::for_stmt()
     else {
         Expr *e = expression();
 
-        if (consume(T_SEM)) {
+        if (consume(this, T_SEM)) {
             // traditional for
             init = e;
             cond = expression();
-            expect(T_SEM);
+            expect(this, T_SEM);
             post = expression();
-            expect(T_NEWLINE);
+            expect(this, T_NEWLINE);
         }
-        else if (consume(T_NEWLINE)) {
+        else if (consume(this, T_NEWLINE)) {
             // while style
             init = NewNullExpr();
             cond = e;
             post = NewNullExpr();
         }
         else {
-            const Token *tok = gettok();
-            Error("unknown token", *src_, tok->pos);
+            const Token *tok = gettok(this);
+            Error("unknown token", src_, tok->pos);
         }
     }
 
@@ -675,7 +722,7 @@ Stmt *Parser::for_stmt()
 
 Stmt *Parser::jump_stmt()
 {
-    const Token *tok = gettok();
+    const Token *tok = gettok(this);
     const int kind = tok->kind;
 
     if (kind == T_BRK) {
@@ -683,18 +730,18 @@ Stmt *Parser::jump_stmt()
     else if (kind == T_CNT) {
     }
 
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     return NewJumpStmt(kind);
 }
 
 Stmt *Parser::switch_stmt()
 {
-    expect(T_SWT);
+    expect(this, T_SWT);
 
     Expr *expr = expression();
     // TODO int check
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     StmtList list;
     init_list(&list);
@@ -702,7 +749,7 @@ Stmt *Parser::switch_stmt()
     int default_count = 0;
 
     for (;;) {
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
 
         switch (tok->kind) {
         case T_CASE:
@@ -718,7 +765,7 @@ Stmt *Parser::switch_stmt()
             continue;
 
         default:
-            ungettok();
+            ungettok(this);
             return NewSwitchStmt(expr, list.head.next);
         }
     }
@@ -736,13 +783,13 @@ Stmt *Parser::case_stmt(int kind)
             // TODO const int check
             append(&list, NewExprStmt(expr));
         }
-        while (consume(T_COMMA));
+        while (consume(this, T_COMMA));
     }
     else if (kind == T_DFLT) {
         append(&list, NewExprStmt(NewNullExpr()));
     }
 
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     Stmt *body = block_stmt();
     return NewCaseStmt(list.head.next, body, kind);
@@ -750,17 +797,17 @@ Stmt *Parser::case_stmt(int kind)
 
 Stmt *Parser::ret_stmt()
 {
-    expect(T_RET);
+    expect(this, T_RET);
 
-    const Pos exprpos = tok_pos();
+    const Pos exprpos = tok_pos(this);
     Expr *expr = nullptr;
 
-    if (consume(T_NEWLINE)) {
+    if (consume(this, T_NEWLINE)) {
         expr = NewNullExpr();
     }
     else {
         expr = expression();
-        expect(T_NEWLINE);
+        expect(this, T_NEWLINE);
     }
 
     assert(func_);
@@ -777,25 +824,25 @@ Stmt *Parser::ret_stmt()
 Stmt *Parser::expr_stmt()
 {
     Stmt *s = NewExprStmt(expression());
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     return s;
 }
 
 Stmt *Parser::scope_stmt()
 {
-    expect(T_DASH3);
-    expect(T_NEWLINE);
+    expect(this, T_DASH3);
+    expect(this, T_NEWLINE);
 
     return block_stmt();
 }
 
 Stmt *Parser::nop_stmt()
 {
-    expect(T_NOP);
+    expect(this, T_NOP);
 
     Stmt *s = NewNopStmt();
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     return s;
 }
@@ -836,22 +883,22 @@ static Expr *default_value(const Type *type)
 //          | "-" identifier type = expression newline
 Stmt *Parser::var_decl()
 {
-    expect(T_SUB);
-    expect(T_IDENT);
+    expect(this, T_SUB);
+    expect(this, T_IDENT);
 
-    if (scope_->FindVar(tok_str(), false)) {
+    if (scope_->FindVar(tok_str(this), false)) {
         const std::string msg = "re-defined variable: '" +
-            std::string(tok_str()) + "'";
-        Error(msg, *src_, tok_pos());
+            std::string(tok_str(this)) + "'";
+        Error(msg, src_, tok_pos(this));
     }
 
     // var anme
-    const char *name = tok_str();
+    const char *name = tok_str(this);
     Type *type = nullptr;
     Expr *init = nullptr;
 
     // type and init
-    if (consume(T_ASSN)) {
+    if (consume(this, T_ASSN)) {
         // "- x = 42"
         init = expression();
         type = DuplicateType(init->type);
@@ -859,7 +906,7 @@ Stmt *Parser::var_decl()
     else {
         type = type_spec();
 
-        if (consume(T_ASSN)) {
+        if (consume(this, T_ASSN)) {
             // "- x int = 42"
             init = expression();
         }
@@ -869,7 +916,7 @@ Stmt *Parser::var_decl()
         }
     }
 
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     Var *var = scope_->DefineVar(name, type);
     Expr *ident = NewIdentExpr(var);
@@ -878,42 +925,42 @@ Stmt *Parser::var_decl()
 
 Field *Parser::field_decl()
 {
-    expect(T_SUB);
-    expect(T_IDENT);
+    expect(this, T_SUB);
+    expect(this, T_IDENT);
 
-    if (scope_->FindField(tok_str())) {
+    if (scope_->FindField(tok_str(this))) {
         std::cerr
             << "error: re-defined variable: '"
-            << tok_str() << "'"
+            << tok_str(this) << "'"
             << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
-    Field *fld = scope_->DefineFild(tok_str());
+    Field *fld = scope_->DefineFild(tok_str(this));
     fld->type = type_spec();
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     return fld;
 }
 
 Class *Parser::class_decl()
 {
-    expect(T_HASH2);
-    expect(T_IDENT);
+    expect(this, T_HASH2);
+    expect(this, T_IDENT);
 
     // class name
-    Class *clss = scope_->DefineClass(tok_str());
+    Class *clss = scope_->DefineClass(tok_str(this));
     if (!clss) {
-        std::cerr << "error: re-defined class: '" << tok_str() << "'" << std::endl;
+        std::cerr << "error: re-defined class: '" << tok_str(this) << "'" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
-    expect(T_NEWLINE);
-    enter_scope(clss);
-    expect(T_BLOCKBEGIN);
+    expect(this, T_NEWLINE);
+    enter_scope(this, clss);
+    expect(this, T_BLOCKBEGIN);
     field_list(clss);
-    expect(T_BLOCKEND);
-    leave_scope();
+    expect(this, T_BLOCKEND);
+    leave_scope(this);
 
     return nullptr;
     //return new ClasDef(clss);
@@ -924,11 +971,11 @@ Stmt *Parser::block_stmt(Func *func)
     StmtList list;
     init_list(&list);
 
-    enter_scope(func);
-    expect(T_BLOCKBEGIN);
+    enter_scope(this, func);
+    expect(this, T_BLOCKBEGIN);
 
     for (;;) {
-        const int next = peek();
+        const int next = peek(this);
 
         if (next == T_SUB) {
             append(&list, var_decl());
@@ -963,7 +1010,7 @@ Stmt *Parser::block_stmt(Func *func)
             continue;
         }
         else if (next == T_NEWLINE) {
-            gettok();
+            gettok(this);
             continue;
         }
         else if (next == T_BLOCKEND) {
@@ -975,8 +1022,8 @@ Stmt *Parser::block_stmt(Func *func)
         }
     }
 
-    expect(T_BLOCKEND);
-    leave_scope();
+    expect(this, T_BLOCKEND);
+    leave_scope(this);
 
     return NewBlockStmt(list.head.next);
 }
@@ -988,51 +1035,51 @@ Type *Parser::type_spec()
     Type *parent = nullptr;
     Type *type = nullptr;
 
-    if (consume(T_MUL)) {
+    if (consume(this, T_MUL)) {
         return NewPtrType(type_spec());
     }
 
-    if (consume(T_LBRACK)) {
+    if (consume(this, T_LBRACK)) {
         parent = new Type(TY::ARRAY);
         Expr *e = expression();
         if (!e->type->IsInt()) {
-            error(tok_pos(),
+            error(tok_pos(this),
                     "array length expression must be integer type");
         }
         long len = 0;
         if (!EvalExpr(e, &len)) {
-            error(tok_pos(),
+            error(tok_pos(this),
                     "array length expression must be compile time constant");
         }
-        expect(T_RBRACK);
+        expect(this, T_RBRACK);
         return NewArrayType(len, type_spec());
     }
 
-    if (consume(T_HASH)) {
+    if (consume(this, T_HASH)) {
         Func *func = scope_->DeclareFunc();
         param_list(func);
         ret_type(func);
         return NewFuncType(func);
     }
 
-    if (consume(T_BOL)) {
+    if (consume(this, T_BOL)) {
         type = NewBoolType();
     }
-    else if (consume(T_INT)) {
+    else if (consume(this, T_INT)) {
         type = new Type(TY::INT);
     }
-    else if (consume(T_FLT)) {
+    else if (consume(this, T_FLT)) {
         type = new Type(TY::FLOAT);
     }
-    else if (consume(T_STR)) {
+    else if (consume(this, T_STR)) {
         type = new Type(TY::STRING);
     }
-    else if (consume(T_IDENT)) {
+    else if (consume(this, T_IDENT)) {
         type = new Type(TY::CLASS);
-        type->clss = scope_->FindClass(tok_str());
+        type->clss = scope_->FindClass(tok_str(this));
     }
     else {
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
         error(tok->pos, "not a type name: '",
                 TokenKindString(tok->kind), "'");
     }
@@ -1042,49 +1089,49 @@ Type *Parser::type_spec()
 
 void Parser::field_list(Class *clss)
 {
-    expect(T_SUB);
+    expect(this, T_SUB);
 
     do {
-        expect(T_IDENT);
-        const char *name = tok_str();
+        expect(this, T_IDENT);
+        const char *name = tok_str(this);
 
         clss->DeclareField(name, type_spec());
-        expect(T_NEWLINE);
+        expect(this, T_NEWLINE);
     }
-    while (consume(T_SUB));
+    while (consume(this, T_SUB));
 }
 
 void Parser::param_list(Func *func)
 {
-    expect(T_LPAREN);
+    expect(this, T_LPAREN);
 
-    if (consume(T_RPAREN))
+    if (consume(this, T_RPAREN))
         return;
 
     do {
         const Type *type = nullptr;
         const char *name;
 
-        if (consume(T_CALLER_LINE)) {
-            name = tok_str();
+        if (consume(this, T_CALLER_LINE)) {
+            name = tok_str(this);
             type = new Type(TY::INT);
         }
         else {
-            expect(T_IDENT);
-            name = tok_str();
+            expect(this, T_IDENT);
+            name = tok_str(this);
             type = type_spec();
         }
 
         func->DeclareParam(name, type);
     }
-    while (consume(T_COMMA));
+    while (consume(this, T_COMMA));
 
-    expect(T_RPAREN);
+    expect(this, T_RPAREN);
 }
 
 void Parser::ret_type(Func *func)
 {
-    const int next = peek();
+    const int next = peek(this);
 
     if (next == T_NEWLINE)
         func->return_type = new Type(TY::NIL);
@@ -1095,17 +1142,17 @@ void Parser::ret_type(Func *func)
 // func_def = "#" identifier param_list type_spec? newline block_stmt
 FuncDef *Parser::func_def()
 {
-    expect(T_HASH);
-    expect(T_IDENT);
+    expect(this, T_HASH);
+    expect(this, T_IDENT);
 
     // signature
-    const char *name = tok_str();
+    const char *name = tok_str(this);
     Func *func = scope_->DeclareFunc();
 
     // params
     param_list(func);
     ret_type(func);
-    expect(T_NEWLINE);
+    expect(this, T_NEWLINE);
 
     // func var
     if (scope_->FindVar(name)) {
@@ -1117,7 +1164,7 @@ FuncDef *Parser::func_def()
     // func body
     func_ = func;
 
-    enter_scope(func);
+    enter_scope(this, func);
     Stmt *body = block_stmt();
     // TODO control flow check to allow implicit return
     for (Stmt *s = body->children; s; s = s->next) {
@@ -1126,7 +1173,7 @@ FuncDef *Parser::func_def()
             break;
         }
     }
-    leave_scope();
+    leave_scope(this);
 
     func_ = nullptr;
 
@@ -1146,7 +1193,7 @@ Prog *Parser::program()
     init_list(&list);
 
     for (;;) {
-        const int next = peek();
+        const int next = peek(this);
 
         if (next == T_HASH) {
             FuncDef *fdef = func_def();
@@ -1185,7 +1232,7 @@ Prog *Parser::program()
         }
 
         if (next == T_NEWLINE) {
-            gettok();
+            gettok(this);
             continue;
         }
 
@@ -1193,19 +1240,30 @@ Prog *Parser::program()
             break;
         }
 
-        const Token *tok = gettok();
+        const Token *tok = gettok(this);
         const std::string msg = std::string("error: unexpected token: '") +
             TokenKindString(next) + "'";
-        Error(msg, *src_, tok->pos);
+        Error(msg, src_, tok->pos);
     }
 
     prog->gvars = list.head.next;
     return prog;
 }
 
-Prog *Parse(const std::string &src, const Token *tok, Scope *scope)
+static Prog *parse(Parser *p, const char *src, const Token *tok, Scope *scope)
 {
-    Parser parser;
-    return parser.Parse(src, tok, scope);
+    p->src_ = src;
+    p->curr_ = tok;
+    p->scope_ = scope;
+
+    // global (file) scope
+    enter_scope(p, (Func *)NULL);
+
+    return p->program();
 }
 
+Prog *Parse(const char *src, const Token *tok, Scope *scope)
+{
+    Parser parser;
+    return parse(&parser, src, tok, scope);
+}

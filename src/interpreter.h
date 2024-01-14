@@ -24,7 +24,6 @@ public:
 
 private:
     Scope scope_;
-    Parser parser_;
 
     Prog *prog_ = nullptr;
     Bytecode code_;

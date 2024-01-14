@@ -37,7 +37,7 @@ Int Interpreter::Run(const std::string &src)
     }
 
     // Compile source
-    prog_ = Parse(src, tok, &scope_);
+    prog_ = Parse(src.c_str(), tok, &scope_);
 
     if (print_tree_) {
         print_header("tree");

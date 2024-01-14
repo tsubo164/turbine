@@ -252,9 +252,12 @@ Stmt *NewJumpStmt(int k)
 {
     Stmt *s = CALLOC(Stmt);
     switch (k) {
-    case T_BRK: s->kind = T_BRK; break;
-    case T_CNT: s->kind = T_CNT; break;
-    default:    s->kind = T_NUL; break;
+    case T_BRK: case T_CNT:
+        s->kind = k;
+        break;
+    default:
+        // error
+        break;
     }
     return s;
 }
@@ -263,9 +266,12 @@ Stmt *NewCaseStmt(Stmt *conds, Stmt *body, int k)
 {
     Stmt *s = CALLOC(Stmt);
     switch (k) {
-    case T_CASE: s->kind = T_CASE; break;
-    case T_DFLT: s->kind = T_DFLT; break;
-    default:     s->kind = T_NUL; break;
+    case T_CASE: case T_DFLT:
+        s->kind = k;
+        break;
+    default:
+        // error
+        break;
     }
     s->children = conds;
     s->body = body;
