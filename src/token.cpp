@@ -310,7 +310,7 @@ static void scan_char_literal(Lexer *l, Token *tok, Pos pos)
 
     if (ch == '\\') {
         const int next = get(l);
-        const bool found = FindEscapedChar(next, ch);
+        const bool found = FindEscapedChar(next, &ch);
         if (!found) {
             unget(l);
             Error("unknown escape sequence", l->src, l->pos);

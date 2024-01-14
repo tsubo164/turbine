@@ -1,6 +1,7 @@
 #include "escseq.h"
+#include "compiler.h"
 
-bool FindEscapedChar(int second_char, int &result_char)
+bool FindEscapedChar(int second_char, int *result_char)
 {
     static const int table[][2] = {
         {'"',  '"'},
@@ -20,33 +21,38 @@ bool FindEscapedChar(int second_char, int &result_char)
 
     for (int j = 0; j < N; j++) {
         if (second_char == table[j][0]) {
-            result_char = table[j][1];
+            *result_char = table[j][1];
             return true;
         }
     }
     return false;
 }
 
-int ConvertEscapeSequence(std::string_view src, std::string &dst)
+int ConvertEscapeSequence(const char *src, const char **dst)
 {
-    dst.reserve(src.length());
+    static char buf[4096] = {'\0'};
+    const char *s = src;
+    char *d = buf;
+    int i = 0;
 
-    for (int i = 0; i < src.length(); i++) {
-        int ch = src[i];
+    while (*s) {
+        int ch = *s;
 
         if (ch == '\\') {
-            const int next = src[i + 1];
-            const bool found = FindEscapedChar(next, ch);
+            const int next = *++s;
+            const bool found = FindEscapedChar(next, &ch);
 
             if (found) {
                 i++;
             }
             else {
                 // error
+                *dst = intern(buf);
                 return i;
             }
         }
-        dst += ch;
+        *d++ = ch;
+        s++;
     }
     return -1;
 }

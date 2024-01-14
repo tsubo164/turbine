@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "ast.h"
 
 static bool optimize = false;
 
@@ -228,10 +229,10 @@ static void gen_expr(Bytecode *code, const Expr *e)
             // TODO remove string_view
             std::string_view s;
 
-            if (e->converted.empty())
+            if (!e->converted)
                 s = e->val.s;
             else
-                s = std::string_view(e->converted.c_str(), e->converted.length());
+                s = std::string_view(e->converted, strlen(e->converted));
 
             const Word id = code->RegisterConstString(s);
             code->LoadString(id);

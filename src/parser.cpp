@@ -245,8 +245,9 @@ Expr *Parser::primary_expr()
         Expr *e = NewStringLitExpr(tok_str());
         const Token *tok = curtok();
         if (tok->has_escseq) {
-            const int errpos = ConvertEscapeSequence(e->val.s, e->converted);
+            const int errpos = ConvertEscapeSequence(e->val.s, &e->converted);
             if (errpos != -1) {
+                printf("!! e->val.s [%s] errpos %d\n", e->val.s, errpos);
                 Pos pos = tok->pos;
                 pos.x += errpos + 1;
                 Error("unknown escape sequence", *src_, pos);

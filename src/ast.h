@@ -39,7 +39,7 @@ typedef struct Expr {
 
     // TODO remove init later
     Val val = {0};
-    std::string converted;
+    const char *converted;
     Pos pos;
 } Expr;
 
