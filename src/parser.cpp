@@ -1,41 +1,26 @@
 #include "parser.h"
+#include "compiler.h"
+#include "scope.h"
+#include "token.h"
+#include "type.h"
+#include "ast.h"
 #include "escseq.h"
 #include "error.h"
-#include <iostream>
 
 #include <stdarg.h>
+#include <stdio.h>
 
 
 typedef struct Parser {
-    Scope *scope_ = nullptr;
-    Func *func_ = nullptr;
+    Scope *scope_;
+    Func *func_;
     const Token *curr_;
     const char *src_;
     const char *filename;
 
     // TODO remove this
     int funclit_id_ = 0;
-
-    // error
-    void error(Pos pos, std::string_view s0, std::string_view s1 = {},
-            std::string_view s2 = {}, std::string_view s3 = {},
-            std::string_view s4 = {}, std::string_view s5 = {}) const;
 } Parser;
-
-void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
-        std::string_view s2, std::string_view s3,
-        std::string_view s4, std::string_view s5) const
-{
-    std::string msg(s0);
-
-    if (!s1.empty()) msg += s1;
-    if (!s2.empty()) msg += s2;
-    if (!s3.empty()) msg += s3;
-    if (!s4.empty()) msg += s4;
-    if (!s5.empty()) msg += s5;
-
-    Error(msg, src_, pos);
-}
 
 static void error(const Parser *p, Pos pos, const char *fmt, ...)
 {
@@ -158,20 +143,21 @@ static Expr *arg_list(Parser *p, Expr *call)
     const int argc = count;
     const int paramc = func->RequiredParamCount();
     if (argc < paramc)
-        p->error(tok_pos(p), "too few arguments");
+        error(p, tok_pos(p), "too few arguments");
 
     const Expr *arg = call->list;
     for (int i = 0; i < argc; i++, arg = arg->next) {
         const Var *param = func->GetParam(i);
 
         if (!param)
-            p->error(tok_pos(p), "too many arguments");
+            error(p, tok_pos(p), "too many arguments");
 
         // TODO arg needs to know its pos
         if (!MatchType(arg->type, param->type)) {
-            p->error(tok_pos(p), "type mismatch: parameter type '",
-                TypeString(param->type), "': argument type '",
-                TypeString(arg->type), "'");
+            error(p, tok_pos(p),
+                    "type mismatch: parameter type '%s': argument type '%s'",
+                    TypeString(param->type),
+                    TypeString(arg->type));
         }
     }
 
@@ -195,9 +181,10 @@ static Expr *conv_expr(Parser *p, int kind)
     case TY::FLOAT:
         break;
     default:
-        p->error(tokpos, "unable to convert type from '",
-                TypeString(expr->type), "' to '",
-                TypeString(to_type), "'");
+        error(p, tokpos,
+                "unable to convert type from '%s' to '%s'",
+                TypeString(expr->type),
+                TypeString(to_type));
         break;
     }
 
@@ -235,7 +222,7 @@ static Expr *primary_expr(Parser *p)
                 printf("!! e->val.s [%s] errpos %d\n", e->sval, errpos);
                 Pos pos = tok->pos;
                 pos.x += errpos + 1;
-                Error("unknown escape sequence", p->src_, pos);
+                error(p, pos, "unknown escape sequence");
             }
         }
         return e;
@@ -250,9 +237,9 @@ static Expr *primary_expr(Parser *p)
     if (consume(p, T_CALLER_LINE)) {
         Var *var = p->scope_->FindVar(tok_str(p));
         if (!var) {
-            p->error(tok_pos(p),
-                    "special variable '", tok_str(p),
-                    "' not declared in parameters");
+            error(p, tok_pos(p),
+                    "special variable '%s' not declared in parameters",
+                    tok_str(p));
         }
         return NewIdentExpr(var);
     }
@@ -275,8 +262,9 @@ static Expr *primary_expr(Parser *p)
         if (tok->kind == T_IDENT) {
             Var *var = p->scope_->FindVar(tok->sval);
             if (!var) {
-                p->error(tok_pos(p),
-                        "undefined identifier: '", tok_str(p), "'");
+                error(p, tok_pos(p),
+                        "undefined identifier: '%s'",
+                        tok_str(p));
             }
 
             expr = NewIdentExpr(var);
@@ -284,7 +272,7 @@ static Expr *primary_expr(Parser *p)
         }
         else if (tok->kind == T_LPAREN) {
             if (!expr || !expr->type->IsFunc()) {
-                p->error(tok_pos(p),
+                error(p, tok_pos(p),
                         "call operator must be used for function type");
             }
             // TODO func signature check
@@ -312,12 +300,12 @@ static Expr *primary_expr(Parser *p)
         }
         else if (tok->kind == T_LBRACK) {
             if (!expr->type->IsArray()) {
-                p->error(tok_pos(p),
+                error(p, tok_pos(p),
                         "index operator must be used for array type");
             }
             Expr *idx = expression(p);
             if (!idx->type->IsInt()) {
-                p->error(tok_pos(p),
+                error(p, tok_pos(p),
                         "index expression must be integer type");
             }
             long index = 0;
@@ -362,7 +350,7 @@ static Expr *unary_expr(Parser *p)
     if (kind == T_MUL) {
         Expr *expr = unary_expr(p);
         if (!expr->type->IsPtr()) {
-            p->error(tok->pos,
+            error(p, tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
         Type *type = DuplicateType(expr->type->underlying);
@@ -389,8 +377,8 @@ static Expr *unary_expr(Parser *p)
 // mul_op   = "*" | "/" | "%" | "&" | "<<" | ">>"
 static Expr *mul_expr(Parser *p)
 {
-    Expr *x = unary_expr(p);
-    Expr *y;
+    Expr *L = unary_expr(p);
+    Expr *R = NULL;
 
     for (;;) {
         const Token *tok = gettok(p);
@@ -402,18 +390,19 @@ static Expr *mul_expr(Parser *p)
         case T_AND:
         case T_SHL:
         case T_SHR:
-            y = unary_expr(p);
-            if (!MatchType(x->type, y->type)) {
-                const std::string msg = std::string("type mismatch: ") +
-                    TypeString(x->type) + " and " + TypeString(y->type);
-                Error(msg, p->src_, tok->pos);
+            R = unary_expr(p);
+            if (!MatchType(L->type, R->type)) {
+                error(p, tok->pos,
+                        "type mismatch: %s and %s",
+                        TypeString(L->type),
+                        TypeString(R->type));
             }
-            x = NewBinaryExpr(x, y, tok->kind);
+            L = NewBinaryExpr(L, R, tok->kind);
             break;
 
         default:
             ungettok(p);
-            return x;
+            return L;
         }
     }
 }
@@ -422,29 +411,30 @@ static Expr *mul_expr(Parser *p)
 // add_op   = "+" | "-" | "|" | "^"
 static Expr *add_expr(Parser *p)
 {
-    Expr *expr = mul_expr(p);
+    Expr *L = mul_expr(p);
+    Expr *R = NULL;
 
     for (;;) {
         const Token *tok = gettok(p);
-        Expr *l;
 
         switch (tok->kind) {
         case T_ADD:
         case T_SUB:
         case T_OR:
         case T_XOR:
-            l = mul_expr(p);
-            if (!MatchType(expr->type, l->type)) {
-                const std::string msg = std::string("type mismatch: ") +
-                    TypeString(expr->type) + " and " + TypeString(l->type);
-                Error(msg, p->src_, tok->pos);
+            R = mul_expr(p);
+            if (!MatchType(L->type, R->type)) {
+                error(p, tok->pos,
+                        "type mismatch: %s and %s",
+                        TypeString(L->type),
+                        TypeString(R->type));
             }
-            expr = NewBinaryExpr(expr, l, tok->kind);
+            L = NewBinaryExpr(L, R, tok->kind);
             break;
 
         default:
             ungettok(p);
-            return expr;
+            return L;
         }
     }
 }
@@ -453,8 +443,8 @@ static Expr *add_expr(Parser *p)
 // rel_op   = "==" | "!=" | "<" | ">" | "<=" | ">="
 static Expr *rel_expr(Parser *p)
 {
-    Expr *l = add_expr(p);
-    Expr *r = NULL;
+    Expr *L = add_expr(p);
+    Expr *R = NULL;
 
     for (;;) {
         const Token *tok = gettok(p);
@@ -466,18 +456,19 @@ static Expr *rel_expr(Parser *p)
         case T_GT:
         case T_LTE:
         case T_GTE:
-            r = add_expr(p);
-            if (!MatchType(l->type, r->type)) {
-                p->error(tok->pos, "type mismatch: ",
-                        TypeString(l->type), " and ",
-                        TypeString(r->type));
+            R = add_expr(p);
+            if (!MatchType(L->type, R->type)) {
+                error(p, tok->pos,
+                        "type mismatch: %s and %s",
+                        TypeString(L->type),
+                        TypeString(R->type));
             }
-            l = NewRelationalExpr(l, r, tok->kind);
+            L = NewRelationalExpr(L, R, tok->kind);
             continue;
 
         default:
             ungettok(p);
-            return l;
+            return L;
         }
     }
 }
@@ -542,16 +533,17 @@ static Expr *assign_expr(Parser *p)
     case T_AREM:
         rval = expression(p);
         if (!MatchType(lval->type, rval->type)) {
-            p->error(tok->pos, "type mismatch: l-value type '",
-                TypeString(lval->type), "': r-value type '",
-                TypeString(rval->type), "'");
+            error(p, tok->pos,
+                    "type mismatch: l-value type '%s': r-value type '%s'",
+                    TypeString(lval->type),
+                    TypeString(rval->type));
         }
         return NewAssignExpr(lval, rval, kind);
 
     case T_INC:
     case T_DEC:
         if (!lval->type->IsInt()) {
-            p->error(tok->pos,
+            error(p, tok->pos,
                     "type mismatch: ++/-- must be used for int");
         }
         return NewIncDecExpr(lval, kind);
@@ -650,7 +642,7 @@ static Stmt *for_stmt(Parser *p)
         }
         else {
             const Token *tok = gettok(p);
-            Error("unknown token", p->src_, tok->pos);
+            error(p, tok->pos, "unknown token");
         }
     }
 
@@ -716,7 +708,7 @@ static Stmt *switch_stmt(Parser *p)
         switch (tok->kind) {
         case T_CASE:
             if (default_count > 0) {
-                p->error(tok->pos, "No 'case' should come after 'default'");
+                error(p, tok->pos, "No 'case' should come after 'default'");
             }
             tail = tail->next = case_stmt(p, tok->kind);
             continue;
@@ -751,9 +743,10 @@ static Stmt *ret_stmt(Parser *p)
     assert(p->func_);
 
     if (p->func_->return_type->kind != expr->type->kind) {
-        p->error(exprpos, "type mismatch: function type '",
-            TypeString(p->func_->return_type), "': expression type '",
-            TypeString(expr->type), "'");
+        error(p, exprpos,
+                "type mismatch: function type '%s': expression type '%s'",
+                TypeString(p->func_->return_type),
+                TypeString(expr->type), "");
     }
 
     return NewReturnStmt(expr);
@@ -1012,12 +1005,12 @@ static Type *type_spec(Parser *p)
         parent = new Type(TY::ARRAY);
         Expr *e = expression(p);
         if (!e->type->IsInt()) {
-            p->error(tok_pos(p),
+            error(p, tok_pos(p),
                     "array length expression must be integer type");
         }
         long len = 0;
         if (!EvalExpr(e, &len)) {
-            p->error(tok_pos(p),
+            error(p, tok_pos(p),
                     "array length expression must be compile time constant");
         }
         expect(p, T_RBRACK);
@@ -1049,8 +1042,9 @@ static Type *type_spec(Parser *p)
     }
     else {
         const Token *tok = gettok(p);
-        p->error(tok->pos, "not a type name: '",
-                TokenKindString(tok->kind), "'");
+        error(p, tok->pos,
+                "not a type name: '%s'",
+                TokenKindString(tok->kind));
     }
 
     return type;
@@ -1169,6 +1163,7 @@ static Prog *parse(Parser *p,
     p->src_ = src;
     p->curr_ = tok;
     p->scope_ = scope;
+    p->func_ = NULL;
     p->filename = filename;
 
     // global (file) scope
@@ -1181,6 +1176,6 @@ Prog *Parse(const char *src, const Token *tok, Scope *scope)
 {
     static const char filename[] = "fixme.ro";
 
-    Parser parser;
+    Parser parser = {0};
     return parse(&parser, src, filename, tok, scope);
 }

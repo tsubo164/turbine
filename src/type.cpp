@@ -84,18 +84,22 @@ static const char *type_kind_string(TY kind)
     return nullptr;
 }
 
-std::string TypeString(const Type *T)
+const char *TypeString(const Type *type)
 {
-    std::string s;
+    const char *interned = "";
 
-    for (const Type *t = T; t; t = t->underlying) {
+    for (const Type *t = type; t; t = t->underlying) {
+        char buf[128] = {'\0'};
+
         if (t->kind == TY::ARRAY)
-            s += "[" + std::to_string(t->len) + "]";
+            sprintf(buf, "%s[%d]", interned, t->len);
         else
-            s += type_kind_string(t->kind);
+            sprintf(buf, "%s%s", interned, type_kind_string(t->kind));
+
+        interned = intern(buf);
     }
 
-    return s;
+    return interned;
 }
 
 bool MatchType(const Type *t1, const Type *t2)

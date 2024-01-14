@@ -514,7 +514,7 @@ static void print_funcdef(const FuncDef *f, int depth)
 
     // basic info
     printf("%d. <func_def> \"%s\"", depth, f->var->name);
-    printf(" %s", TypeString(f->var->type->func->return_type).c_str());
+    printf(" %s", TypeString(f->var->type->func->return_type));
     printf("\n");
 
     // children

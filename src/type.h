@@ -57,7 +57,7 @@ Type *NewArrayType(int len, Type *underlying);
 bool MatchType(const Type *t1, const Type *t2);
 Type *DuplicateType(const Type *t);
 
-std::string TypeString(const Type *t);
+const char *TypeString(const Type *type);
 std::ostream &operator<<(std::ostream &os, const Type *t);
 
 #endif // _H

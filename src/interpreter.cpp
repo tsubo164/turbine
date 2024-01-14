@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "compiler.h"
 #include "builtin.h"
 #include "token.h"
 #include "ast.h"
