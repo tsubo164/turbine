@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static const TokInfo table[] = {
+static const KindInfo table[] = {
     { T_NUL,        "nul" },
     // type
     { T_keyword_begin, "keyword_begin" },
@@ -114,12 +114,11 @@ static const TokInfo table[] = {
 
 static_assert(sizeof(table)/sizeof(table[0])==T_EOF+1, "MISSING_TOKEN_STRING");
 
-const TokInfo *LookupKindInfo(int kind)
+const KindInfo *LookupKindInfo(int kind)
 {
     int N = sizeof(table)/sizeof(table[0]);
-    int i;
 
-    for (i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++) {
         if (kind == table[i].kind)
             return &table[i];
     }
@@ -129,7 +128,7 @@ const TokInfo *LookupKindInfo(int kind)
 static int keyword_or_ident(const char *word)
 {
     for (int i = T_keyword_begin + 1; i < T_keyword_end; i++) {
-        const TokInfo *info = &table[i];
+        const KindInfo *info = &table[i];
         if (!strcmp(word, info->str))
             return info->kind;
     }
@@ -138,7 +137,7 @@ static int keyword_or_ident(const char *word)
 
 const char *TokenKindString(int kind)
 {
-    const TokInfo *info = LookupKindInfo(kind);
+    const KindInfo *info = LookupKindInfo(kind);
     return info->str;
 }
 
@@ -148,18 +147,11 @@ void set(Token *t, int k, Pos p)
     t->pos = p;
 }
 
-class Lexer {
-public:
-    Lexer();
-    ~Lexer();
+struct Lexer {
 
-    void SetInput(const std::string &src);
-    void Get(Token *tok);
-
-private:
     // src text
-    const std::string *src_ {};
-    std::string::const_iterator it_;
+    const char *src_;
+    const char *it_;
     Pos pos_;
     int prevx = 0;
 
@@ -184,21 +176,15 @@ private:
     void scan_block_comment(Pos pos);
 };
 
-Lexer::Lexer()
+void SetInput(Lexer *l, const std::string &src)
 {
-    indent_stack_.push(0);
-    is_line_begin_ = true;
-}
+    l->src_ = src.c_str();
 
-Lexer::~Lexer()
-{
-}
-
-void Lexer::SetInput(const std::string &src)
-{
-    src_ = &src;
-    it_ = src_->begin();
-    pos_ = {0, 1};
+    // init
+    l->it_ = l->src_;
+    l->pos_ = {0, 1};
+    l->indent_stack_.push(0);
+    l->is_line_begin_ = true;
 }
 
 int Lexer::get()
@@ -237,72 +223,72 @@ void Lexer::unget()
 
 bool Lexer::eof() const
 {
-    return it_ == src_->end();
+    return *it_ == '\0';
 }
 
 int Lexer::curr() const
 {
-    if (it_ == src_->begin())
+    if (it_ == src_)
         return '\0';
     else
         return *(it_ - 1);
 }
 
-void Lexer::Get(Token *tok)
+void Get(Lexer *l, Token *tok)
 {
     *tok = {};
 
-    if (unread_blockend_ > 0) {
-        unread_blockend_--;
-        set(tok, T_BLOCKEND, pos_);
+    if (l->unread_blockend_ > 0) {
+        l->unread_blockend_--;
+        set(tok, T_BLOCKEND, l->pos_);
         return;
     }
 
-    if (is_line_begin_) {
-        is_line_begin_ = false;
+    if (l->is_line_begin_) {
+        l->is_line_begin_ = false;
 
-        const int kind = scan_indent(tok);
+        const int kind = l->scan_indent(tok);
         if (kind == T_BLOCKBEGIN || kind == T_BLOCKEND)
             return;
     }
 
-    while (!eof()) {
-        int ch = get();
-        const Pos pos = pos_;
+    while (!l->eof()) {
+        int ch = l->get();
+        const Pos pos = l->pos_;
 
         // number
         if (isdigit(ch)) {
-            unget();
-            scan_number(tok, pos);
+            l->unget();
+            l->scan_number(tok, pos);
             return;
         }
 
         if (ch == '\'') {
-            scan_char_literal(tok, pos);
+            l->scan_char_literal(tok, pos);
             return;
         }
 
         if (ch == '=') {
-            ch = get();
+            ch = l->get();
 
             if (ch == '=') {
                 set(tok, T_EQ, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_ASSN, pos);
             }
             return;
         }
 
         if (ch == '!') {
-            ch = get();
+            ch = l->get();
 
             if (ch == '=') {
                 set(tok, T_NEQ, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_LNOT, pos);
             }
             return;
@@ -319,7 +305,7 @@ void Lexer::Get(Token *tok)
         }
 
         if (ch == '<') {
-            ch = get();
+            ch = l->get();
             if (ch == '<') {
                 set(tok, T_SHL, pos);
             }
@@ -327,14 +313,14 @@ void Lexer::Get(Token *tok)
                 set(tok, T_LTE, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_LT, pos);
             }
             return;
         }
 
         if (ch == '>') {
-            ch = get();
+            ch = l->get();
             if (ch == '>') {
                 set(tok, T_SHR, pos);
             }
@@ -342,14 +328,14 @@ void Lexer::Get(Token *tok)
                 set(tok, T_GTE, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_GT, pos);
             }
             return;
         }
 
         if (ch == '+') {
-            ch = get();
+            ch = l->get();
             if (ch == '+') {
                 set(tok, T_INC, pos);
             }
@@ -357,22 +343,22 @@ void Lexer::Get(Token *tok)
                 set(tok, T_AADD, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_ADD, pos);
             }
             return;
         }
 
         if (ch == '-') {
-            ch = get();
+            ch = l->get();
             if (ch == '-') {
                 //set(tok, T_MINUS2, pos);
-                ch = get();
+                ch = l->get();
                 if (ch == '-') {
                     set(tok, T_DASH3, pos);
                 }
                 else {
-                    unget();
+                    l->unget();
                     set(tok, T_DEC, pos);
                 }
             }
@@ -380,75 +366,75 @@ void Lexer::Get(Token *tok)
                 set(tok, T_ASUB, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_SUB, pos);
             }
             return;
         }
 
         if (ch == '*') {
-            ch = get();
+            ch = l->get();
             if (ch == '=') {
                 set(tok, T_AMUL, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_MUL, pos);
             }
             return;
         }
 
         if (ch == '/') {
-            ch = get();
+            ch = l->get();
             if (ch == '/') {
-                scan_line_comment();
+                l->scan_line_comment();
                 continue;
             }
             else if (ch == '*') {
-                scan_block_comment(pos);
+                l->scan_block_comment(pos);
                 continue;
             }
             else if (ch == '=') {
                 set(tok, T_ADIV, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_DIV, pos);
             }
             return;
         }
 
         if (ch == '%') {
-            ch = get();
+            ch = l->get();
             if (ch == '=') {
                 set(tok, T_AREM, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_REM, pos);
             }
             return;
         }
 
         if (ch == '|') {
-            ch = get();
+            ch = l->get();
             if (ch == '|') {
                 set(tok, T_LOR, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_OR, pos);
             }
             return;
         }
 
         if (ch == '&') {
-            ch = get();
+            ch = l->get();
             if (ch == '&') {
                 set(tok, T_LAND, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_AND, pos);
             }
             return;
@@ -491,36 +477,36 @@ void Lexer::Get(Token *tok)
 
         // word
         if (isalpha(ch)) {
-            unget();
-            scan_word(tok, pos);
+            l->unget();
+            l->scan_word(tok, pos);
             return;
         }
 
         if (ch == '$') {
-            unget();
-            scan_word(tok, pos);
+            l->unget();
+            l->scan_word(tok, pos);
             if (tok->kind == T_IDENT) {
                 const std::string msg =
                     "unknown special variables: '$" +
                     std::string(tok->sval) + "'";
-                Error(msg, *src_, pos);
+                Error(msg, l->src_, pos);
             }
             return;
         }
 
         // string
         if (ch == '"') {
-            scan_string(tok, pos);
+            l->scan_string(tok, pos);
             return;
         }
 
         if (ch == '#') {
-            ch = get();
+            ch = l->get();
             if (ch == '#') {
                 set(tok, T_HASH2, pos);
             }
             else {
-                unget();
+                l->unget();
                 set(tok, T_HASH, pos);
             }
             return;
@@ -528,7 +514,7 @@ void Lexer::Get(Token *tok)
 
         if (ch == '\n') {
             set(tok, T_NEWLINE, pos);
-            is_line_begin_ = true;
+            l->is_line_begin_ = true;
             return;
         }
 
@@ -542,11 +528,11 @@ void Lexer::Get(Token *tok)
             continue;
         }
 
-        Error("unknown token", *src_, pos_);
+        Error("unknown token", l->src_, l->pos_);
         return;
     }
 
-    set(tok, T_EOF, pos_);
+    set(tok, T_EOF, l->pos_);
 }
 
 static bool isfp(int ch)
@@ -572,7 +558,7 @@ static bool isnum(int ch)
 
 void Lexer::scan_number(Token *tok, Pos pos)
 {
-    auto start = it_;
+    const char *start = it_;
     bool fpnum = false;
     int base = 10;
     int len = 0;
@@ -623,7 +609,7 @@ void Lexer::scan_char_literal(Token *tok, Pos pos)
         const bool found = FindEscapedChar(next, ch);
         if (!found) {
             unget();
-            Error("unknown escape sequence", *src_, pos_);
+            Error("unknown escape sequence", src_, pos_);
         }
     }
 
@@ -633,7 +619,7 @@ void Lexer::scan_char_literal(Token *tok, Pos pos)
     ch = get();
     if (ch != '\'') {
         unget();
-        Error("unterminated char literal", *src_, pos_);
+        Error("unterminated char literal", src_, pos_);
     }
 }
 
@@ -695,7 +681,7 @@ void Lexer::scan_string(Token *tok, Pos pos)
 
         if (ch == EOF || ch == '\0') {
             unget();
-            Error("unterminated string literal", *src_, strpos);
+            Error("unterminated string literal", src_, strpos);
         }
 
         *p++ = ch;
@@ -780,7 +766,7 @@ int Lexer::scan_indent(Token *tok)
         }
 
         // no indent matches current
-        Error("mismatch outer indent", *src_, pos_);
+        Error("mismatch outer indent", src_, pos_);
         return tok->kind;
     }
     else {
@@ -831,7 +817,7 @@ void Lexer::scan_block_comment(Pos pos)
 
         if (ch == EOF || ch == '\0') {
             unget();
-            Error("unterminated block comment", *src_, commentpos);
+            Error("unterminated block comment", src_, commentpos);
         }
     }
 }
@@ -839,15 +825,15 @@ void Lexer::scan_block_comment(Pos pos)
 const Token *Tokenize(const char *src)
 {
     std::string tmp(src);
-    Lexer lexer;
-    lexer.SetInput(tmp);
+    Lexer l;
+    SetInput(&l, tmp);
 
     Token *head = CALLOC(Token);
     Token *tail = head;
 
     for (;;) {
         Token *t = CALLOC(Token);
-        lexer.Get(t);
+        Get(&l, t);
 
         tail->next = t;
         t->prev = tail;

@@ -102,11 +102,11 @@ enum KindTag {
 };
 
 
-typedef struct TokInfo {
+typedef struct KindInfo {
     int kind;
     const char *str;
     char type;
-} TokInfo;
+} KindInfo;
 
 
 typedef struct Pos {
@@ -130,7 +130,7 @@ typedef struct Token {
 
 const Token *Tokenize(const char *src);
 const char *TokenKindString(int kind);
-const TokInfo *LookupKindInfo(int kind);
+const KindInfo *LookupKindInfo(int kind);
 void PrintToken(const Token *token, bool format);
 
 

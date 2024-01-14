@@ -443,7 +443,7 @@ bool EvalAddr(const Expr *e, int *result)
 
 void print_expr(const Expr *e, int depth)
 {
-    const TokInfo *info;
+    const KindInfo *info;
     int i;
 
     if (!e || e->kind == T_NUL)
@@ -484,7 +484,7 @@ void print_expr(const Expr *e, int depth)
 
 void PrintStmt(const Stmt *s, int depth)
 {
-    const TokInfo *info;
+    const KindInfo *info;
     int i;
 
     if (!s)
