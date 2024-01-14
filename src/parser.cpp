@@ -19,23 +19,6 @@ typedef struct Parser {
             std::string_view s4 = {}, std::string_view s5 = {}) const;
 } Parser;
 
-typedef struct StmtList {
-    Stmt head;
-    Stmt *tail;
-} StmtList;
-
-static void init_list(StmtList *list)
-{
-    list->head.next = NULL;
-    list->tail = &list->head;
-}
-
-static void append(StmtList *list, Stmt *s)
-{
-    list->tail->next = s;
-    list->tail = s;
-}
-
 void Parser::error(Pos pos, std::string_view s0, std::string_view s1,
         std::string_view s2, std::string_view s3,
         std::string_view s4, std::string_view s5) const
@@ -599,11 +582,11 @@ static Stmt *if_stmt(Parser *p)
     Expr *cond = expression(p);
     expect(p, T_NEWLINE);
 
-    StmtList list;
-    init_list(&list);
+    Stmt head = {0};
+    Stmt *tail = &head;
 
     Stmt *body = block_stmt(p, (Func *)NULL);
-    append(&list, NewOrStmt(cond, body));
+    tail = tail->next = NewOrStmt(cond, body);
 
     bool endor = false;
 
@@ -614,14 +597,14 @@ static Stmt *if_stmt(Parser *p)
                 endor = true;
             }
 
-            append(&list, or_stmt(p));
+            tail = tail->next = or_stmt(p);
         }
         else {
             endor = true;
         }
     }
 
-    return NewIfStmt(list.head.next);
+    return NewIfStmt(head.next);
 }
 
 static Stmt *for_stmt(Parser *p)
@@ -712,8 +695,8 @@ static Stmt *switch_stmt(Parser *p)
     // TODO int check
     expect(p, T_NEWLINE);
 
-    StmtList list;
-    init_list(&list);
+    Stmt head = {0};
+    Stmt *tail = &head;
 
     int default_count = 0;
 
@@ -725,17 +708,17 @@ static Stmt *switch_stmt(Parser *p)
             if (default_count > 0) {
                 p->error(tok->pos, "No 'case' should come after 'default'");
             }
-            append(&list, case_stmt(p, tok->kind));
+            tail = tail->next = case_stmt(p, tok->kind);
             continue;
 
         case T_DFLT:
-            append(&list, case_stmt(p, tok->kind));
+            tail = tail->next = case_stmt(p, tok->kind);
             default_count++;
             continue;
 
         default:
             ungettok(p);
-            return NewSwitchStmt(expr, list.head.next);
+            return NewSwitchStmt(expr, head.next);
         }
     }
 }
@@ -1112,10 +1095,10 @@ static FuncDef *func_def(Parser *p)
 static Prog *program(Parser *p)
 {
     Prog *prog = NewProg(p->scope_);
-    FuncDef *tail = NULL;
+    FuncDef *fdef_tail = NULL;
 
-    StmtList list;
-    init_list(&list);
+    Stmt head = {0};
+    Stmt *tail = &head;
 
     for (;;) {
         const int next = peek(p);
@@ -1132,17 +1115,13 @@ static Prog *program(Parser *p)
                 // TODO clean up
                 Expr *ident = NewIdentExpr(const_cast<Var *>(fdef->var));
                 Expr *init = NewIntLitExpr(fdef->funclit_id);
-                append(&list, NewExprStmt(NewAssignExpr(ident, init, T_ASSN)));
+                tail = tail->next = NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
             }
 
-            if (!prog->funcs) {
-                prog->funcs = fdef;
-                tail = prog->funcs;
-            }
-            else {
-                tail->next = fdef;
-                tail = fdef;
-            }
+            if (!prog->funcs)
+                fdef_tail = prog->funcs = fdef;
+            else
+                fdef_tail = fdef_tail->next = fdef;
             continue;
         }
 
@@ -1152,7 +1131,7 @@ static Prog *program(Parser *p)
         }
 
         if (next == T_SUB) {
-            append(&list, var_decl(p));
+            tail = tail->next = var_decl(p);
             continue;
         }
 
@@ -1171,7 +1150,7 @@ static Prog *program(Parser *p)
         Error(msg, p->src_, tok->pos);
     }
 
-    prog->gvars = list.head.next;
+    prog->gvars = head.next;
     return prog;
 }
 
