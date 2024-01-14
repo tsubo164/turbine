@@ -4,8 +4,6 @@
 #include "error.h"
 #include "escseq.h"
 
-#include <stack>
-
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -140,7 +138,7 @@ const char *TokenKindString(int kind)
     return info->str;
 }
 
-void set(Token *t, int k, Pos p)
+static void set(Token *t, int k, Pos p)
 {
     t->kind = k;
     t->pos = p;
@@ -148,73 +146,79 @@ void set(Token *t, int k, Pos p)
 
 typedef struct Lexer {
     // src text
-    const char *src_;
-    const char *it_;
-    Pos pos_;
-    int prevx = 0;
+    const char *src;
+    const char *it;
+    Pos pos;
+    int prevx;
 
     // indent
-    std::stack <int>indent_stack_;
-    int unread_blockend_ = 0;
-    bool is_line_begin_ = true;
+    int indent_stack[128];
+    int sp;
+    int unread_blockend;
+    bool is_line_begin;
 } Lexer;
 
-void SetInput(Lexer *l, const char *src)
+static void set_input(Lexer *l, const char *src)
 {
-    l->src_ = src;
+    l->src = src;
 
     // init
-    l->it_ = l->src_;
-    l->pos_ = {0, 1};
-    l->indent_stack_.push(0);
-    l->is_line_begin_ = true;
+    l->it = l->src;
+    l->pos.x = 0;
+    l->pos.y = 1;
+    l->unread_blockend = 0;
+    l->is_line_begin = true;
+
+    l->indent_stack[0] = 0;
+    l->sp = 0;
+    l->prevx = 0;
 }
 
-int curr(const Lexer *l)
+static int curr(const Lexer *l)
 {
-    if (l->it_ == l->src_)
+    if (l->it == l->src)
         return '\0';
     else
-        return *(l->it_ - 1);
+        return *(l->it - 1);
 }
 
-int get(Lexer *l)
+static int get(Lexer *l)
 {
-    l->prevx = l->pos_.x;
+    l->prevx = l->pos.x;
 
     if (curr(l) == '\n') {
-        l->pos_.x = 1;
-        l->pos_.y++;
+        l->pos.x = 1;
+        l->pos.y++;
     }
     else {
-        l->pos_.x++;
+        l->pos.x++;
     }
 
-    return *l->it_++;
+    return *l->it++;
 }
 
-int peek(const Lexer *l)
+static int peek(const Lexer *l)
 {
-    return *l->it_;
+    return *l->it;
 }
 
-void unget(Lexer *l)
+static void unget(Lexer *l)
 {
-    l->it_--;
+    l->it--;
 
     if (curr(l) == '\n') {
-        l->pos_.x = l->prevx;
+        l->pos.x = l->prevx;
         l->prevx--;
-        l->pos_.y--;
+        l->pos.y--;
     }
     else {
-        l->pos_.x--;
+        l->pos.x--;
     }
 }
 
-bool eof(const Lexer *l)
+static bool eof(const Lexer *l)
 {
-    return *l->it_ == '\0';
+    return *l->it == '\0';
 }
 
 static bool isfp(int ch)
@@ -238,9 +242,27 @@ static bool isnum(int ch)
     return isdigit(ch) || ishex(ch) || isfp(ch);
 }
 
-void scan_number(Lexer *l, Token *tok, Pos pos)
+static void push(Lexer *l, int indent)
 {
-    const char *start = l->it_;
+    if (l->sp == 127)
+        Error("indent stack overflow", l->src, l->pos);
+
+    l->indent_stack[++l->sp] = indent;
+}
+
+static void pop(Lexer *l)
+{
+    l->sp--;
+}
+
+static int top(const Lexer *l)
+{
+    return l->indent_stack[l->sp];
+}
+
+static void scan_number(Lexer *l, Token *tok, Pos pos)
+{
+    const char *start = l->it;
     bool fpnum = false;
     int base = 10;
     int len = 0;
@@ -282,7 +304,7 @@ void scan_number(Lexer *l, Token *tok, Pos pos)
     assert(end && (len == (end - &(*start))));
 }
 
-void scan_char_literal(Lexer *l, Token *tok, Pos pos)
+static void scan_char_literal(Lexer *l, Token *tok, Pos pos)
 {
     int ch = get(l);
 
@@ -291,7 +313,7 @@ void scan_char_literal(Lexer *l, Token *tok, Pos pos)
         const bool found = FindEscapedChar(next, ch);
         if (!found) {
             unget(l);
-            Error("unknown escape sequence", l->src_, l->pos_);
+            Error("unknown escape sequence", l->src, l->pos);
         }
     }
 
@@ -301,7 +323,7 @@ void scan_char_literal(Lexer *l, Token *tok, Pos pos)
     ch = get(l);
     if (ch != '\'') {
         unget(l);
-        Error("unterminated char literal", l->src_, l->pos_);
+        Error("unterminated char literal", l->src, l->pos);
     }
 }
 
@@ -310,7 +332,7 @@ static bool isword(int ch)
     return isalnum(ch) || ch == '_';
 }
 
-void scan_word(Lexer *l, Token *tok, Pos pos)
+static void scan_word(Lexer *l, Token *tok, Pos pos)
 {
     static char buf[128] = {'\0'};
     char *p = buf;
@@ -338,7 +360,7 @@ void scan_word(Lexer *l, Token *tok, Pos pos)
     set(tok, kind, pos);
 }
 
-void scan_string(Lexer *l, Token *tok, Pos pos)
+static void scan_string(Lexer *l, Token *tok, Pos pos)
 {
     static char buf[4096] = {'\0'};
     char *p = buf;
@@ -362,7 +384,7 @@ void scan_string(Lexer *l, Token *tok, Pos pos)
 
         if (ch == EOF || ch == '\0') {
             unget(l);
-            Error("unterminated string literal", l->src_, strpos);
+            Error("unterminated string literal", l->src, strpos);
         }
 
         *p++ = ch;
@@ -375,7 +397,7 @@ void scan_string(Lexer *l, Token *tok, Pos pos)
     set(tok, T_STRLIT, pos);
 }
 
-void scan_line_comment(Lexer *l)
+static void scan_line_comment(Lexer *l)
 {
     for (;;) {
         const int ch = get(l);
@@ -387,7 +409,7 @@ void scan_line_comment(Lexer *l)
     }
 }
 
-void scan_block_comment(Lexer *l, Pos pos)
+static void scan_block_comment(Lexer *l, Pos pos)
 {
     const Pos commentpos = pos;
     // already accepted "/*"
@@ -417,12 +439,12 @@ void scan_block_comment(Lexer *l, Pos pos)
 
         if (ch == EOF || ch == '\0') {
             unget(l);
-            Error("unterminated block comment", l->src_, commentpos);
+            Error("unterminated block comment", l->src, commentpos);
         }
     }
 }
 
-int count_indent(Lexer *l)
+static int count_indent(Lexer *l)
 {
     int indent = 0;
 
@@ -462,37 +484,37 @@ int count_indent(Lexer *l)
     return indent;
 }
 
-int scan_indent(Lexer *l, Token *tok)
+static int scan_indent(Lexer *l, Token *tok)
 {
     const int indent = count_indent(l);
 
-    if (indent > l->indent_stack_.top()) {
+    if (indent > top(l)) {
         // push indent
-        l->indent_stack_.push(indent);
-        set(tok, T_BLOCKBEGIN, l->pos_);
+        push(l, indent);
+        set(tok, T_BLOCKBEGIN, l->pos);
 
         // BlockBegin alwasy starts at beginning of line
         tok->pos.x = 1;
 
         return tok->kind;
     }
-    else if (indent < l->indent_stack_.top()) {
+    else if (indent < top(l)) {
         // pop indents until it matches current
-        l->unread_blockend_ = 0;
+        l->unread_blockend = 0;
 
-        while (indent < l->indent_stack_.top()) {
-            l->indent_stack_.pop();
+        while (indent < top(l)) {
+            pop(l);
 
-            if (indent == l->indent_stack_.top()) {
-                set(tok, T_BLOCKEND, l->pos_);
+            if (indent == top(l)) {
+                set(tok, T_BLOCKEND, l->pos);
                 return tok->kind;
             }
 
-            l->unread_blockend_++;
+            l->unread_blockend++;
         }
 
         // no indent matches current
-        Error("mismatch outer indent", l->src_, l->pos_);
+        Error("mismatch outer indent", l->src, l->pos);
         return tok->kind;
     }
     else {
@@ -501,18 +523,18 @@ int scan_indent(Lexer *l, Token *tok)
     }
 }
 
-void Get(Lexer *l, Token *tok)
+static void get_token(Lexer *l, Token *tok)
 {
     *tok = {};
 
-    if (l->unread_blockend_ > 0) {
-        l->unread_blockend_--;
-        set(tok, T_BLOCKEND, l->pos_);
+    if (l->unread_blockend > 0) {
+        l->unread_blockend--;
+        set(tok, T_BLOCKEND, l->pos);
         return;
     }
 
-    if (l->is_line_begin_) {
-        l->is_line_begin_ = false;
+    if (l->is_line_begin) {
+        l->is_line_begin = false;
 
         const int kind = scan_indent(l, tok);
         if (kind == T_BLOCKBEGIN || kind == T_BLOCKEND)
@@ -521,7 +543,7 @@ void Get(Lexer *l, Token *tok)
 
     while (!eof(l)) {
         int ch = get(l);
-        const Pos pos = l->pos_;
+        const Pos pos = l->pos;
 
         // number
         if (isdigit(ch)) {
@@ -755,7 +777,7 @@ void Get(Lexer *l, Token *tok)
             if (tok->kind == T_IDENT) {
                 static char msg[128] = {'\0'};
                 sprintf(msg, "unknown special variables: '$%s'", tok->sval);
-                Error(msg, l->src_, pos);
+                Error(msg, l->src, pos);
             }
             return;
         }
@@ -780,7 +802,7 @@ void Get(Lexer *l, Token *tok)
 
         if (ch == '\n') {
             set(tok, T_NEWLINE, pos);
-            l->is_line_begin_ = true;
+            l->is_line_begin = true;
             return;
         }
 
@@ -794,24 +816,24 @@ void Get(Lexer *l, Token *tok)
             continue;
         }
 
-        Error("unknown token", l->src_, l->pos_);
+        Error("unknown token", l->src, l->pos);
         return;
     }
 
-    set(tok, T_EOF, l->pos_);
+    set(tok, T_EOF, l->pos);
 }
 
 const Token *Tokenize(const char *src)
 {
     Lexer l;
-    SetInput(&l, src);
+    set_input(&l, src);
 
     Token *head = CALLOC(Token);
     Token *tail = head;
 
     for (;;) {
         Token *t = CALLOC(Token);
-        Get(&l, t);
+        get_token(&l, t);
 
         tail->next = t;
         t->prev = tail;

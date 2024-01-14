@@ -1,5 +1,5 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef TOKEN_H
+#define TOKEN_H
 
 enum KindTag {
     T_NUL,
