@@ -4,7 +4,6 @@
 #include "error.h"
 #include "escseq.h"
 
-#include <string>
 #include <stack>
 
 #include <assert.h>
@@ -160,9 +159,9 @@ typedef struct Lexer {
     bool is_line_begin_ = true;
 } Lexer;
 
-void SetInput(Lexer *l, const std::string &src)
+void SetInput(Lexer *l, const char *src)
 {
-    l->src_ = src.c_str();
+    l->src_ = src;
 
     // init
     l->it_ = l->src_;
@@ -345,7 +344,6 @@ void scan_string(Lexer *l, Token *tok, Pos pos)
     char *p = buf;
 
     const Pos strpos = pos;
-    auto start = l->it_;
     int len = 0;
     int backslashes = 0;
 
@@ -371,8 +369,6 @@ void scan_string(Lexer *l, Token *tok, Pos pos)
         len++;
     }
     *p = '\0';
-
-    const std::string_view str_lit(&(*start), len);
 
     tok->has_escseq = backslashes > 0;
     tok->sval = intern(buf);
@@ -757,9 +753,8 @@ void Get(Lexer *l, Token *tok)
             unget(l);
             scan_word(l, tok, pos);
             if (tok->kind == T_IDENT) {
-                const std::string msg =
-                    "unknown special variables: '$" +
-                    std::string(tok->sval) + "'";
+                static char msg[128] = {'\0'};
+                sprintf(msg, "unknown special variables: '$%s'", tok->sval);
                 Error(msg, l->src_, pos);
             }
             return;
@@ -808,9 +803,8 @@ void Get(Lexer *l, Token *tok)
 
 const Token *Tokenize(const char *src)
 {
-    std::string tmp(src);
     Lexer l;
-    SetInput(&l, tmp);
+    SetInput(&l, src);
 
     Token *head = CALLOC(Token);
     Token *tail = head;
