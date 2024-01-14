@@ -13,19 +13,6 @@ typedef struct Parser {
     // TODO remove this
     int funclit_id_ = 0;
 
-    // statement
-    Stmt *or_stmt();
-    Stmt *if_stmt();
-    Stmt *for_stmt();
-    Stmt *jump_stmt();
-    Stmt *switch_stmt();
-    Stmt *case_stmt(int kind);
-    Stmt *ret_stmt();
-    Stmt *expr_stmt();
-    Stmt *scope_stmt();
-    Stmt *nop_stmt();
-    Stmt *block_stmt(Func *func = nullptr);
-
     //
     Type *type_spec();
     Stmt *var_decl();
@@ -595,47 +582,49 @@ static Expr *expression(Parser *p)
     return assign_expr(p);
 }
 
-Stmt *Parser::or_stmt()
-{
-    Expr *cond = nullptr;
+static Stmt *block_stmt(Parser *p, Func *func);
 
-    if (consume(this, T_NEWLINE)) {
+static Stmt *or_stmt(Parser *p)
+{
+    Expr *cond = NULL;
+
+    if (consume(p, T_NEWLINE)) {
         // or (else)
         cond = NewNullExpr();
     }
     else {
         // or if (else if)
-        cond = expression(this);
-        expect(this, T_NEWLINE);
+        cond = expression(p);
+        expect(p, T_NEWLINE);
     }
 
-    Stmt *body = block_stmt();
+    Stmt *body = block_stmt(p, (Func *)NULL);
 
     return NewOrStmt(cond, body);
 }
 
-Stmt *Parser::if_stmt()
+static Stmt *if_stmt(Parser *p)
 {
-    expect(this, T_IF);
-    Expr *cond = expression(this);
-    expect(this, T_NEWLINE);
+    expect(p, T_IF);
+    Expr *cond = expression(p);
+    expect(p, T_NEWLINE);
 
     StmtList list;
     init_list(&list);
 
-    Stmt *body = block_stmt();
+    Stmt *body = block_stmt(p, (Func *)NULL);
     append(&list, NewOrStmt(cond, body));
 
     bool endor = false;
 
     while (!endor) {
-        if (consume(this, T_ELS)) {
-            if (peek(this) == T_NEWLINE) {
+        if (consume(p, T_ELS)) {
+            if (peek(p) == T_NEWLINE) {
                 // last 'or' (else)
                 endor = true;
             }
 
-            append(&list, or_stmt());
+            append(&list, or_stmt(p));
         }
         else {
             endor = true;
@@ -645,51 +634,51 @@ Stmt *Parser::if_stmt()
     return NewIfStmt(list.head.next);
 }
 
-Stmt *Parser::for_stmt()
+static Stmt *for_stmt(Parser *p)
 {
-    expect(this, T_FOR);
+    expect(p, T_FOR);
 
-    Expr *init = nullptr;
-    Expr *cond = nullptr;
-    Expr *post = nullptr;
+    Expr *init = NULL;
+    Expr *cond = NULL;
+    Expr *post = NULL;
 
-    if (consume(this, T_NEWLINE)) {
+    if (consume(p, T_NEWLINE)) {
         // infinite loop
         init = NewNullExpr();
         cond = NewIntLitExpr(1);
         post = NewNullExpr();
     }
     else {
-        Expr *e = expression(this);
+        Expr *e = expression(p);
 
-        if (consume(this, T_SEM)) {
+        if (consume(p, T_SEM)) {
             // traditional for
             init = e;
-            cond = expression(this);
-            expect(this, T_SEM);
-            post = expression(this);
-            expect(this, T_NEWLINE);
+            cond = expression(p);
+            expect(p, T_SEM);
+            post = expression(p);
+            expect(p, T_NEWLINE);
         }
-        else if (consume(this, T_NEWLINE)) {
+        else if (consume(p, T_NEWLINE)) {
             // while style
             init = NewNullExpr();
             cond = e;
             post = NewNullExpr();
         }
         else {
-            const Token *tok = gettok(this);
-            Error("unknown token", src_, tok->pos);
+            const Token *tok = gettok(p);
+            Error("unknown token", p->src_, tok->pos);
         }
     }
 
     // body
-    Stmt *body = block_stmt();
+    Stmt *body = block_stmt(p, (Func *)NULL);
     return NewForStmt(init, cond, post, body);
 }
 
-Stmt *Parser::jump_stmt()
+static Stmt *jump_stmt(Parser *p)
 {
-    const Token *tok = gettok(this);
+    const Token *tok = gettok(p);
     const int kind = tok->kind;
 
     if (kind == T_BRK) {
@@ -697,18 +686,41 @@ Stmt *Parser::jump_stmt()
     else if (kind == T_CNT) {
     }
 
-    expect(this, T_NEWLINE);
+    expect(p, T_NEWLINE);
 
     return NewJumpStmt(kind);
 }
 
-Stmt *Parser::switch_stmt()
+static Stmt *case_stmt(Parser *p, int kind)
 {
-    expect(this, T_SWT);
+    Stmt head = {0};
+    Stmt *tail = &head;
 
-    Expr *expr = expression(this);
+    if (kind == T_CASE) {
+        do {
+            Expr *expr = expression(p);
+            // TODO const int check
+            tail = tail->next = NewExprStmt(expr);
+        }
+        while (consume(p, T_COMMA));
+    }
+    else if (kind == T_DFLT) {
+        tail = tail->next = NewExprStmt(NewNullExpr());
+    }
+
+    expect(p, T_NEWLINE);
+
+    Stmt *body = block_stmt(p, (Func *)NULL);
+    return NewCaseStmt(head.next, body, kind);
+}
+
+static Stmt *switch_stmt(Parser *p)
+{
+    expect(p, T_SWT);
+
+    Expr *expr = expression(p);
     // TODO int check
-    expect(this, T_NEWLINE);
+    expect(p, T_NEWLINE);
 
     StmtList list;
     init_list(&list);
@@ -716,100 +728,76 @@ Stmt *Parser::switch_stmt()
     int default_count = 0;
 
     for (;;) {
-        const Token *tok = gettok(this);
+        const Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_CASE:
             if (default_count > 0) {
-                error(tok->pos, "No 'case' should come after 'default'");
+                p->error(tok->pos, "No 'case' should come after 'default'");
             }
-            append(&list, case_stmt(tok->kind));
+            append(&list, case_stmt(p, tok->kind));
             continue;
 
         case T_DFLT:
-            append(&list, case_stmt(tok->kind));
+            append(&list, case_stmt(p, tok->kind));
             default_count++;
             continue;
 
         default:
-            ungettok(this);
+            ungettok(p);
             return NewSwitchStmt(expr, list.head.next);
         }
     }
 }
 
-Stmt *Parser::case_stmt(int kind)
+static Stmt *ret_stmt(Parser *p)
 {
-    // TODO make this last by adding ListExpr
-    StmtList list;
-    init_list(&list);
+    expect(p, T_RET);
 
-    if (kind == T_CASE) {
-        do {
-            Expr *expr = expression(this);
-            // TODO const int check
-            append(&list, NewExprStmt(expr));
-        }
-        while (consume(this, T_COMMA));
-    }
-    else if (kind == T_DFLT) {
-        append(&list, NewExprStmt(NewNullExpr()));
-    }
-
-    expect(this, T_NEWLINE);
-
-    Stmt *body = block_stmt();
-    return NewCaseStmt(list.head.next, body, kind);
-}
-
-Stmt *Parser::ret_stmt()
-{
-    expect(this, T_RET);
-
-    const Pos exprpos = tok_pos(this);
+    const Pos exprpos = tok_pos(p);
     Expr *expr = nullptr;
 
-    if (consume(this, T_NEWLINE)) {
+    if (consume(p, T_NEWLINE)) {
         expr = NewNullExpr();
     }
     else {
-        expr = expression(this);
-        expect(this, T_NEWLINE);
+        expr = expression(p);
+        expect(p, T_NEWLINE);
     }
 
-    assert(func_);
+    assert(p->func_);
 
-    if (func_->return_type->kind != expr->type->kind) {
-        error(exprpos, "type mismatch: function type '",
-            TypeString(func_->return_type), "': expression type '",
+    if (p->func_->return_type->kind != expr->type->kind) {
+        p->error(exprpos, "type mismatch: function type '",
+            TypeString(p->func_->return_type), "': expression type '",
             TypeString(expr->type), "'");
     }
 
     return NewReturnStmt(expr);
 }
 
-Stmt *Parser::expr_stmt()
+static Stmt *expr_stmt(Parser *p)
 {
-    Stmt *s = NewExprStmt(expression(this));
-    expect(this, T_NEWLINE);
+    Stmt *s = NewExprStmt(expression(p));
+    expect(p, T_NEWLINE);
 
     return s;
 }
 
-Stmt *Parser::scope_stmt()
+static Stmt *scope_stmt(Parser *p)
 {
-    expect(this, T_DASH3);
-    expect(this, T_NEWLINE);
+    expect(p, T_DASH3);
+    expect(p, T_NEWLINE);
 
-    return block_stmt();
+    return block_stmt(p, (Func *)NULL);
 }
 
-Stmt *Parser::nop_stmt()
+static Stmt *nop_stmt(Parser *p)
 {
-    expect(this, T_NOP);
+    expect(p, T_NOP);
 
     Stmt *s = NewNopStmt();
-    expect(this, T_NEWLINE);
+    expect(p, T_NEWLINE);
 
     return s;
 }
@@ -933,64 +921,64 @@ Class *Parser::class_decl()
     //return new ClasDef(clss);
 }
 
-Stmt *Parser::block_stmt(Func *func)
+static Stmt *block_stmt(Parser *p, Func *func)
 {
     StmtList list;
     init_list(&list);
 
-    enter_scope(this, func);
-    expect(this, T_BLOCKBEGIN);
+    enter_scope(p, func);
+    expect(p, T_BLOCKBEGIN);
 
     for (;;) {
-        const int next = peek(this);
+        const int next = peek(p);
 
         if (next == T_SUB) {
-            append(&list, var_decl());
+            append(&list, p->var_decl());
             continue;
         }
         else if (next == T_IF) {
-            append(&list, if_stmt());
+            append(&list, if_stmt(p));
             continue;
         }
         else if (next == T_FOR) {
-            append(&list, for_stmt());
+            append(&list, for_stmt(p));
             continue;
         }
         else if (next == T_BRK || next == T_CNT) {
-            append(&list, jump_stmt());
+            append(&list, jump_stmt(p));
             continue;
         }
         else if (next == T_SWT) {
-            append(&list, switch_stmt());
+            append(&list, switch_stmt(p));
             continue;
         }
         else if (next == T_RET) {
-            append(&list, ret_stmt());
+            append(&list, ret_stmt(p));
             continue;
         }
         else if (next == T_DASH3) {
-            append(&list, scope_stmt());
+            append(&list, scope_stmt(p));
             continue;
         }
         else if (next == T_NOP) {
-            append(&list, nop_stmt());
+            append(&list, nop_stmt(p));
             continue;
         }
         else if (next == T_NEWLINE) {
-            gettok(this);
+            gettok(p);
             continue;
         }
         else if (next == T_BLOCKEND) {
             break;
         }
         else {
-            append(&list, expr_stmt());
+            append(&list, expr_stmt(p));
             continue;
         }
     }
 
-    expect(this, T_BLOCKEND);
-    leave_scope(this);
+    expect(p, T_BLOCKEND);
+    leave_scope(p);
 
     return NewBlockStmt(list.head.next);
 }
@@ -1132,7 +1120,7 @@ FuncDef *Parser::func_def()
     func_ = func;
 
     enter_scope(this, func);
-    Stmt *body = block_stmt();
+    Stmt *body = block_stmt(this, (Func *)NULL);
     // TODO control flow check to allow implicit return
     for (Stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
