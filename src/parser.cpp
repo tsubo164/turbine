@@ -13,21 +13,10 @@ typedef struct Parser {
     // TODO remove this
     int funclit_id_ = 0;
 
-    //
-    Type *type_spec();
-    Stmt *var_decl();
-    Field *field_decl();
-    Class *class_decl();
-    void field_list(Class *clss);
-    void param_list(Func *func);
-    void ret_type(Func *func);
-    FuncDef *func_def();
-
     // error
     void error(Pos pos, std::string_view s0, std::string_view s1 = {},
             std::string_view s2 = {}, std::string_view s3 = {},
             std::string_view s4 = {}, std::string_view s5 = {}) const;
-    Prog *program();
 } Parser;
 
 typedef struct StmtList {
@@ -147,7 +136,10 @@ static void leave_scope(Parser *p)
     p->scope_ = p->scope_->Close();
 }
 
+// forward decls
+static Type *type_spec(Parser *p);
 static Expr *expression(Parser *p);
+static Stmt *block_stmt(Parser *p, Func *func);
 
 static Expr *arg_list(Parser *p, Expr *call)
 {
@@ -198,7 +190,7 @@ static Expr *arg_list(Parser *p, Expr *call)
 
 static Expr *conv_expr(Parser *p, int kind)
 {
-    Type *to_type = p->type_spec();
+    Type *to_type = type_spec(p);
     const Pos tokpos = tok_pos(p);
 
     expect(p, T_LPAREN);
@@ -582,8 +574,6 @@ static Expr *expression(Parser *p)
     return assign_expr(p);
 }
 
-static Stmt *block_stmt(Parser *p, Func *func);
-
 static Stmt *or_stmt(Parser *p)
 {
     Expr *cond = NULL;
@@ -836,34 +826,34 @@ static Expr *default_value(const Type *type)
 
 // var_decl = "-" identifier type newline
 //          | "-" identifier type = expression newline
-Stmt *Parser::var_decl()
+static Stmt *var_decl(Parser *p)
 {
-    expect(this, T_SUB);
-    expect(this, T_IDENT);
+    expect(p, T_SUB);
+    expect(p, T_IDENT);
 
-    if (scope_->FindVar(tok_str(this), false)) {
+    if (p->scope_->FindVar(tok_str(p), false)) {
         const std::string msg = "re-defined variable: '" +
-            std::string(tok_str(this)) + "'";
-        Error(msg, src_, tok_pos(this));
+            std::string(tok_str(p)) + "'";
+        Error(msg, p->src_, tok_pos(p));
     }
 
     // var anme
-    const char *name = tok_str(this);
+    const char *name = tok_str(p);
     Type *type = nullptr;
     Expr *init = nullptr;
 
     // type and init
-    if (consume(this, T_ASSN)) {
+    if (consume(p, T_ASSN)) {
         // "- x = 42"
-        init = expression(this);
+        init = expression(p);
         type = DuplicateType(init->type);
     }
     else {
-        type = type_spec();
+        type = type_spec(p);
 
-        if (consume(this, T_ASSN)) {
+        if (consume(p, T_ASSN)) {
             // "- x int = 42"
-            init = expression(this);
+            init = expression(p);
         }
         else {
             // "- x int"
@@ -871,51 +861,45 @@ Stmt *Parser::var_decl()
         }
     }
 
-    expect(this, T_NEWLINE);
+    expect(p, T_NEWLINE);
 
-    Var *var = scope_->DefineVar(name, type);
+    Var *var = p->scope_->DefineVar(name, type);
     Expr *ident = NewIdentExpr(var);
     return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
 
-Field *Parser::field_decl()
+static void field_list(Parser *p, Class *clss)
 {
-    expect(this, T_SUB);
-    expect(this, T_IDENT);
+    expect(p, T_SUB);
 
-    if (scope_->FindField(tok_str(this))) {
-        std::cerr
-            << "error: re-defined variable: '"
-            << tok_str(this) << "'"
-            << std::endl;
-        std::exit(EXIT_FAILURE);
+    do {
+        expect(p, T_IDENT);
+        const char *name = tok_str(p);
+
+        clss->DeclareField(name, type_spec(p));
+        expect(p, T_NEWLINE);
     }
-
-    Field *fld = scope_->DefineFild(tok_str(this));
-    fld->type = type_spec();
-    expect(this, T_NEWLINE);
-
-    return fld;
+    while (consume(p, T_SUB));
 }
 
-Class *Parser::class_decl()
+static Class *class_decl(Parser *p)
 {
-    expect(this, T_HASH2);
-    expect(this, T_IDENT);
+    expect(p, T_HASH2);
+    expect(p, T_IDENT);
 
     // class name
-    Class *clss = scope_->DefineClass(tok_str(this));
+    Class *clss = p->scope_->DefineClass(tok_str(p));
     if (!clss) {
-        std::cerr << "error: re-defined class: '" << tok_str(this) << "'" << std::endl;
+        std::cerr << "error: re-defined class: '" << tok_str(p) << "'" << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
-    expect(this, T_NEWLINE);
-    enter_scope(this, clss);
-    expect(this, T_BLOCKBEGIN);
-    field_list(clss);
-    expect(this, T_BLOCKEND);
-    leave_scope(this);
+    expect(p, T_NEWLINE);
+    enter_scope(p, clss);
+    expect(p, T_BLOCKBEGIN);
+    field_list(p, clss);
+    expect(p, T_BLOCKEND);
+    leave_scope(p);
 
     return nullptr;
     //return new ClasDef(clss);
@@ -923,8 +907,8 @@ Class *Parser::class_decl()
 
 static Stmt *block_stmt(Parser *p, Func *func)
 {
-    StmtList list;
-    init_list(&list);
+    Stmt head = {0};
+    Stmt *tail = &head;
 
     enter_scope(p, func);
     expect(p, T_BLOCKBEGIN);
@@ -933,35 +917,35 @@ static Stmt *block_stmt(Parser *p, Func *func)
         const int next = peek(p);
 
         if (next == T_SUB) {
-            append(&list, p->var_decl());
+            tail = tail->next = var_decl(p);
             continue;
         }
         else if (next == T_IF) {
-            append(&list, if_stmt(p));
+            tail = tail->next = if_stmt(p);
             continue;
         }
         else if (next == T_FOR) {
-            append(&list, for_stmt(p));
+            tail = tail->next = for_stmt(p);
             continue;
         }
         else if (next == T_BRK || next == T_CNT) {
-            append(&list, jump_stmt(p));
+            tail = tail->next = jump_stmt(p);
             continue;
         }
         else if (next == T_SWT) {
-            append(&list, switch_stmt(p));
+            tail = tail->next = switch_stmt(p);
             continue;
         }
         else if (next == T_RET) {
-            append(&list, ret_stmt(p));
+            tail = tail->next = ret_stmt(p);
             continue;
         }
         else if (next == T_DASH3) {
-            append(&list, scope_stmt(p));
+            tail = tail->next = scope_stmt(p);
             continue;
         }
         else if (next == T_NOP) {
-            append(&list, nop_stmt(p));
+            tail = tail->next = nop_stmt(p);
             continue;
         }
         else if (next == T_NEWLINE) {
@@ -972,7 +956,7 @@ static Stmt *block_stmt(Parser *p, Func *func)
             break;
         }
         else {
-            append(&list, expr_stmt(p));
+            tail = tail->next = expr_stmt(p);
             continue;
         }
     }
@@ -980,147 +964,133 @@ static Stmt *block_stmt(Parser *p, Func *func)
     expect(p, T_BLOCKEND);
     leave_scope(p);
 
-    return NewBlockStmt(list.head.next);
+    return NewBlockStmt(head.next);
 }
 
-// type_spec = "bool" | "int" | "float" | "string" | identifier
-// func_type = "#" param_list type_spec?
-Type *Parser::type_spec()
+static void param_list(Parser *p, Func *func)
 {
-    Type *parent = nullptr;
-    Type *type = nullptr;
+    expect(p, T_LPAREN);
 
-    if (consume(this, T_MUL)) {
-        return NewPtrType(type_spec());
-    }
-
-    if (consume(this, T_LBRACK)) {
-        parent = new Type(TY::ARRAY);
-        Expr *e = expression(this);
-        if (!e->type->IsInt()) {
-            error(tok_pos(this),
-                    "array length expression must be integer type");
-        }
-        long len = 0;
-        if (!EvalExpr(e, &len)) {
-            error(tok_pos(this),
-                    "array length expression must be compile time constant");
-        }
-        expect(this, T_RBRACK);
-        return NewArrayType(len, type_spec());
-    }
-
-    if (consume(this, T_HASH)) {
-        Func *func = scope_->DeclareFunc();
-        param_list(func);
-        ret_type(func);
-        return NewFuncType(func);
-    }
-
-    if (consume(this, T_BOL)) {
-        type = NewBoolType();
-    }
-    else if (consume(this, T_INT)) {
-        type = new Type(TY::INT);
-    }
-    else if (consume(this, T_FLT)) {
-        type = new Type(TY::FLOAT);
-    }
-    else if (consume(this, T_STR)) {
-        type = new Type(TY::STRING);
-    }
-    else if (consume(this, T_IDENT)) {
-        type = new Type(TY::CLASS);
-        type->clss = scope_->FindClass(tok_str(this));
-    }
-    else {
-        const Token *tok = gettok(this);
-        error(tok->pos, "not a type name: '",
-                TokenKindString(tok->kind), "'");
-    }
-
-    return type;
-}
-
-void Parser::field_list(Class *clss)
-{
-    expect(this, T_SUB);
-
-    do {
-        expect(this, T_IDENT);
-        const char *name = tok_str(this);
-
-        clss->DeclareField(name, type_spec());
-        expect(this, T_NEWLINE);
-    }
-    while (consume(this, T_SUB));
-}
-
-void Parser::param_list(Func *func)
-{
-    expect(this, T_LPAREN);
-
-    if (consume(this, T_RPAREN))
+    if (consume(p, T_RPAREN))
         return;
 
     do {
         const Type *type = nullptr;
         const char *name;
 
-        if (consume(this, T_CALLER_LINE)) {
-            name = tok_str(this);
+        if (consume(p, T_CALLER_LINE)) {
+            name = tok_str(p);
             type = new Type(TY::INT);
         }
         else {
-            expect(this, T_IDENT);
-            name = tok_str(this);
-            type = type_spec();
+            expect(p, T_IDENT);
+            name = tok_str(p);
+            type = type_spec(p);
         }
 
         func->DeclareParam(name, type);
     }
-    while (consume(this, T_COMMA));
+    while (consume(p, T_COMMA));
 
-    expect(this, T_RPAREN);
+    expect(p, T_RPAREN);
 }
 
-void Parser::ret_type(Func *func)
+static void ret_type(Parser *p, Func *func)
 {
-    const int next = peek(this);
+    const int next = peek(p);
 
     if (next == T_NEWLINE)
         func->return_type = new Type(TY::NIL);
     else
-        func->return_type = type_spec();
+        func->return_type = type_spec(p);
+}
+
+// type_spec = "bool" | "int" | "float" | "string" | identifier
+// func_type = "#" param_list type_spec?
+static Type *type_spec(Parser *p)
+{
+    Type *parent = NULL;
+    Type *type = NULL;
+
+    if (consume(p, T_MUL)) {
+        return NewPtrType(type_spec(p));
+    }
+
+    if (consume(p, T_LBRACK)) {
+        parent = new Type(TY::ARRAY);
+        Expr *e = expression(p);
+        if (!e->type->IsInt()) {
+            p->error(tok_pos(p),
+                    "array length expression must be integer type");
+        }
+        long len = 0;
+        if (!EvalExpr(e, &len)) {
+            p->error(tok_pos(p),
+                    "array length expression must be compile time constant");
+        }
+        expect(p, T_RBRACK);
+        return NewArrayType(len, type_spec(p));
+    }
+
+    if (consume(p, T_HASH)) {
+        Func *func = p->scope_->DeclareFunc();
+        param_list(p, func);
+        ret_type(p, func);
+        return NewFuncType(func);
+    }
+
+    if (consume(p, T_BOL)) {
+        type = NewBoolType();
+    }
+    else if (consume(p, T_INT)) {
+        type = new Type(TY::INT);
+    }
+    else if (consume(p, T_FLT)) {
+        type = new Type(TY::FLOAT);
+    }
+    else if (consume(p, T_STR)) {
+        type = new Type(TY::STRING);
+    }
+    else if (consume(p, T_IDENT)) {
+        type = new Type(TY::CLASS);
+        type->clss = p->scope_->FindClass(tok_str(p));
+    }
+    else {
+        const Token *tok = gettok(p);
+        p->error(tok->pos, "not a type name: '",
+                TokenKindString(tok->kind), "'");
+    }
+
+    return type;
 }
 
 // func_def = "#" identifier param_list type_spec? newline block_stmt
-FuncDef *Parser::func_def()
+static FuncDef *func_def(Parser *p)
 {
-    expect(this, T_HASH);
-    expect(this, T_IDENT);
+    expect(p, T_HASH);
+    expect(p, T_IDENT);
 
     // signature
-    const char *name = tok_str(this);
-    Func *func = scope_->DeclareFunc();
+    const char *name = tok_str(p);
+    Func *func = p->scope_->DeclareFunc();
 
     // params
-    param_list(func);
-    ret_type(func);
-    expect(this, T_NEWLINE);
+    param_list(p, func);
+    ret_type(p, func);
+    expect(p, T_NEWLINE);
 
     // func var
-    if (scope_->FindVar(name)) {
+    if (p->scope_->FindVar(name)) {
         // error
-        return nullptr;
+        return NULL;
     }
-    Var *var = scope_->DefineVar(name, NewFuncType(func));
+    Var *var = p->scope_->DefineVar(name, NewFuncType(func));
 
     // func body
-    func_ = func;
+    p->func_ = func;
 
-    enter_scope(this, func);
-    Stmt *body = block_stmt(this, (Func *)NULL);
+    enter_scope(p, func);
+    Stmt *body = block_stmt(p, (Func *)NULL);
     // TODO control flow check to allow implicit return
     for (Stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
@@ -1128,30 +1098,30 @@ FuncDef *Parser::func_def()
             break;
         }
     }
-    leave_scope(this);
+    leave_scope(p);
 
-    func_ = nullptr;
+    p->func_ = NULL;
 
     // XXX temp
     FuncDef *fdef = NewFuncDef(var, body);
-    fdef->funclit_id = funclit_id_++;
+    fdef->funclit_id = p->funclit_id_++;
 
     return fdef;
 }
 
-Prog *Parser::program()
+static Prog *program(Parser *p)
 {
-    Prog *prog = NewProg(scope_);
+    Prog *prog = NewProg(p->scope_);
     FuncDef *tail = NULL;
 
     StmtList list;
     init_list(&list);
 
     for (;;) {
-        const int next = peek(this);
+        const int next = peek(p);
 
         if (next == T_HASH) {
-            FuncDef *fdef = func_def();
+            FuncDef *fdef = func_def(p);
 
             // TODO remove this
             //if (fdef->var->name == "main")
@@ -1177,17 +1147,17 @@ Prog *Parser::program()
         }
 
         if (next == T_HASH2) {
-            class_decl();
+            class_decl(p);
             continue;
         }
 
         if (next == T_SUB) {
-            append(&list, var_decl());
+            append(&list, var_decl(p));
             continue;
         }
 
         if (next == T_NEWLINE) {
-            gettok(this);
+            gettok(p);
             continue;
         }
 
@@ -1195,10 +1165,10 @@ Prog *Parser::program()
             break;
         }
 
-        const Token *tok = gettok(this);
+        const Token *tok = gettok(p);
         const std::string msg = std::string("error: unexpected token: '") +
             TokenKindString(next) + "'";
-        Error(msg, src_, tok->pos);
+        Error(msg, p->src_, tok->pos);
     }
 
     prog->gvars = list.head.next;
@@ -1214,7 +1184,7 @@ static Prog *parse(Parser *p, const char *src, const Token *tok, Scope *scope)
     // global (file) scope
     enter_scope(p, (Func *)NULL);
 
-    return p->program();
+    return program(p);
 }
 
 Prog *Parse(const char *src, const Token *tok, Scope *scope)
