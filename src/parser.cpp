@@ -13,19 +13,6 @@ typedef struct Parser {
     // TODO remove this
     int funclit_id_ = 0;
 
-    // expression
-    Expr *arg_list(Expr *call);
-    Expr *conv_expr(int kind);
-    Expr *primary_expr();
-    Expr *unary_expr();
-    Expr *mul_expr();
-    Expr *add_expr();
-    Expr *rel_expr();
-    Expr *logand_expr();
-    Expr *logor_expr();
-    Expr *assign_expr();
-    Expr *expression();
-
     // statement
     Stmt *or_stmt();
     Stmt *if_stmt();
@@ -55,26 +42,6 @@ typedef struct Parser {
             std::string_view s4 = {}, std::string_view s5 = {}) const;
     Prog *program();
 } Parser;
-
-typedef struct ExprList {
-    Expr head;
-    Expr *tail;
-    int count;
-} ExprList;
-
-static void init_expr_list(ExprList *list)
-{
-    list->head.next = NULL;
-    list->tail = &list->head;
-    list->count = 0;
-}
-
-static void append_expr(ExprList *list, Expr *e)
-{
-    list->tail->next = e;
-    list->tail = e;
-    list->count++;
-}
 
 typedef struct StmtList {
     Stmt head;
@@ -144,18 +111,12 @@ static const char *tok_str(const Parser *p)
     return p->curr_->sval;
 }
 
-static int peek(Parser *p)
+static int peek(const Parser *p)
 {
-    /*
     if (p->curr_->kind == T_EOF)
         return T_EOF;
     else
         return p->curr_->next->kind;
-    */
-    const Token *tok = gettok(p);
-    const int kind = tok->kind;
-    ungettok(p);
-    return kind;
 }
 
 static void expect(Parser *p, int kind)
@@ -199,57 +160,63 @@ static void leave_scope(Parser *p)
     p->scope_ = p->scope_->Close();
 }
 
-Expr *Parser::arg_list(Expr *call)
-{
-    ExprList list;
-    init_expr_list(&list);
+static Expr *expression(Parser *p);
 
-    if (peek(this) != T_RPAREN) {
+static Expr *arg_list(Parser *p, Expr *call)
+{
+    Expr head = {0};
+    Expr *tail = &head;
+    int count = 0;
+
+    if (peek(p) != T_RPAREN) {
         do {
-            append_expr(&list, expression());
+            tail = tail->next = expression(p);
+            count++;
         }
-        while (consume(this, T_COMMA));
+        while (consume(p, T_COMMA));
     }
 
     const Func *func = call->l->type->func;
-    if (func->HasSpecialVar())
-        append_expr(&list, NewIntLitExpr(call->pos.y));
+    if (func->HasSpecialVar()) {
+        tail = tail->next = NewIntLitExpr(call->pos.y);
+        count++;
+    }
 
-    call->list = list.head.next;
+    call->list = head.next;
 
-    const int argc = list.count;
+    const int argc = count;
     const int paramc = func->RequiredParamCount();
     if (argc < paramc)
-        error(tok_pos(this), "too few arguments");
+        p->error(tok_pos(p), "too few arguments");
 
     const Expr *arg = call->list;
     for (int i = 0; i < argc; i++, arg = arg->next) {
         const Var *param = func->GetParam(i);
 
         if (!param)
-            error(tok_pos(this), "too many arguments");
+            p->error(tok_pos(p), "too many arguments");
 
         // TODO arg needs to know its pos
         if (!MatchType(arg->type, param->type)) {
-            error(tok_pos(this), "type mismatch: parameter type '",
+            p->error(tok_pos(p), "type mismatch: parameter type '",
                 TypeString(param->type), "': argument type '",
                 TypeString(arg->type), "'");
         }
     }
 
-    expect(this, T_RPAREN);
+    expect(p, T_RPAREN);
 
     return call;
 }
 
-Expr *Parser::conv_expr(int kind)
+static Expr *conv_expr(Parser *p, int kind)
 {
-    Type *to_type = type_spec();
-    const Pos tokpos = tok_pos(this);
+    Type *to_type = p->type_spec();
+    const Pos tokpos = tok_pos(p);
 
-    expect(this, T_LPAREN);
-    Expr *expr = expression();
-    expect(this, T_RPAREN);
+    expect(p, T_LPAREN);
+    Expr *expr = expression(p);
+    expect(p, T_RPAREN);
 
     switch (expr->type->kind) {
     case TY::BOOL:
@@ -257,7 +224,7 @@ Expr *Parser::conv_expr(int kind)
     case TY::FLOAT:
         break;
     default:
-        error(tokpos, "unable to convert type from '",
+        p->error(tokpos, "unable to convert type from '",
                 TypeString(expr->type), "' to '",
                 TypeString(to_type), "'");
         break;
@@ -271,74 +238,74 @@ Expr *Parser::conv_expr(int kind)
 //     FpNum |
 //     StringLit |
 //     primary_expr selector
-Expr *Parser::primary_expr()
+static Expr *primary_expr(Parser *p)
 {
-    if (consume(this, T_NIL))
+    if (consume(p, T_NIL))
         return NewNilLitExpr();
 
-    if (consume(this, T_TRU))
+    if (consume(p, T_TRU))
         return NewBoolLitExpr(true);
 
-    if (consume(this, T_FLS))
+    if (consume(p, T_FLS))
         return NewBoolLitExpr(false);
 
-    if (consume(this, T_INTLIT))
-        return NewIntLitExpr(tok_int(this));
+    if (consume(p, T_INTLIT))
+        return NewIntLitExpr(tok_int(p));
 
-    if (consume(this, T_FLTLIT))
-        return NewFloatLitExpr(tok_float(this));
+    if (consume(p, T_FLTLIT))
+        return NewFloatLitExpr(tok_float(p));
 
-    if (consume(this, T_STRLIT)) {
-        Expr *e = NewStringLitExpr(tok_str(this));
-        const Token *tok = curtok(this);
+    if (consume(p, T_STRLIT)) {
+        Expr *e = NewStringLitExpr(tok_str(p));
+        const Token *tok = curtok(p);
         if (tok->has_escseq) {
             const int errpos = ConvertEscapeSequence(e->sval, &e->converted);
             if (errpos != -1) {
                 printf("!! e->val.s [%s] errpos %d\n", e->sval, errpos);
                 Pos pos = tok->pos;
                 pos.x += errpos + 1;
-                Error("unknown escape sequence", src_, pos);
+                Error("unknown escape sequence", p->src_, pos);
             }
         }
         return e;
     }
 
-    if (consume(this, T_LPAREN)) {
-        Expr *e = expression();
-        expect(this, T_RPAREN);
+    if (consume(p, T_LPAREN)) {
+        Expr *e = expression(p);
+        expect(p, T_RPAREN);
         return e;
     }
 
-    if (consume(this, T_CALLER_LINE)) {
-        Var *var = scope_->FindVar(tok_str(this));
+    if (consume(p, T_CALLER_LINE)) {
+        Var *var = p->scope_->FindVar(tok_str(p));
         if (!var) {
-            error(tok_pos(this),
-                    "special variable '", tok_str(this),
+            p->error(tok_pos(p),
+                    "special variable '", tok_str(p),
                     "' not declared in parameters");
         }
         return NewIdentExpr(var);
     }
 
-    const int next = peek(this);
+    const int next = peek(p);
     switch (next) {
     case T_BOL:
     case T_INT:
     case T_FLT:
-        return conv_expr(next);
+        return conv_expr(p, next);
     default:
         break;
     }
 
-    Expr *expr = nullptr;
+    Expr *expr = NULL;
 
     for (;;) {
-        const Token *tok = gettok(this);
+        const Token *tok = gettok(p);
 
         if (tok->kind == T_IDENT) {
-            Var *var = scope_->FindVar(tok->sval);
+            Var *var = p->scope_->FindVar(tok->sval);
             if (!var) {
-                error(tok_pos(this),
-                        "undefined identifier: '", tok_str(this), "'");
+                p->error(tok_pos(p),
+                        "undefined identifier: '", tok_str(p), "'");
             }
 
             expr = NewIdentExpr(var);
@@ -346,12 +313,12 @@ Expr *Parser::primary_expr()
         }
         else if (tok->kind == T_LPAREN) {
             if (!expr || !expr->type->IsFunc()) {
-                error(tok_pos(this),
+                p->error(tok_pos(p),
                         "call operator must be used for function type");
             }
             // TODO func signature check
             Expr *call = NewCallExpr(expr, tok->pos);
-            expr = arg_list(call);
+            expr = arg_list(p, call);
             continue;
         }
         else if (tok->kind == T_DOT) {
@@ -365,65 +332,65 @@ Expr *Parser::primary_expr()
                 exit(EXIT_FAILURE);
             }
 
-            expect(this, T_IDENT);
+            expect(p, T_IDENT);
 
-            Field *fld = expr->type->clss->FindField(tok_str(this));
+            Field *fld = expr->type->clss->FindField(tok_str(p));
 
             expr = NewSelectExpr(expr, NewFieldExpr(fld));
             continue;
         }
         else if (tok->kind == T_LBRACK) {
             if (!expr->type->IsArray()) {
-                error(tok_pos(this),
+                p->error(tok_pos(p),
                         "index operator must be used for array type");
             }
-            Expr *idx = expression();
+            Expr *idx = expression(p);
             if (!idx->type->IsInt()) {
-                error(tok_pos(this),
+                p->error(tok_pos(p),
                         "index expression must be integer type");
             }
             long index = 0;
             if (EvalExpr(idx, &index)) {
                 const long len = expr->type->len;
                 if (index >= len) {
-                    error(tok_pos(this), "index out of range[", std::to_string(index),
+                    p->error(tok_pos(p), "index out of range[", std::to_string(index),
                             "] with length ", std::to_string(len));
                 }
             }
-            expect(this, T_RBRACK);
+            expect(p, T_RBRACK);
             return NewIndexExpr(expr, idx);
         }
         else {
             if (!expr) {
                 const std::string msg = "unknown token: \"" +
                     std::string(TokenKindString(tok->kind)) + "\"";
-                Error(msg, src_, tok->pos);
+                Error(msg, p->src_, tok->pos);
             }
 
-            ungettok(this);
+            ungettok(p);
             return expr;
         }
     }
 
-    return nullptr;
+    return NULL;
 }
 
 // unary_expr = primary_expr (unary_op primary_expr)*
 // unary_op   = "+" | "-" | "!" | "~"
-Expr *Parser::unary_expr()
+static Expr *unary_expr(Parser *p)
 {
-    const Token *tok = gettok(this);
+    const Token *tok = gettok(p);
     const int kind = tok->kind;
 
     if (kind == T_AND) {
-        Expr *expr = unary_expr();
+        Expr *expr = unary_expr(p);
         Type *type = NewPtrType(expr->type);
         return NewUnaryExpr(expr, type, kind);
     }
     if (kind == T_MUL) {
-        Expr *expr = unary_expr();
+        Expr *expr = unary_expr(p);
         if (!expr->type->IsPtr()) {
-            error(tok->pos,
+            p->error(tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
         Type *type = DuplicateType(expr->type->underlying);
@@ -436,25 +403,25 @@ Expr *Parser::unary_expr()
     case T_LNOT:
     case T_NOT:
         {
-            Expr *e = unary_expr();
+            Expr *e = unary_expr(p);
             return NewUnaryExpr(e, const_cast<Type*>(e->type), kind);
         }
 
     default:
-        ungettok(this);
-        return primary_expr();
+        ungettok(p);
+        return primary_expr(p);
     }
 }
 
 // mul_expr = unary_expr (mul_op unary_expr)*
 // mul_op   = "*" | "/" | "%" | "&" | "<<" | ">>"
-Expr *Parser::mul_expr()
+static Expr *mul_expr(Parser *p)
 {
-    Expr *x = unary_expr();
+    Expr *x = unary_expr(p);
     Expr *y;
 
     for (;;) {
-        const Token *tok = gettok(this);
+        const Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_MUL:
@@ -463,17 +430,17 @@ Expr *Parser::mul_expr()
         case T_AND:
         case T_SHL:
         case T_SHR:
-            y = unary_expr();
+            y = unary_expr(p);
             if (!MatchType(x->type, y->type)) {
                 const std::string msg = std::string("type mismatch: ") +
                     TypeString(x->type) + " and " + TypeString(y->type);
-                Error(msg, src_, tok->pos);
+                Error(msg, p->src_, tok->pos);
             }
             x = NewBinaryExpr(x, y, tok->kind);
             break;
 
         default:
-            ungettok(this);
+            ungettok(p);
             return x;
         }
     }
@@ -481,12 +448,12 @@ Expr *Parser::mul_expr()
 
 // add_expr = mul_expr (add_op mul_expr)*
 // add_op   = "+" | "-" | "|" | "^"
-Expr *Parser::add_expr()
+static Expr *add_expr(Parser *p)
 {
-    Expr *expr = mul_expr();
+    Expr *expr = mul_expr(p);
 
     for (;;) {
-        const Token *tok = gettok(this);
+        const Token *tok = gettok(p);
         Expr *l;
 
         switch (tok->kind) {
@@ -494,17 +461,17 @@ Expr *Parser::add_expr()
         case T_SUB:
         case T_OR:
         case T_XOR:
-            l = mul_expr();
+            l = mul_expr(p);
             if (!MatchType(expr->type, l->type)) {
                 const std::string msg = std::string("type mismatch: ") +
                     TypeString(expr->type) + " and " + TypeString(l->type);
-                Error(msg, src_, tok->pos);
+                Error(msg, p->src_, tok->pos);
             }
             expr = NewBinaryExpr(expr, l, tok->kind);
             break;
 
         default:
-            ungettok(this);
+            ungettok(p);
             return expr;
         }
     }
@@ -512,13 +479,13 @@ Expr *Parser::add_expr()
 
 // rel_expr = add_expr (rel_op add_expr)*
 // rel_op   = "==" | "!=" | "<" | ">" | "<=" | ">="
-Expr *Parser::rel_expr()
+static Expr *rel_expr(Parser *p)
 {
-    Expr *l = add_expr();
-    Expr *r = nullptr;
+    Expr *l = add_expr(p);
+    Expr *r = NULL;
 
     for (;;) {
-        const Token *tok = gettok(this);
+        const Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_EQ:
@@ -527,9 +494,9 @@ Expr *Parser::rel_expr()
         case T_GT:
         case T_LTE:
         case T_GTE:
-            r = add_expr();
+            r = add_expr(p);
             if (!MatchType(l->type, r->type)) {
-                error(tok->pos, "type mismatch: ",
+                p->error(tok->pos, "type mismatch: ",
                         TypeString(l->type), " and ",
                         TypeString(r->type));
             }
@@ -537,47 +504,47 @@ Expr *Parser::rel_expr()
             continue;
 
         default:
-            ungettok(this);
+            ungettok(p);
             return l;
         }
     }
 }
 
 // logand_expr = rel_expr ("&&" rel_expr)*
-Expr *Parser::logand_expr()
+static Expr *logand_expr(Parser *p)
 {
-    Expr *expr = rel_expr();
+    Expr *expr = rel_expr(p);
 
     for (;;) {
-        const Token *tok = gettok(this);
+        const Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_LAND:
-            expr = NewBinaryExpr(expr, rel_expr(), tok->kind);
+            expr = NewBinaryExpr(expr, rel_expr(p), tok->kind);
             continue;
 
         default:
-            ungettok(this);
+            ungettok(p);
             return expr;
         }
     }
 }
 
 // logor_expr = logand_expr ("||" logand_expr)*
-Expr *Parser::logor_expr()
+static Expr *logor_expr(Parser *p)
 {
-    Expr *expr = logand_expr();
+    Expr *expr = logand_expr(p);
 
     for (;;) {
-        const Token *tok = gettok(this);
+        const Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_LOR:
-            expr = NewBinaryExpr(expr, logand_expr(), tok->kind);
+            expr = NewBinaryExpr(expr, logand_expr(p), tok->kind);
             continue;
 
         default:
-            ungettok(this);
+            ungettok(p);
             return expr;
         }
     }
@@ -587,11 +554,11 @@ Expr *Parser::logor_expr()
 //             | logand_expr incdec_op
 // assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
 // incdec_op   = "++" | "--"
-Expr *Parser::assign_expr()
+static Expr *assign_expr(Parser *p)
 {
-    Expr *lval = logor_expr();
+    Expr *lval = logor_expr(p);
     Expr *rval = nullptr;
-    const Token *tok = gettok(this);
+    const Token *tok = gettok(p);
     const int kind = tok->kind;
 
     switch (kind) {
@@ -601,9 +568,9 @@ Expr *Parser::assign_expr()
     case T_AMUL:
     case T_ADIV:
     case T_AREM:
-        rval = expression();
+        rval = expression(p);
         if (!MatchType(lval->type, rval->type)) {
-            error(tok->pos, "type mismatch: l-value type '",
+            p->error(tok->pos, "type mismatch: l-value type '",
                 TypeString(lval->type), "': r-value type '",
                 TypeString(rval->type), "'");
         }
@@ -612,20 +579,20 @@ Expr *Parser::assign_expr()
     case T_INC:
     case T_DEC:
         if (!lval->type->IsInt()) {
-            error(tok->pos,
+            p->error(tok->pos,
                     "type mismatch: ++/-- must be used for int");
         }
         return NewIncDecExpr(lval, kind);
 
     default:
-        ungettok(this);
+        ungettok(p);
         return lval;
     }
 }
 
-Expr *Parser::expression()
+static Expr *expression(Parser *p)
 {
-    return assign_expr();
+    return assign_expr(p);
 }
 
 Stmt *Parser::or_stmt()
@@ -638,7 +605,7 @@ Stmt *Parser::or_stmt()
     }
     else {
         // or if (else if)
-        cond = expression();
+        cond = expression(this);
         expect(this, T_NEWLINE);
     }
 
@@ -650,7 +617,7 @@ Stmt *Parser::or_stmt()
 Stmt *Parser::if_stmt()
 {
     expect(this, T_IF);
-    Expr *cond = expression();
+    Expr *cond = expression(this);
     expect(this, T_NEWLINE);
 
     StmtList list;
@@ -693,14 +660,14 @@ Stmt *Parser::for_stmt()
         post = NewNullExpr();
     }
     else {
-        Expr *e = expression();
+        Expr *e = expression(this);
 
         if (consume(this, T_SEM)) {
             // traditional for
             init = e;
-            cond = expression();
+            cond = expression(this);
             expect(this, T_SEM);
-            post = expression();
+            post = expression(this);
             expect(this, T_NEWLINE);
         }
         else if (consume(this, T_NEWLINE)) {
@@ -739,7 +706,7 @@ Stmt *Parser::switch_stmt()
 {
     expect(this, T_SWT);
 
-    Expr *expr = expression();
+    Expr *expr = expression(this);
     // TODO int check
     expect(this, T_NEWLINE);
 
@@ -779,7 +746,7 @@ Stmt *Parser::case_stmt(int kind)
 
     if (kind == T_CASE) {
         do {
-            Expr *expr = expression();
+            Expr *expr = expression(this);
             // TODO const int check
             append(&list, NewExprStmt(expr));
         }
@@ -806,7 +773,7 @@ Stmt *Parser::ret_stmt()
         expr = NewNullExpr();
     }
     else {
-        expr = expression();
+        expr = expression(this);
         expect(this, T_NEWLINE);
     }
 
@@ -823,7 +790,7 @@ Stmt *Parser::ret_stmt()
 
 Stmt *Parser::expr_stmt()
 {
-    Stmt *s = NewExprStmt(expression());
+    Stmt *s = NewExprStmt(expression(this));
     expect(this, T_NEWLINE);
 
     return s;
@@ -900,7 +867,7 @@ Stmt *Parser::var_decl()
     // type and init
     if (consume(this, T_ASSN)) {
         // "- x = 42"
-        init = expression();
+        init = expression(this);
         type = DuplicateType(init->type);
     }
     else {
@@ -908,7 +875,7 @@ Stmt *Parser::var_decl()
 
         if (consume(this, T_ASSN)) {
             // "- x int = 42"
-            init = expression();
+            init = expression(this);
         }
         else {
             // "- x int"
@@ -1041,7 +1008,7 @@ Type *Parser::type_spec()
 
     if (consume(this, T_LBRACK)) {
         parent = new Type(TY::ARRAY);
-        Expr *e = expression();
+        Expr *e = expression(this);
         if (!e->type->IsInt()) {
             error(tok_pos(this),
                     "array length expression must be integer type");
