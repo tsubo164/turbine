@@ -1,10 +1,5 @@
 #include <iostream>
 #include "test.h"
-#include "../src/bytecode.h"
-#include "../src/parser.h"
-#include "../src/lexer.h"
-#include "../src/scope.h"
-#include "../src/vm.h"
 #include "../src/interpreter.h"
 
 int main(int argc, char **argv)

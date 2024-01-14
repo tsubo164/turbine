@@ -1,6 +1,6 @@
 #include "interpreter.h"
 #include "builtin.h"
-#include "lexer.h"
+#include "token.h"
 #include "ast.h"
 #include <iostream>
 #include <iomanip>

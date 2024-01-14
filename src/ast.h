@@ -7,7 +7,7 @@
 
 #include "bytecode.h"
 #include "scope.h"
-#include "lexer.h"
+#include "token.h"
 #include "type.h"
 #include "escseq.h"
 

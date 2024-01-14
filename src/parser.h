@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "lexer.h"
+#include "token.h"
 #include "compiler.h"
 #include "scope.h"
 #include "type.h"

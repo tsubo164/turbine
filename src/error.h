@@ -2,7 +2,7 @@
 #define ERROR_H
 
 #include <string>
-#include "lexer.h"
+#include "token.h"
 #include "compiler.h"
 
 void InternalError(const std::string &msg, const std::string &filename, int line);

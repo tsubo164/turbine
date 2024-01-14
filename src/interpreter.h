@@ -4,7 +4,7 @@
 #include <istream>
 #include "bytecode.h"
 #include "parser.h"
-#include "lexer.h"
+#include "token.h"
 #include "scope.h"
 #include "vm.h"
 
