@@ -147,8 +147,7 @@ void set(Token *t, int k, Pos p)
     t->pos = p;
 }
 
-struct Lexer {
-
+typedef struct Lexer {
     // src text
     const char *src_;
     const char *it_;
@@ -159,22 +158,7 @@ struct Lexer {
     std::stack <int>indent_stack_;
     int unread_blockend_ = 0;
     bool is_line_begin_ = true;
-
-    int get();
-    int peek();
-    void unget();
-    bool eof() const;
-    int curr() const;
-
-    void scan_number(Token *tok, Pos pos);
-    void scan_char_literal(Token *tok, Pos pos);
-    void scan_word(Token *tok, Pos pos);
-    void scan_string(Token *tok, Pos pos);
-    int count_indent();
-    int scan_indent(Token *tok);
-    void scan_line_comment();
-    void scan_block_comment(Pos pos);
-};
+} Lexer;
 
 void SetInput(Lexer *l, const std::string &src)
 {
@@ -187,51 +171,338 @@ void SetInput(Lexer *l, const std::string &src)
     l->is_line_begin_ = true;
 }
 
-int Lexer::get()
+int curr(const Lexer *l)
 {
-    prevx = pos_.x;
-
-    if (curr() == '\n') {
-        pos_.x = 1;
-        pos_.y++;
-    }
-    else {
-        pos_.x++;
-    }
-
-    return *it_++;
-}
-
-int Lexer::peek()
-{
-    return *it_;
-}
-
-void Lexer::unget()
-{
-    it_--;
-
-    if (curr() == '\n') {
-        pos_.x = prevx;
-        prevx--;
-        pos_.y--;
-    }
-    else {
-        pos_.x--;
-    }
-}
-
-bool Lexer::eof() const
-{
-    return *it_ == '\0';
-}
-
-int Lexer::curr() const
-{
-    if (it_ == src_)
+    if (l->it_ == l->src_)
         return '\0';
     else
-        return *(it_ - 1);
+        return *(l->it_ - 1);
+}
+
+int get(Lexer *l)
+{
+    l->prevx = l->pos_.x;
+
+    if (curr(l) == '\n') {
+        l->pos_.x = 1;
+        l->pos_.y++;
+    }
+    else {
+        l->pos_.x++;
+    }
+
+    return *l->it_++;
+}
+
+int peek(const Lexer *l)
+{
+    return *l->it_;
+}
+
+void unget(Lexer *l)
+{
+    l->it_--;
+
+    if (curr(l) == '\n') {
+        l->pos_.x = l->prevx;
+        l->prevx--;
+        l->pos_.y--;
+    }
+    else {
+        l->pos_.x--;
+    }
+}
+
+bool eof(const Lexer *l)
+{
+    return *l->it_ == '\0';
+}
+
+static bool isfp(int ch)
+{
+    const int c = tolower(ch);
+
+    return c == '.' || c == 'e';
+}
+
+static bool ishex(int ch)
+{
+    const int c = tolower(ch);
+
+    return c == 'x' ||
+        c == 'a' || c == 'b' || c == 'c' ||
+        c == 'd' || c == 'e' || c == 'f';
+}
+
+static bool isnum(int ch)
+{
+    return isdigit(ch) || ishex(ch) || isfp(ch);
+}
+
+void scan_number(Lexer *l, Token *tok, Pos pos)
+{
+    const char *start = l->it_;
+    bool fpnum = false;
+    int base = 10;
+    int len = 0;
+
+    for (int ch = get(l); isnum(ch); ch = get(l)) {
+        if (ishex(ch))
+            base = 16;
+
+        if (isfp(ch))
+            fpnum = true;
+
+        if (ch == 'e' || ch == 'E') {
+            if (peek(l) == '-' || peek(l) == '+') {
+                continue;
+            }
+            else {
+                // reject 'e'/'E'
+                unget(l);
+                break;
+            }
+        }
+
+        len++;
+    }
+
+    unget(l);
+
+    char *end = nullptr;
+
+    if (fpnum) {
+        tok->fval = strtod(&(*start), &end);
+        set(tok, T_FLTLIT, pos);
+    }
+    else {
+        tok->ival = strtol(&(*start), &end, base);
+        set(tok, T_INTLIT, pos);
+    }
+
+    assert(end && (len == (end - &(*start))));
+}
+
+void scan_char_literal(Lexer *l, Token *tok, Pos pos)
+{
+    int ch = get(l);
+
+    if (ch == '\\') {
+        const int next = get(l);
+        const bool found = FindEscapedChar(next, ch);
+        if (!found) {
+            unget(l);
+            Error("unknown escape sequence", l->src_, l->pos_);
+        }
+    }
+
+    tok->ival = ch;
+    set(tok, T_INTLIT, pos);
+
+    ch = get(l);
+    if (ch != '\'') {
+        unget(l);
+        Error("unterminated char literal", l->src_, l->pos_);
+    }
+}
+
+static bool isword(int ch)
+{
+    return isalnum(ch) || ch == '_';
+}
+
+void scan_word(Lexer *l, Token *tok, Pos pos)
+{
+    static char buf[128] = {'\0'};
+    char *p = buf;
+    int len = 0;
+
+    const int first = get(l);
+    if (first == '$' || isword(first)) {
+        *p++ = first;
+        len++;
+    }
+
+    for (int ch = get(l); isword(ch); ch = get(l)) {
+        *p++ = ch;
+        len++;
+        if (len == sizeof(buf)) {
+            // error
+        }
+    }
+    *p = '\0';
+
+    unget(l);
+
+    const int kind = keyword_or_ident(buf);
+    tok->sval = intern(buf);
+    set(tok, kind, pos);
+}
+
+void scan_string(Lexer *l, Token *tok, Pos pos)
+{
+    static char buf[4096] = {'\0'};
+    char *p = buf;
+
+    const Pos strpos = pos;
+    auto start = l->it_;
+    int len = 0;
+    int backslashes = 0;
+
+    for (int ch = get(l); ch != '"'; ch = get(l)) {
+        const int next = peek(l);
+
+        if (ch == '\\') {
+            backslashes++;
+            if (next == '"' || next == '\\') {
+                *p++ = ch;
+                len++;
+
+                ch = get(l);
+            }
+        }
+
+        if (ch == EOF || ch == '\0') {
+            unget(l);
+            Error("unterminated string literal", l->src_, strpos);
+        }
+
+        *p++ = ch;
+        len++;
+    }
+    *p = '\0';
+
+    const std::string_view str_lit(&(*start), len);
+
+    tok->has_escseq = backslashes > 0;
+    tok->sval = intern(buf);
+    set(tok, T_STRLIT, pos);
+}
+
+void scan_line_comment(Lexer *l)
+{
+    for (;;) {
+        const int ch = get(l);
+
+        if (ch == '\n') {
+            unget(l);
+            break;
+        }
+    }
+}
+
+void scan_block_comment(Lexer *l, Pos pos)
+{
+    const Pos commentpos = pos;
+    // already accepted "/*"
+    int depth = 1;
+
+    for (;;) {
+        int ch = get(l);
+
+        if (ch == '/') {
+            ch = get(l);
+            if (ch == '*') {
+                depth++;
+                continue;
+            }
+        }
+
+        if (ch == '*') {
+            ch = get(l);
+            if (ch == '/') {
+                depth--;
+                if (depth == 0)
+                    break;
+                else
+                    continue;
+            }
+        }
+
+        if (ch == EOF || ch == '\0') {
+            unget(l);
+            Error("unterminated block comment", l->src_, commentpos);
+        }
+    }
+}
+
+int count_indent(Lexer *l)
+{
+    int indent = 0;
+
+    for (;;) {
+        const int ch = get(l);
+
+        if (ch == '/') {
+            // indent + line comment => next line
+            if (peek(l) == '/') {
+                scan_line_comment(l);
+                continue;
+            }
+            else {
+                unget(l);
+                break;
+            }
+        }
+        else if (ch == ' ' || ch == '\v' || ch == '\f') {
+            indent++;
+            continue;
+        }
+        else if (ch == '\t') {
+            indent += 4;
+            continue;
+        }
+        else if (ch == '\n') {
+            // blank line => next line
+            indent = 0;
+            continue;
+        }
+        else {
+            unget(l);
+            break;
+        }
+    }
+
+    return indent;
+}
+
+int scan_indent(Lexer *l, Token *tok)
+{
+    const int indent = count_indent(l);
+
+    if (indent > l->indent_stack_.top()) {
+        // push indent
+        l->indent_stack_.push(indent);
+        set(tok, T_BLOCKBEGIN, l->pos_);
+
+        // BlockBegin alwasy starts at beginning of line
+        tok->pos.x = 1;
+
+        return tok->kind;
+    }
+    else if (indent < l->indent_stack_.top()) {
+        // pop indents until it matches current
+        l->unread_blockend_ = 0;
+
+        while (indent < l->indent_stack_.top()) {
+            l->indent_stack_.pop();
+
+            if (indent == l->indent_stack_.top()) {
+                set(tok, T_BLOCKEND, l->pos_);
+                return tok->kind;
+            }
+
+            l->unread_blockend_++;
+        }
+
+        // no indent matches current
+        Error("mismatch outer indent", l->src_, l->pos_);
+        return tok->kind;
+    }
+    else {
+        // no indent change
+        return tok->kind;
+    }
 }
 
 void Get(Lexer *l, Token *tok)
@@ -247,48 +518,48 @@ void Get(Lexer *l, Token *tok)
     if (l->is_line_begin_) {
         l->is_line_begin_ = false;
 
-        const int kind = l->scan_indent(tok);
+        const int kind = scan_indent(l, tok);
         if (kind == T_BLOCKBEGIN || kind == T_BLOCKEND)
             return;
     }
 
-    while (!l->eof()) {
-        int ch = l->get();
+    while (!eof(l)) {
+        int ch = get(l);
         const Pos pos = l->pos_;
 
         // number
         if (isdigit(ch)) {
-            l->unget();
-            l->scan_number(tok, pos);
+            unget(l);
+            scan_number(l, tok, pos);
             return;
         }
 
         if (ch == '\'') {
-            l->scan_char_literal(tok, pos);
+            scan_char_literal(l, tok, pos);
             return;
         }
 
         if (ch == '=') {
-            ch = l->get();
+            ch = get(l);
 
             if (ch == '=') {
                 set(tok, T_EQ, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_ASSN, pos);
             }
             return;
         }
 
         if (ch == '!') {
-            ch = l->get();
+            ch = get(l);
 
             if (ch == '=') {
                 set(tok, T_NEQ, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_LNOT, pos);
             }
             return;
@@ -305,7 +576,7 @@ void Get(Lexer *l, Token *tok)
         }
 
         if (ch == '<') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '<') {
                 set(tok, T_SHL, pos);
             }
@@ -313,14 +584,14 @@ void Get(Lexer *l, Token *tok)
                 set(tok, T_LTE, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_LT, pos);
             }
             return;
         }
 
         if (ch == '>') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '>') {
                 set(tok, T_SHR, pos);
             }
@@ -328,14 +599,14 @@ void Get(Lexer *l, Token *tok)
                 set(tok, T_GTE, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_GT, pos);
             }
             return;
         }
 
         if (ch == '+') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '+') {
                 set(tok, T_INC, pos);
             }
@@ -343,22 +614,22 @@ void Get(Lexer *l, Token *tok)
                 set(tok, T_AADD, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_ADD, pos);
             }
             return;
         }
 
         if (ch == '-') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '-') {
                 //set(tok, T_MINUS2, pos);
-                ch = l->get();
+                ch = get(l);
                 if (ch == '-') {
                     set(tok, T_DASH3, pos);
                 }
                 else {
-                    l->unget();
+                    unget(l);
                     set(tok, T_DEC, pos);
                 }
             }
@@ -366,75 +637,75 @@ void Get(Lexer *l, Token *tok)
                 set(tok, T_ASUB, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_SUB, pos);
             }
             return;
         }
 
         if (ch == '*') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '=') {
                 set(tok, T_AMUL, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_MUL, pos);
             }
             return;
         }
 
         if (ch == '/') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '/') {
-                l->scan_line_comment();
+                scan_line_comment(l);
                 continue;
             }
             else if (ch == '*') {
-                l->scan_block_comment(pos);
+                scan_block_comment(l, pos);
                 continue;
             }
             else if (ch == '=') {
                 set(tok, T_ADIV, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_DIV, pos);
             }
             return;
         }
 
         if (ch == '%') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '=') {
                 set(tok, T_AREM, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_REM, pos);
             }
             return;
         }
 
         if (ch == '|') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '|') {
                 set(tok, T_LOR, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_OR, pos);
             }
             return;
         }
 
         if (ch == '&') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '&') {
                 set(tok, T_LAND, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_AND, pos);
             }
             return;
@@ -477,14 +748,14 @@ void Get(Lexer *l, Token *tok)
 
         // word
         if (isalpha(ch)) {
-            l->unget();
-            l->scan_word(tok, pos);
+            unget(l);
+            scan_word(l, tok, pos);
             return;
         }
 
         if (ch == '$') {
-            l->unget();
-            l->scan_word(tok, pos);
+            unget(l);
+            scan_word(l, tok, pos);
             if (tok->kind == T_IDENT) {
                 const std::string msg =
                     "unknown special variables: '$" +
@@ -496,17 +767,17 @@ void Get(Lexer *l, Token *tok)
 
         // string
         if (ch == '"') {
-            l->scan_string(tok, pos);
+            scan_string(l, tok, pos);
             return;
         }
 
         if (ch == '#') {
-            ch = l->get();
+            ch = get(l);
             if (ch == '#') {
                 set(tok, T_HASH2, pos);
             }
             else {
-                l->unget();
+                unget(l);
                 set(tok, T_HASH, pos);
             }
             return;
@@ -533,293 +804,6 @@ void Get(Lexer *l, Token *tok)
     }
 
     set(tok, T_EOF, l->pos_);
-}
-
-static bool isfp(int ch)
-{
-    const int c = tolower(ch);
-
-    return c == '.' || c == 'e';
-}
-
-static bool ishex(int ch)
-{
-    const int c = tolower(ch);
-
-    return c == 'x' ||
-        c == 'a' || c == 'b' || c == 'c' ||
-        c == 'd' || c == 'e' || c == 'f';
-}
-
-static bool isnum(int ch)
-{
-    return isdigit(ch) || ishex(ch) || isfp(ch);
-}
-
-void Lexer::scan_number(Token *tok, Pos pos)
-{
-    const char *start = it_;
-    bool fpnum = false;
-    int base = 10;
-    int len = 0;
-
-    for (int ch = get(); isnum(ch); ch = get()) {
-        if (ishex(ch))
-            base = 16;
-
-        if (isfp(ch))
-            fpnum = true;
-
-        if (ch == 'e' || ch == 'E') {
-            if (peek() == '-' || peek() == '+') {
-                continue;
-            }
-            else {
-                // reject 'e'/'E'
-                unget();
-                break;
-            }
-        }
-
-        len++;
-    }
-
-    unget();
-
-    char *end = nullptr;
-
-    if (fpnum) {
-        tok->fval = strtod(&(*start), &end);
-        set(tok, T_FLTLIT, pos);
-    }
-    else {
-        tok->ival = strtol(&(*start), &end, base);
-        set(tok, T_INTLIT, pos);
-    }
-
-    assert(end && (len == (end - &(*start))));
-}
-
-void Lexer::scan_char_literal(Token *tok, Pos pos)
-{
-    int ch = get();
-
-    if (ch == '\\') {
-        const int next = get();
-        const bool found = FindEscapedChar(next, ch);
-        if (!found) {
-            unget();
-            Error("unknown escape sequence", src_, pos_);
-        }
-    }
-
-    tok->ival = ch;
-    set(tok, T_INTLIT, pos);
-
-    ch = get();
-    if (ch != '\'') {
-        unget();
-        Error("unterminated char literal", src_, pos_);
-    }
-}
-
-static bool isword(int ch)
-{
-    return isalnum(ch) || ch == '_';
-}
-
-void Lexer::scan_word(Token *tok, Pos pos)
-{
-    static char buf[128] = {'\0'};
-    char *p = buf;
-    int len = 0;
-
-    const int first = get();
-    if (first == '$' || isword(first)) {
-        *p++ = first;
-        len++;
-    }
-
-    for (int ch = get(); isword(ch); ch = get()) {
-        *p++ = ch;
-        len++;
-        if (len == sizeof(buf)) {
-            // error
-        }
-    }
-    *p = '\0';
-
-    unget();
-
-    const int kind = keyword_or_ident(buf);
-    tok->sval = intern(buf);
-    set(tok, kind, pos);
-}
-
-void Lexer::scan_string(Token *tok, Pos pos)
-{
-    static char buf[4096] = {'\0'};
-    char *p = buf;
-
-    const Pos strpos = pos;
-    auto start = it_;
-    int len = 0;
-    int backslashes = 0;
-
-    for (int ch = get(); ch != '"'; ch = get()) {
-        const int next = peek();
-
-        if (ch == '\\') {
-            backslashes++;
-            if (next == '"' || next == '\\') {
-                *p++ = ch;
-                len++;
-
-                ch = get();
-            }
-        }
-
-        if (ch == EOF || ch == '\0') {
-            unget();
-            Error("unterminated string literal", src_, strpos);
-        }
-
-        *p++ = ch;
-        len++;
-    }
-    *p = '\0';
-
-    const std::string_view str_lit(&(*start), len);
-
-    tok->has_escseq = backslashes > 0;
-    tok->sval = intern(buf);
-    set(tok, T_STRLIT, pos);
-}
-
-int Lexer::count_indent()
-{
-    int indent = 0;
-
-    for (;;) {
-        const int ch = get();
-
-        if (ch == '/') {
-            // indent + line comment => next line
-            if (peek() == '/') {
-                scan_line_comment();
-                continue;
-            }
-            else {
-                unget();
-                break;
-            }
-        }
-        else if (ch == ' ' || ch == '\v' || ch == '\f') {
-            indent++;
-            continue;
-        }
-        else if (ch == '\t') {
-            indent += 4;
-            continue;
-        }
-        else if (ch == '\n') {
-            // blank line => next line
-            indent = 0;
-            continue;
-        }
-        else {
-            unget();
-            break;
-        }
-    }
-
-    return indent;
-}
-
-int Lexer::scan_indent(Token *tok)
-{
-    const int indent = count_indent();
-
-    if (indent > indent_stack_.top()) {
-        // push indent
-        indent_stack_.push(indent);
-        set(tok, T_BLOCKBEGIN, pos_);
-
-        // BlockBegin alwasy starts at beginning of line
-        tok->pos.x = 1;
-
-        return tok->kind;
-    }
-    else if (indent < indent_stack_.top()) {
-        // pop indents until it matches current
-        unread_blockend_ = 0;
-
-        while (indent < indent_stack_.top()) {
-            indent_stack_.pop();
-
-            if (indent == indent_stack_.top()) {
-                set(tok, T_BLOCKEND, pos_);
-                return tok->kind;
-            }
-
-            unread_blockend_++;
-        }
-
-        // no indent matches current
-        Error("mismatch outer indent", src_, pos_);
-        return tok->kind;
-    }
-    else {
-        // no indent change
-        return tok->kind;
-    }
-}
-
-void Lexer::scan_line_comment()
-{
-    for (;;) {
-        const int ch = get();
-
-        if (ch == '\n') {
-            unget();
-            break;
-        }
-    }
-}
-
-void Lexer::scan_block_comment(Pos pos)
-{
-    const Pos commentpos = pos;
-    // already accepted "/*"
-    int depth = 1;
-
-    for (;;) {
-        int ch = get();
-
-        if (ch == '/') {
-            ch = get();
-            if (ch == '*') {
-                depth++;
-                continue;
-            }
-        }
-
-        if (ch == '*') {
-            ch = get();
-            if (ch == '/') {
-                depth--;
-                if (depth == 0)
-                    break;
-                else
-                    continue;
-            }
-        }
-
-        if (ch == EOF || ch == '\0') {
-            unget();
-            Error("unterminated block comment", src_, commentpos);
-        }
-    }
 }
 
 const Token *Tokenize(const char *src)
