@@ -293,7 +293,7 @@ static Expr *primary_expr(Parser *p)
 
             expect(p, T_IDENT);
 
-            Field *fld = expr->type->clss->FindField(tok_str(p));
+            Field *fld = FindField(expr->type->clss, tok_str(p));
 
             expr = NewSelectExpr(expr, NewFieldExpr(fld));
             continue;
@@ -861,7 +861,7 @@ static void field_list(Parser *p, Class *clss)
         expect(p, T_IDENT);
         const char *name = tok_str(p);
 
-        clss->DeclareField(name, type_spec(p));
+        DeclareField(clss, name, type_spec(p));
         expect(p, T_NEWLINE);
     }
     while (consume(p, T_SUB));

@@ -84,7 +84,7 @@ int SizeOf(const Type *t)
         // use one value for length info
         return t->len + 1;
     else if (IsClass(t))
-        return t->clss->Size();
+        return Size(t->clss);
     else
         return 1;
 }

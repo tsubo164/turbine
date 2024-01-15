@@ -2,7 +2,6 @@
 #define SCOPE_H
 
 #include <vector>
-#include <map>
 
 // Scope and objects that are managed by scope.
 // Objects are variables, functions, fields, classes.
@@ -50,23 +49,19 @@ typedef struct Field {
     struct Field *next;
 } Field;
 
-struct Class {
-    Class(const char *Name, int ID, Scope *sc)
-        : name(Name), id(ID), scope(sc) {}
-
+typedef struct Class {
     const char *name;
-    const int id;
+    int id;
     Scope *scope;
+    int nflds_;
 
-    void DeclareField(const char *name, const Type *type);
-    Field *FindField(const char *name) const;
+    struct Class *next;
+} Class;
 
-    int Size() const;
-    int FieldCount() const;
-
-private:
-    int nflds_ = 0;
-};
+void DeclareField(Class *c, const char *name, const Type *type);
+Field *FindField(const Class *c, const char *name);
+int Size(const Class *c);
+int FieldCount(const Class *c);
 
 class Scope {
 public:
@@ -102,6 +97,7 @@ private:
     const int level_;
     int var_offset_ = 0;
     int field_offset_ = 0;
+    int class_offset_ = 0;
 
     const Class *clss_ = nullptr;
 
@@ -110,8 +106,8 @@ private:
     Func *funcs_ = nullptr;
     Field *flds_ = nullptr;
     Field *fld_tail;
-
-    std::map<const char *,Class*> clsses_;
+    Class *clsses_ = nullptr;
+    Class *clsses_tail;
 
     int next_var_id() const;
     int max_var_id() const;

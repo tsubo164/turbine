@@ -66,26 +66,26 @@ bool IsBuiltin(const Func *f)
 }
 
 // Class
-void Class::DeclareField(const char *name, const Type *type)
+void DeclareField(Class *c, const char *name, const Type *type)
 {
-    Field *f = scope->DefineFild(name);
+    Field *f = c->scope->DefineFild(name);
     f->type = type;
-    nflds_++;
+    c->nflds_++;
 }
 
-Field *Class::FindField(const char *name) const
+Field *FindField(const Class *c, const char *name)
 {
-    return scope->FindField(name);
+    return c->scope->FindField(name);
 }
 
-int Class::FieldCount() const
+int FieldCount(const Class *c)
 {
-    return nflds_;
+    return c->nflds_;
 }
 
-int Class::Size() const
+int Size(const Class *c)
 {
-    return scope->FieldSize();
+    return c->scope->FieldSize();
 }
 
 // Scope
@@ -251,27 +251,42 @@ const Var *Scope::FindFunc(const char *name) const
     return NULL;
 }
 
+static Class *new_class(const char *name, int id, Scope *sc)
+{
+    Class *c = CALLOC(Class);
+    c->name = name;
+    c->id = id;
+    c->scope = sc;
+    c->nflds_ = 0;
+    c->next = NULL;
+
+    return c;
+}
+
 Class *Scope::DefineClass(const char *name)
 {
-    const auto it = clsses_.find(name);
-    if (it != clsses_.end())
+    if (FindClass(name))
         return NULL;
 
     Scope *clss_scope = OpenChild();
 
-    const int next_id = clsses_.size();
-    Class *clss = new Class(name, next_id, clss_scope);
-    clsses_.insert({name, clss});
-
+    const int next_id = class_offset_;
+    Class *clss = new_class(name, next_id, clss_scope);
+    if (!clsses_)
+        clsses_tail = clsses_ = clss;
+    else
+        clsses_tail = clsses_tail->next = clss;
     clss_scope->clss_ = clss;
+    class_offset_++;
     return clss;
 }
 
 Class *Scope::FindClass(const char *name) const
 {
-    const auto it = clsses_.find(name);
-    if (it != clsses_.end())
-        return it->second;
+    for (Class *c = clsses_; c; c = c->next) {
+        if (!strcmp(c->name, name))
+            return c;
+    }
 
     if (parent_)
         return parent_->FindClass(name);
@@ -307,16 +322,6 @@ int Scope::max_var_id() const
 int Scope::FieldSize() const
 {
     return field_offset_;
-    /*
-    int size = 0;
-
-    for (auto it: flds_) {
-        const Field *fld = it.second;
-        size += SizeOf(fld->type);
-    }
-
-    return size;
-    */
 }
 
 void Scope::Print(int depth) const
@@ -338,8 +343,6 @@ void Scope::Print(int depth) const
         }
     }
 
-    //for (auto it: flds_) {
-    //    const Field *fld = it.second;
     for (const Field *fld = flds_; fld; fld = fld->next) {
 
         std::cout << header <<
