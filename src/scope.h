@@ -44,12 +44,10 @@ bool IsVariadic(const Func *f);
 bool IsBuiltin(const Func *f);
 
 typedef struct Field {
-    Field(const char *Name, int ID)
-        : name(Name), id(ID) {}
-
     const char *name;
     int id;
-    const Type *type = nullptr;
+    const Type *type;
+    struct Field *next;
 } Field;
 
 struct Class {
@@ -62,9 +60,9 @@ struct Class {
 
     void DeclareField(const char *name, const Type *type);
     Field *FindField(const char *name) const;
-    int FieldCount() const;
 
     int Size() const;
+    int FieldCount() const;
 
 private:
     int nflds_ = 0;
@@ -85,7 +83,6 @@ public:
 
     Field *DefineFild(const char *name);
     Field *FindField(const char *name) const;
-    int FieldCount() const;
 
     Func *DeclareFunc();
     const Var *FindFunc(const char *name) const;
@@ -104,14 +101,16 @@ private:
     std::vector<Scope*> children_;
     const int level_;
     int var_offset_ = 0;
+    int field_offset_ = 0;
 
     const Class *clss_ = nullptr;
 
     Var *vars_ = nullptr;
     Var *vars_tail;
     Func *funcs_ = nullptr;
+    Field *flds_ = nullptr;
+    Field *fld_tail;
 
-    std::map<const char *,Field*> flds_;
     std::map<const char *,Class*> clsses_;
 
     int next_var_id() const;

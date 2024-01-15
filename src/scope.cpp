@@ -170,35 +170,44 @@ Var *Scope::FindVar(const char *name, bool find_in_parents) const
     return NULL;
 }
 
+static Field *new_field(const char *Name, int ID)
+{
+    Field *f = CALLOC(Field);
+    f->name = Name;
+    // TODO add type
+    f->type = NewIntType();
+    f->id = ID;
+    f->next = NULL;
+    return f;
+}
+
 Field *Scope::DefineFild(const char *name)
 {
-    const auto found = flds_.find(name);
-    if (found != flds_.end()) {
+    if (FindField(name))
         return NULL;
-    }
 
-    const int next_id = flds_.size();
-    Field *fld = new Field(name, next_id);
-    flds_.insert({name, fld});
+    const int next_id = field_offset_;
+    Field *fld = new_field(name, next_id);
+    if (!flds_)
+        fld_tail = flds_ = fld;
+    else
+        fld_tail = fld_tail->next = fld;
+    field_offset_ += SizeOf(fld->type);
+
     return fld;
 }
 
 Field *Scope::FindField(const char *name) const
 {
-    const auto it = flds_.find(name);
-    if (it != flds_.end()) {
-        return it->second;
+    for (Field *f = flds_; f; f = f->next) {
+        if (!strcmp(f->name, name))
+            return f;
     }
 
     if (parent_)
         return parent_->FindField(name);
 
     return NULL;
-}
-
-int Scope::FieldCount() const
-{
-    return flds_.size();
 }
 
 Func *new_func(Scope *sc, bool builtin)
@@ -297,6 +306,8 @@ int Scope::max_var_id() const
 
 int Scope::FieldSize() const
 {
+    return field_offset_;
+    /*
     int size = 0;
 
     for (auto it: flds_) {
@@ -305,6 +316,7 @@ int Scope::FieldSize() const
     }
 
     return size;
+    */
 }
 
 void Scope::Print(int depth) const
@@ -326,8 +338,9 @@ void Scope::Print(int depth) const
         }
     }
 
-    for (auto it: flds_) {
-        const Field *fld = it.second;
+    //for (auto it: flds_) {
+    //    const Field *fld = it.second;
+    for (const Field *fld = flds_; fld; fld = fld->next) {
 
         std::cout << header <<
             "[fld] " << fld->name <<
