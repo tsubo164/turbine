@@ -516,8 +516,8 @@ Int Bytecode::RegisterConstString(std::string_view str)
 const std::string &Bytecode::GetConstString(Word str_index) const
 {
     if (str_index < 0 || str_index >= strings_.size()) {
-        InternalError("index out of range: " + std::to_string(str_index),
-                __FILE__, __LINE__);
+        InternalError(__FILE__, __LINE__,
+                "index out of range: %d", str_index);
     }
 
     return strings_[str_index];
@@ -526,8 +526,8 @@ const std::string &Bytecode::GetConstString(Word str_index) const
 Byte Bytecode::Read(Int addr) const
 {
     if (addr < 0 || addr >= Size())
-        InternalError("address out of range: " + std::to_string(Size()),
-                __FILE__, __LINE__);
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", Size());
 
     return bytes_[addr];
 }
@@ -535,8 +535,8 @@ Byte Bytecode::Read(Int addr) const
 Word Bytecode::ReadWord(Int addr) const
 {
     if (addr < 0 || addr >= Size())
-        InternalError("address out of range: " + std::to_string(Size()),
-                __FILE__, __LINE__);
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", Size());
 
     return read<Word>(bytes_, addr);
 }
@@ -544,8 +544,8 @@ Word Bytecode::ReadWord(Int addr) const
 Int Bytecode::ReadInt(Int addr) const
 {
     if (addr < 0 || addr >= Size())
-        InternalError("address out of range: " + std::to_string(Size()),
-                __FILE__, __LINE__);
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", Size());
 
     return read<Int>(bytes_, addr);
 }
@@ -553,8 +553,8 @@ Int Bytecode::ReadInt(Int addr) const
 Float Bytecode::ReadFloat(Int addr) const
 {
     if (addr < 0 || addr >= Size())
-        InternalError("address out of range: " + std::to_string(Size()),
-                __FILE__, __LINE__);
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", Size());
 
     return read<Float>(bytes_, addr);
 }

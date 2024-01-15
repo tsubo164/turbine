@@ -115,7 +115,7 @@ static const char *type_kind_string(TY kind)
     case TY_ANY: return "any";
     }
 
-    ERROR_NO_CASE(kind);
+    UNREACHABLE;
     return nullptr;
 }
 

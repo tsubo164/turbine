@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -158,6 +159,14 @@ typedef struct Lexer {
     bool is_line_begin;
 } Lexer;
 
+static void error(const Lexer *l, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    VError(l->src, "fixme.ro", l->pos, fmt, args);
+    va_end(args);
+}
+
 static void set_input(Lexer *l, const char *src)
 {
     l->src = src;
@@ -245,7 +254,7 @@ static bool isnum(int ch)
 static void push(Lexer *l, int indent)
 {
     if (l->sp == 127)
-        Error("indent stack overflow", l->src, l->pos);
+        error(l, "indent stack overflow");
 
     l->indent_stack[++l->sp] = indent;
 }
@@ -313,7 +322,7 @@ static void scan_char_literal(Lexer *l, Token *tok, Pos pos)
         const bool found = FindEscapedChar(next, &ch);
         if (!found) {
             unget(l);
-            Error("unknown escape sequence", l->src, l->pos);
+            error(l, "unknown escape sequence");
         }
     }
 
@@ -323,7 +332,7 @@ static void scan_char_literal(Lexer *l, Token *tok, Pos pos)
     ch = get(l);
     if (ch != '\'') {
         unget(l);
-        Error("unterminated char literal", l->src, l->pos);
+        error(l, "unterminated char literal");
     }
 }
 
@@ -384,7 +393,8 @@ static void scan_string(Lexer *l, Token *tok, Pos pos)
 
         if (ch == EOF || ch == '\0') {
             unget(l);
-            Error("unterminated string literal", l->src, strpos);
+            l->pos = strpos;
+            error(l, "unterminated string literal");
         }
 
         *p++ = ch;
@@ -439,7 +449,8 @@ static void scan_block_comment(Lexer *l, Pos pos)
 
         if (ch == EOF || ch == '\0') {
             unget(l);
-            Error("unterminated block comment", l->src, commentpos);
+            l->pos = commentpos;
+            error(l, "unterminated block comment");
         }
     }
 }
@@ -514,7 +525,7 @@ static int scan_indent(Lexer *l, Token *tok)
         }
 
         // no indent matches current
-        Error("mismatch outer indent", l->src, l->pos);
+        error(l, "mismatch outer indent");
         return tok->kind;
     }
     else {
@@ -775,9 +786,8 @@ static void get_token(Lexer *l, Token *tok)
             unget(l);
             scan_word(l, tok, pos);
             if (tok->kind == T_IDENT) {
-                static char msg[128] = {'\0'};
-                sprintf(msg, "unknown special variables: '$%s'", tok->sval);
-                Error(msg, l->src, pos);
+                l->pos = pos;
+                error(l, "unknown special variables: '%s'", tok->sval);
             }
             return;
         }
@@ -816,7 +826,7 @@ static void get_token(Lexer *l, Token *tok)
             continue;
         }
 
-        Error("unknown token", l->src, l->pos);
+        error(l, "unknown token");
         return;
     }
 

@@ -7,6 +7,7 @@
 #include "escseq.h"
 #include "error.h"
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -805,7 +806,7 @@ static Expr *default_value(const Type *type)
 
     case TY_NIL:
     case TY_ANY:
-        ERROR_NO_CASE(type->kind);
+        UNREACHABLE;
         return nullptr;
     }
 }

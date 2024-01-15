@@ -1,47 +1,8 @@
 #include "error.h"
-#include <iostream>
 
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-void InternalError(const std::string &msg, const std::string &filename, int line)
-{
-    std::cerr << "internal error: " <<
-        filename << ":" <<
-        line << ": " <<
-        msg << std::endl;
-    exit(EXIT_FAILURE);
-}
-
-void Error(const std::string &msg, const std::string &src, Pos pos)
-{
-    const char *filename = "input.md";
-    std::cerr << filename << ":" << pos.y << ":" << pos.x <<
-        ": error: " << msg << std::endl;
-
-    int x = 0;
-    int y = 1;
-    auto it = src.begin();
-
-    while (y != pos.y) {
-        if (*it++ == '\n') {
-            x = 1;
-            y++;
-        }
-        else {
-            x++;
-        }
-    }
-
-    while (*it != '\n') {
-        std::cout << *it++;
-    }
-    std::cout << std::endl;
-
-    std::cout << std::string(pos.x - 1, ' ') << '^' << std::endl;
-    exit(EXIT_FAILURE);
-}
 
 static void print_detail(const char *src, Pos pos)
 {
@@ -83,6 +44,18 @@ void VError(const char *src, const char *filename, Pos pos, const char *fmt, va_
     vfprintf(stderr, fmt, args);
     fprintf(stderr, "\n");
     print_detail(src, pos);
+
+    exit(EXIT_FAILURE);
+}
+
+void InternalError(const char *filename, int line, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    fprintf(stderr, "%s:%d: internal error: ", filename, line);
+    vfprintf(stderr, fmt, args);
+    fprintf(stderr, "\n");
+    va_end(args);
 
     exit(EXIT_FAILURE);
 }

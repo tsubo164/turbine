@@ -40,5 +40,5 @@
   return z
 
 # main() int
-  - a = 23
+  - a = 19
   return a
