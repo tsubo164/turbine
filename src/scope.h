@@ -13,13 +13,10 @@ struct Type;
 class Scope;
 
 typedef struct Var {
-    Var(const char *Name, const Type *t, int ID, bool global)
-        : name(Name), type(t), id(ID), is_global(global) {}
-
     const char *name;
     const Type *type;
-    const int id;
-    const bool is_global;
+    int id;
+    bool is_global;
 } Var;
 
 struct Func {

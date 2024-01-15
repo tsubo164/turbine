@@ -1,4 +1,5 @@
 #include "scope.h"
+#include "compiler.h"
 #include "type.h"
 #include <algorithm>
 #include <iostream>
@@ -26,7 +27,7 @@ const Var *Func::GetParam(int index) const
         i = index;
 
     if (i < 0 || i >= ParamCount())
-        return nullptr;
+        return NULL;
     return params_[i];
 }
 
@@ -68,7 +69,7 @@ int Class::Size() const
 
 // Scope
 Scope::Scope()
-    : parent_(nullptr), level_(0), var_offset_(0)
+    : parent_(NULL), level_(0), var_offset_(0)
 {
 }
 
@@ -105,15 +106,25 @@ bool Scope::IsGlobal() const
     return level_ == 1;
 }
 
+static Var *new_var(const char *Name, const Type *t, int ID, bool global)
+{
+    Var *v = CALLOC(Var);
+    v->name = Name;
+    v->type = t;
+    v->id = ID;
+    v->is_global = global;
+    return v;
+}
+
 Var *Scope::DefineVar(const char *name, const Type *type)
 {
     const auto found = vars_.find(name);
     if (found != vars_.end()) {
-        return nullptr;
+        return NULL;
     }
 
     const int next_id = next_var_id();
-    Var *var = new Var(name, type, next_id, IsGlobal());
+    Var *var = new_var(name, type, next_id, IsGlobal());
     vars_.insert({name, var});
     var_offset_ += SizeOf(var->type);
 
@@ -128,19 +139,19 @@ Var *Scope::FindVar(const char *name, bool find_in_parents) const
     }
 
     if (!find_in_parents)
-        return nullptr;
+        return NULL;
 
     if (parent_)
         return parent_->FindVar(name);
 
-    return nullptr;
+    return NULL;
 }
 
 Field *Scope::DefineFild(const char *name)
 {
     const auto found = flds_.find(name);
     if (found != flds_.end()) {
-        return nullptr;
+        return NULL;
     }
 
     const int next_id = flds_.size();
@@ -159,7 +170,7 @@ Field *Scope::FindField(const char *name) const
     if (parent_)
         return parent_->FindField(name);
 
-    return nullptr;
+    return NULL;
 }
 
 int Scope::FieldCount() const
@@ -187,14 +198,14 @@ const Var *Scope::FindFunc(const char *name) const
     if (parent_)
         return parent_->FindFunc(name);
 
-    return nullptr;
+    return NULL;
 }
 
 Class *Scope::DefineClass(const char *name)
 {
     const auto it = clsses_.find(name);
     if (it != clsses_.end())
-        return nullptr;
+        return NULL;
 
     Scope *clss_scope = OpenChild();
 
@@ -215,7 +226,7 @@ Class *Scope::FindClass(const char *name) const
     if (parent_)
         return parent_->FindClass(name);
 
-    return nullptr;
+    return NULL;
 }
 
 int Scope::next_var_id() const
@@ -264,7 +275,7 @@ void Scope::Print(int depth) const
     for (auto it: vars_) {
         const Var *var = it.second;
 
-        const char *tag = nullptr;
+        const char *tag = NULL;
         if (IsFunc(var->type))
             tag = "[fnc] ";
         else
