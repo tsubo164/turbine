@@ -1,8 +1,7 @@
 #include "scope.h"
 #include "compiler.h"
 #include "type.h"
-#include <algorithm>
-#include <iostream>
+#include <stdio.h>
 
 // Func
 void DeclareParam(Func *f, const char *name, const Type *type)
@@ -68,14 +67,14 @@ bool IsBuiltin(const Func *f)
 // Class
 void DeclareField(Class *c, const char *name, const Type *type)
 {
-    Field *f = c->scope->DefineFild(name);
+    Field *f = DefineFild(c->scope, name);
     f->type = type;
     c->nflds_++;
 }
 
 Field *FindField(const Class *c, const char *name)
 {
-    return c->scope->FindField(name);
+    return FindField(c->scope, name);
 }
 
 int FieldCount(const Class *c)
@@ -85,7 +84,7 @@ int FieldCount(const Class *c)
 
 int Size(const Class *c)
 {
-    return c->scope->FieldSize();
+    return FieldSize(c->scope);
 }
 
 // Scope
@@ -93,9 +92,12 @@ Scope *new_scope(Scope *parent, int level, int var_offset)
 {
     Scope *sc = CALLOC(Scope);
     sc->parent_ = parent;
+    sc->children_ = NULL;
+    sc->child_tail = NULL;
+    sc->next = nullptr;
+
     sc->level_ = level;
     sc->var_offset_ = var_offset;
-
     sc->field_offset_ = 0;
     sc->class_offset_ = 0;
     sc->clss_ = NULL;
@@ -111,12 +113,17 @@ Scope *new_scope(Scope *parent, int level, int var_offset)
     return sc;
 }
 
+static int next_var_id(const Scope *sc);
+
 Scope *OpenChild(Scope *sc)
 {
-    const int next_id = IsGlobal(sc) ? 0 : sc->next_var_id();
+    const int next_id = IsGlobal(sc) ? 0 : next_var_id(sc);
 
     Scope *child = new_scope(sc, sc->level_ + 1, next_id);
-    sc->children_.push_back(child);
+    if (!sc->children_)
+        sc->child_tail = sc->children_ = child;
+    else
+        sc->child_tail = sc->child_tail->next = child;
 
     return child;
 }
@@ -149,7 +156,7 @@ Var *DefineVar(Scope *sc, const char *name, const Type *type)
     if (FindVar(sc, name, false))
         return NULL;
 
-    const int next_id = sc->next_var_id();
+    const int next_id = next_var_id(sc);
     Var *var = new_var(name, type, next_id, IsGlobal(sc));
     if (!sc->vars_)
         sc->vars_tail = sc->vars_ = var;
@@ -187,31 +194,31 @@ static Field *new_field(const char *Name, int ID)
     return f;
 }
 
-Field *Scope::DefineFild(const char *name)
+Field *DefineFild(Scope *sc, const char *name)
 {
-    if (FindField(name))
+    if (FindField(sc, name))
         return NULL;
 
-    const int next_id = field_offset_;
+    const int next_id = sc->field_offset_;
     Field *fld = new_field(name, next_id);
-    if (!flds_)
-        fld_tail = flds_ = fld;
+    if (!sc->flds_)
+        sc->fld_tail = sc->flds_ = fld;
     else
-        fld_tail = fld_tail->next = fld;
-    field_offset_ += SizeOf(fld->type);
+        sc->fld_tail = sc->fld_tail->next = fld;
+    sc->field_offset_ += SizeOf(fld->type);
 
     return fld;
 }
 
-Field *Scope::FindField(const char *name) const
+Field *FindField(const Scope *sc, const char *name)
 {
-    for (Field *f = flds_; f; f = f->next) {
+    for (Field *f = sc->flds_; f; f = f->next) {
         if (!strcmp(f->name, name))
             return f;
     }
 
-    if (parent_)
-        return parent_->FindField(name);
+    if (sc->parent_)
+        return FindField(sc->parent_, name);
 
     return NULL;
 }
@@ -231,28 +238,28 @@ Func *new_func(Scope *sc, bool builtin)
     return f;
 }
 
-Func *Scope::DeclareFunc()
+Func *DeclareFunc(Scope *sc)
 {
-    Scope *param_scope = OpenChild(this);
+    Scope *param_scope = OpenChild(sc);
 
-    const bool is_builtin = level_ == 0;
+    const bool is_builtin = sc->level_ == 0;
     Func *func = new_func(param_scope, is_builtin);
 
-    func->next = funcs_;
-    funcs_ = func;
+    func->next = sc->funcs_;
+    sc->funcs_ = func;
 
     return func;
 }
 
-const Var *Scope::FindFunc(const char *name) const
+const Var *FindFunc(const Scope *sc, const char *name)
 {
-    const Var *var = FindVar(this, name, true);
+    const Var *var = FindVar(sc, name, true);
     if (var && IsFunc(var->type)) {
         return const_cast<Var *>(var);
     }
 
-    if (parent_)
-        return parent_->FindFunc(name);
+    if (sc->parent_)
+        return FindFunc(sc->parent_, name);
 
     return NULL;
 }
@@ -269,92 +276,98 @@ static Class *new_class(const char *name, int id, Scope *sc)
     return c;
 }
 
-Class *Scope::DefineClass(const char *name)
+Class *DefineClass(Scope *sc, const char *name)
 {
-    if (FindClass(name))
+    if (FindClass(sc, name))
         return NULL;
 
-    Scope *clss_scope = OpenChild(this);
+    Scope *clss_scope = OpenChild(sc);
 
-    const int next_id = class_offset_;
+    const int next_id = sc->class_offset_;
     Class *clss = new_class(name, next_id, clss_scope);
-    if (!clsses_)
-        clsses_tail = clsses_ = clss;
+    if (!sc->clsses_)
+        sc->clsses_tail = sc->clsses_ = clss;
     else
-        clsses_tail = clsses_tail->next = clss;
+        sc->clsses_tail = sc->clsses_tail->next = clss;
     clss_scope->clss_ = clss;
-    class_offset_++;
+    sc->class_offset_++;
     return clss;
 }
 
-Class *Scope::FindClass(const char *name) const
+Class *FindClass(const Scope *sc, const char *name)
 {
-    for (Class *c = clsses_; c; c = c->next) {
+    for (Class *c = sc->clsses_; c; c = c->next) {
         if (!strcmp(c->name, name))
             return c;
     }
 
-    if (parent_)
-        return parent_->FindClass(name);
+    if (sc->parent_)
+        return FindClass(sc->parent_, name);
 
     return NULL;
 }
 
-int Scope::next_var_id() const
+static int next_var_id(const Scope *sc)
 {
-    return var_offset_;
+    return sc->var_offset_;
 }
 
-int Scope::VarSize() const
+static int max_var_id(const Scope *sc)
 {
-    return next_var_id();
-}
+    int max = next_var_id(sc) - 1;
 
-int Scope::TotalVarSize() const
-{
-    return max_var_id() + 1;
-}
-
-int Scope::max_var_id() const
-{
-    int max = next_var_id() - 1;
-
-    for (auto child: children_)
-        max = std::max(max, child->max_var_id());
+    for (Scope *child = sc->children_; child; child = child->next) {
+        int child_max = max_var_id(child);
+        max = max < child_max ? child_max : max;
+    }
 
     return max;
 }
 
-int Scope::FieldSize() const
+int VarSize(const Scope *sc)
 {
-    return field_offset_;
+    return next_var_id(sc);
+}
+
+int TotalVarSize(const Scope *sc)
+{
+    return max_var_id(sc) + 1;
+}
+
+int FieldSize(const Scope *sc)
+{
+    return sc->field_offset_;
+}
+
+static void print_header(int depth)
+{
+    for (int i = 0; i < depth; i++)
+        printf("  ");
+    printf("%d. ", depth);
 }
 
 void PrintScope(const Scope *sc, int depth)
 {
-    const std::string header =
-        std::string(depth * 2, ' ') +
-        std::to_string(depth) + ". ";
-
     for (Var *v = sc->vars_; v; v = v->next) {
 
         if (IsFunc(v->type)) {
-            printf("%s[fnc] %s @%d %s\n",
-                    header.c_str(), v->name, v->id, TypeString(v->type));
+            print_header(depth);
+            printf("[fnc] %s @%d %s\n",
+                    v->name, v->id, TypeString(v->type));
             PrintScope(v->type->func->scope, depth + 1);
         }
         else {
-            printf("%s[var] %s @%d %s\n",
-                    header.c_str(), v->name, v->id, TypeString(v->type));
+            print_header(depth);
+            printf("[var] %s @%d %s\n",
+                    v->name, v->id, TypeString(v->type));
         }
     }
 
     for (const Field *fld = sc->flds_; fld; fld = fld->next) {
 
-        std::cout << header <<
-            "[fld] " << fld->name <<
-            " @" << fld->id <<
-            " " << fld->type << std::endl;
+        print_header(depth);
+        printf("[fld] %s @%d %s\n",
+                fld->name, fld->id, TypeString(fld->type));
     }
 
     // when we're in global scope, no need to print child scopes as
@@ -363,11 +376,12 @@ void PrintScope(const Scope *sc, int depth)
     if (IsGlobal(sc))
         return;
 
-    for (auto scope: sc->children_) {
+    for (Scope *scope = sc->children_; scope; scope = scope->next) {
 
-        if (scope->clss_)
-            std::cout << header <<
-                "[clss] " << scope->clss_->name << std::endl;
+        if (scope->clss_) {
+            print_header(depth);
+            printf("[clss] %s\n", scope->clss_->name);
+        }
 
         PrintScope(scope, depth + 1);
     }

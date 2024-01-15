@@ -647,7 +647,7 @@ static void gen_funcdef(Bytecode *code, const FuncDef *f)
     code->RegisterFunction(f->funclit_id, ParamCount(f->func));
 
     // local vars
-    code->Allocate(f->func->scope->TotalVarSize());
+    code->Allocate(TotalVarSize(f->func->scope));
 
     gen_stmt(code, f->body);
 }
@@ -660,7 +660,7 @@ static void gen_prog(Bytecode *code, const Prog *p)
     }
 
     // global vars
-    code->Allocate(p->scope->VarSize());
+    code->Allocate(VarSize(p->scope));
     for (const Stmt *gvar = p->gvars; gvar; gvar = gvar->next)
         gen_stmt(code, gvar);
 

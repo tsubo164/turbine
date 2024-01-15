@@ -1,15 +1,13 @@
 #ifndef SCOPE_H
 #define SCOPE_H
 
-#include <vector>
-
 // Scope and objects that are managed by scope.
 // Objects are variables, functions, fields, classes.
 // Objects have ownership of their contents like type, children, etc.
 // and they are responsible for memory management.
 
 struct Type;
-struct Scope;
+typedef struct Scope Scope;
 
 typedef struct Var {
     const char *name;
@@ -63,41 +61,25 @@ Field *FindField(const Class *c, const char *name);
 int Size(const Class *c);
 int FieldCount(const Class *c);
 
-typedef struct Scope Scope;
 struct Scope {
+    Scope *parent_;
+    Scope *children_;
+    Scope *child_tail;
+    Scope *next;
 
-    Field *DefineFild(const char *name);
-    Field *FindField(const char *name) const;
-
-    Func *DeclareFunc();
-    const Var *FindFunc(const char *name) const;
-
-    Class *DefineClass(const char *name);
-    Class *FindClass(const char *name) const;
-
-    int VarSize() const;
-    int TotalVarSize() const;
-    int FieldSize() const;
-
-    Scope *parent_ = nullptr;
-    std::vector<Scope*> children_;
     int level_;
     int var_offset_ = 0;
     int field_offset_ = 0;
     int class_offset_ = 0;
 
-    const Class *clss_ = nullptr;
-
-    Var *vars_ = nullptr;
+    const Class *clss_;
+    Var *vars_;
     Var *vars_tail;
-    Func *funcs_ = nullptr;
-    Field *flds_ = nullptr;
+    Func *funcs_;
+    Field *flds_;
     Field *fld_tail;
-    Class *clsses_ = nullptr;
+    Class *clsses_;
     Class *clsses_tail;
-
-    int next_var_id() const;
-    int max_var_id() const;
 };
 
 Scope *OpenChild(Scope *sc);
@@ -107,6 +89,18 @@ bool IsGlobal(const Scope *sc);
 Var *DefineVar(Scope *sc, const char *name, const Type *type);
 Var *FindVar(const Scope *sc, const char *name, bool find_in_parents);
 
+Func *DeclareFunc(Scope *sc);
+const Var *FindFunc(const Scope *sc, const char *name);
+
+Field *DefineFild(Scope *sc, const char *name);
+Field *FindField(const Scope *sc, const char *name);
+
+Class *DefineClass(Scope *sc, const char *name);
+Class *FindClass(const Scope *sc, const char *name);
+
+int VarSize(const Scope *sc);
+int TotalVarSize(const Scope *sc);
+int FieldSize(const Scope *sc);
 void PrintScope(const Scope *sc, int depth);
 
 #endif // _H

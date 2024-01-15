@@ -873,7 +873,7 @@ static Class *class_decl(Parser *p)
     expect(p, T_IDENT);
 
     // class name
-    Class *clss = p->scope_->DefineClass(tok_str(p));
+    Class *clss = DefineClass(p->scope_, tok_str(p));
     if (!clss) {
         fprintf(stderr, "error: re-defined class: '%s'\n", tok_str(p));
         exit(EXIT_FAILURE);
@@ -1016,7 +1016,7 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_HASH)) {
-        Func *func = p->scope_->DeclareFunc();
+        Func *func = DeclareFunc(p->scope_);
         param_list(p, func);
         ret_type(p, func);
         return NewFuncType(func);
@@ -1035,7 +1035,7 @@ static Type *type_spec(Parser *p)
         type = NewStringType();
     }
     else if (consume(p, T_IDENT)) {
-        type = NewClassType(p->scope_->FindClass(tok_str(p)));
+        type = NewClassType(FindClass(p->scope_, tok_str(p)));
     }
     else {
         const Token *tok = gettok(p);
@@ -1055,7 +1055,7 @@ static FuncDef *func_def(Parser *p)
 
     // signature
     const char *name = tok_str(p);
-    Func *func = p->scope_->DeclareFunc();
+    Func *func = DeclareFunc(p->scope_);
 
     // params
     param_list(p, func);

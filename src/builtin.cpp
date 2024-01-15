@@ -7,7 +7,7 @@ void DefineBuiltinFuncs(Scope *builtin)
 {
     {
         const char *name = intern("print");
-        Func *func = builtin->DeclareFunc();
+        Func *func = DeclareFunc(builtin);
 
         DeclareParam(func, "...", NewAnyType());
         func->return_type = NewNilType();
@@ -16,7 +16,7 @@ void DefineBuiltinFuncs(Scope *builtin)
     }
     {
         const char *name = intern("exit");
-        Func *func = builtin->DeclareFunc();
+        Func *func = DeclareFunc(builtin);
 
         DeclareParam(func, "code", NewIntType());
         func->return_type = NewNilType();
