@@ -17,6 +17,7 @@ typedef struct Var {
     const Type *type;
     int id;
     bool is_global;
+    struct Var *next;
 } Var;
 
 struct Func {
@@ -106,7 +107,9 @@ private:
 
     const Class *clss_ = nullptr;
 
-    std::map<const char *,Var*> vars_;
+    Var *vars_ = nullptr;
+    Var *vars_tail;
+
     std::map<const char *,Func*> funcs_;
     std::map<const char *,Field*> flds_;
     std::map<const char *,Class*> clsses_;

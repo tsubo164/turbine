@@ -1,5 +1,5 @@
 //- foo #(n int) int
-//
+
 //# seven() int
 //  return 7
 //
@@ -34,13 +34,11 @@
 //  99 + 11
 //  print(false, 42, 3.14, nil, "Hello")
 //  return 13 + 4
+
 # add(x int, y int) int
-  return x + y
+  - z = x + y
+  return z
 
 # main() int
-  - a [4]int
-  //- a string
-  //a[0] = 23 + a
-  //a = "world"
-  a[0] = foo
-  return add(1, 2)
+  - a = 23
+  return a

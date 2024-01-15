@@ -113,19 +113,21 @@ static Var *new_var(const char *Name, const Type *t, int ID, bool global)
     v->type = t;
     v->id = ID;
     v->is_global = global;
+    v->next = NULL;
     return v;
 }
 
 Var *Scope::DefineVar(const char *name, const Type *type)
 {
-    const auto found = vars_.find(name);
-    if (found != vars_.end()) {
+    if (FindVar(name, false))
         return NULL;
-    }
 
     const int next_id = next_var_id();
     Var *var = new_var(name, type, next_id, IsGlobal());
-    vars_.insert({name, var});
+    if (!vars_)
+        vars_tail = vars_ = var;
+    else
+        vars_tail = vars_tail->next = var;
     var_offset_ += SizeOf(var->type);
 
     return var;
@@ -133,9 +135,9 @@ Var *Scope::DefineVar(const char *name, const Type *type)
 
 Var *Scope::FindVar(const char *name, bool find_in_parents) const
 {
-    const auto it = vars_.find(name);
-    if (it != vars_.end()) {
-        return it->second;
+    for (Var *v = vars_; v; v = v->next) {
+        if (!strcmp(v->name, name))
+            return v;
     }
 
     if (!find_in_parents)
@@ -272,18 +274,17 @@ void Scope::Print(int depth) const
         std::string(depth * 2, ' ') +
         std::to_string(depth) + ". ";
 
-    for (auto it: vars_) {
-        const Var *var = it.second;
+    for (Var *v = vars_; v; v = v->next) {
 
-        const char *tag = NULL;
-        if (IsFunc(var->type))
-            tag = "[fnc] ";
-        else
-            tag = "[var] ";
-        std::cout << header <<
-            tag << var->name <<
-            " @" << var->id <<
-            " " << var->type << std::endl;
+        if (IsFunc(v->type)) {
+            printf("%s[fnc] %s @%d %s\n",
+                    header.c_str(), v->name, v->id, TypeString(v->type));
+            v->type->func->scope->Print(depth + 1);
+        }
+        else {
+            printf("%s[var] %s @%d %s\n",
+                    header.c_str(), v->name, v->id, TypeString(v->type));
+        }
     }
 
     for (auto it: flds_) {
@@ -294,6 +295,12 @@ void Scope::Print(int depth) const
             " @" << fld->id <<
             " " << fld->type << std::endl;
     }
+
+    // when we're in global scope, no need to print child scopes as
+    // they are printed by func vars. Otherwise go ahead and print them.
+    // TODO may be better to detatch func scope from globals
+    if (IsGlobal())
+        return;
 
     for (auto scope: children_) {
 
