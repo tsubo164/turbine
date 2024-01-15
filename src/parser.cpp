@@ -176,9 +176,9 @@ static Expr *conv_expr(Parser *p, int kind)
     expect(p, T_RPAREN);
 
     switch (expr->type->kind) {
-    case TY::BOOL:
-    case TY::INT:
-    case TY::FLOAT:
+    case TY_BOOL:
+    case TY_INT:
+    case TY_FLOAT:
         break;
     default:
         error(p, tokpos,
@@ -271,7 +271,7 @@ static Expr *primary_expr(Parser *p)
             continue;
         }
         else if (tok->kind == T_LPAREN) {
-            if (!expr || !expr->type->IsFunc()) {
+            if (!expr || !IsFunc(expr->type)) {
                 error(p, tok_pos(p),
                         "call operator must be used for function type");
             }
@@ -286,7 +286,7 @@ static Expr *primary_expr(Parser *p)
                 fprintf(stderr, "error: no type\n");
                 exit(EXIT_FAILURE);
             }
-            if (!expr->type->IsClass()) {
+            if (!IsClass(expr->type)) {
                 fprintf(stderr, "error: not a class type\n");
                 exit(EXIT_FAILURE);
             }
@@ -299,12 +299,12 @@ static Expr *primary_expr(Parser *p)
             continue;
         }
         else if (tok->kind == T_LBRACK) {
-            if (!expr->type->IsArray()) {
+            if (!IsArray(expr->type)) {
                 error(p, tok_pos(p),
                         "index operator must be used for array type");
             }
             Expr *idx = expression(p);
-            if (!idx->type->IsInt()) {
+            if (!IsInt(idx->type)) {
                 error(p, tok_pos(p),
                         "index expression must be integer type");
             }
@@ -349,7 +349,7 @@ static Expr *unary_expr(Parser *p)
     }
     if (kind == T_MUL) {
         Expr *expr = unary_expr(p);
-        if (!expr->type->IsPtr()) {
+        if (!IsPtr(expr->type)) {
             error(p, tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
@@ -542,7 +542,7 @@ static Expr *assign_expr(Parser *p)
 
     case T_INC:
     case T_DEC:
-        if (!lval->type->IsInt()) {
+        if (!IsInt(lval->type)) {
             error(p, tok->pos,
                     "type mismatch: ++/-- must be used for int");
         }
@@ -781,30 +781,30 @@ static Stmt *nop_stmt(Parser *p)
 static Expr *default_value(const Type *type)
 {
     switch (type->kind) {
-    case TY::BOOL:
+    case TY_BOOL:
         return NewBoolLitExpr(false);
-    case TY::INT:
+    case TY_INT:
         return NewIntLitExpr(0);
-    case TY::FLOAT:
+    case TY_FLOAT:
         return NewFloatLitExpr(0.0);
-    case TY::STRING:
+    case TY_STRING:
         return NewStringLitExpr("");
 
-    case TY::PTR:
+    case TY_PTR:
         return NewNilLitExpr();
 
-    case TY::ARRAY:
+    case TY_ARRAY:
         // TODO fill with zero values
         // put len at base addr
         return NewIntLitExpr(type->len);
 
-    case TY::CLASS:
-    case TY::FUNC:
+    case TY_CLASS:
+    case TY_FUNC:
         // TODO
         return NewNilLitExpr();
 
-    case TY::NIL:
-    case TY::ANY:
+    case TY_NIL:
+    case TY_ANY:
         ERROR_NO_CASE(type->kind);
         return nullptr;
     }
@@ -965,7 +965,7 @@ static void param_list(Parser *p, Func *func)
 
         if (consume(p, T_CALLER_LINE)) {
             name = tok_str(p);
-            type = new Type(TY::INT);
+            type = NewIntType();
         }
         else {
             expect(p, T_IDENT);
@@ -985,7 +985,7 @@ static void ret_type(Parser *p, Func *func)
     const int next = peek(p);
 
     if (next == T_NEWLINE)
-        func->return_type = new Type(TY::NIL);
+        func->return_type = NewNilType();
     else
         func->return_type = type_spec(p);
 }
@@ -994,7 +994,6 @@ static void ret_type(Parser *p, Func *func)
 // func_type = "#" param_list type_spec?
 static Type *type_spec(Parser *p)
 {
-    Type *parent = NULL;
     Type *type = NULL;
 
     if (consume(p, T_MUL)) {
@@ -1002,9 +1001,8 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_LBRACK)) {
-        parent = new Type(TY::ARRAY);
         Expr *e = expression(p);
-        if (!e->type->IsInt()) {
+        if (!IsInt(e->type)) {
             error(p, tok_pos(p),
                     "array length expression must be integer type");
         }
@@ -1028,17 +1026,16 @@ static Type *type_spec(Parser *p)
         type = NewBoolType();
     }
     else if (consume(p, T_INT)) {
-        type = new Type(TY::INT);
+        type = NewIntType();
     }
     else if (consume(p, T_FLT)) {
-        type = new Type(TY::FLOAT);
+        type = NewFloatType();
     }
     else if (consume(p, T_STR)) {
-        type = new Type(TY::STRING);
+        type = NewStringType();
     }
     else if (consume(p, T_IDENT)) {
-        type = new Type(TY::CLASS);
-        type->clss = p->scope_->FindClass(tok_str(p));
+        type = NewClassType(p->scope_->FindClass(tok_str(p)));
     }
     else {
         const Token *tok = gettok(p);
@@ -1110,7 +1107,6 @@ static Prog *program(Parser *p)
             FuncDef *fdef = func_def(p);
 
             // TODO remove this
-            //if (fdef->var->name == "main")
             if (!strcmp(fdef->var->name, "main"))
                 prog->main_func = fdef->var;
 

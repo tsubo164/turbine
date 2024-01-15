@@ -1,6 +1,7 @@
 #include "compiler.h"
 #include "bytecode.h"
 #include "ast.h"
+#include <iostream>
 
 static bool optimize = false;
 
@@ -11,19 +12,19 @@ void SetOptimize(bool enable)
 
 #define EMIT(code, ty, op) \
     do { \
-    if ((ty)->IsInt() || (ty)->IsBool()) \
+    if (IsInt((ty)) || IsBool((ty))) \
         (code)->op##Int(); \
-    else if ((ty)->IsFloat()) \
+    else if (IsFloat((ty))) \
         (code)->op##Float(); \
     } while (0)
 
 #define EMITS(code, ty, op, ops) \
     do { \
-    if ((ty)->IsInt() || (ty)->IsBool()) \
+    if (IsInt((ty)) || IsBool((ty))) \
         (code)->op##Int(); \
-    else if ((ty)->IsFloat()) \
+    else if (IsFloat((ty))) \
         (code)->op##Float(); \
-    else if ((ty)->IsString()) \
+    else if (IsString((ty))) \
         (code)->ops##String(); \
     } while (0)
 
@@ -33,29 +34,29 @@ static void gen_addr(Bytecode *code, const Expr *e);
 static void gen_convert(Bytecode *code, TY from, TY to)
 {
     switch (from) {
-    case TY::BOOL:
+    case TY_BOOL:
         switch (to) {
-        case TY::BOOL:  break;
-        case TY::INT:   code->BoolToInt(); break;
-        case TY::FLOAT: code->BoolToFloat(); break;
+        case TY_BOOL:  break;
+        case TY_INT:   code->BoolToInt(); break;
+        case TY_FLOAT: code->BoolToFloat(); break;
         default: break;
         }
         break;
 
-    case TY::INT:
+    case TY_INT:
         switch (to) {
-        case TY::BOOL:  code->IntToBool(); break;
-        case TY::INT:   break;
-        case TY::FLOAT: code->IntToFloat(); break;
+        case TY_BOOL:  code->IntToBool(); break;
+        case TY_INT:   break;
+        case TY_FLOAT: code->IntToFloat(); break;
         default: break;
         }
         break;
 
-    case TY::FLOAT:
+    case TY_FLOAT:
         switch (to) {
-        case TY::BOOL:  code->FloatToBool(); break;
-        case TY::INT:   code->FloatToInt(); break;
-        case TY::FLOAT: break;
+        case TY_BOOL:  code->FloatToBool(); break;
+        case TY_INT:   code->FloatToInt(); break;
+        case TY_FLOAT: break;
         default: break;
         }
         break;
@@ -77,26 +78,26 @@ static void gen_call(Bytecode *code, const Expr *e)
             gen_expr(code, arg);
 
             switch (arg->type->kind) {
-            case TY::NIL:
+            case TY_NIL:
                 code->LoadTypeNil();
                 break;
-            case TY::BOOL:
+            case TY_BOOL:
                 code->LoadTypeBool();
                 break;
-            case TY::INT:
+            case TY_INT:
                 code->LoadTypeInt();
                 break;
-            case TY::FLOAT:
+            case TY_FLOAT:
                 code->LoadTypeFloat();
                 break;
-            case TY::STRING:
+            case TY_STRING:
                 code->LoadTypeString();
                 break;
-            case TY::CLASS:
-            case TY::FUNC:
-            case TY::PTR:
-            case TY::ARRAY:
-            case TY::ANY:
+            case TY_CLASS:
+            case TY_FUNC:
+            case TY_PTR:
+            case TY_ARRAY:
+            case TY_ANY:
                 code->LoadTypeNil();
                 break;
             }

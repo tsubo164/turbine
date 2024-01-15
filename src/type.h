@@ -1,63 +1,54 @@
 #ifndef TYPE_H
 #define TYPE_H
 
-#include <iostream>
-#include <string>
-
 struct Class;
 struct Func;
 
-enum class TY {
-    NIL,
-    BOOL,
-    INT,
-    FLOAT,
-    STRING,
-    CLASS,
-    FUNC,
-    PTR,
-    ARRAY,
-    ANY,
+enum TY {
+    TY_NIL,
+    TY_BOOL,
+    TY_INT,
+    TY_FLOAT,
+    TY_STRING,
+    TY_CLASS,
+    TY_FUNC,
+    TY_PTR,
+    TY_ARRAY,
+    TY_ANY,
 };
 
-struct Type {
-    Type(TY k, const Type *under)
-        : kind(k), underlying(under), clss(nullptr) {}
-    Type(TY k)
-        : kind(k), underlying(nullptr), clss(nullptr) {}
-    const TY kind;
+typedef struct Type {
+    TY kind;
     const Type *underlying;
     const Class *clss;
     const Func *func;
     int len = 0;
-
-    int Size() const;
-
-    bool IsNil() const { return kind == TY::NIL; }
-    bool IsBool() const { return kind == TY::BOOL; }
-    bool IsInt() const { return kind == TY::INT; }
-    bool IsFloat() const { return kind == TY::FLOAT; }
-    bool IsString() const { return kind == TY::STRING; }
-    bool IsClass() const { return kind == TY::CLASS; }
-    bool IsFunc() const { return kind == TY::FUNC; }
-    bool IsPtr() const { return kind == TY::PTR; }
-    bool IsArray() const { return kind == TY::ARRAY; }
-    bool IsAny() const { return kind == TY::ANY; }
-};
+} Type;
 
 Type *NewNilType();
 Type *NewBoolType();
 Type *NewIntType();
 Type *NewFloatType();
 Type *NewStringType();
+Type *NewClassType(Class *clss);
 Type *NewFuncType(Func *func);
 Type *NewPtrType(const Type *underlying);
 Type *NewArrayType(int len, Type *underlying);
 
+bool IsNil(const Type *t);
+bool IsBool(const Type *t);
+bool IsInt(const Type *t);
+bool IsFloat(const Type *t);
+bool IsString(const Type *t);
+bool IsClass(const Type *t);
+bool IsFunc(const Type *t);
+bool IsPtr(const Type *t);
+bool IsArray(const Type *t);
+bool IsAny(const Type *t);
+
+int SizeOf(const Type *t);
 bool MatchType(const Type *t1, const Type *t2);
 Type *DuplicateType(const Type *t);
-
 const char *TypeString(const Type *type);
-std::ostream &operator<<(std::ostream &os, const Type *t);
 
 #endif // _H

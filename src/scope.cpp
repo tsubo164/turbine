@@ -115,7 +115,7 @@ Var *Scope::DefineVar(const char *name, const Type *type)
     const int next_id = next_var_id();
     Var *var = new Var(name, type, next_id, IsGlobal());
     vars_.insert({name, var});
-    var_offset_ += var->type->Size();
+    var_offset_ += SizeOf(var->type);
 
     return var;
 }
@@ -180,7 +180,7 @@ Func *Scope::DeclareFunc()
 const Var *Scope::FindFunc(const char *name) const
 {
     const Var *var = FindVar(name);
-    if (var && var->type->IsFunc()) {
+    if (var && IsFunc(var->type)) {
         return const_cast<Var *>(var);
     }
 
@@ -249,7 +249,7 @@ int Scope::FieldSize() const
 
     for (auto it: flds_) {
         const Field *fld = it.second;
-        size += fld->type->Size();
+        size += SizeOf(fld->type);
     }
 
     return size;
@@ -265,7 +265,7 @@ void Scope::Print(int depth) const
         const Var *var = it.second;
 
         const char *tag = nullptr;
-        if (var->type->IsFunc())
+        if (IsFunc(var->type))
             tag = "[fnc] ";
         else
             tag = "[var] ";
