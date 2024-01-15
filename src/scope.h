@@ -17,31 +17,31 @@ typedef struct Var {
     const Type *type;
     int id;
     bool is_global;
+
     struct Var *next;
 } Var;
 
-struct Func {
-    Func(Scope *sc, bool builtin = false)
-        : scope(sc), is_builtin_(builtin) {}
-
+typedef struct Func {
     Scope *scope;
-    const Type *return_type = nullptr;
+    const Type *return_type;
+    Var *params;
+    int param_count;
 
-    void DeclareParam(const char *name, const Type *type);
-    const Var *GetParam(int index) const;
-    int RequiredParamCount() const;
-    int ParamCount() const;
+    bool is_builtin;
+    bool has_special_var;
+    int ellipsis_index;
 
-    bool HasSpecialVar() const { return has_special_var_; }
-    bool IsVariadic() const { return ellipsis_index_ >= 0; }
-    bool IsBuiltin() const { return is_builtin_; }
+    struct Func *next;
+} Func;
 
-private:
-    std::vector<const Var*> params_;
-    bool is_builtin_ = false;
-    bool has_special_var_ = false;
-    int ellipsis_index_ = -1;
-};
+void DeclareParam(Func *f, const char *name, const Type *type);
+const Var *GetParam(const Func *f, int index);
+int RequiredParamCount(const Func *f);
+int ParamCount(const Func *f);
+
+bool HasSpecialVar(const Func *f);
+bool IsVariadic(const Func *f);
+bool IsBuiltin(const Func *f);
 
 typedef struct Field {
     Field(const char *Name, int ID)
@@ -109,8 +109,8 @@ private:
 
     Var *vars_ = nullptr;
     Var *vars_tail;
+    Func *funcs_ = nullptr;
 
-    std::map<const char *,Func*> funcs_;
     std::map<const char *,Field*> flds_;
     std::map<const char *,Class*> clsses_;
 

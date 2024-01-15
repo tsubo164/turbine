@@ -34,6 +34,7 @@ Type *NewClassType(Class *clss);
 Type *NewFuncType(Func *func);
 Type *NewPtrType(const Type *underlying);
 Type *NewArrayType(int len, Type *underlying);
+Type *NewAnyType();
 
 bool IsNil(const Type *t);
 bool IsBool(const Type *t);

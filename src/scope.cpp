@@ -5,43 +5,64 @@
 #include <iostream>
 
 // Func
-void Func::DeclareParam(const char *name, const Type *type)
+void DeclareParam(Func *f, const char *name, const Type *type)
 {
-    const Var *var = scope->DefineVar(name, type);
-    params_.push_back(var);
+    Var *var = f->scope->DefineVar(name, type);
+    if (f->param_count == 0)
+        f->params = var;
+    f->param_count++;
 
     if (!strcmp(name, "..."))
-        ellipsis_index_ = ParamCount() - 1;
+        f->ellipsis_index = ParamCount(f) - 1;
 
     if (name[0] == '$')
-        has_special_var_ = true;
+        f->has_special_var = true;
 }
 
-const Var *Func::GetParam(int index) const
+const Var *GetParam(const Func *f, int index)
 {
-    int i = 0;
+    int idx = 0;
 
-    if (IsVariadic() && index >= ParamCount())
-        i = ParamCount() - 1;
+    if (IsVariadic(f) && index >= ParamCount(f))
+        idx = ParamCount(f) - 1;
     else
-        i = index;
+        idx = index;
 
-    if (i < 0 || i >= ParamCount())
+    if (idx < 0 || idx >= ParamCount(f))
         return NULL;
-    return params_[i];
+
+    Var *param = f->params;
+    for (int i = 0; i < idx; i++)
+        param = param->next;
+    return param;
 }
 
-int Func::RequiredParamCount() const
+int RequiredParamCount(const Func *f)
 {
-    if (IsVariadic())
-        return ParamCount() - 1;
+    if (IsVariadic(f))
+        return ParamCount(f) - 1;
     else
-        return ParamCount();
+        return ParamCount(f);
 }
 
-int Func::ParamCount() const
+int ParamCount(const Func *f)
 {
-    return params_.size();
+    return f->param_count;
+}
+
+bool HasSpecialVar(const Func *f)
+{
+    return f->has_special_var;
+}
+
+bool IsVariadic(const Func *f)
+{
+    return f->ellipsis_index >= 0;
+}
+
+bool IsBuiltin(const Func *f)
+{
+    return f->is_builtin;
 }
 
 // Class
@@ -180,12 +201,30 @@ int Scope::FieldCount() const
     return flds_.size();
 }
 
+Func *new_func(Scope *sc, bool builtin)
+{
+    Func *f = CALLOC(Func);
+    f->scope = sc;
+    f->return_type = NULL;
+    f->params = NULL;
+    f->param_count = 0;
+    f->is_builtin = builtin;
+    f->has_special_var = false;
+    f->ellipsis_index = -1;
+    f->next = NULL;
+
+    return f;
+}
+
 Func *Scope::DeclareFunc()
 {
     Scope *param_scope = OpenChild();
 
     const bool is_builtin = level_ == 0;
-    Func *func = new Func(param_scope, is_builtin);
+    Func *func = new_func(param_scope, is_builtin);
+
+    func->next = funcs_;
+    funcs_ = func;
 
     return func;
 }

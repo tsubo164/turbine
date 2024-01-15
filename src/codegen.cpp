@@ -71,7 +71,7 @@ static void gen_call(Bytecode *code, const Expr *e)
     // TODO need CallExpr::func?
     const Func *func = e->l->type->func;
 
-    if (func->IsVariadic()) {
+    if (IsVariadic(func)) {
         int argc = 0;
         for (const Expr *arg = e->list; arg; arg = arg->next, argc++) {
             // arg value
@@ -113,7 +113,7 @@ static void gen_call(Bytecode *code, const Expr *e)
     // TODO remove this by doing expr->Gen()
     int addr = 0;
     if (EvalAddr(e->l, &addr)) {
-        code->CallFunction(addr, func->IsBuiltin());
+        code->CallFunction(addr, IsBuiltin(func));
     }
 }
 
@@ -644,7 +644,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
 
 static void gen_funcdef(Bytecode *code, const FuncDef *f)
 {
-    code->RegisterFunction(f->funclit_id, f->func->ParamCount());
+    code->RegisterFunction(f->funclit_id, ParamCount(f->func));
 
     // local vars
     code->Allocate(f->func->scope->TotalVarSize());
@@ -665,7 +665,7 @@ static void gen_prog(Bytecode *code, const Prog *p)
         gen_stmt(code, gvar);
 
     // call main
-    code->CallFunction(p->main_func->id, p->main_func->type->func->IsBuiltin());
+    code->CallFunction(p->main_func->id, IsBuiltin(p->main_func->type->func));
     code->Exit();
 
     // global funcs

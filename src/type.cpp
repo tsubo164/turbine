@@ -71,6 +71,13 @@ Type *NewArrayType(int len, Type *underlying)
     return t;
 }
 
+Type *NewAnyType()
+{
+    static Type t;
+    t.kind = TY_ANY;
+    return &t;
+}
+
 int SizeOf(const Type *t)
 {
     if (IsArray(t))

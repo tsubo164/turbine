@@ -133,7 +133,7 @@ static Expr *arg_list(Parser *p, Expr *call)
     }
 
     const Func *func = call->l->type->func;
-    if (func->HasSpecialVar()) {
+    if (HasSpecialVar(func)) {
         tail = tail->next = NewIntLitExpr(call->pos.y);
         count++;
     }
@@ -141,13 +141,13 @@ static Expr *arg_list(Parser *p, Expr *call)
     call->list = head.next;
 
     const int argc = count;
-    const int paramc = func->RequiredParamCount();
+    const int paramc = RequiredParamCount(func);
     if (argc < paramc)
         error(p, tok_pos(p), "too few arguments");
 
     const Expr *arg = call->list;
     for (int i = 0; i < argc; i++, arg = arg->next) {
-        const Var *param = func->GetParam(i);
+        const Var *param = GetParam(func, i);
 
         if (!param)
             error(p, tok_pos(p), "too many arguments");
@@ -973,7 +973,7 @@ static void param_list(Parser *p, Func *func)
             type = type_spec(p);
         }
 
-        func->DeclareParam(name, type);
+        DeclareParam(func, name, type);
     }
     while (consume(p, T_COMMA));
 
