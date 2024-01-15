@@ -3,7 +3,7 @@
 
 struct Token;
 struct Prog;
-class Scope;
+struct Scope;
 
 Prog *Parse(const char *src, const Token *tok, Scope *scope);
 

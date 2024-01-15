@@ -23,8 +23,10 @@ Interpreter::~Interpreter()
 
 Int Interpreter::Run(const std::string &src)
 {
+    Scope scope = {0};
+
     // Builtin functions
-    DefineBuiltinFuncs(&scope_);
+    DefineBuiltinFuncs(&scope);
 
     // Tokenize
     const Token *tok = Tokenize(src.c_str());
@@ -38,7 +40,7 @@ Int Interpreter::Run(const std::string &src)
     }
 
     // Compile source
-    prog_ = Parse(src.c_str(), tok, &scope_);
+    prog_ = Parse(src.c_str(), tok, &scope);
 
     if (print_tree_) {
         print_header("tree");
@@ -48,9 +50,9 @@ Int Interpreter::Run(const std::string &src)
     if (print_symbols_) {
         print_header("symbol");
         if (print_symbols_all_)
-            scope_.Print();
+            PrintScope(&scope, 0);
         else
-            prog_->scope->Print();
+            PrintScope(prog_->scope, 0);
     }
 
     // Generate bytecode

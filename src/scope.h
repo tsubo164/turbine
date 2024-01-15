@@ -9,7 +9,7 @@
 // and they are responsible for memory management.
 
 struct Type;
-class Scope;
+struct Scope;
 
 typedef struct Var {
     const char *name;
@@ -63,18 +63,8 @@ Field *FindField(const Class *c, const char *name);
 int Size(const Class *c);
 int FieldCount(const Class *c);
 
-class Scope {
-public:
-    Scope();
-    Scope(Scope *parent, int level, int var_offset);
-    ~Scope();
-
-    Scope *OpenChild();
-    Scope *Close() const;
-    bool IsGlobal() const;
-
-    Var *DefineVar(const char *name, const Type *type);
-    Var *FindVar(const char *name, bool find_in_parents = true) const;
+typedef struct Scope Scope;
+struct Scope {
 
     Field *DefineFild(const char *name);
     Field *FindField(const char *name) const;
@@ -89,12 +79,9 @@ public:
     int TotalVarSize() const;
     int FieldSize() const;
 
-    void Print(int depth = 0) const;
-
-private:
     Scope *parent_ = nullptr;
     std::vector<Scope*> children_;
-    const int level_;
+    int level_;
     int var_offset_ = 0;
     int field_offset_ = 0;
     int class_offset_ = 0;
@@ -112,5 +99,14 @@ private:
     int next_var_id() const;
     int max_var_id() const;
 };
+
+Scope *OpenChild(Scope *sc);
+Scope *Close(const Scope *sc);
+bool IsGlobal(const Scope *sc);
+
+Var *DefineVar(Scope *sc, const char *name, const Type *type);
+Var *FindVar(const Scope *sc, const char *name, bool find_in_parents);
+
+void PrintScope(const Scope *sc, int depth);
 
 #endif // _H

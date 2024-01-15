@@ -23,8 +23,6 @@ public:
     void EnableOptimize(bool enable);
 
 private:
-    Scope scope_;
-
     Prog *prog_ = nullptr;
     Bytecode code_;
     VM vm_;

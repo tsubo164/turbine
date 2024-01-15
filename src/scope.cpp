@@ -7,7 +7,7 @@
 // Func
 void DeclareParam(Func *f, const char *name, const Type *type)
 {
-    Var *var = f->scope->DefineVar(name, type);
+    Var *var = DefineVar(f->scope, name, type);
     if (f->param_count == 0)
         f->params = var;
     f->param_count++;
@@ -89,42 +89,48 @@ int Size(const Class *c)
 }
 
 // Scope
-Scope::Scope()
-    : parent_(NULL), level_(0), var_offset_(0)
+Scope *new_scope(Scope *parent, int level, int var_offset)
 {
+    Scope *sc = CALLOC(Scope);
+    sc->parent_ = parent;
+    sc->level_ = level;
+    sc->var_offset_ = var_offset;
+
+    sc->field_offset_ = 0;
+    sc->class_offset_ = 0;
+    sc->clss_ = NULL;
+
+    sc->vars_ = NULL;
+    sc->vars_tail = NULL;
+    sc->funcs_ = NULL;
+    sc->flds_ = NULL;
+    sc->fld_tail = NULL;
+    sc->clsses_ = NULL;
+    sc->clsses_tail = NULL;
+
+    return sc;
 }
 
-Scope::Scope(Scope *parent, int level, int var_offset)
-    : parent_(parent), level_(level), var_offset_(var_offset)
+Scope *OpenChild(Scope *sc)
 {
-}
+    const int next_id = IsGlobal(sc) ? 0 : sc->next_var_id();
 
-Scope::~Scope()
-{
-    for (auto child: children_)
-        delete child;
-}
-
-Scope *Scope::OpenChild()
-{
-    const int next_id = IsGlobal() ? 0 : next_var_id();
-
-    Scope *child = new Scope(this, level_ + 1, next_id);
-    children_.push_back(child);
+    Scope *child = new_scope(sc, sc->level_ + 1, next_id);
+    sc->children_.push_back(child);
 
     return child;
 }
 
-Scope *Scope::Close() const
+Scope *Close(const Scope *sc)
 {
-    return parent_;
+    return sc->parent_;
 }
 
-bool Scope::IsGlobal() const
+bool IsGlobal(const Scope *sc)
 {
     // level 0: builtin scope
     // level 1: global (file) scope
-    return level_ == 1;
+    return sc->level_ == 1;
 }
 
 static Var *new_var(const char *Name, const Type *t, int ID, bool global)
@@ -138,25 +144,25 @@ static Var *new_var(const char *Name, const Type *t, int ID, bool global)
     return v;
 }
 
-Var *Scope::DefineVar(const char *name, const Type *type)
+Var *DefineVar(Scope *sc, const char *name, const Type *type)
 {
-    if (FindVar(name, false))
+    if (FindVar(sc, name, false))
         return NULL;
 
-    const int next_id = next_var_id();
-    Var *var = new_var(name, type, next_id, IsGlobal());
-    if (!vars_)
-        vars_tail = vars_ = var;
+    const int next_id = sc->next_var_id();
+    Var *var = new_var(name, type, next_id, IsGlobal(sc));
+    if (!sc->vars_)
+        sc->vars_tail = sc->vars_ = var;
     else
-        vars_tail = vars_tail->next = var;
-    var_offset_ += SizeOf(var->type);
+        sc->vars_tail = sc->vars_tail->next = var;
+    sc->var_offset_ += SizeOf(var->type);
 
     return var;
 }
 
-Var *Scope::FindVar(const char *name, bool find_in_parents) const
+Var *FindVar(const Scope *sc, const char *name, bool find_in_parents)
 {
-    for (Var *v = vars_; v; v = v->next) {
+    for (Var *v = sc->vars_; v; v = v->next) {
         if (!strcmp(v->name, name))
             return v;
     }
@@ -164,8 +170,8 @@ Var *Scope::FindVar(const char *name, bool find_in_parents) const
     if (!find_in_parents)
         return NULL;
 
-    if (parent_)
-        return parent_->FindVar(name);
+    if (sc->parent_)
+        return FindVar(sc->parent_, name, true);
 
     return NULL;
 }
@@ -227,7 +233,7 @@ Func *new_func(Scope *sc, bool builtin)
 
 Func *Scope::DeclareFunc()
 {
-    Scope *param_scope = OpenChild();
+    Scope *param_scope = OpenChild(this);
 
     const bool is_builtin = level_ == 0;
     Func *func = new_func(param_scope, is_builtin);
@@ -240,7 +246,7 @@ Func *Scope::DeclareFunc()
 
 const Var *Scope::FindFunc(const char *name) const
 {
-    const Var *var = FindVar(name);
+    const Var *var = FindVar(this, name, true);
     if (var && IsFunc(var->type)) {
         return const_cast<Var *>(var);
     }
@@ -268,7 +274,7 @@ Class *Scope::DefineClass(const char *name)
     if (FindClass(name))
         return NULL;
 
-    Scope *clss_scope = OpenChild();
+    Scope *clss_scope = OpenChild(this);
 
     const int next_id = class_offset_;
     Class *clss = new_class(name, next_id, clss_scope);
@@ -324,18 +330,18 @@ int Scope::FieldSize() const
     return field_offset_;
 }
 
-void Scope::Print(int depth) const
+void PrintScope(const Scope *sc, int depth)
 {
     const std::string header =
         std::string(depth * 2, ' ') +
         std::to_string(depth) + ". ";
 
-    for (Var *v = vars_; v; v = v->next) {
+    for (Var *v = sc->vars_; v; v = v->next) {
 
         if (IsFunc(v->type)) {
             printf("%s[fnc] %s @%d %s\n",
                     header.c_str(), v->name, v->id, TypeString(v->type));
-            v->type->func->scope->Print(depth + 1);
+            PrintScope(v->type->func->scope, depth + 1);
         }
         else {
             printf("%s[var] %s @%d %s\n",
@@ -343,7 +349,7 @@ void Scope::Print(int depth) const
         }
     }
 
-    for (const Field *fld = flds_; fld; fld = fld->next) {
+    for (const Field *fld = sc->flds_; fld; fld = fld->next) {
 
         std::cout << header <<
             "[fld] " << fld->name <<
@@ -354,15 +360,15 @@ void Scope::Print(int depth) const
     // when we're in global scope, no need to print child scopes as
     // they are printed by func vars. Otherwise go ahead and print them.
     // TODO may be better to detatch func scope from globals
-    if (IsGlobal())
+    if (IsGlobal(sc))
         return;
 
-    for (auto scope: children_) {
+    for (auto scope: sc->children_) {
 
         if (scope->clss_)
             std::cout << header <<
                 "[clss] " << scope->clss_->name << std::endl;
 
-        scope->Print(depth + 1);
+        PrintScope(scope, depth + 1);
     }
 }

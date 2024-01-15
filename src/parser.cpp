@@ -99,7 +99,7 @@ static void enter_scope(Parser *p, Func *func)
         p->scope_ = func->scope;
     }
     else {
-        p->scope_ = p->scope_->OpenChild();
+        p->scope_ = OpenChild(p->scope_);
     }
 }
 
@@ -110,7 +110,7 @@ static void enter_scope(Parser *p, Class *clss)
 
 static void leave_scope(Parser *p)
 {
-    p->scope_ = p->scope_->Close();
+    p->scope_ = Close(p->scope_);
 }
 
 // forward decls
@@ -235,7 +235,7 @@ static Expr *primary_expr(Parser *p)
     }
 
     if (consume(p, T_CALLER_LINE)) {
-        Var *var = p->scope_->FindVar(tok_str(p));
+        Var *var = FindVar(p->scope_, tok_str(p), true);
         if (!var) {
             error(p, tok_pos(p),
                     "special variable '%s' not declared in parameters",
@@ -260,7 +260,7 @@ static Expr *primary_expr(Parser *p)
         const Token *tok = gettok(p);
 
         if (tok->kind == T_IDENT) {
-            Var *var = p->scope_->FindVar(tok->sval);
+            Var *var = FindVar(p->scope_, tok->sval, true);
             if (!var) {
                 error(p, tok_pos(p),
                         "undefined identifier: '%s'",
@@ -817,7 +817,7 @@ static Stmt *var_decl(Parser *p)
     expect(p, T_SUB);
     expect(p, T_IDENT);
 
-    if (p->scope_->FindVar(tok_str(p), false)) {
+    if (FindVar(p->scope_, tok_str(p), false)) {
         error(p, tok_pos(p),
                 "re-defined variable: '%s'", tok_str(p));
     }
@@ -848,7 +848,7 @@ static Stmt *var_decl(Parser *p)
 
     expect(p, T_NEWLINE);
 
-    Var *var = p->scope_->DefineVar(name, type);
+    Var *var = DefineVar(p->scope_, name, type);
     Expr *ident = NewIdentExpr(var);
     return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
@@ -1063,11 +1063,11 @@ static FuncDef *func_def(Parser *p)
     expect(p, T_NEWLINE);
 
     // func var
-    if (p->scope_->FindVar(name)) {
+    if (FindVar(p->scope_, name, true)) {
         // error
         return NULL;
     }
-    Var *var = p->scope_->DefineVar(name, NewFuncType(func));
+    Var *var = DefineVar(p->scope_, name, NewFuncType(func));
 
     // func body
     p->func_ = func;
