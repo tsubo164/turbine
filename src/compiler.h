@@ -13,7 +13,7 @@
 
 
 // codegen
-class Bytecode;
+struct Bytecode;
 struct Prog;
 
 void SetOptimize(bool enable);

@@ -7,10 +7,14 @@
 #include <string>
 #include <stack>
 
-using Byte = uint8_t;
-using Word = uint16_t;
-using Int = int64_t;
-using Float = double;
+//using Byte = uint8_t;
+//using Word = uint16_t;
+//using Int = int64_t;
+//using Float = double;
+typedef uint8_t  Byte;
+typedef uint16_t Word;
+typedef int64_t  Int;
+typedef double   Float;
 
 #define BYTECODE_LIST \
     /* OPCODE        OPERAND_SIZE */\
@@ -106,11 +110,7 @@ enum Opcode {
 
 const char *OpcodeString(Byte op);
 
-class Bytecode {
-public:
-    Bytecode() {}
-    ~Bytecode() {}
-
+typedef struct Bytecode {
     // emit opcode and operand
     void LoadByte(Byte byte);
     void LoadInt(Int integer);
@@ -193,41 +193,7 @@ public:
     //
     void Exit();
     void End();
-    void BackPatch(Int operand_addr);
 
-    // functions
-    Int GetFunctionAddress(Word func_index) const;
-    Int GetFunctionArgCount(Word func_index) const;
-    void RegisterFunction(Word func_index, Byte argc);
-    Int RegisterConstString(std::string_view str);
-
-    const std::string &GetConstString(Word str_index) const;
-
-    // read/write
-    Byte Read(Int addr) const;
-    Word ReadWord(Int addr) const;
-    Int ReadInt(Int addr) const;
-    Float ReadFloat(Int addr) const;
-    Int NextAddr() const;
-    Int Size() const;
-
-    // Backpatches
-    void BeginIf();
-    void BeginFor();
-    void BeginSwitch();
-    void PushOrClose(Int addr);
-    void PushBreak(Int addr);
-    void PushContinue(Int addr);
-    void PushCaseClose(Int addr);
-    void BackPatchOrCloses();
-    void BackPatchBreaks();
-    void BackPatchContinues();
-    void BackPatchCaseCloses();
-
-    // print
-    void Print() const;
-
-private:
     std::vector<Byte> bytes_;
     std::vector<std::string> strings_;
 
@@ -246,7 +212,38 @@ private:
     std::stack<Int> continues_;
     std::stack<Int> casecloses_;
 
-    Int print_op(int op, int operand, Int address) const;
-};
+} Bytecode;
+
+// Backpatches
+void BeginIf(Bytecode *code);
+void BeginFor(Bytecode *code);
+void BeginSwitch(Bytecode *code);
+void PushOrClose(Bytecode *code, Int addr);
+void PushBreak(Bytecode *code, Int addr);
+void PushContinue(Bytecode *code, Int addr);
+void PushCaseClose(Bytecode *code, Int addr);
+void BackPatch(Bytecode *code, Int operand_addr);
+void BackPatchOrCloses(Bytecode *code);
+void BackPatchBreaks(Bytecode *code);
+void BackPatchContinues(Bytecode *code);
+void BackPatchCaseCloses(Bytecode *code);
+
+// functions
+Int GetFunctionAddress(const Bytecode *code, Word func_index);
+Int GetFunctionArgCount(const Bytecode *code, Word func_index);
+void RegisterFunction(Bytecode *code, Word func_index, Byte argc);
+Int RegisterConstString(Bytecode *code, std::string_view str);
+const std::string &GetConstString(const Bytecode *code, Word str_index);
+
+// read/write
+Byte Read(const Bytecode *code, Int addr);
+Word ReadWord(const Bytecode *code, Int addr);
+Int ReadInt(const Bytecode *code, Int addr);
+Float ReadFloat(const Bytecode *code, Int addr);
+Int NextAddr(const Bytecode *code);
+Int Size(const Bytecode *code);
+
+// print
+void PrintBytecode(const Bytecode *code);
 
 #endif // _H

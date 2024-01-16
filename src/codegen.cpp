@@ -131,9 +131,9 @@ static void gen_logor(Bytecode *code, const Expr *e)
     EXIT = code->Jump(-1);
 
     // false
-    code->BackPatch(ELSE);
+    BackPatch(code, ELSE);
     gen_expr(code, e->r);
-    code->BackPatch(EXIT);
+    BackPatch(code, EXIT);
 }
 
 static void gen_logand(Bytecode *code, const Expr *e)
@@ -150,9 +150,9 @@ static void gen_logand(Bytecode *code, const Expr *e)
     EXIT = code->Jump(-1);
 
     // false
-    code->BackPatch(ELSE);
+    BackPatch(code, ELSE);
     code->LoadByte(0);
-    code->BackPatch(EXIT);
+    BackPatch(code, EXIT);
 }
 
 static void gen_assign(Bytecode *code, const Expr *e)
@@ -236,7 +236,7 @@ static void gen_expr(Bytecode *code, const Expr *e)
             else
                 s = std::string_view(e->converted, strlen(e->converted));
 
-            const Word id = code->RegisterConstString(s);
+            const Word id = RegisterConstString(code, s);
             code->LoadString(id);
         }
         return;
@@ -520,35 +520,35 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
             if (!IsNull(s->cond)) {
                 // close
                 const Int addr = code->Jump(-1);
-                code->PushOrClose(addr);
-                code->BackPatch(next);
+                PushOrClose(code, addr);
+                BackPatch(code, next);
             }
         }
         return;
 
     case T_IF:
-        code->BeginIf();
+        BeginIf(code);
 
         for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt(code, stmt);
 
         // exit
-        code->BackPatchOrCloses();
+        BackPatchOrCloses(code);
         return;
 
     case T_FOR:
         {
             // init
-            code->BeginFor();
+            BeginFor(code);
             gen_expr(code, s->expr);
 
             // FIXME cond first??
             // body
-            const Int begin = code->NextAddr();
+            const Int begin = NextAddr(code);
             gen_stmt(code, s->body);
 
             // post
-            code->BackPatchContinues();
+            BackPatchContinues(code);
             gen_expr(code, s->post);
 
             // cond
@@ -557,22 +557,22 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
             code->Jump(begin);
 
             // exit
-            code->BackPatch(exit);
-            code->BackPatchBreaks();
+            BackPatch(code, exit);
+            BackPatchBreaks(code);
         }
         return;
 
     case T_BRK:
         {
             const Int addr = code->Jump(-1);
-            code->PushBreak(addr);
+            PushBreak(code, addr);
         }
         return;
 
     case T_CNT:
         {
             const Int addr = code->Jump(-1);
-            code->PushContinue(addr);
+            PushContinue(code, addr);
         }
         return;
 
@@ -592,22 +592,22 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
                 code->EqualInt();
                 fls = code->JumpIfZero(-1);
                 tru = code->Jump(-1);
-                code->BackPatch(fls);
+                BackPatch(code, fls);
                 trues.push_back(tru);
             }
             // all conds false -> close case
             exit = code->Jump(-1);
             // one of cond true -> go to body
             for (auto t: trues)
-                code->BackPatch(t);
+                BackPatch(code, t);
 
             // body
             gen_stmt(code, s->body);
 
             // close
             const Int addr = code->Jump(-1);
-            code->PushCaseClose(addr);
-            code->BackPatch(exit);
+            PushCaseClose(code, addr);
+            BackPatch(code, exit);
         }
         return;
 
@@ -618,7 +618,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
 
     case T_SWT:
         // init
-        code->BeginSwitch();
+        BeginSwitch(code);
         gen_expr(code, s->cond);
 
         // cases
@@ -626,7 +626,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
             gen_stmt(code, cas);
 
         // quit
-        code->BackPatchCaseCloses();
+        BackPatchCaseCloses(code);
         // remove cond val
         code->Pop();
         return;
@@ -644,7 +644,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
 
 static void gen_funcdef(Bytecode *code, const FuncDef *f)
 {
-    code->RegisterFunction(f->funclit_id, ParamCount(f->func));
+    RegisterFunction(code, f->funclit_id, ParamCount(f->func));
 
     // local vars
     code->Allocate(TotalVarSize(f->func->scope));

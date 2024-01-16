@@ -61,7 +61,7 @@ Int Interpreter::Run(const std::string &src)
 
     if (print_bytecode_) {
         print_header("bytecode");
-        code_.Print();
+        PrintBytecode(&code_);
     }
 
     // Run bytecode

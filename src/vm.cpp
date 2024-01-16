@@ -31,7 +31,7 @@ void VM::set_bp(Int bp)
 
 Int VM::read_byte(Int index) const
 {
-    return code_->Read(index);
+    return Read(code_, index);
 }
 
 Int VM::fetch_byte()
@@ -186,7 +186,7 @@ bool VM::is_eoc() const
 void VM::Run(const Bytecode &code)
 {
     code_ = &code;
-    eoc_ = code.Size();
+    eoc_ = Size(code_);
     run();
 }
 
@@ -232,7 +232,7 @@ void VM::run()
         case OP_LOADS:
             {
                 const Word id = fetch_str();
-                const std::string &s = code_->GetConstString(id);
+                const std::string &s = GetConstString(code_, id);
                 Value val;
                 val.str = gc_.NewString(s);
                 push(val);
@@ -388,10 +388,10 @@ void VM::run()
                 const int var_id = fetch_word();
                 const Value func_var = get_global(var_id);
                 const Word func_index = func_var.inum;
-                const Int func_addr = code_->GetFunctionAddress(func_index);
+                const Int func_addr = GetFunctionAddress(code_, func_index);
 
                 Call call;
-                call.argc = code_->GetFunctionArgCount(func_index);
+                call.argc = GetFunctionArgCount(code_, func_index);
                 call.return_ip = ip_;
                 call.return_bp = bp_;
                 push_call(call);

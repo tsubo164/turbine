@@ -215,7 +215,7 @@ void Bytecode::CallFunction(Word func_index, bool builtin)
 Int Bytecode::JumpIfZero(Int addr)
 {
     bytes_.push_back(OP_JEQ);
-    const Int operand_addr = NextAddr();
+    const Int operand_addr = NextAddr(this);
     push_back<Word>(bytes_, addr);
 
     return operand_addr;
@@ -224,7 +224,7 @@ Int Bytecode::JumpIfZero(Int addr)
 Int Bytecode::Jump(Int addr)
 {
     bytes_.push_back(OP_JMP);
-    const Int operand_addr = NextAddr();
+    const Int operand_addr = NextAddr(this);
     push_back<Word>(bytes_, addr);
 
     return operand_addr;
@@ -460,37 +460,31 @@ void Bytecode::End()
     bytes_.push_back(OP_EOC);
 }
 
-void Bytecode::BackPatch(Int operand_addr)
+Int GetFunctionAddress(const Bytecode *code, Word func_index)
 {
-    const Int next_addr = NextAddr();
-    write<Word>(bytes_, operand_addr, next_addr);
-}
-
-Int Bytecode::GetFunctionAddress(Word func_index) const
-{
-    if (func_index >= funcs_.size()) {
+    if (func_index >= code->funcs_.size()) {
         std::cerr << "internal error: function index out of range: "
-            << func_index << ", function count: " << funcs_.size() << std::endl;
+            << func_index << ", function count: " << code->funcs_.size() << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
-    return funcs_[func_index].addr;
+    return code->funcs_[func_index].addr;
 }
 
-Int Bytecode::GetFunctionArgCount(Word func_index) const
+Int GetFunctionArgCount(const Bytecode *code, Word func_index)
 {
-    if (func_index >= funcs_.size()) {
+    if (func_index >= code->funcs_.size()) {
         std::cerr << "internal error: function index out of range: "
-            << func_index << ", function count: " << funcs_.size() << std::endl;
+            << func_index << ", function count: " << code->funcs_.size() << std::endl;
         std::exit(EXIT_FAILURE);
     }
 
-    return funcs_[func_index].argc;
+    return code->funcs_[func_index].argc;
 }
 
-void Bytecode::RegisterFunction(Word func_index, Byte argc)
+void RegisterFunction(Bytecode *code, Word func_index, Byte argc)
 {
-    const Word next_index = funcs_.size();
+    const Word next_index = code->funcs_.size();
 
     if (func_index != next_index) {
         std::cerr << "error: "
@@ -500,152 +494,158 @@ void Bytecode::RegisterFunction(Word func_index, Byte argc)
         std::exit(EXIT_FAILURE);
     }
 
-    const Int next_addr = NextAddr();
-    funcs_.emplace_back(func_index, argc, next_addr);
+    const Int next_addr = NextAddr(code);
+    code->funcs_.emplace_back(func_index, argc, next_addr);
 }
 
-Int Bytecode::RegisterConstString(std::string_view str)
+Int RegisterConstString(Bytecode *code, std::string_view str)
 {
-    const Word next_index = strings_.size();
+    const Word next_index = code->strings_.size();
 
-    strings_.emplace_back(str.data(), str.length());
+    code->strings_.emplace_back(str.data(), str.length());
 
     return next_index;
 }
 
-const std::string &Bytecode::GetConstString(Word str_index) const
+const std::string &GetConstString(const Bytecode *code, Word str_index)
 {
-    if (str_index < 0 || str_index >= strings_.size()) {
+    if (str_index < 0 || str_index >= code->strings_.size()) {
         InternalError(__FILE__, __LINE__,
                 "index out of range: %d", str_index);
     }
 
-    return strings_[str_index];
+    return code->strings_[str_index];
 }
 
-Byte Bytecode::Read(Int addr) const
+Byte Read(const Bytecode *code, Int addr)
 {
-    if (addr < 0 || addr >= Size())
+    if (addr < 0 || addr >= Size(code))
         InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size());
+                "address out of range: %d", Size(code));
 
-    return bytes_[addr];
+    return code->bytes_[addr];
 }
 
-Word Bytecode::ReadWord(Int addr) const
+Word ReadWord(const Bytecode *code, Int addr)
 {
-    if (addr < 0 || addr >= Size())
+    if (addr < 0 || addr >= Size(code))
         InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size());
+                "address out of range: %d", Size(code));
 
-    return read<Word>(bytes_, addr);
+    return read<Word>(code->bytes_, addr);
 }
 
-Int Bytecode::ReadInt(Int addr) const
+Int ReadInt(const Bytecode *code, Int addr)
 {
-    if (addr < 0 || addr >= Size())
+    if (addr < 0 || addr >= Size(code))
         InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size());
+                "address out of range: %d", Size(code));
 
-    return read<Int>(bytes_, addr);
+    return read<Int>(code->bytes_, addr);
 }
 
-Float Bytecode::ReadFloat(Int addr) const
+Float ReadFloat(const Bytecode *code, Int addr)
 {
-    if (addr < 0 || addr >= Size())
+    if (addr < 0 || addr >= Size(code))
         InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size());
+                "address out of range: %d", Size(code));
 
-    return read<Float>(bytes_, addr);
+    return read<Float>(code->bytes_, addr);
 }
 
-Int Bytecode::NextAddr() const
+Int NextAddr(const Bytecode *code)
 {
-    return Size();
+    return Size(code);
 }
 
-Int Bytecode::Size() const
+Int Size(const Bytecode *code)
 {
-    return bytes_.size();
+    return code->bytes_.size();
 }
 
-void Bytecode::BeginIf()
+void BeginIf(Bytecode *code)
 {
-    ors_.push(-1);
+    code->ors_.push(-1);
 }
 
-void Bytecode::BeginFor()
+void BeginFor(Bytecode *code)
 {
-    breaks_.push(-1);
-    continues_.push(-1);
+    code->breaks_.push(-1);
+    code->continues_.push(-1);
 }
 
-void Bytecode::BeginSwitch()
+void BeginSwitch(Bytecode *code)
 {
-    casecloses_.push(-1);
+    code->casecloses_.push(-1);
 }
 
-void Bytecode::PushOrClose(Int addr)
+void PushOrClose(Bytecode *code, Int addr)
 {
-    ors_.push(addr);
+    code->ors_.push(addr);
 }
 
-void Bytecode::PushBreak(Int addr)
+void PushBreak(Bytecode *code, Int addr)
 {
-    breaks_.push(addr);
+    code->breaks_.push(addr);
 }
 
-void Bytecode::PushContinue(Int addr)
+void PushContinue(Bytecode *code, Int addr)
 {
-    continues_.push(addr);
+    code->continues_.push(addr);
 }
 
-void Bytecode::PushCaseClose(Int addr)
+void PushCaseClose(Bytecode *code, Int addr)
 {
-    casecloses_.push(addr);
+    code->casecloses_.push(addr);
 }
 
-void Bytecode::BackPatchOrCloses()
+void BackPatch(Bytecode *code, Int operand_addr)
 {
-    while (!ors_.empty()) {
-        const Int addr = ors_.top();
-        ors_.pop();
+    const Int next_addr = NextAddr(code);
+    write<Word>(code->bytes_, operand_addr, next_addr);
+}
+
+void BackPatchOrCloses(Bytecode *code)
+{
+    while (!code->ors_.empty()) {
+        const Int addr = code->ors_.top();
+        code->ors_.pop();
         if (addr == -1)
             break;
-        BackPatch(addr);
+        BackPatch(code, addr);
     }
 }
 
-void Bytecode::BackPatchBreaks()
+void BackPatchBreaks(Bytecode *code)
 {
-    while (!breaks_.empty()) {
-        const Int addr = breaks_.top();
-        breaks_.pop();
+    while (!code->breaks_.empty()) {
+        const Int addr = code->breaks_.top();
+        code->breaks_.pop();
         if (addr == -1)
             break;
-        BackPatch(addr);
+        BackPatch(code, addr);
     }
 }
 
-void Bytecode::BackPatchContinues()
+void BackPatchContinues(Bytecode *code)
 {
-    while (!continues_.empty()) {
-        const Int addr = continues_.top();
-        continues_.pop();
+    while (!code->continues_.empty()) {
+        const Int addr = code->continues_.top();
+        code->continues_.pop();
         if (addr == -1)
             break;
-        BackPatch(addr);
+        BackPatch(code, addr);
     }
 }
 
-void Bytecode::BackPatchCaseCloses()
+void BackPatchCaseCloses(Bytecode *code)
 {
-    while (!casecloses_.empty()) {
-        const Int addr = casecloses_.top();
-        casecloses_.pop();
+    while (!code->casecloses_.empty()) {
+        const Int addr = code->casecloses_.top();
+        code->casecloses_.pop();
         if (addr == -1)
             break;
-        BackPatch(addr);
+        BackPatch(code, addr);
     }
 }
 
@@ -656,7 +656,7 @@ enum OperandSize {
     OPERAND_QUAD,
 };
 
-Int Bytecode::print_op(int op, int operand, Int address) const
+static Int print_op(const Bytecode *code, int op, int operand, Int address)
 {
     const Int addr = address;
     Int inc = 0;
@@ -673,17 +673,17 @@ Int Bytecode::print_op(int op, int operand, Int address) const
     switch (operand) {
 
     case OPERAND_BYTE:
-        text += " $" + std::to_string(static_cast<int>(Read(addr)));
+        text += " $" + std::to_string(static_cast<int>(Read(code, addr)));
         inc = 1;
         break;
 
     case OPERAND_WORD:
-        text += " $" + std::to_string(ReadWord(addr));
+        text += " $" + std::to_string(ReadWord(code, addr));
         inc = sizeof(Word);
         break;
 
     case OPERAND_QUAD:
-        text += " $" + std::to_string(ReadInt(addr));
+        text += " $" + std::to_string(ReadInt(code, addr));
         inc = sizeof(Int);
         break;
     }
@@ -691,11 +691,11 @@ Int Bytecode::print_op(int op, int operand, Int address) const
     // add extra info
     switch (op) {
     case OP_LOADF:
-        text += " = " + std::to_string(ReadFloat(addr));
+        text += " = " + std::to_string(ReadFloat(code, addr));
         break;
 
     case OP_LOADS:
-        text += " = \"" + GetConstString(ReadWord(addr)) + "\"";
+        text += " = \"" + GetConstString(code, ReadWord(code, addr)) + "\"";
         break;
 
     case OP_CALL:
@@ -718,23 +718,23 @@ Int Bytecode::print_op(int op, int operand, Int address) const
     return addr + inc;
 }
 
-void Bytecode::Print() const
+void PrintBytecode(const Bytecode *code)
 {
     // function info
-    for (const auto &func: funcs_)
+    for (const auto &func: code->funcs_)
         std::cout << "* function id: " << func.id << " @" << func.addr << std::endl;
 
     Int addr = 0;
 
-    while (addr < Size()) {
+    while (addr < Size(code)) {
         std::cout << "[" << std::setw(6) << addr << "] ";
 
-        const int op = Read(addr++);
+        const int op = Read(code, addr++);
 
         switch (op) {
 
 #define OP(opcode, operand_size) \
-            case opcode: addr = print_op(op, operand_size, addr); break;
+            case opcode: addr = print_op(code, op, operand_size, addr); break;
         BYTECODE_LIST
 #undef OP
 
