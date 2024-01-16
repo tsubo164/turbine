@@ -111,56 +111,6 @@ enum Opcode {
 const char *OpcodeString(Byte op);
 
 typedef struct Bytecode {
-    // arithmetic
-    void AddInt();
-    void AddFloat();
-    void ConcatString();
-    void SubInt();
-    void SubFloat();
-    void MulInt();
-    void MulFloat();
-    void DivInt();
-    void DivFloat();
-    void RemInt();
-    void RemFloat();
-    void EqualInt();
-    void EqualFloat();
-    void EqualString();
-    void NotEqualInt();
-    void NotEqualFloat();
-    void NotEqualString();
-    void LessInt();
-    void LessFloat();
-    void LessEqualInt();
-    void LessEqualFloat();
-    void GreaterInt();
-    void GreaterFloat();
-    void GreaterEqualInt();
-    void GreaterEqualFloat();
-    void And();
-    void Or();
-    void Xor();
-    void Not();
-    void ShiftLeft();
-    void ShiftRight();
-    void NegateInt();
-    void NegateFloat();
-    void SetIfZero();
-    void SetIfNotZero();
-    // stack
-    void Pop();
-    void DuplicateTop();
-    // conversion
-    void BoolToInt();
-    void BoolToFloat();
-    void IntToBool();
-    void IntToFloat();
-    void FloatToBool();
-    void FloatToInt();
-    //
-    void Exit();
-    void End();
-
     std::vector<Byte> bytes_;
     std::vector<std::string> strings_;
 
@@ -178,7 +128,6 @@ typedef struct Bytecode {
     std::stack<Int> breaks_;
     std::stack<Int> continues_;
     std::stack<Int> casecloses_;
-
 } Bytecode;
 
 // emit opcode and operand
@@ -215,6 +164,57 @@ void CallFunction(Bytecode *code, Word func_index, bool builtin);
 Int Jump(Bytecode *code, Int addr);
 Int JumpIfZero(Bytecode *code, Int addr);
 void Return(Bytecode *code);
+
+// arithmetic
+void AddInt(Bytecode *code);
+void AddFloat(Bytecode *code);
+void ConcatString(Bytecode *code);
+void SubInt(Bytecode *code);
+void SubFloat(Bytecode *code);
+void MulInt(Bytecode *code);
+void MulFloat(Bytecode *code);
+void DivInt(Bytecode *code);
+void DivFloat(Bytecode *code);
+void RemInt(Bytecode *code);
+void RemFloat(Bytecode *code);
+void EqualInt(Bytecode *code);
+void EqualFloat(Bytecode *code);
+void EqualString(Bytecode *code);
+void NotEqualInt(Bytecode *code);
+void NotEqualFloat(Bytecode *code);
+void NotEqualString(Bytecode *code);
+void LessInt(Bytecode *code);
+void LessFloat(Bytecode *code);
+void LessEqualInt(Bytecode *code);
+void LessEqualFloat(Bytecode *code);
+void GreaterInt(Bytecode *code);
+void GreaterFloat(Bytecode *code);
+void GreaterEqualInt(Bytecode *code);
+void GreaterEqualFloat(Bytecode *code);
+void And(Bytecode *code);
+void Or(Bytecode *code);
+void Xor(Bytecode *code);
+void Not(Bytecode *code);
+void ShiftLeft(Bytecode *code);
+void ShiftRight(Bytecode *code);
+void NegateInt(Bytecode *code);
+void NegateFloat(Bytecode *code);
+void SetIfZero(Bytecode *code);
+void SetIfNotZero(Bytecode *code);
+
+// stack
+void Pop(Bytecode *code);
+void DuplicateTop(Bytecode *code);
+// conversion
+void BoolToInt(Bytecode *code);
+void BoolToFloat(Bytecode *code);
+void IntToBool(Bytecode *code);
+void IntToFloat(Bytecode *code);
+void FloatToBool(Bytecode *code);
+void FloatToInt(Bytecode *code);
+//
+void Exit(Bytecode *code);
+void End(Bytecode *code);
 
 // Backpatches
 void BeginIf(Bytecode *code);

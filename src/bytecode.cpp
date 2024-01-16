@@ -235,229 +235,229 @@ void Return(Bytecode *code)
     code->bytes_.push_back(OP_RET);
 }
 
-void Bytecode::AddInt()
+void AddInt(Bytecode *code)
 {
-    bytes_.push_back(OP_ADD);
+    code->bytes_.push_back(OP_ADD);
 }
 
-void Bytecode::AddFloat()
+void AddFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_ADDF);
+    code->bytes_.push_back(OP_ADDF);
 }
 
-void Bytecode::ConcatString()
+void ConcatString(Bytecode *code)
 {
-    bytes_.push_back(OP_CATS);
+    code->bytes_.push_back(OP_CATS);
 }
 
-void Bytecode::SubInt()
+void SubInt(Bytecode *code)
 {
-    bytes_.push_back(OP_SUB);
+    code->bytes_.push_back(OP_SUB);
 }
 
-void Bytecode::SubFloat()
+void SubFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_SUBF);
+    code->bytes_.push_back(OP_SUBF);
 }
 
-void Bytecode::MulInt()
+void MulInt(Bytecode *code)
 {
-    bytes_.push_back(OP_MUL);
+    code->bytes_.push_back(OP_MUL);
 }
 
-void Bytecode::MulFloat()
+void MulFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_MULF);
+    code->bytes_.push_back(OP_MULF);
 }
 
-void Bytecode::DivInt()
+void DivInt(Bytecode *code)
 {
-    bytes_.push_back(OP_DIV);
+    code->bytes_.push_back(OP_DIV);
 }
 
-void Bytecode::DivFloat()
+void DivFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_DIVF);
+    code->bytes_.push_back(OP_DIVF);
 }
 
-void Bytecode::RemInt()
+void RemInt(Bytecode *code)
 {
-    bytes_.push_back(OP_REM);
+    code->bytes_.push_back(OP_REM);
 }
 
-void Bytecode::RemFloat()
+void RemFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_REMF);
+    code->bytes_.push_back(OP_REMF);
 }
 
-void Bytecode::EqualInt()
+void EqualInt(Bytecode *code)
 {
-    bytes_.push_back(OP_EQ);
+    code->bytes_.push_back(OP_EQ);
 }
 
-void Bytecode::EqualFloat()
+void EqualFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_EQF);
+    code->bytes_.push_back(OP_EQF);
 }
 
-void Bytecode::EqualString()
+void EqualString(Bytecode *code)
 {
-    bytes_.push_back(OP_EQS);
+    code->bytes_.push_back(OP_EQS);
 }
 
-void Bytecode::NotEqualInt()
+void NotEqualInt(Bytecode *code)
 {
-    bytes_.push_back(OP_NEQ);
+    code->bytes_.push_back(OP_NEQ);
 }
 
-void Bytecode::NotEqualFloat()
+void NotEqualFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_NEQF);
+    code->bytes_.push_back(OP_NEQF);
 }
 
-void Bytecode::NotEqualString()
+void NotEqualString(Bytecode *code)
 {
-    bytes_.push_back(OP_NEQS);
+    code->bytes_.push_back(OP_NEQS);
 }
 
-void Bytecode::LessInt()
+void LessInt(Bytecode *code)
 {
-    bytes_.push_back(OP_LT);
+    code->bytes_.push_back(OP_LT);
 }
 
-void Bytecode::LessFloat()
+void LessFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_LTF);
+    code->bytes_.push_back(OP_LTF);
 }
 
-void Bytecode::LessEqualInt()
+void LessEqualInt(Bytecode *code)
 {
-    bytes_.push_back(OP_LTE);
+    code->bytes_.push_back(OP_LTE);
 }
 
-void Bytecode::LessEqualFloat()
+void LessEqualFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_LTEF);
+    code->bytes_.push_back(OP_LTEF);
 }
 
-void Bytecode::GreaterInt()
+void GreaterInt(Bytecode *code)
 {
-    bytes_.push_back(OP_GT);
+    code->bytes_.push_back(OP_GT);
 }
 
-void Bytecode::GreaterFloat()
+void GreaterFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_GTF);
+    code->bytes_.push_back(OP_GTF);
 }
 
-void Bytecode::GreaterEqualInt()
+void GreaterEqualInt(Bytecode *code)
 {
-    bytes_.push_back(OP_GTE);
+    code->bytes_.push_back(OP_GTE);
 }
 
-void Bytecode::GreaterEqualFloat()
+void GreaterEqualFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_GTEF);
+    code->bytes_.push_back(OP_GTEF);
 }
 
-void Bytecode::And()
+void And(Bytecode *code)
 {
-    bytes_.push_back(OP_AND);
+    code->bytes_.push_back(OP_AND);
 }
 
-void Bytecode::Or()
+void Or(Bytecode *code)
 {
-    bytes_.push_back(OP_OR);
+    code->bytes_.push_back(OP_OR);
 }
 
-void Bytecode::Xor()
+void Xor(Bytecode *code)
 {
-    bytes_.push_back(OP_XOR);
+    code->bytes_.push_back(OP_XOR);
 }
 
-void Bytecode::Not()
+void Not(Bytecode *code)
 {
-    bytes_.push_back(OP_NOT);
+    code->bytes_.push_back(OP_NOT);
 }
 
-void Bytecode::ShiftLeft()
+void ShiftLeft(Bytecode *code)
 {
-    bytes_.push_back(OP_SHL);
+    code->bytes_.push_back(OP_SHL);
 }
 
-void Bytecode::ShiftRight()
+void ShiftRight(Bytecode *code)
 {
-    bytes_.push_back(OP_SHR);
+    code->bytes_.push_back(OP_SHR);
 }
 
-void Bytecode::NegateInt()
+void NegateInt(Bytecode *code)
 {
-    bytes_.push_back(OP_NEG);
+    code->bytes_.push_back(OP_NEG);
 }
 
-void Bytecode::NegateFloat()
+void NegateFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_NEGF);
+    code->bytes_.push_back(OP_NEGF);
 }
 
-void Bytecode::SetIfZero()
+void SetIfZero(Bytecode *code)
 {
-    bytes_.push_back(OP_SETZ);
+    code->bytes_.push_back(OP_SETZ);
 }
 
-void Bytecode::SetIfNotZero()
+void SetIfNotZero(Bytecode *code)
 {
-    bytes_.push_back(OP_SETNZ);
+    code->bytes_.push_back(OP_SETNZ);
 }
 
-void Bytecode::Pop()
+void Pop(Bytecode *code)
 {
-    bytes_.push_back(OP_POP);
+    code->bytes_.push_back(OP_POP);
 }
 
-void Bytecode::DuplicateTop()
+void DuplicateTop(Bytecode *code)
 {
-    bytes_.push_back(OP_DUP);
+    code->bytes_.push_back(OP_DUP);
 }
 
-void Bytecode::BoolToInt()
+void BoolToInt(Bytecode *code)
 {
-    bytes_.push_back(OP_BTOI);
+    code->bytes_.push_back(OP_BTOI);
 }
 
-void Bytecode::BoolToFloat()
+void BoolToFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_BTOF);
+    code->bytes_.push_back(OP_BTOF);
 }
 
-void Bytecode::IntToBool()
+void IntToBool(Bytecode *code)
 {
-    bytes_.push_back(OP_ITOB);
+    code->bytes_.push_back(OP_ITOB);
 }
 
-void Bytecode::IntToFloat()
+void IntToFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_ITOF);
+    code->bytes_.push_back(OP_ITOF);
 }
 
-void Bytecode::FloatToBool()
+void FloatToBool(Bytecode *code)
 {
-    bytes_.push_back(OP_FTOB);
+    code->bytes_.push_back(OP_FTOB);
 }
 
-void Bytecode::FloatToInt()
+void FloatToInt(Bytecode *code)
 {
-    bytes_.push_back(OP_FTOI);
+    code->bytes_.push_back(OP_FTOI);
 }
 
-void Bytecode::Exit()
+void Exit(Bytecode *code)
 {
-    bytes_.push_back(OP_EXIT);
+    code->bytes_.push_back(OP_EXIT);
 }
 
-void Bytecode::End()
+void End(Bytecode *code)
 {
-    bytes_.push_back(OP_EOC);
+    code->bytes_.push_back(OP_EOC);
 }
 
 Int GetFunctionAddress(const Bytecode *code, Word func_index)

@@ -13,19 +13,19 @@ void SetOptimize(bool enable)
 #define EMIT(code, ty, op) \
     do { \
     if (IsInt((ty)) || IsBool((ty))) \
-        (code)->op##Int(); \
+        op##Int((code)); \
     else if (IsFloat((ty))) \
-        (code)->op##Float(); \
+        op##Float((code)); \
     } while (0)
 
 #define EMITS(code, ty, op, ops) \
     do { \
     if (IsInt((ty)) || IsBool((ty))) \
-        (code)->op##Int(); \
+        op##Int((code)); \
     else if (IsFloat((ty))) \
-        (code)->op##Float(); \
+        op##Float((code)); \
     else if (IsString((ty))) \
-        (code)->ops##String(); \
+        ops##String((code)); \
     } while (0)
 
 static void gen_expr(Bytecode *code, const Expr *e);
@@ -37,25 +37,25 @@ static void gen_convert(Bytecode *code, TY from, TY to)
     case TY_BOOL:
         switch (to) {
         case TY_BOOL:  break;
-        case TY_INT:   code->BoolToInt(); break;
-        case TY_FLOAT: code->BoolToFloat(); break;
+        case TY_INT:   BoolToInt(code); break;
+        case TY_FLOAT: BoolToFloat(code); break;
         default: break;
         }
         break;
 
     case TY_INT:
         switch (to) {
-        case TY_BOOL:  code->IntToBool(); break;
+        case TY_BOOL:  IntToBool(code); break;
         case TY_INT:   break;
-        case TY_FLOAT: code->IntToFloat(); break;
+        case TY_FLOAT: IntToFloat(code); break;
         default: break;
         }
         break;
 
     case TY_FLOAT:
         switch (to) {
-        case TY_BOOL:  code->FloatToBool(); break;
-        case TY_INT:   code->FloatToInt(); break;
+        case TY_BOOL:  FloatToBool(code); break;
+        case TY_INT:   FloatToInt(code); break;
         case TY_FLOAT: break;
         default: break;
         }
@@ -354,31 +354,31 @@ static void gen_expr(Bytecode *code, const Expr *e)
     case T_AND:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
-        code->And();
+        And(code);
         return;
 
     case T_OR:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
-        code->Or();
+        Or(code);
         return;
 
     case T_XOR:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
-        code->Xor();
+        Xor(code);
         return;
 
     case T_SHL:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
-        code->ShiftLeft();
+        ShiftLeft(code);
         return;
 
     case T_SHR:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
-        code->ShiftRight();
+        ShiftRight(code);
         return;
 
     case T_ADR:
@@ -396,12 +396,12 @@ static void gen_expr(Bytecode *code, const Expr *e)
 
     case T_LNOT:
         gen_expr(code, e->l);
-        code->SetIfZero();
+        SetIfZero(code);
         return;
 
     case T_NOT:
         gen_expr(code, e->l);
-        code->Not();
+        Not(code);
         return;
 
     case T_DRF:
@@ -460,7 +460,7 @@ static void gen_addr(Bytecode *code, const Expr *e)
         //}
         gen_addr(code, e->l);
         gen_addr(code, e->r);
-        code->AddInt();
+        AddInt(code);
         return;
 
     case T_INDEX:
@@ -586,10 +586,10 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
             for (Stmt *cond = s->children; cond; cond = cond->next) {
                 Int tru = 0;
                 Int fls = 0;
-                code->DuplicateTop();
+                DuplicateTop(code);
                 //gen_expr(code, cond);
                 gen_stmt(code, cond);
-                code->EqualInt();
+                EqualInt(code);
                 fls = JumpIfZero(code, -1);
                 tru = Jump(code, -1);
                 BackPatch(code, fls);
@@ -628,7 +628,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
         // quit
         BackPatchCaseCloses(code);
         // remove cond val
-        code->Pop();
+        Pop(code);
         return;
 
     case T_RET:
@@ -666,7 +666,7 @@ static void gen_prog(Bytecode *code, const Prog *p)
 
     // call main
     CallFunction(code, p->main_func->id, IsBuiltin(p->main_func->type->func));
-    code->Exit();
+    Exit(code);
 
     // global funcs
     for (const FuncDef *func = p->funcs; func; func = func->next)
@@ -676,5 +676,5 @@ static void gen_prog(Bytecode *code, const Prog *p)
 void GenerateCode(Bytecode *code, const Prog *prog)
 {
     gen_prog(code, prog);
-    code->End();
+    End(code);
 }
