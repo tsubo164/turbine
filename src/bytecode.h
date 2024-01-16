@@ -103,6 +103,12 @@ enum Opcode {
 
 const char *OpcodeString(Byte op);
 
+typedef struct ByteVec {
+    Byte *data;
+    int cap;
+    int len;
+} ByteVec;
+
 typedef struct AddrStack {
     Int *data;
     int sp;
@@ -112,7 +118,7 @@ typedef struct PtrVec {
     char **data;
     int cap;
     int len;
-} Ptr;
+} PtrVec;
 
 typedef struct FuncInfo {
     Word id = 0;

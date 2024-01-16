@@ -41,22 +41,73 @@ bool empty(const AddrStack *s)
     return s->sp == 0;
 }
 
+static int new_cap(int cur_cap, int min_cap)
+{
+    return cur_cap < min_cap ? min_cap : cur_cap * 2;
+}
+
+static void push_byte(ByteVec *v, Byte data)
+{
+    if (v->len >= v->cap) {
+        v->cap = new_cap(v->cap, 128);
+        // TODO Remove cast
+        v->data = (Byte *) realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = data;
+}
+
+static void push_word(ByteVec *v, Word data)
+{
+    int sz = sizeof(data);
+    if (v->len + sz >= v->cap) {
+        v->cap = new_cap(v->cap, 128);
+        // TODO Remove cast
+        v->data = (Byte *) realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    memcpy(&v->data[v->len], &data, sz);
+    v->len += sz;
+}
+
+static void push_int(ByteVec *v, Int data)
+{
+    int sz = sizeof(data);
+    if (v->len + sz >= v->cap) {
+        v->cap = new_cap(v->cap, 128);
+        // TODO Remove cast
+        v->data = (Byte *) realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    memcpy(&v->data[v->len], &data, sz);
+    v->len += sz;
+}
+
+static void push_float(ByteVec *v, Float data)
+{
+    int sz = sizeof(data);
+    if (v->len + sz >= v->cap) {
+        v->cap = new_cap(v->cap, 128);
+        // TODO Remove cast
+        v->data = (Byte *) realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    memcpy(&v->data[v->len], &data, sz);
+    v->len += sz;
+}
+
 void PushPtr(PtrVec *v, void *data)
 {
     if (v->len >= v->cap) {
-        int newcap = v->cap < 8 ? 8 : v->cap * 2;
+        v->cap = new_cap(v->cap, 8);
         // TODO Remove cast
-        v->data = (char **) realloc(v->data, newcap * sizeof(*v->data));
+        v->data = (char **) realloc(v->data, v->cap * sizeof(*v->data));
     }
     v->data[v->len++] = (char *) data;
 }
 
-void push_info(FuncInfoVec *v, Word id, Byte argc, Int addr)
+static void push_info(FuncInfoVec *v, Word id, Byte argc, Int addr)
 {
     if (v->len >= v->cap) {
-        int newcap = v->cap < 8 ? 8 : v->cap * 2;
+        v->cap = new_cap(v->cap, 8);
         // TODO Remove cast
-        v->data = (FuncInfo *) realloc(v->data, newcap * sizeof(*v->data));
+        v->data = (FuncInfo *) realloc(v->data, v->cap * sizeof(*v->data));
     }
     FuncInfo *info = &v->data[v->len++];
     info->id = id;
@@ -64,7 +115,7 @@ void push_info(FuncInfoVec *v, Word id, Byte argc, Int addr)
     info->addr = addr;
 }
 
-void assert_range(const FuncInfoVec *v,  Word index)
+static void assert_range(const FuncInfoVec *v,  Word index)
 {
     if (index >= v->len) {
         InternalError(__FILE__, __LINE__,
