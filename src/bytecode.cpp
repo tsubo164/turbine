@@ -1,8 +1,5 @@
 #include "bytecode.h"
 #include "error.h"
-#include <iostream>
-#include <iomanip>
-#include <string.h>
 
 const char *OpcodeString(Byte op)
 {
@@ -73,7 +70,6 @@ void assert_range(const FuncInfoVec *v,  Word index)
         InternalError(__FILE__, __LINE__,
                 "function index out of range: %d, function count: %d\n",
                 index, v->len);
-        exit(EXIT_FAILURE);
     }
 }
 
@@ -537,7 +533,6 @@ void RegisterFunction(Bytecode *code, Word func_index, Byte argc)
         InternalError(__FILE__, __LINE__,
                 "function func_index %d and next index %d should match\n",
                 func_index, next_index);
-        exit(EXIT_FAILURE);
     }
 
     const Int next_addr = NextAddr(code);
@@ -557,7 +552,7 @@ Int RegisterConstString(Bytecode *code, std::string_view str)
     return next_index;
 }
 
-std::string GetConstString(const Bytecode *code, Word str_index)
+const char *GetConstString(const Bytecode *code, Word str_index)
 {
     if (str_index < 0 || str_index >= code->strings_.len) {
         InternalError(__FILE__, __LINE__,
@@ -709,30 +704,38 @@ static Int print_op(const Bytecode *code, int op, int operand, Int address)
 {
     const Int addr = address;
     Int inc = 0;
-    std::string text = OpcodeString(op);
 
     // remove prefix "OP_"
-    text = text.substr(text.find('_') + 1, std::string::npos);
+    const char *opcode = OpcodeString(op) + 3;
 
     // padding spaces
     if (operand != OPERAND_NONE)
-        text.append(12 - text.length(), ' ');
+        printf("%-12s", opcode);
+    else
+        printf("%s", opcode);
+
+    char prefix;
+    if (op == OP_LOADLOCAL || op == OP_LOADGLOBAL ||
+        op == OP_STORELOCAL || op == OP_STOREGLOBAL)
+        prefix = '@';
+    else
+        prefix = '$';
 
     // append operand
     switch (operand) {
 
     case OPERAND_BYTE:
-        text += " $" + std::to_string(static_cast<int>(Read(code, addr)));
+        printf(" %c%d", prefix, Read(code, addr));
         inc = 1;
         break;
 
     case OPERAND_WORD:
-        text += " $" + std::to_string(ReadWord(code, addr));
+        printf(" %c%d", prefix, ReadWord(code, addr));
         inc = sizeof(Word);
         break;
 
     case OPERAND_QUAD:
-        text += " $" + std::to_string(ReadInt(code, addr));
+        printf(" %c%lld", prefix, ReadInt(code, addr));
         inc = sizeof(Int);
         break;
     }
@@ -740,30 +743,20 @@ static Int print_op(const Bytecode *code, int op, int operand, Int address)
     // add extra info
     switch (op) {
     case OP_LOADF:
-        text += " = " + std::to_string(ReadFloat(code, addr));
+        printf(" = %f", ReadFloat(code, addr));
         break;
 
     case OP_LOADS:
-        text += " = \"" + GetConstString(code, ReadWord(code, addr)) + "\"";
+        printf(" = \"%s\"", GetConstString(code, ReadWord(code, addr)));
         break;
 
     case OP_CALL:
         // TODO function id could be retrived if we have OP_CALL_STATIC
         // to call functions that are defined statically
-        //text += " = @" + std::to_string(GetFunctionAddress(ReadWord(addr)));
-        break;
-
-    case OP_LOADLOCAL: case OP_LOADGLOBAL:
-    case OP_STORELOCAL: case OP_STOREGLOBAL:
-        {
-            const std::size_t found = text.find('$');
-            text[found] = '@';
-        }
         break;
     }
 
-    // output
-    std::cout << text << std::endl;
+    printf("\n");
     return addr + inc;
 }
 
@@ -778,7 +771,7 @@ void PrintBytecode(const Bytecode *code)
     Int addr = 0;
 
     while (addr < Size(code)) {
-        std::cout << "[" << std::setw(6) << addr << "] ";
+        printf("[%6lld] ", addr);
 
         const int op = Read(code, addr++);
 
@@ -790,8 +783,7 @@ void PrintBytecode(const Bytecode *code)
 #undef OP
 
         default:
-            std::cerr << "Opcode: " << " not in Bytecode::Print()" << std::endl;
-            std::exit(EXIT_FAILURE);
+            UNREACHABLE;
             break;
         }
 

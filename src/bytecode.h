@@ -2,9 +2,8 @@
 #define BYTECODE_H
 
 #include <string_view>
-#include <cstdint>
+#include <stdint.h>
 #include <vector>
-#include <string>
 
 typedef uint8_t  Byte;
 typedef uint16_t Word;
@@ -130,7 +129,6 @@ typedef struct FuncInfoVec {
 
 typedef struct Bytecode {
     std::vector<Byte> bytes_;
-    //std::vector<std::string> strings_;
     PtrVec strings_ = {0};
 
     FuncInfoVec funcs_ = {0};
@@ -247,7 +245,7 @@ Int GetFunctionAddress(const Bytecode *code, Word func_index);
 Int GetFunctionArgCount(const Bytecode *code, Word func_index);
 void RegisterFunction(Bytecode *code, Word func_index, Byte argc);
 Int RegisterConstString(Bytecode *code, std::string_view str);
-std::string GetConstString(const Bytecode *code, Word str_index);
+const char *GetConstString(const Bytecode *code, Word str_index);
 
 // read/write
 Byte Read(const Bytecode *code, Int addr);
