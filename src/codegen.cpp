@@ -103,7 +103,7 @@ static void gen_call(Bytecode *code, const Expr *e)
             }
         }
         // arg count
-        code->LoadByte(argc);
+        LoadByte(code, argc);
     }
     else {
         for (const Expr *arg = e->list; arg; arg = arg->next)
@@ -127,7 +127,7 @@ static void gen_logor(Bytecode *code, const Expr *e)
     ELSE = code->JumpIfZero(-1);
 
     // true
-    code->LoadByte(1);
+    LoadByte(code, 1);
     EXIT = code->Jump(-1);
 
     // false
@@ -151,7 +151,7 @@ static void gen_logand(Bytecode *code, const Expr *e)
 
     // false
     BackPatch(code, ELSE);
-    code->LoadByte(0);
+    LoadByte(code, 0);
     BackPatch(code, EXIT);
 }
 
@@ -200,7 +200,7 @@ static void gen_assign(Bytecode *code, const Expr *e)
     //    }
     //}
     gen_addr(code, e->l);
-    code->Store();
+    Store(code);
 }
 
 static void gen_expr(Bytecode *code, const Expr *e)
@@ -208,22 +208,22 @@ static void gen_expr(Bytecode *code, const Expr *e)
     switch (e->kind) {
 
     case T_NILLIT:
-        code->LoadByte(0);
+        LoadByte(code, 0);
         return;
 
     case T_BOLLIT:
-        code->LoadByte(e->ival);
+        LoadByte(code, e->ival);
         return;
 
     case T_INTLIT:
         if (e->ival >= 0 && e->ival <= UINT8_MAX)
-            code->LoadByte(e->ival);
+            LoadByte(code, e->ival);
         else
-            code->LoadInt(e->ival);
+            LoadInt(code, e->ival);
         return;
 
     case T_FLTLIT:
-        code->LoadFloat(e->fval);
+        LoadFloat(code, e->fval);
         return;
 
     case T_STRLIT:
@@ -237,7 +237,7 @@ static void gen_expr(Bytecode *code, const Expr *e)
                 s = std::string_view(e->converted, strlen(e->converted));
 
             const Word id = RegisterConstString(code, s);
-            code->LoadString(id);
+            LoadString(code, id);
         }
         return;
 
@@ -248,19 +248,19 @@ static void gen_expr(Bytecode *code, const Expr *e)
 
     case T_IDENT:
         if (e->var->is_global)
-            code->LoadGlobal(e->var->id);
+            LoadGlobal(code, e->var->id);
         else
-            code->LoadLocal(e->var->id);
+            LoadLocal(code, e->var->id);
         return;
 
     case T_SELECT:
         gen_addr(code, e);
-        code->Load();
+        Load(code);
         return;
 
     case T_INDEX:
         gen_addr(code, e);
-        code->Load();
+        Load(code);
         return;
 
     case T_CALL:
@@ -417,16 +417,16 @@ static void gen_expr(Bytecode *code, const Expr *e)
 
     case T_INC:
         if (IsGlobal(e->l))
-            code->IncGlobal(Addr(e->l));
+            IncGlobal(code, Addr(e->l));
         else
-            code->IncLocal(Addr(e->l));
+            IncLocal(code, Addr(e->l));
         return;
 
     case T_DEC:
         if (IsGlobal(e->l))
-            code->DecGlobal(Addr(e->l));
+            DecGlobal(code, Addr(e->l));
         else
-            code->DecLocal(Addr(e->l));
+            DecLocal(code, Addr(e->l));
         return;
     }
 }
@@ -437,13 +437,13 @@ static void gen_addr(Bytecode *code, const Expr *e)
 
     case T_IDENT:
         if (e->var->is_global)
-            code->LoadByte(e->var->id + 1);
+            LoadByte(code, e->var->id + 1);
         else
             code->LoadAddress(e->var->id);
         return;
 
     case T_FIELD:
-        code->LoadByte(e->field->id);
+        LoadByte(code, e->field->id);
         return;
 
     case T_SELECT:
@@ -647,7 +647,7 @@ static void gen_funcdef(Bytecode *code, const FuncDef *f)
     RegisterFunction(code, f->funclit_id, ParamCount(f->func));
 
     // local vars
-    code->Allocate(TotalVarSize(f->func->scope));
+    Allocate(code, TotalVarSize(f->func->scope));
 
     gen_stmt(code, f->body);
 }
@@ -660,7 +660,7 @@ static void gen_prog(Bytecode *code, const Prog *p)
     }
 
     // global vars
-    code->Allocate(VarSize(p->scope));
+    Allocate(code, VarSize(p->scope));
     for (const Stmt *gvar = p->gvars; gvar; gvar = gvar->next)
         gen_stmt(code, gvar);
 

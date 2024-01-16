@@ -111,22 +111,6 @@ enum Opcode {
 const char *OpcodeString(Byte op);
 
 typedef struct Bytecode {
-    // emit opcode and operand
-    void LoadByte(Byte byte);
-    void LoadInt(Int integer);
-    void LoadFloat(Float fp);
-    void LoadString(Word id);
-    void LoadLocal(Byte id);
-    void LoadGlobal(Word id);
-    void StoreLocal(Byte id);
-    void StoreGlobal(Word id);
-    void Load();
-    void Store();
-    void IncLocal(Byte id);
-    void IncGlobal(Word id);
-    void DecLocal(Byte id);
-    void DecGlobal(Word id);
-    void Allocate(Byte count);
     // address
     void LoadAddress(Word id);
     void Dereference();
@@ -213,6 +197,23 @@ typedef struct Bytecode {
     std::stack<Int> casecloses_;
 
 } Bytecode;
+
+// emit opcode and operand
+void LoadByte(Bytecode *code, Byte byte);
+void LoadInt(Bytecode *code, Int integer);
+void LoadFloat(Bytecode *code, Float fp);
+void LoadString(Bytecode *code, Word id);
+void LoadLocal(Bytecode *code, Byte id);
+void LoadGlobal(Bytecode *code, Word id);
+void StoreLocal(Bytecode *code, Byte id);
+void StoreGlobal(Bytecode *code, Word id);
+void Load(Bytecode *code);
+void Store(Bytecode *code);
+void IncLocal(Bytecode *code, Byte id);
+void IncGlobal(Bytecode *code, Word id);
+void DecLocal(Bytecode *code, Byte id);
+void DecGlobal(Bytecode *code, Word id);
+void Allocate(Bytecode *code, Byte count);
 
 // Backpatches
 void BeginIf(Bytecode *code);

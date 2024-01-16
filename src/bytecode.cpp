@@ -59,104 +59,104 @@ T read(const std::vector<Byte> &bytes, Int addr)
     return ret;
 }
 
-void Bytecode::LoadByte(Byte byte)
+void LoadByte(Bytecode *code, Byte byte)
 {
-    bytes_.push_back(OP_LOADB);
-    bytes_.push_back(byte);
+    code->bytes_.push_back(OP_LOADB);
+    code->bytes_.push_back(byte);
 }
 
-void Bytecode::LoadInt(Int integer)
+void LoadInt(Bytecode *code, Int integer)
 {
     constexpr Int bytemin = std::numeric_limits<Byte>::min();
     constexpr Int bytemax = std::numeric_limits<Byte>::max();
 
     if (integer >= bytemin && integer <= bytemax) {
-        bytes_.push_back(OP_LOADB);
-        push_back<Byte>(bytes_, integer);
+        code->bytes_.push_back(OP_LOADB);
+        push_back<Byte>(code->bytes_, integer);
     }
     else {
-        bytes_.push_back(OP_LOADI);
-        push_back<Int>(bytes_, integer);
+        code->bytes_.push_back(OP_LOADI);
+        push_back<Int>(code->bytes_, integer);
     }
 }
 
-void Bytecode::LoadFloat(Float fp)
+void LoadFloat(Bytecode *code, Float fp)
 {
-    bytes_.push_back(OP_LOADF);
-    push_back<Float>(bytes_, fp);
+    code->bytes_.push_back(OP_LOADF);
+    push_back<Float>(code->bytes_, fp);
 }
 
-void Bytecode::LoadString(Word id)
+void LoadString(Bytecode *code, Word id)
 {
-    bytes_.push_back(OP_LOADS);
-    push_back<Word>(bytes_, id);
+    code->bytes_.push_back(OP_LOADS);
+    push_back<Word>(code->bytes_, id);
 }
 
-void Bytecode::LoadLocal(Byte id)
+void LoadLocal(Bytecode *code, Byte id)
 {
-    bytes_.push_back(OP_LOADLOCAL);
-    bytes_.push_back(id);
+    code->bytes_.push_back(OP_LOADLOCAL);
+    code->bytes_.push_back(id);
 }
 
-void Bytecode::LoadGlobal(Word id)
+void LoadGlobal(Bytecode *code, Word id)
 {
-    bytes_.push_back(OP_LOADGLOBAL);
-    push_back<Word>(bytes_, id);
+    code->bytes_.push_back(OP_LOADGLOBAL);
+    push_back<Word>(code->bytes_, id);
 }
 
-void Bytecode::StoreLocal(Byte id)
+void StoreLocal(Bytecode *code, Byte id)
 {
-    bytes_.push_back(OP_STORELOCAL);
-    bytes_.push_back(id);
+    code->bytes_.push_back(OP_STORELOCAL);
+    code->bytes_.push_back(id);
 }
 
-void Bytecode::StoreGlobal(Word id)
+void StoreGlobal(Bytecode *code, Word id)
 {
-    bytes_.push_back(OP_STOREGLOBAL);
-    push_back<Word>(bytes_, id);
+    code->bytes_.push_back(OP_STOREGLOBAL);
+    push_back<Word>(code->bytes_, id);
 }
 
-void Bytecode::Load()
+void Load(Bytecode *code)
 {
-    bytes_.push_back(OP_LOAD);
+    code->bytes_.push_back(OP_LOAD);
 }
 
-void Bytecode::Store()
+void Store(Bytecode *code)
 {
-    bytes_.push_back(OP_STORE);
+    code->bytes_.push_back(OP_STORE);
 }
 
-void Bytecode::IncLocal(Byte id)
+void IncLocal(Bytecode *code, Byte id)
 {
-    bytes_.push_back(OP_INCLOCAL);
-    bytes_.push_back(id);
+    code->bytes_.push_back(OP_INCLOCAL);
+    code->bytes_.push_back(id);
 }
 
-void Bytecode::IncGlobal(Word id)
+void IncGlobal(Bytecode *code, Word id)
 {
-    bytes_.push_back(OP_INCGLOBAL);
-    push_back<Word>(bytes_, id);
+    code->bytes_.push_back(OP_INCGLOBAL);
+    push_back<Word>(code->bytes_, id);
 }
 
-void Bytecode::DecLocal(Byte id)
+void DecLocal(Bytecode *code, Byte id)
 {
-    bytes_.push_back(OP_DECLOCAL);
-    bytes_.push_back(id);
+    code->bytes_.push_back(OP_DECLOCAL);
+    code->bytes_.push_back(id);
 }
 
-void Bytecode::DecGlobal(Word id)
+void DecGlobal(Bytecode *code, Word id)
 {
-    bytes_.push_back(OP_DECGLOBAL);
-    push_back<Word>(bytes_, id);
+    code->bytes_.push_back(OP_DECGLOBAL);
+    push_back<Word>(code->bytes_, id);
 }
 
-void Bytecode::Allocate(Byte count)
+void Allocate(Bytecode *code, Byte count)
 {
     if (count == 0)
         return;
 
-    bytes_.push_back(OP_ALLOC);
-    bytes_.push_back(count);
+    code->bytes_.push_back(OP_ALLOC);
+    code->bytes_.push_back(count);
 }
 
 void Bytecode::LoadAddress(Word id)
