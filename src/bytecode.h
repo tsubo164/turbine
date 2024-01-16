@@ -110,10 +110,13 @@ typedef struct AddrStack {
     int sp;
 } AddrStack;
 
+typedef struct PtrVec {
+    char **data;
+    int cap;
+    int len;
+} Ptr;
+
 typedef struct FuncInfo {
-    FuncInfo() {}
-    FuncInfo(Word id_, Byte argc_, Int addr_)
-        : id(id_), argc(argc_), addr(addr_) {}
     Word id = 0;
     Byte argc = 0;
     Int addr = 0;
@@ -127,9 +130,9 @@ typedef struct FuncInfoVec {
 
 typedef struct Bytecode {
     std::vector<Byte> bytes_;
-    std::vector<std::string> strings_;
+    //std::vector<std::string> strings_;
+    PtrVec strings_ = {0};
 
-    //std::vector<FuncInfo> funcs_;
     FuncInfoVec funcs_ = {0};
 
     // back patches
@@ -244,7 +247,7 @@ Int GetFunctionAddress(const Bytecode *code, Word func_index);
 Int GetFunctionArgCount(const Bytecode *code, Word func_index);
 void RegisterFunction(Bytecode *code, Word func_index, Byte argc);
 Int RegisterConstString(Bytecode *code, std::string_view str);
-const std::string &GetConstString(const Bytecode *code, Word str_index);
+std::string GetConstString(const Bytecode *code, Word str_index);
 
 // read/write
 Byte Read(const Bytecode *code, Int addr);

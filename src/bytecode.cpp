@@ -2,7 +2,7 @@
 #include "error.h"
 #include <iostream>
 #include <iomanip>
-#include <cstring>
+#include <string.h>
 
 const char *OpcodeString(Byte op)
 {
@@ -13,10 +13,8 @@ const char *OpcodeString(Byte op)
 #undef OP
 
     default:
-        std::cerr << "Opcode: " << static_cast<int>(op)
-            << " not in OpcodeString()" << std::endl;
-        std::exit(EXIT_FAILURE);
-        return nullptr;
+        UNREACHABLE;
+        return NULL;
     }
 }
 
@@ -44,6 +42,16 @@ Int top(const AddrStack *s)
 bool empty(const AddrStack *s)
 {
     return s->sp == 0;
+}
+
+void PushPtr(PtrVec *v, void *data)
+{
+    if (v->len >= v->cap) {
+        int newcap = v->cap < 8 ? 8 : v->cap * 2;
+        // TODO Remove cast
+        v->data = (char **) realloc(v->data, newcap * sizeof(*v->data));
+    }
+    v->data[v->len++] = (char *) data;
 }
 
 void push_info(FuncInfoVec *v, Word id, Byte argc, Int addr)
@@ -538,21 +546,24 @@ void RegisterFunction(Bytecode *code, Word func_index, Byte argc)
 
 Int RegisterConstString(Bytecode *code, std::string_view str)
 {
-    const Word next_index = code->strings_.size();
+    const Word next_index = code->strings_.len;
+    // FIXME
+    char buf[1024] = {'\0'};
+    strncpy(buf, str.data(), str.length());
 
-    code->strings_.emplace_back(str.data(), str.length());
+    char *s = strdup(buf);
+    PushPtr(&code->strings_, s);
 
     return next_index;
 }
 
-const std::string &GetConstString(const Bytecode *code, Word str_index)
+std::string GetConstString(const Bytecode *code, Word str_index)
 {
-    if (str_index < 0 || str_index >= code->strings_.size()) {
+    if (str_index < 0 || str_index >= code->strings_.len) {
         InternalError(__FILE__, __LINE__,
                 "index out of range: %d", str_index);
     }
-
-    return code->strings_[str_index];
+    return code->strings_.data[str_index];
 }
 
 Byte Read(const Bytecode *code, Int addr)
