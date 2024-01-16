@@ -539,15 +539,11 @@ void RegisterFunction(Bytecode *code, Word func_index, Byte argc)
     push_info(&code->funcs_, func_index, argc, next_addr);
 }
 
-Int RegisterConstString(Bytecode *code, std::string_view str)
+Int RegisterConstString(Bytecode *code, const char *str)
 {
     const Word next_index = code->strings_.len;
-    // FIXME
-    char buf[1024] = {'\0'};
-    strncpy(buf, str.data(), str.length());
 
-    char *s = strdup(buf);
-    PushPtr(&code->strings_, s);
+    PushPtr(&code->strings_, strdup(str));
 
     return next_index;
 }

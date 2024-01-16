@@ -228,13 +228,13 @@ static void gen_expr(Bytecode *code, const Expr *e)
 
     case T_STRLIT:
         {
-            // TODO remove string_view
-            std::string_view s;
+            const char *s;
 
+            // TODO could remove e->converted
             if (!e->converted)
                 s = e->sval;
             else
-                s = std::string_view(e->converted, strlen(e->converted));
+                s = e->converted;
 
             const Word id = RegisterConstString(code, s);
             LoadString(code, id);

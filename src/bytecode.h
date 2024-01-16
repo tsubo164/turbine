@@ -1,7 +1,6 @@
 #ifndef BYTECODE_H
 #define BYTECODE_H
 
-#include <string_view>
 #include <stdint.h>
 #include <vector>
 
@@ -244,7 +243,7 @@ void BackPatchCaseCloses(Bytecode *code);
 Int GetFunctionAddress(const Bytecode *code, Word func_index);
 Int GetFunctionArgCount(const Bytecode *code, Word func_index);
 void RegisterFunction(Bytecode *code, Word func_index, Byte argc);
-Int RegisterConstString(Bytecode *code, std::string_view str);
+Int RegisterConstString(Bytecode *code, const char *str);
 const char *GetConstString(const Bytecode *code, Word str_index);
 
 // read/write
