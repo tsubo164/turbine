@@ -20,6 +20,55 @@ const char *OpcodeString(Byte op)
     }
 }
 
+void push(AddrStack *s, Int addr)
+{
+    if (!s->data)
+        s->data = NALLOC(256, Int);
+    s->data[++s->sp] = addr;
+}
+
+Int pop(AddrStack *s)
+{
+    if (!s->data)
+        return 0;
+    return s->data[s->sp--];
+}
+
+Int top(const AddrStack *s)
+{
+    if (!s->data)
+        return 0;
+    return s->data[s->sp];
+}
+
+bool empty(const AddrStack *s)
+{
+    return s->sp == 0;
+}
+
+void push_info(FuncInfoVec *v, Word id, Byte argc, Int addr)
+{
+    if (v->len >= v->cap) {
+        int newcap = v->cap < 8 ? 8 : v->cap * 2;
+        // TODO Remove cast
+        v->data = (FuncInfo *) realloc(v->data, newcap * sizeof(*v->data));
+    }
+    FuncInfo *info = &v->data[v->len++];
+    info->id = id;
+    info->argc = argc;
+    info->addr = addr;
+}
+
+void assert_range(const FuncInfoVec *v,  Word index)
+{
+    if (index >= v->len) {
+        InternalError(__FILE__, __LINE__,
+                "function index out of range: %d, function count: %d\n",
+                index, v->len);
+        exit(EXIT_FAILURE);
+    }
+}
+
 template<typename T>
 void push_back(std::vector<Byte> &bytes, T operand)
 {
@@ -462,40 +511,29 @@ void End(Bytecode *code)
 
 Int GetFunctionAddress(const Bytecode *code, Word func_index)
 {
-    if (func_index >= code->funcs_.size()) {
-        std::cerr << "internal error: function index out of range: "
-            << func_index << ", function count: " << code->funcs_.size() << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    return code->funcs_[func_index].addr;
+    assert_range(&code->funcs_, func_index);
+    return code->funcs_.data[func_index].addr;
 }
 
 Int GetFunctionArgCount(const Bytecode *code, Word func_index)
 {
-    if (func_index >= code->funcs_.size()) {
-        std::cerr << "internal error: function index out of range: "
-            << func_index << ", function count: " << code->funcs_.size() << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    return code->funcs_[func_index].argc;
+    assert_range(&code->funcs_, func_index);
+    return code->funcs_.data[func_index].argc;
 }
 
 void RegisterFunction(Bytecode *code, Word func_index, Byte argc)
 {
-    const Word next_index = code->funcs_.size();
+    const Word next_index = code->funcs_.len;
 
     if (func_index != next_index) {
-        std::cerr << "error: "
-            << "function func_index " << func_index
-            << " and next index " << next_index
-            << " should match" << std::endl;
-        std::exit(EXIT_FAILURE);
+        InternalError(__FILE__, __LINE__,
+                "function func_index %d and next index %d should match\n",
+                func_index, next_index);
+        exit(EXIT_FAILURE);
     }
 
     const Int next_addr = NextAddr(code);
-    code->funcs_.emplace_back(func_index, argc, next_addr);
+    push_info(&code->funcs_, func_index, argc, next_addr);
 }
 
 Int RegisterConstString(Bytecode *code, std::string_view str)
@@ -565,38 +603,38 @@ Int Size(const Bytecode *code)
 
 void BeginIf(Bytecode *code)
 {
-    code->ors_.push(-1);
+    push(&code->ors_, -1);
 }
 
 void BeginFor(Bytecode *code)
 {
-    code->breaks_.push(-1);
-    code->continues_.push(-1);
+    push(&code->breaks_, -1);
+    push(&code->continues_, -1);
 }
 
 void BeginSwitch(Bytecode *code)
 {
-    code->casecloses_.push(-1);
+    push(&code->casecloses_, -1);
 }
 
 void PushOrClose(Bytecode *code, Int addr)
 {
-    code->ors_.push(addr);
+    push(&code->ors_, addr);
 }
 
 void PushBreak(Bytecode *code, Int addr)
 {
-    code->breaks_.push(addr);
+    push(&code->breaks_, addr);
 }
 
 void PushContinue(Bytecode *code, Int addr)
 {
-    code->continues_.push(addr);
+    push(&code->continues_, addr);
 }
 
 void PushCaseClose(Bytecode *code, Int addr)
 {
-    code->casecloses_.push(addr);
+    push(&code->casecloses_, addr);
 }
 
 void BackPatch(Bytecode *code, Int operand_addr)
@@ -607,9 +645,9 @@ void BackPatch(Bytecode *code, Int operand_addr)
 
 void BackPatchOrCloses(Bytecode *code)
 {
-    while (!code->ors_.empty()) {
-        const Int addr = code->ors_.top();
-        code->ors_.pop();
+    while (!empty(&code->ors_)) {
+        const Int addr = top(&code->ors_);
+        pop(&code->ors_);
         if (addr == -1)
             break;
         BackPatch(code, addr);
@@ -618,9 +656,9 @@ void BackPatchOrCloses(Bytecode *code)
 
 void BackPatchBreaks(Bytecode *code)
 {
-    while (!code->breaks_.empty()) {
-        const Int addr = code->breaks_.top();
-        code->breaks_.pop();
+    while (!empty(&code->breaks_)) {
+        const Int addr = top(&code->breaks_);
+        pop(&code->breaks_);
         if (addr == -1)
             break;
         BackPatch(code, addr);
@@ -629,9 +667,9 @@ void BackPatchBreaks(Bytecode *code)
 
 void BackPatchContinues(Bytecode *code)
 {
-    while (!code->continues_.empty()) {
-        const Int addr = code->continues_.top();
-        code->continues_.pop();
+    while (!empty(&code->continues_)) {
+        const Int addr = top(&code->continues_);
+        pop(&code->continues_);
         if (addr == -1)
             break;
         BackPatch(code, addr);
@@ -640,9 +678,9 @@ void BackPatchContinues(Bytecode *code)
 
 void BackPatchCaseCloses(Bytecode *code)
 {
-    while (!code->casecloses_.empty()) {
-        const Int addr = code->casecloses_.top();
-        code->casecloses_.pop();
+    while (!empty(&code->casecloses_)) {
+        const Int addr = top(&code->casecloses_);
+        pop(&code->casecloses_);
         if (addr == -1)
             break;
         BackPatch(code, addr);
@@ -721,8 +759,10 @@ static Int print_op(const Bytecode *code, int op, int operand, Int address)
 void PrintBytecode(const Bytecode *code)
 {
     // function info
-    for (const auto &func: code->funcs_)
-        std::cout << "* function id: " << func.id << " @" << func.addr << std::endl;
+    for (int i = 0; i < code->funcs_.len; i++) {
+        const FuncInfo *info = &code->funcs_.data[i];
+        printf("* function id: %d @%lld\n", info->id, info->addr);
+    }
 
     Int addr = 0;
 

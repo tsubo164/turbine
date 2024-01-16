@@ -5,12 +5,7 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include <stack>
 
-//using Byte = uint8_t;
-//using Word = uint16_t;
-//using Int = int64_t;
-//using Float = double;
 typedef uint8_t  Byte;
 typedef uint16_t Word;
 typedef int64_t  Int;
@@ -110,24 +105,38 @@ enum Opcode {
 
 const char *OpcodeString(Byte op);
 
+typedef struct AddrStack {
+    Int *data;
+    int sp;
+} AddrStack;
+
+typedef struct FuncInfo {
+    FuncInfo() {}
+    FuncInfo(Word id_, Byte argc_, Int addr_)
+        : id(id_), argc(argc_), addr(addr_) {}
+    Word id = 0;
+    Byte argc = 0;
+    Int addr = 0;
+} FuncInfo;
+
+typedef struct FuncInfoVec {
+    FuncInfo *data;
+    int cap;
+    int len;
+} FuncInfoVec;
+
 typedef struct Bytecode {
     std::vector<Byte> bytes_;
     std::vector<std::string> strings_;
 
-    struct FuncInfo {
-        FuncInfo(Word id_, Byte argc_, Int addr_)
-            : id(id_), argc(argc_), addr(addr_) {}
-        Word id = 0;
-        Byte argc = 0;
-        Int addr = 0;
-    };
-    std::vector<FuncInfo> funcs_;
+    //std::vector<FuncInfo> funcs_;
+    FuncInfoVec funcs_ = {0};
 
     // back patches
-    std::stack<Int> ors_;
-    std::stack<Int> breaks_;
-    std::stack<Int> continues_;
-    std::stack<Int> casecloses_;
+    AddrStack ors_ = {0};
+    AddrStack breaks_ = {0};
+    AddrStack continues_ = {0};
+    AddrStack casecloses_ = {0};
 } Bytecode;
 
 // emit opcode and operand

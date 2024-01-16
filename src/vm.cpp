@@ -1,5 +1,6 @@
 #include "vm.h"
 #include <iostream>
+#include <stack>
 #include <cmath>
 
 // for variadic function
