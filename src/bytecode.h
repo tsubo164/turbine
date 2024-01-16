@@ -111,23 +111,6 @@ enum Opcode {
 const char *OpcodeString(Byte op);
 
 typedef struct Bytecode {
-    // address
-    void LoadAddress(Word id);
-    void Dereference();
-    void Index();
-    // arg type spec
-    void LoadTypeNil();
-    void LoadTypeBool();
-    void LoadTypeInt();
-    void LoadTypeFloat();
-    void LoadTypeString();
-    // jump and function
-    void CallFunction(Word func_index, bool builtin);
-    // jump instructions return the address
-    // where the destination address is stored.
-    Int Jump(Int addr);
-    Int JumpIfZero(Int addr);
-    void Return();
     // arithmetic
     void AddInt();
     void AddFloat();
@@ -214,6 +197,24 @@ void IncGlobal(Bytecode *code, Word id);
 void DecLocal(Bytecode *code, Byte id);
 void DecGlobal(Bytecode *code, Word id);
 void Allocate(Bytecode *code, Byte count);
+
+// address
+void LoadAddress(Bytecode *code, Word id);
+void Dereference(Bytecode *code);
+void Index(Bytecode *code);
+// arg type spec
+void LoadTypeNil(Bytecode *code);
+void LoadTypeBool(Bytecode *code);
+void LoadTypeInt(Bytecode *code);
+void LoadTypeFloat(Bytecode *code);
+void LoadTypeString(Bytecode *code);
+// jump and function
+void CallFunction(Bytecode *code, Word func_index, bool builtin);
+// jump instructions return the address
+// where the destination address is stored.
+Int Jump(Bytecode *code, Int addr);
+Int JumpIfZero(Bytecode *code, Int addr);
+void Return(Bytecode *code);
 
 // Backpatches
 void BeginIf(Bytecode *code);

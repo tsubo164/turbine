@@ -79,26 +79,26 @@ static void gen_call(Bytecode *code, const Expr *e)
 
             switch (arg->type->kind) {
             case TY_NIL:
-                code->LoadTypeNil();
+                LoadTypeNil(code);
                 break;
             case TY_BOOL:
-                code->LoadTypeBool();
+                LoadTypeBool(code);
                 break;
             case TY_INT:
-                code->LoadTypeInt();
+                LoadTypeInt(code);
                 break;
             case TY_FLOAT:
-                code->LoadTypeFloat();
+                LoadTypeFloat(code);
                 break;
             case TY_STRING:
-                code->LoadTypeString();
+                LoadTypeString(code);
                 break;
             case TY_CLASS:
             case TY_FUNC:
             case TY_PTR:
             case TY_ARRAY:
             case TY_ANY:
-                code->LoadTypeNil();
+                LoadTypeNil(code);
                 break;
             }
         }
@@ -113,7 +113,7 @@ static void gen_call(Bytecode *code, const Expr *e)
     // TODO remove this by doing expr->Gen()
     int addr = 0;
     if (EvalAddr(e->l, &addr)) {
-        code->CallFunction(addr, IsBuiltin(func));
+        CallFunction(code, addr, IsBuiltin(func));
     }
 }
 
@@ -124,11 +124,11 @@ static void gen_logor(Bytecode *code, const Expr *e)
 
     // eval
     gen_expr(code, e->l);
-    ELSE = code->JumpIfZero(-1);
+    ELSE = JumpIfZero(code, -1);
 
     // true
     LoadByte(code, 1);
-    EXIT = code->Jump(-1);
+    EXIT = Jump(code, -1);
 
     // false
     BackPatch(code, ELSE);
@@ -143,11 +143,11 @@ static void gen_logand(Bytecode *code, const Expr *e)
 
     // eval
     gen_expr(code, e->l);
-    ELSE = code->JumpIfZero(-1);
+    ELSE = JumpIfZero(code, -1);
 
     // true
     gen_expr(code, e->r);
-    EXIT = code->Jump(-1);
+    EXIT = Jump(code, -1);
 
     // false
     BackPatch(code, ELSE);
@@ -382,7 +382,7 @@ static void gen_expr(Bytecode *code, const Expr *e)
         return;
 
     case T_ADR:
-        code->LoadAddress(Addr(e->l));
+        LoadAddress(code, Addr(e->l));
         return;
 
     case T_POS:
@@ -406,7 +406,7 @@ static void gen_expr(Bytecode *code, const Expr *e)
 
     case T_DRF:
         gen_expr(code, e->l);
-        code->Dereference();
+        Dereference(code);
         return;
 
     case T_ASSN:
@@ -439,7 +439,7 @@ static void gen_addr(Bytecode *code, const Expr *e)
         if (e->var->is_global)
             LoadByte(code, e->var->id + 1);
         else
-            code->LoadAddress(e->var->id);
+            LoadAddress(code, e->var->id);
         return;
 
     case T_FIELD:
@@ -478,7 +478,7 @@ static void gen_addr(Bytecode *code, const Expr *e)
         //}
         gen_addr(code, e->l);
         gen_expr(code, e->r);
-        code->Index();
+        Index(code);
         return;
 
     case T_DRF:
@@ -511,7 +511,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
             if (!IsNull(s->cond)) {
                 // cond
                 gen_expr(code, s->cond);
-                next = code->JumpIfZero(-1);
+                next = JumpIfZero(code, -1);
             }
 
             // true
@@ -519,7 +519,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
 
             if (!IsNull(s->cond)) {
                 // close
-                const Int addr = code->Jump(-1);
+                const Int addr = Jump(code, -1);
                 PushOrClose(code, addr);
                 BackPatch(code, next);
             }
@@ -553,8 +553,8 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
 
             // cond
             gen_expr(code, s->cond);
-            const Int exit = code->JumpIfZero(-1);
-            code->Jump(begin);
+            const Int exit = JumpIfZero(code, -1);
+            Jump(code, begin);
 
             // exit
             BackPatch(code, exit);
@@ -564,14 +564,14 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
 
     case T_BRK:
         {
-            const Int addr = code->Jump(-1);
+            const Int addr = Jump(code, -1);
             PushBreak(code, addr);
         }
         return;
 
     case T_CNT:
         {
-            const Int addr = code->Jump(-1);
+            const Int addr = Jump(code, -1);
             PushContinue(code, addr);
         }
         return;
@@ -590,13 +590,13 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
                 //gen_expr(code, cond);
                 gen_stmt(code, cond);
                 code->EqualInt();
-                fls = code->JumpIfZero(-1);
-                tru = code->Jump(-1);
+                fls = JumpIfZero(code, -1);
+                tru = Jump(code, -1);
                 BackPatch(code, fls);
                 trues.push_back(tru);
             }
             // all conds false -> close case
-            exit = code->Jump(-1);
+            exit = Jump(code, -1);
             // one of cond true -> go to body
             for (auto t: trues)
                 BackPatch(code, t);
@@ -605,7 +605,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
             gen_stmt(code, s->body);
 
             // close
-            const Int addr = code->Jump(-1);
+            const Int addr = Jump(code, -1);
             PushCaseClose(code, addr);
             BackPatch(code, exit);
         }
@@ -633,7 +633,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
 
     case T_RET:
         gen_expr(code, s->expr);
-        code->Return();
+        Return(code);
         return;
 
     case T_EXPR:
@@ -665,7 +665,7 @@ static void gen_prog(Bytecode *code, const Prog *p)
         gen_stmt(code, gvar);
 
     // call main
-    code->CallFunction(p->main_func->id, IsBuiltin(p->main_func->type->func));
+    CallFunction(code, p->main_func->id, IsBuiltin(p->main_func->type->func));
     code->Exit();
 
     // global funcs

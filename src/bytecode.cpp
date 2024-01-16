@@ -159,80 +159,80 @@ void Allocate(Bytecode *code, Byte count)
     code->bytes_.push_back(count);
 }
 
-void Bytecode::LoadAddress(Word id)
+void LoadAddress(Bytecode *code, Word id)
 {
-    bytes_.push_back(OP_LOADA);
-    push_back<Word>(bytes_, id);
+    code->bytes_.push_back(OP_LOADA);
+    push_back<Word>(code->bytes_, id);
 }
 
-void Bytecode::Dereference()
+void Dereference(Bytecode *code)
 {
-    bytes_.push_back(OP_DEREF);
+    code->bytes_.push_back(OP_DEREF);
 }
 
-void Bytecode::Index()
+void Index(Bytecode *code)
 {
-    bytes_.push_back(OP_INDEX);
+    code->bytes_.push_back(OP_INDEX);
 }
 
-void Bytecode::LoadTypeNil()
+void LoadTypeNil(Bytecode *code)
 {
-    bytes_.push_back(OP_LOADTYPEN);
+    code->bytes_.push_back(OP_LOADTYPEN);
 }
 
-void Bytecode::LoadTypeBool()
+void LoadTypeBool(Bytecode *code)
 {
-    bytes_.push_back(OP_LOADTYPEB);
+    code->bytes_.push_back(OP_LOADTYPEB);
 }
 
-void Bytecode::LoadTypeInt()
+void LoadTypeInt(Bytecode *code)
 {
-    bytes_.push_back(OP_LOADTYPEI);
+    code->bytes_.push_back(OP_LOADTYPEI);
 }
 
-void Bytecode::LoadTypeFloat()
+void LoadTypeFloat(Bytecode *code)
 {
-    bytes_.push_back(OP_LOADTYPEF);
+    code->bytes_.push_back(OP_LOADTYPEF);
 }
 
-void Bytecode::LoadTypeString()
+void LoadTypeString(Bytecode *code)
 {
-    bytes_.push_back(OP_LOADTYPES);
+    code->bytes_.push_back(OP_LOADTYPES);
 }
 
-void Bytecode::CallFunction(Word func_index, bool builtin)
+void CallFunction(Bytecode *code, Word func_index, bool builtin)
 {
     if (builtin) {
-        bytes_.push_back(OP_CALL_BUILTIN);
-        push_back<Byte>(bytes_, func_index);
+        code->bytes_.push_back(OP_CALL_BUILTIN);
+        push_back<Byte>(code->bytes_, func_index);
     }
     else {
-        bytes_.push_back(OP_CALL);
-        push_back<Word>(bytes_, func_index);
+        code->bytes_.push_back(OP_CALL);
+        push_back<Word>(code->bytes_, func_index);
     }
 }
 
-Int Bytecode::JumpIfZero(Int addr)
+Int JumpIfZero(Bytecode *code, Int addr)
 {
-    bytes_.push_back(OP_JEQ);
-    const Int operand_addr = NextAddr(this);
-    push_back<Word>(bytes_, addr);
+    code->bytes_.push_back(OP_JEQ);
+    const Int operand_addr = NextAddr(code);
+    push_back<Word>(code->bytes_, addr);
 
     return operand_addr;
 }
 
-Int Bytecode::Jump(Int addr)
+Int Jump(Bytecode *code, Int addr)
 {
-    bytes_.push_back(OP_JMP);
-    const Int operand_addr = NextAddr(this);
-    push_back<Word>(bytes_, addr);
+    code->bytes_.push_back(OP_JMP);
+    const Int operand_addr = NextAddr(code);
+    push_back<Word>(code->bytes_, addr);
 
     return operand_addr;
 }
 
-void Bytecode::Return()
+void Return(Bytecode *code)
 {
-    bytes_.push_back(OP_RET);
+    code->bytes_.push_back(OP_RET);
 }
 
 void Bytecode::AddInt()
