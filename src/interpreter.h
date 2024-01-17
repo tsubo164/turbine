@@ -1,40 +1,19 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include <istream>
 #include "bytecode.h"
-#include "parser.h"
-#include "token.h"
-#include "scope.h"
-#include "vm.h"
 
-class Interpreter {
-public:
-    Interpreter();
-    ~Interpreter();
+typedef struct Option {
+    bool print_token;
+    bool print_token_raw;
+    bool print_tree;
+    bool print_symbols;
+    bool print_symbols_all;
+    bool print_bytecode;
+    bool print_stack;
+    bool enable_optimize;
+} Option;
 
-    Int Run(const std::string &src);
-
-    void EnablePrintToken(bool enable, bool raw);
-    void EnablePrintTree(bool enable);
-    void EnablePrintSymbols(bool enable, bool all);
-    void EnablePrintBytecode(bool enable);
-    void EnablePrintStack(bool enable);
-    void EnableOptimize(bool enable);
-
-private:
-    Prog *prog_ = nullptr;
-    Bytecode code_ = {{0}};
-    VM vm_ = {{0}};
-
-    bool print_token_ = false;
-    bool print_token_raw_ = false;
-    bool print_tree_ = false;
-    bool print_symbols_ = false;
-    bool print_symbols_all_ = false;
-    bool print_bytecode_ = false;
-    bool print_stack_ = false;
-    bool enable_optimize_ = true;
-};
+Int Interpret(const char *src, const Option *opt);
 
 #endif // _H

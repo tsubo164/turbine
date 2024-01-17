@@ -45,5 +45,4 @@
   s = s + ", World!"
   print(s)
   print(a, "Hello", 3.14)
-  return int(s == "Hello")
   return  23 + a

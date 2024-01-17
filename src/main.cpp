@@ -81,15 +81,17 @@ int main(int argc, char **argv)
         std::exit(EXIT_FAILURE);
     }
 
-    Interpreter ip;
-    ip.EnablePrintToken(print_token, print_token_raw);
-    ip.EnablePrintTree(print_tree);
-    ip.EnablePrintSymbols(print_symbols, print_symbols_all);
-    ip.EnablePrintBytecode(print_bytecode);
-    ip.EnablePrintStack(print_stack);
-    ip.EnableOptimize(enable_optimize);
+    Option opt;
+    opt.print_token       = print_token_raw;
+    opt.print_token_raw   = print_token_raw;
+    opt.print_tree        = print_tree;
+    opt.print_symbols     = print_symbols;
+    opt.print_symbols_all = print_symbols_all;
+    opt.print_bytecode    = print_bytecode;
+    opt.print_stack       = print_stack;
+    opt.enable_optimize   = enable_optimize;
 
-    int ret = ip.Run(src);
+    int ret = Interpret(src.c_str(), &opt);
     if (print_token || print_tree || print_bytecode || print_symbols)
         ret = 0;
 

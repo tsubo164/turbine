@@ -1,108 +1,75 @@
 #include "interpreter.h"
 #include "compiler.h"
 #include "builtin.h"
+#include "parser.h"
 #include "token.h"
+#include "scope.h"
 #include "ast.h"
-#include <iostream>
-#include <iomanip>
+#include "vm.h"
+
+#include <stdio.h>
 
 static void print_header(const char *title)
 {
-    std::cout << "## " << title << std::endl;
-    std::cout << "---" << std::endl;
+    printf("## %s\n", title);
+    printf("---\n");
 }
 
-Interpreter::Interpreter()
+Int Interpret(const char *src, const Option *opt)
 {
-}
-
-Interpreter::~Interpreter()
-{
-    delete prog_;
-}
-
-Int Interpreter::Run(const std::string &src)
-{
+    const Prog *prog = NULL;
+    const Token *tok = NULL;
     Scope scope = {0};
+    Bytecode code = {{0}};
+    VM vm = {{0}};
 
     // Builtin functions
     DefineBuiltinFuncs(&scope);
 
     // Tokenize
-    const Token *tok = Tokenize(src.c_str());
+    tok = Tokenize(src);
 
     // Print token
-    if (print_token_) {
-        PrintToken(tok, !print_token_raw_);
-        if (!print_tree_ && !print_symbols_ && !print_bytecode_) {
+    if (opt->print_token) {
+        PrintToken(tok, !opt->print_token_raw);
+        if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
             return 0;
         }
     }
 
     // Compile source
-    prog_ = Parse(src.c_str(), tok, &scope);
+    prog = Parse(src, tok, &scope);
 
-    if (print_tree_) {
+    if (opt->print_tree) {
         print_header("tree");
-        PrintProg(prog_, 0);
+        PrintProg(prog, 0);
     }
 
-    if (print_symbols_) {
+    if (opt->print_symbols) {
         print_header("symbol");
-        if (print_symbols_all_)
+        if (opt->print_symbols_all)
             PrintScope(&scope, 0);
         else
-            PrintScope(prog_->scope, 0);
+            PrintScope(prog->scope, 0);
     }
 
     // Generate bytecode
-    SetOptimize(enable_optimize_);
-    GenerateCode(&code_, prog_);
+    SetOptimize(opt->enable_optimize);
+    GenerateCode(&code, prog);
 
-    if (print_bytecode_) {
+    if (opt->print_bytecode) {
         print_header("bytecode");
-        PrintBytecode(&code_);
+        PrintBytecode(&code);
     }
 
     // Run bytecode
     long ret = 0;
-    if (!print_tree_ && !print_symbols_ && !print_bytecode_) {
-        ::EnablePrintStack(&vm_, print_stack_);
-        ::Run(&vm_, &code_);
-        ret = StackTopInt(&vm_);
+    if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
+        EnablePrintStack(&vm, opt->print_stack);
+        Run(&vm, &code);
+        ret = StackTopInt(&vm);
     }
 
     return ret;
 }
 
-void Interpreter::EnablePrintToken(bool enable, bool raw)
-{
-    print_token_ = enable;
-    print_token_raw_ = raw;
-}
-
-void Interpreter::EnablePrintTree(bool enable)
-{
-    print_tree_ = enable;
-}
-
-void Interpreter::EnablePrintSymbols(bool enable, bool all)
-{
-    print_symbols_ = enable;
-    print_symbols_all_ = all;
-}
-
-void Interpreter::EnablePrintBytecode(bool enable)
-{
-    print_bytecode_ = enable;
-}
-
-void Interpreter::EnablePrintStack(bool enable)
-{
-    print_stack_ = enable;
-}
-
-void Interpreter::EnableOptimize(bool enable)
-{
-    enable_optimize_ = enable;
-}

@@ -1,112 +1,99 @@
-#include <iostream>
+#include <stdio.h>
 #include "test.h"
 #include "../src/interpreter.h"
 
 int main(int argc, char **argv)
 {
-    {
-        std::string input("# main() int\n - id int\n id = 114 \n id + 11\n");
-        Interpreter ip;
+    Option opt = {0};
 
-        ASSERTL(125, ip.Run(input));
+    {
+        const char *input = "# main() int\n - id int\n id = 114 \n id + 11\n";
+
+        ASSERTL(125, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n 42 \n 19\n");
-        Interpreter ip;
+        const char *input = "# main() int\n 42 \n 19\n";
 
-        ASSERTL(19, ip.Run(input));
+        ASSERTL(19, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n 12 \n");
-        Interpreter ip;
+        const char *input = "# main() int\n 12 \n";
 
-        ASSERTL(12, ip.Run(input));
+        ASSERTL(12, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n 39 + 3 \n");
-        Interpreter ip;
+        const char *input = "# main() int\n 39 + 3 \n";
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n - id int\n id = 0 \n id + 114\n");
-        Interpreter ip;
+        const char *input = "# main() int\n - id int\n id = 0 \n id + 114\n";
 
-        ASSERTL(114, ip.Run(input));
+        ASSERTL(114, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n 3129 + 1293 \n");
-        Interpreter ip;
+        const char *input = "# main() int\n 3129 + 1293 \n";
 
-        ASSERTL(4422, ip.Run(input));
+        ASSERTL(4422, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n 3129 + 1293+1111\n");
-        Interpreter ip;
+        const char *input = "# main() int\n 3129 + 1293+1111\n";
 
-        ASSERTL(5533, ip.Run(input));
+        ASSERTL(5533, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n 20+22\n");
-        Interpreter ip;
+        const char *input = "# main() int\n 20+22\n";
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n - a int\n a = 12 \n a\n");
-        Interpreter ip;
+        const char *input = "# main() int\n - a int\n a = 12 \n a\n";
 
-        ASSERTL(12, ip.Run(input));
+        ASSERTL(12, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n - a int\n a = 11\n");
-        Interpreter ip;
+        const char *input = "# main() int\n - a int\n a = 11\n";
 
-        ASSERTL(11, ip.Run(input));
+        ASSERTL(11, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n 12 == 11\n");
-        Interpreter ip;
+        const char *input = "# main() int\n 12 == 11\n";
 
-        ASSERTL(0, ip.Run(input));
+        ASSERTL(0, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int\n 42 == 42\n");
-        Interpreter ip;
+        const char *input = "# main() int\n 42 == 42\n";
 
-        ASSERTL(1, ip.Run(input));
+        ASSERTL(1, Interpret(input, &opt));
     }
     {
-        const std::string input("# main() int  \n - a int\n a = 39\n a == 39\n");
-        Interpreter ip;
+        const char *input = "# main() int  \n - a int\n a = 39\n a == 39\n";
 
-        ASSERTL(1, ip.Run(input));
+        ASSERTL(1, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - a int\n"
             "    a = 39\n"
             "    a == 39\n"
-            );
+            ;
 
-        Interpreter ip;
 
-        ASSERTL(1, ip.Run(input));
+        ASSERTL(1, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# seven() int\n"
             "    return 7\n"
             "# main() int\n"
             "    return seven()\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(7, ip.Run(input));
+        ASSERTL(7, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# seven() int\n"
             "    return 7\n"
             "\n"
@@ -115,13 +102,12 @@ int main(int argc, char **argv)
             "\n"
             "# main() int\n"
             "    return seven() + 35\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# seven() int\n"
             "    return 7\n"
             "\n"
@@ -130,41 +116,38 @@ int main(int argc, char **argv)
             "\n"
             "# main() int\n"
             "    return seven() + add(30, 5)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     // =========================================================================
     // test cases above copied to test.ro
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - a int\n"
             "    a = 42\n"
             "    if a == 12\n"
             "        return 11\n"
             "    return 22\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(22, ip.Run(input));
+        ASSERTL(22, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - a int\n"
             "    a = 42\n"
             "    if a == 42\n"
             "        return 11\n"
             "    return 22\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(11, ip.Run(input));
+        ASSERTL(11, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - a int\n"
             "    a = 42\n"
@@ -173,13 +156,12 @@ int main(int argc, char **argv)
             "    or\n"
             "        return 0\n"
             "    return 33\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input));
+        ASSERTL(1, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - a int\n"
             "    a = 42\n"
@@ -188,13 +170,12 @@ int main(int argc, char **argv)
             "    or\n"
             "        return 0\n"
             "    return 33\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0, ip.Run(input));
+        ASSERTL(0, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "// if statement\n"
             "// line comment at beginning of line\n"
             "\n"
@@ -208,13 +189,12 @@ int main(int argc, char **argv)
             "        return 0\n"
             "    // comment with the same indetation\n"
             "    return 33\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input));
+        ASSERTL(1, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "// if statement\n"
             "// line comment at beginning of line\n"
             "# seven() int\n"
@@ -230,26 +210,24 @@ int main(int argc, char **argv)
             "        return 0\n"
             "    // comment with the same indetation\n"
             "    return 33\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(7, ip.Run(input));
+        ASSERTL(7, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# upper(s string) string\n"
             "    return s\n"
             "\n"
             "# main() int\n"
             "    - s string\n"
             "    return 33\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(33, ip.Run(input));
+        ASSERTL(33, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# seven() int\n"
             "    return 7\n"
             "\n"
@@ -266,13 +244,12 @@ int main(int argc, char **argv)
             "\n"
             "    //b = 4 // error\n"
             "    return 31\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(31, ip.Run(input));
+        ASSERTL(31, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# seven() int\n"
             "    return 7\n"
             "\n"
@@ -281,13 +258,12 @@ int main(int argc, char **argv)
             "\n"
             "# main() int\n"
             "    return seven() + add(30, 5)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "- gcount int\n"
             "- gvar int\n"
             "\n"
@@ -308,13 +284,12 @@ int main(int argc, char **argv)
             "    seven()\n"
             "    return gvar\n"
             "    return seven() + add(30, 5)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(119, ip.Run(input));
+        ASSERTL(119, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# foo(x int) int\n"
             "    return 19\n"
             "    if x == 10\n"
@@ -333,13 +308,12 @@ int main(int argc, char **argv)
             "\n"
             "# main() int\n"
             "    return foo(10) + add(20, 3)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "## Point\n"
             "  - x int\n"
             "  - y int\n"
@@ -355,13 +329,12 @@ int main(int argc, char **argv)
             "  pt.y = 3\n"
             "  a = pt.y\n"
             "  return pt.x + pt.y\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(5, ip.Run(input));
+        ASSERTL(5, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - f float\n"
             "  f = 3.14\n"
@@ -369,22 +342,20 @@ int main(int argc, char **argv)
             "    return 1\n"
             "  or\n"
             "    return 0\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input));
+        ASSERTL(1, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  return 0xF + 0Xa\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(25, ip.Run(input));
+        ASSERTL(25, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - f float\n"
             "  - g float\n"
@@ -394,13 +365,12 @@ int main(int argc, char **argv)
             "    return 1\n"
             "  or\n"
             "    return 0\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input));
+        ASSERTL(1, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  if 13 == 13\n"
@@ -408,13 +378,12 @@ int main(int argc, char **argv)
             "  or\n"
             "    i = 99\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - s0 string\n"
             "  - s1 string\n"
@@ -426,13 +395,12 @@ int main(int argc, char **argv)
             "    return 42\n"
             "  or\n"
             "    return 0\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  if 42 != 42\n"
@@ -440,344 +408,317 @@ int main(int argc, char **argv)
             "  or\n"
             "    i = 11\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(11, ip.Run(input));
+        ASSERTL(11, Interpret(input, &opt));
     }
     {
         // '-' operator and order of eval args
-        const std::string input(
+        const char *input = 
             "# sub(x int, y int) int\n"
             "    return x - y\n"
             "# main() int\n"
             "    return sub(12, 7)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(5, ip.Run(input));
+        ASSERTL(5, Interpret(input, &opt));
     }
     {
         // '*' operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    i = 12\n"
             "    j = 3\n"
             "    return 46 - i * j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(10, ip.Run(input));
+        ASSERTL(10, Interpret(input, &opt));
     }
     {
         // '/' operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    i = 12\n"
             "    j = 3\n"
             "    return 46 - i / j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
         // '%' operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    i = 19\n"
             "    j = 7\n"
             "    return 46 - i % j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(41, ip.Run(input));
+        ASSERTL(41, Interpret(input, &opt));
     }
     {
         // '(' expr ')'
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    i = 19\n"
             "    j = 17\n"
             "    return 21 * (i - j)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
         // "||" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    i = 0\n"
             "    j = 7\n"
             "    return i || j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input) != 0);
+        ASSERTL(1, Interpret(input, &opt) != 0);
     }
     {
         // "||" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    i = 0\n"
             "    j = 0\n"
             "    return i || j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0, ip.Run(input) != 0);
+        ASSERTL(0, Interpret(input, &opt) != 0);
     }
     {
         // "&&" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    i = 0\n"
             "    j = 7\n"
             "    return i && j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0, ip.Run(input) != 0);
+        ASSERTL(0, Interpret(input, &opt) != 0);
     }
     {
         // "&&" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    i = 1\n"
             "    j = 7\n"
             "    return i && j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input) != 0);
+        ASSERTL(1, Interpret(input, &opt) != 0);
     }
     {
         // "+" unary operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 7\n"
             "    return +i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(7, ip.Run(input));
+        ASSERTL(7, Interpret(input, &opt));
     }
     {
         // "-" unary operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    return -i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(-42, ip.Run(input));
+        ASSERTL(-42, Interpret(input, &opt));
     }
     {
         // "-+" unary operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    return -+-+-+- -+-+ +-i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(-42, ip.Run(input));
+        ASSERTL(-42, Interpret(input, &opt));
     }
     {
         // "!" unary operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    return int(!(42 != i))\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input) != 0);
+        ASSERTL(1, Interpret(input, &opt) != 0);
     }
     {
         // "!" unary operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    return !i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0, ip.Run(input) != 0);
+        ASSERTL(0, Interpret(input, &opt) != 0);
     }
     {
         // "<" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    return int(i < 5)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0, ip.Run(input) != 0);
+        ASSERTL(0, Interpret(input, &opt) != 0);
     }
     {
         // "<=" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    return int(i <= 42)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input) != 0);
+        ASSERTL(1, Interpret(input, &opt) != 0);
     }
     {
         // ">" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    return int(i > 5)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input) != 0);
+        ASSERTL(1, Interpret(input, &opt) != 0);
     }
     {
         // ">=" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    return int(i >= 42)\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(1, ip.Run(input) != 0);
+        ASSERTL(1, Interpret(input, &opt) != 0);
     }
     {
         // "++" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    i++\n"
             "    return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(43, ip.Run(input));
+        ASSERTL(43, Interpret(input, &opt));
     }
     {
         // "--" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
             "    i--\n"
             "    return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(41, ip.Run(input));
+        ASSERTL(41, Interpret(input, &opt));
     }
     {
         // "&" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 0x3A9\n"
             "    return i & 0xFF\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0xA9, ip.Run(input));
+        ASSERTL(0xA9, Interpret(input, &opt));
     }
     {
         // "|" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 0x3A9\n"
             "    return i | 0xFFF\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0xFFF, ip.Run(input));
+        ASSERTL(0xFFF, Interpret(input, &opt));
     }
     {
         // "~" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 0x8\n"
             "    return ~i & 0xF\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0x7, ip.Run(input));
+        ASSERTL(0x7, Interpret(input, &opt));
     }
     {
         // "^" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 0x78\n"
             "    return i ^ 0xF0\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0x88, ip.Run(input));
+        ASSERTL(0x88, Interpret(input, &opt));
     }
     {
         // "<<" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 0x8\n"
             "    return i << 3\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0x40, ip.Run(input));
+        ASSERTL(0x40, Interpret(input, &opt));
     }
     {
         // ">>" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 0x8F\n"
             "    return i >> 4\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(0x08, ip.Run(input));
+        ASSERTL(0x08, Interpret(input, &opt));
     }
     {
         // "for" statment
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
@@ -785,28 +726,26 @@ int main(int argc, char **argv)
             "    for i = 0; i < 10; i++\n"
             "        j = j + 2\n"
             "    return j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(20, ip.Run(input));
+        ASSERTL(20, Interpret(input, &opt));
     }
     {
         // "for" statment while style
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 0\n"
             "    for i < 10\n"
             "        i++\n"
             "    return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(10, ip.Run(input));
+        ASSERTL(10, Interpret(input, &opt));
     }
     {
         // "for" statment infinite loop
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  i = 0\n"
@@ -815,28 +754,26 @@ int main(int argc, char **argv)
             "    if i == 8\n"
             "      break\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(8, ip.Run(input));
+        ASSERTL(8, Interpret(input, &opt));
     }
     {
         // "break" statment
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  for i = 0; i < 10; i++\n"
             "    if i == 5\n"
             "      break\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(5, ip.Run(input));
+        ASSERTL(5, Interpret(input, &opt));
     }
     {
         // "continue" statment
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  - j int\n"
@@ -846,14 +783,13 @@ int main(int argc, char **argv)
             "      continue\n"
             "    j++\n"
             "  return j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(5, ip.Run(input));
+        ASSERTL(5, Interpret(input, &opt));
     }
     {
         // "switch" statment
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  - j int\n"
@@ -869,14 +805,13 @@ int main(int argc, char **argv)
             "  case 3\n"
             "    j = 77\n"
             "  return  j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(34, ip.Run(input));
+        ASSERTL(34, Interpret(input, &opt));
     }
     {
         // "default" statment
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  - j int\n"
@@ -894,47 +829,43 @@ int main(int argc, char **argv)
             "  default\n"
             "    j = 99\n"
             "  return  j\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(99, ip.Run(input));
+        ASSERTL(99, Interpret(input, &opt));
     }
     {
         // local var init
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int = 42\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
         // global var init
-        const std::string input(
+        const char *input = 
             "- g int = 39\n"
             "# main() int\n"
             "  return g\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(39, ip.Run(input));
+        ASSERTL(39, Interpret(input, &opt));
     }
     {
         // local var type
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 41\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(41, ip.Run(input));
+        ASSERTL(41, Interpret(input, &opt));
     }
     {
         // local var type
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 41\n"
             "  - f = 3.1415\n"
@@ -942,88 +873,81 @@ int main(int argc, char **argv)
             "  if f == g + 0.0415\n"
             "    i = 9\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(9, ip.Run(input));
+        ASSERTL(9, Interpret(input, &opt));
     }
     {
         // "+=" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 42\n"
             "  i += 4\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(46, ip.Run(input));
+        ASSERTL(46, Interpret(input, &opt));
     }
     {
         // "-=" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 42\n"
             "  i -= 4\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(38, ip.Run(input));
+        ASSERTL(38, Interpret(input, &opt));
     }
     {
         // "*=" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 42\n"
             "  i *= 4\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(168, ip.Run(input));
+        ASSERTL(168, Interpret(input, &opt));
     }
     {
         // "/=" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 42\n"
             "  i /= 4\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(10, ip.Run(input));
+        ASSERTL(10, Interpret(input, &opt));
     }
     {
         // "%=" operator
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 42\n"
             "  i %= 4\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(2, ip.Run(input));
+        ASSERTL(2, Interpret(input, &opt));
     }
     {
         // bool type
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 42\n"
             "  - b = true\n"
             "  if b\n"
             "    i = 19\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(19, ip.Run(input));
+        ASSERTL(19, Interpret(input, &opt));
     }
     {
         // bool type
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 42\n"
             "  - b = true\n"
@@ -1031,27 +955,25 @@ int main(int argc, char **argv)
             "  if b != !c\n"
             "    i = 19\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
         // nop statement
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  for i = 0; i < 7; i++\n"
             "    nop\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(7, ip.Run(input));
+        ASSERTL(7, Interpret(input, &opt));
     }
     {
         // block comment
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 42   // int\n"
             "  /*\n"
@@ -1063,73 +985,67 @@ int main(int argc, char **argv)
             "  this is another line in block comment.\n"
             "  */\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(42, ip.Run(input));
+        ASSERTL(42, Interpret(input, &opt));
     }
     {
         // char literal
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 'a'\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(97, ip.Run(input));
+        ASSERTL(97, Interpret(input, &opt));
     }
     {
         // char literal
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = '\n'\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(10, ip.Run(input));
+        ASSERTL(10, Interpret(input, &opt));
     }
     {
         // slash at the end of string literal
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  - s = \"Hello\\\\\"\n"
             "  if s == \"Hello\\\\\"\n"
             "    i = 13\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(13, ip.Run(input));
+        ASSERTL(13, Interpret(input, &opt));
     }
     {
         // nil return type
-        const std::string input(
+        const char *input = 
             "# foo()\n"
             "  return\n"
             "# main() int\n"
             "  - i = 11\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(11, ip.Run(input));
+        ASSERTL(11, Interpret(input, &opt));
     }
     {
         // scope statement
-        const std::string input(
+        const char *input = 
             "# main() int\n"
             "  - i = 17\n"
             "  ---\n"
             "    - i int\n"
             "    i = 9\n"
             "  return i\n"
-            );
-        Interpreter ip;
+            ;
 
-        ASSERTL(17, ip.Run(input));
+        ASSERTL(17, Interpret(input, &opt));
     }
 
     if (GetTestCount() <= 1)
