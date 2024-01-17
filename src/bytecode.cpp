@@ -48,7 +48,7 @@ static int new_cap(int cur_cap, int min_cap)
 
 static void push_byte(ByteVec *v, Byte data)
 {
-    if (v->len >= v->cap) {
+    if (v->len + 1 > v->cap) {
         v->cap = new_cap(v->cap, 128);
         // TODO Remove cast
         v->data = (Byte *) realloc(v->data, v->cap * sizeof(*v->data));
@@ -59,7 +59,7 @@ static void push_byte(ByteVec *v, Byte data)
 static void push_word(ByteVec *v, Word data)
 {
     int sz = sizeof(data);
-    if (v->len + sz >= v->cap) {
+    if (v->len + sz > v->cap) {
         v->cap = new_cap(v->cap, 128);
         // TODO Remove cast
         v->data = (Byte *) realloc(v->data, v->cap * sizeof(*v->data));
@@ -71,7 +71,7 @@ static void push_word(ByteVec *v, Word data)
 static void push_int(ByteVec *v, Int data)
 {
     int sz = sizeof(data);
-    if (v->len + sz >= v->cap) {
+    if (v->len + sz > v->cap) {
         v->cap = new_cap(v->cap, 128);
         // TODO Remove cast
         v->data = (Byte *) realloc(v->data, v->cap * sizeof(*v->data));
@@ -83,7 +83,7 @@ static void push_int(ByteVec *v, Int data)
 static void push_float(ByteVec *v, Float data)
 {
     int sz = sizeof(data);
-    if (v->len + sz >= v->cap) {
+    if (v->len + sz > v->cap) {
         v->cap = new_cap(v->cap, 128);
         // TODO Remove cast
         v->data = (Byte *) realloc(v->data, v->cap * sizeof(*v->data));
@@ -124,134 +124,92 @@ static void assert_range(const FuncInfoVec *v,  Word index)
     }
 }
 
-template<typename T>
-void push_back(std::vector<Byte> &bytes, T operand)
-{
-    constexpr int SIZE = sizeof(T);
-    Byte buf[SIZE] = {0};
-
-    std::memcpy(buf, &operand, SIZE);
-
-    for (int i = 0; i < SIZE; i++)
-        bytes.push_back(buf[i]);
-}
-
-template<typename T>
-void write(std::vector<Byte> &bytes, Int addr, T operand)
-{
-    constexpr int SIZE = sizeof(T);
-    Byte buf[SIZE] = {0};
-
-    std::memcpy(buf, &operand, SIZE);
-
-    for (int i = 0; i < SIZE; i++)
-        bytes[addr + i] = buf[i];
-}
-
-template<typename T>
-T read(const std::vector<Byte> &bytes, Int addr)
-{
-    constexpr int SIZE = sizeof(T);
-    Byte buf[SIZE] = {0};
-
-    for (int i = 0; i < SIZE; i++)
-        buf[i] = bytes[addr + i];
-
-    T ret {};
-    std::memcpy(&ret, buf, SIZE);
-
-    return ret;
-}
-
 void LoadByte(Bytecode *code, Byte byte)
 {
-    code->bytes_.push_back(OP_LOADB);
-    code->bytes_.push_back(byte);
+    push_byte(&code->bytes_, OP_LOADB);
+    push_byte(&code->bytes_, byte);
 }
 
 void LoadInt(Bytecode *code, Int integer)
 {
-    constexpr Int bytemin = std::numeric_limits<Byte>::min();
-    constexpr Int bytemax = std::numeric_limits<Byte>::max();
-
-    if (integer >= bytemin && integer <= bytemax) {
-        code->bytes_.push_back(OP_LOADB);
-        push_back<Byte>(code->bytes_, integer);
+    if (integer >= 0 && integer <= UINT8_MAX) {
+        push_byte(&code->bytes_, OP_LOADB);
+        push_byte(&code->bytes_, integer);
     }
     else {
-        code->bytes_.push_back(OP_LOADI);
-        push_back<Int>(code->bytes_, integer);
+        push_byte(&code->bytes_, OP_LOADI);
+        push_int(&code->bytes_, integer);
     }
 }
 
 void LoadFloat(Bytecode *code, Float fp)
 {
-    code->bytes_.push_back(OP_LOADF);
-    push_back<Float>(code->bytes_, fp);
+    push_byte(&code->bytes_, OP_LOADF);
+    push_float(&code->bytes_, fp);
 }
 
 void LoadString(Bytecode *code, Word id)
 {
-    code->bytes_.push_back(OP_LOADS);
-    push_back<Word>(code->bytes_, id);
+    push_byte(&code->bytes_, OP_LOADS);
+    push_word(&code->bytes_, id);
 }
 
 void LoadLocal(Bytecode *code, Byte id)
 {
-    code->bytes_.push_back(OP_LOADLOCAL);
-    code->bytes_.push_back(id);
+    push_byte(&code->bytes_, OP_LOADLOCAL);
+    push_byte(&code->bytes_, id);
 }
 
 void LoadGlobal(Bytecode *code, Word id)
 {
-    code->bytes_.push_back(OP_LOADGLOBAL);
-    push_back<Word>(code->bytes_, id);
+    push_byte(&code->bytes_, OP_LOADGLOBAL);
+    push_word(&code->bytes_, id);
 }
 
 void StoreLocal(Bytecode *code, Byte id)
 {
-    code->bytes_.push_back(OP_STORELOCAL);
-    code->bytes_.push_back(id);
+    push_byte(&code->bytes_, OP_STORELOCAL);
+    push_byte(&code->bytes_, id);
 }
 
 void StoreGlobal(Bytecode *code, Word id)
 {
-    code->bytes_.push_back(OP_STOREGLOBAL);
-    push_back<Word>(code->bytes_, id);
+    push_byte(&code->bytes_, OP_STOREGLOBAL);
+    push_word(&code->bytes_, id);
 }
 
 void Load(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LOAD);
+    push_byte(&code->bytes_, OP_LOAD);
 }
 
 void Store(Bytecode *code)
 {
-    code->bytes_.push_back(OP_STORE);
+    push_byte(&code->bytes_, OP_STORE);
 }
 
 void IncLocal(Bytecode *code, Byte id)
 {
-    code->bytes_.push_back(OP_INCLOCAL);
-    code->bytes_.push_back(id);
+    push_byte(&code->bytes_, OP_INCLOCAL);
+    push_byte(&code->bytes_, id);
 }
 
 void IncGlobal(Bytecode *code, Word id)
 {
-    code->bytes_.push_back(OP_INCGLOBAL);
-    push_back<Word>(code->bytes_, id);
+    push_byte(&code->bytes_, OP_INCGLOBAL);
+    push_word(&code->bytes_, id);
 }
 
 void DecLocal(Bytecode *code, Byte id)
 {
-    code->bytes_.push_back(OP_DECLOCAL);
-    code->bytes_.push_back(id);
+    push_byte(&code->bytes_, OP_DECLOCAL);
+    push_byte(&code->bytes_, id);
 }
 
 void DecGlobal(Bytecode *code, Word id)
 {
-    code->bytes_.push_back(OP_DECGLOBAL);
-    push_back<Word>(code->bytes_, id);
+    push_byte(&code->bytes_, OP_DECGLOBAL);
+    push_word(&code->bytes_, id);
 }
 
 void Allocate(Bytecode *code, Byte count)
@@ -259,309 +217,309 @@ void Allocate(Bytecode *code, Byte count)
     if (count == 0)
         return;
 
-    code->bytes_.push_back(OP_ALLOC);
-    code->bytes_.push_back(count);
+    push_byte(&code->bytes_, OP_ALLOC);
+    push_byte(&code->bytes_, count);
 }
 
 void LoadAddress(Bytecode *code, Word id)
 {
-    code->bytes_.push_back(OP_LOADA);
-    push_back<Word>(code->bytes_, id);
+    push_byte(&code->bytes_, OP_LOADA);
+    push_word(&code->bytes_, id);
 }
 
 void Dereference(Bytecode *code)
 {
-    code->bytes_.push_back(OP_DEREF);
+    push_byte(&code->bytes_, OP_DEREF);
 }
 
 void Index(Bytecode *code)
 {
-    code->bytes_.push_back(OP_INDEX);
+    push_byte(&code->bytes_, OP_INDEX);
 }
 
 void LoadTypeNil(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LOADTYPEN);
+    push_byte(&code->bytes_, OP_LOADTYPEN);
 }
 
 void LoadTypeBool(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LOADTYPEB);
+    push_byte(&code->bytes_, OP_LOADTYPEB);
 }
 
 void LoadTypeInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LOADTYPEI);
+    push_byte(&code->bytes_, OP_LOADTYPEI);
 }
 
 void LoadTypeFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LOADTYPEF);
+    push_byte(&code->bytes_, OP_LOADTYPEF);
 }
 
 void LoadTypeString(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LOADTYPES);
+    push_byte(&code->bytes_, OP_LOADTYPES);
 }
 
 void CallFunction(Bytecode *code, Word func_index, bool builtin)
 {
     if (builtin) {
-        code->bytes_.push_back(OP_CALL_BUILTIN);
-        push_back<Byte>(code->bytes_, func_index);
+        push_byte(&code->bytes_, OP_CALL_BUILTIN);
+        push_byte(&code->bytes_, func_index);
     }
     else {
-        code->bytes_.push_back(OP_CALL);
-        push_back<Word>(code->bytes_, func_index);
+        push_byte(&code->bytes_, OP_CALL);
+        push_word(&code->bytes_, func_index);
     }
 }
 
 Int JumpIfZero(Bytecode *code, Int addr)
 {
-    code->bytes_.push_back(OP_JEQ);
+    push_byte(&code->bytes_, OP_JEQ);
     const Int operand_addr = NextAddr(code);
-    push_back<Word>(code->bytes_, addr);
+    push_word(&code->bytes_, addr);
 
     return operand_addr;
 }
 
 Int Jump(Bytecode *code, Int addr)
 {
-    code->bytes_.push_back(OP_JMP);
+    push_byte(&code->bytes_, OP_JMP);
     const Int operand_addr = NextAddr(code);
-    push_back<Word>(code->bytes_, addr);
+    push_word(&code->bytes_, addr);
 
     return operand_addr;
 }
 
 void Return(Bytecode *code)
 {
-    code->bytes_.push_back(OP_RET);
+    push_byte(&code->bytes_, OP_RET);
 }
 
 void AddInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_ADD);
+    push_byte(&code->bytes_, OP_ADD);
 }
 
 void AddFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_ADDF);
+    push_byte(&code->bytes_, OP_ADDF);
 }
 
 void ConcatString(Bytecode *code)
 {
-    code->bytes_.push_back(OP_CATS);
+    push_byte(&code->bytes_, OP_CATS);
 }
 
 void SubInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_SUB);
+    push_byte(&code->bytes_, OP_SUB);
 }
 
 void SubFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_SUBF);
+    push_byte(&code->bytes_, OP_SUBF);
 }
 
 void MulInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_MUL);
+    push_byte(&code->bytes_, OP_MUL);
 }
 
 void MulFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_MULF);
+    push_byte(&code->bytes_, OP_MULF);
 }
 
 void DivInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_DIV);
+    push_byte(&code->bytes_, OP_DIV);
 }
 
 void DivFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_DIVF);
+    push_byte(&code->bytes_, OP_DIVF);
 }
 
 void RemInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_REM);
+    push_byte(&code->bytes_, OP_REM);
 }
 
 void RemFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_REMF);
+    push_byte(&code->bytes_, OP_REMF);
 }
 
 void EqualInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_EQ);
+    push_byte(&code->bytes_, OP_EQ);
 }
 
 void EqualFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_EQF);
+    push_byte(&code->bytes_, OP_EQF);
 }
 
 void EqualString(Bytecode *code)
 {
-    code->bytes_.push_back(OP_EQS);
+    push_byte(&code->bytes_, OP_EQS);
 }
 
 void NotEqualInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_NEQ);
+    push_byte(&code->bytes_, OP_NEQ);
 }
 
 void NotEqualFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_NEQF);
+    push_byte(&code->bytes_, OP_NEQF);
 }
 
 void NotEqualString(Bytecode *code)
 {
-    code->bytes_.push_back(OP_NEQS);
+    push_byte(&code->bytes_, OP_NEQS);
 }
 
 void LessInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LT);
+    push_byte(&code->bytes_, OP_LT);
 }
 
 void LessFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LTF);
+    push_byte(&code->bytes_, OP_LTF);
 }
 
 void LessEqualInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LTE);
+    push_byte(&code->bytes_, OP_LTE);
 }
 
 void LessEqualFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_LTEF);
+    push_byte(&code->bytes_, OP_LTEF);
 }
 
 void GreaterInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_GT);
+    push_byte(&code->bytes_, OP_GT);
 }
 
 void GreaterFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_GTF);
+    push_byte(&code->bytes_, OP_GTF);
 }
 
 void GreaterEqualInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_GTE);
+    push_byte(&code->bytes_, OP_GTE);
 }
 
 void GreaterEqualFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_GTEF);
+    push_byte(&code->bytes_, OP_GTEF);
 }
 
 void And(Bytecode *code)
 {
-    code->bytes_.push_back(OP_AND);
+    push_byte(&code->bytes_, OP_AND);
 }
 
 void Or(Bytecode *code)
 {
-    code->bytes_.push_back(OP_OR);
+    push_byte(&code->bytes_, OP_OR);
 }
 
 void Xor(Bytecode *code)
 {
-    code->bytes_.push_back(OP_XOR);
+    push_byte(&code->bytes_, OP_XOR);
 }
 
 void Not(Bytecode *code)
 {
-    code->bytes_.push_back(OP_NOT);
+    push_byte(&code->bytes_, OP_NOT);
 }
 
 void ShiftLeft(Bytecode *code)
 {
-    code->bytes_.push_back(OP_SHL);
+    push_byte(&code->bytes_, OP_SHL);
 }
 
 void ShiftRight(Bytecode *code)
 {
-    code->bytes_.push_back(OP_SHR);
+    push_byte(&code->bytes_, OP_SHR);
 }
 
 void NegateInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_NEG);
+    push_byte(&code->bytes_, OP_NEG);
 }
 
 void NegateFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_NEGF);
+    push_byte(&code->bytes_, OP_NEGF);
 }
 
 void SetIfZero(Bytecode *code)
 {
-    code->bytes_.push_back(OP_SETZ);
+    push_byte(&code->bytes_, OP_SETZ);
 }
 
 void SetIfNotZero(Bytecode *code)
 {
-    code->bytes_.push_back(OP_SETNZ);
+    push_byte(&code->bytes_, OP_SETNZ);
 }
 
 void Pop(Bytecode *code)
 {
-    code->bytes_.push_back(OP_POP);
+    push_byte(&code->bytes_, OP_POP);
 }
 
 void DuplicateTop(Bytecode *code)
 {
-    code->bytes_.push_back(OP_DUP);
+    push_byte(&code->bytes_, OP_DUP);
 }
 
 void BoolToInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_BTOI);
+    push_byte(&code->bytes_, OP_BTOI);
 }
 
 void BoolToFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_BTOF);
+    push_byte(&code->bytes_, OP_BTOF);
 }
 
 void IntToBool(Bytecode *code)
 {
-    code->bytes_.push_back(OP_ITOB);
+    push_byte(&code->bytes_, OP_ITOB);
 }
 
 void IntToFloat(Bytecode *code)
 {
-    code->bytes_.push_back(OP_ITOF);
+    push_byte(&code->bytes_, OP_ITOF);
 }
 
 void FloatToBool(Bytecode *code)
 {
-    code->bytes_.push_back(OP_FTOB);
+    push_byte(&code->bytes_, OP_FTOB);
 }
 
 void FloatToInt(Bytecode *code)
 {
-    code->bytes_.push_back(OP_FTOI);
+    push_byte(&code->bytes_, OP_FTOI);
 }
 
 void Exit(Bytecode *code)
 {
-    code->bytes_.push_back(OP_EXIT);
+    push_byte(&code->bytes_, OP_EXIT);
 }
 
 void End(Bytecode *code)
 {
-    code->bytes_.push_back(OP_EOC);
+    push_byte(&code->bytes_, OP_EOC);
 }
 
 Int GetFunctionAddress(const Bytecode *code, Word func_index)
@@ -614,34 +572,40 @@ Byte Read(const Bytecode *code, Int addr)
         InternalError(__FILE__, __LINE__,
                 "address out of range: %d", Size(code));
 
-    return code->bytes_[addr];
+    return code->bytes_.data[addr];
 }
 
 Word ReadWord(const Bytecode *code, Int addr)
 {
-    if (addr < 0 || addr >= Size(code))
+    int sz = sizeof(Word);
+    if (addr < 0 || addr + sz > code->bytes_.len) {
         InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size(code));
-
-    return read<Word>(code->bytes_, addr);
+                "address %d out of range: %d",
+                addr, code->bytes_.len);
+    }
+    return *((Word*) &code->bytes_.data[addr]);
 }
 
 Int ReadInt(const Bytecode *code, Int addr)
 {
-    if (addr < 0 || addr >= Size(code))
+    int sz = sizeof(Int);
+    if (addr < 0 || addr + sz > code->bytes_.len) {
         InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size(code));
-
-    return read<Int>(code->bytes_, addr);
+                "address %d out of range: %d",
+                addr, code->bytes_.len);
+    }
+    return *((Int*) &code->bytes_.data[addr]);
 }
 
 Float ReadFloat(const Bytecode *code, Int addr)
 {
-    if (addr < 0 || addr >= Size(code))
+    int sz = sizeof(Float);
+    if (addr < 0 || addr + sz > code->bytes_.len) {
         InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size(code));
-
-    return read<Float>(code->bytes_, addr);
+                "address %d out of range: %d",
+                addr, code->bytes_.len);
+    }
+    return *((Float*) &code->bytes_.data[addr]);
 }
 
 Int NextAddr(const Bytecode *code)
@@ -651,7 +615,7 @@ Int NextAddr(const Bytecode *code)
 
 Int Size(const Bytecode *code)
 {
-    return code->bytes_.size();
+    return code->bytes_.len;
 }
 
 void BeginIf(Bytecode *code)
@@ -693,7 +657,7 @@ void PushCaseClose(Bytecode *code, Int addr)
 void BackPatch(Bytecode *code, Int operand_addr)
 {
     const Int next_addr = NextAddr(code);
-    write<Word>(code->bytes_, operand_addr, next_addr);
+    *((Word*) &code->bytes_.data[operand_addr]) = next_addr;
 }
 
 void BackPatchOrCloses(Bytecode *code)

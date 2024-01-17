@@ -2,7 +2,6 @@
 #define BYTECODE_H
 
 #include <stdint.h>
-#include <vector>
 
 typedef uint8_t  Byte;
 typedef uint16_t Word;
@@ -133,16 +132,15 @@ typedef struct FuncInfoVec {
 } FuncInfoVec;
 
 typedef struct Bytecode {
-    std::vector<Byte> bytes_;
-    PtrVec strings_ = {0};
-
-    FuncInfoVec funcs_ = {0};
+    ByteVec bytes_;
+    PtrVec strings_;
+    FuncInfoVec funcs_;
 
     // back patches
-    AddrStack ors_ = {0};
-    AddrStack breaks_ = {0};
-    AddrStack continues_ = {0};
-    AddrStack casecloses_ = {0};
+    AddrStack ors_;
+    AddrStack breaks_;
+    AddrStack continues_;
+    AddrStack casecloses_;
 } Bytecode;
 
 // emit opcode and operand

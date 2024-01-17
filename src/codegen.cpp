@@ -2,6 +2,7 @@
 #include "bytecode.h"
 #include "ast.h"
 #include <iostream>
+#include <vector>
 
 static bool optimize = false;
 
