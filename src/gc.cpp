@@ -1,23 +1,40 @@
 #include "gc.h"
-#include <iostream>
+#include "compiler.h"
+#include "error.h"
+#include <string.h>
+#include <stdio.h>
 
-void StringObj::Print() const
+static void print_obj(const Obj *obj)
 {
-    std::cout << "[StringObj] => " << str << std::endl;
+    switch (obj->kind) {
+    case OBJ_NIL:
+        printf("[NilObj] => nil\n");
+        break;
+
+    case OBJ_STRING:
+        printf("[StringObj] => %s\n", ((StringObj *) obj)->data);
+        break;
+
+    default:
+        UNREACHABLE;
+        break;
+    }
 }
 
-StringObj *GC::NewString(const std::string &s)
+StringObj *NewString(GC *gc, const char *s)
 {
-    StringObj *obj = new StringObj(s);
-    obj->next = root;
-    root = obj;
+    StringObj *str = CALLOC(StringObj);
+    str->data = strdup(s);
 
-    return obj;
+    str->obj.next = gc->root;
+    gc->root = (Obj*)str;
+
+    return str;
 }
 
-void GC::PrintObjs() const
+void PrintObjs(const GC *gc)
 {
-    for (Obj *obj = root; obj; obj = obj->next) {
-        obj->Print();
+    for (Obj *obj = gc->root; obj; obj = obj->next) {
+        print_obj(obj);
     }
 }

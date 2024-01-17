@@ -1,5 +1,6 @@
 #include "vm.h"
 #include "error.h"
+#include <string.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -86,7 +87,7 @@ static Int fetch_word(VM *vm)
         buf[i] = (Byte)fetch_byte(vm);
 
     Word ret = 0;
-    std::memcpy(&ret, buf, SIZE);
+    memcpy(&ret, buf, SIZE);
 
     return ret;
 }
@@ -100,7 +101,7 @@ static Int fetch_int(VM *vm)
         buf[i] = (Byte)fetch_byte(vm);
 
     Int ret = 0;
-    std::memcpy(&ret, buf, SIZE);
+    memcpy(&ret, buf, SIZE);
 
     return ret;
 }
@@ -114,7 +115,7 @@ static Float fetch_float(VM *vm)
         buf[i] = (Byte)fetch_byte(vm);
 
     Float ret = 0;
-    std::memcpy(&ret, buf, SIZE);
+    memcpy(&ret, buf, SIZE);
 
     return ret;
 }
@@ -128,7 +129,7 @@ static Word fetch_str(VM *vm)
         buf[i] = (Byte)fetch_byte(vm);
 
     Word ret = 0;
-    std::memcpy(&ret, buf, SIZE);
+    memcpy(&ret, buf, SIZE);
 
     return ret;
 }
@@ -263,9 +264,9 @@ static void run(VM *vm)
         case OP_LOADS:
             {
                 const Word id = fetch_str(vm);
-                const std::string &s = GetConstString(vm->code_, id);
+                const char *s = GetConstString(vm->code_, id);
                 Value val;
-                val.str = vm->gc_.NewString(s);
+                val.str = NewString(&vm->gc_, s);
                 push(vm, val);
             }
             break;
@@ -386,7 +387,7 @@ static void run(VM *vm)
                     fprintf(stderr,
                             "panic: runtime error: index out of range[%ld] with length %ld",
                             index, len);
-                    std::exit(1);
+                    exit(1);
                 }
 
                 // index from next to base
@@ -482,7 +483,7 @@ static void run(VM *vm)
                             break;
 
                         case TID_STR:
-                            printf("%s", val.str->str.c_str());
+                            printf("%s", val.str->data);
                             break;
                         }
 
@@ -560,7 +561,11 @@ static void run(VM *vm)
                 const Value val1 = pop(vm);
                 const Value val0 = pop(vm);
                 Value val;
-                val.str = vm->gc_.NewString(val0.str->str + val1.str->str);
+                //FIXME
+                char buf[1024] = {'\0'};
+                snprintf(buf, 1024, "%s%s", val0.str->data, val1.str->data);
+                val.str = NewString(&vm->gc_, buf);
+                //val.str = NewString(&vm->gc_, val0.str->str + val1.str->str);
                 push(vm, val);
             }
             break;
@@ -655,7 +660,7 @@ static void run(VM *vm)
                 const Value val1 = pop(vm);
                 const Value val0 = pop(vm);
                 Value val;
-                val.inum = val0.str->str == val1.str->str;
+                val.inum = !strcmp(val0.str->data, val1.str->data);
                 push(vm, val);
             }
             break;
@@ -681,7 +686,7 @@ static void run(VM *vm)
                 const Value val1 = pop(vm);
                 const Value val0 = pop(vm);
                 Value val;
-                val.inum = val0.str->str != val1.str->str;
+                val.inum = strcmp(val0.str->data, val1.str->data);
                 push(vm, val);
             }
             break;
@@ -944,5 +949,5 @@ void EnablePrintStack(VM *vm, bool enable)
 
 void PrintObjs(const VM *vm)
 {
-    vm->gc_.PrintObjs();
+    PrintObjs(&vm->gc_);
 }

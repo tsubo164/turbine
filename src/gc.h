@@ -1,36 +1,27 @@
 #ifndef GC_H
 #define GC_H
 
-#include <string>
-
-struct Obj {
-    Obj() {}
-    virtual ~Obj() {}
-
-    Obj *next = nullptr;
-    bool marked = false;
-    virtual void Print() const = 0;
+enum ObjKind {
+    OBJ_NIL,
+    OBJ_STRING,
 };
 
-struct StringObj : public Obj {
-    StringObj(const std::string &s) : str(s) {}
-    ~StringObj() {}
-    std::string str;
+typedef struct Obj {
+    struct Obj *next;
+    int kind;
+    bool marked;
+} Obj;
 
-    void Print() const;
-};
+typedef struct StringObj {
+    Obj obj;
+    const char *data;
+} StringObj;
 
-class GC {
-public:
-    GC() {}
-    ~GC() {}
+typedef struct GC {
+    Obj *root;
+} GC;
 
-    StringObj *NewString(const std::string &s);
-
-    void PrintObjs() const;
-
-private:
-    Obj *root = nullptr;
-};
+StringObj *NewString(GC *gc, const char *s);
+void PrintObjs(const GC *gc);
 
 #endif // _H
