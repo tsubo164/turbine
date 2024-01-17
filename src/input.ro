@@ -42,4 +42,4 @@
 # main() int
   - a = 19
   print(a, "Hello", 3.14)
-  return a
+  return  23 + a

@@ -1,38 +1,49 @@
 #ifndef VM_H
 #define VM_H
 
-#include <vector>
 #include "bytecode.h"
 #include "gc.h"
 
 typedef struct Value {
     union {
-        Int inum = 0;
+        Int inum;
         Float fpnum;
         StringObj *str;
     };
 } Value;
 
+typedef struct ValueVec {
+    Value *data;
+    int cap;
+    int len;
+} ValueVec;
+
 typedef struct Call {
-    int func_index = 0;
-    int argc = 0;
-    Int return_ip = 0;
-    Int return_bp = 0;
+    int func_index;
+    int argc;
+    Int return_ip;
+    Int return_bp;
 } Call;
 
+typedef struct CallVec {
+    Call *data;
+    int cap;
+    int len;
+} CallVec;
+
 typedef struct VM {
-    std::vector<Value> stack_ = {{0}};
-    const Bytecode *code_ = nullptr;
+    ValueVec stack_;
+    const Bytecode *code_;
 
-    Int eoc_ = 0; // end of code
-    Int ip_ = 0; // instruction pointer
-    Int sp_ = 0; // stack pointer
-    Int bp_ = 0; // base pointer
+    Int eoc_; // end of code
+    Int ip_; // instruction pointer
+    Int sp_; // stack pointer
+    Int bp_; // base pointer
 
-    std::vector<Call> callstack_ = {{0}};
-    int call_sp_ = 0;
+    CallVec callstack_;
+    int call_sp_;
 
-    bool print_stack_ = false;
+    bool print_stack_;
     GC gc_;
 } VM;
 

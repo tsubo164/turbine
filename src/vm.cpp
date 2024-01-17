@@ -12,6 +12,43 @@ enum class TypeID {
     STR,
 };
 
+static int new_cap(int cur_cap, int min_cap)
+{
+    return cur_cap < min_cap ? min_cap : cur_cap * 2;
+}
+
+static void resize_stack(ValueVec *v, int new_len)
+{
+    if (new_len >= v->cap) {
+        v->cap = v->cap < 256 ? 256 : v->cap;
+        while (v->cap < new_len)
+            v->cap *= 2;
+        // TODO Remove cast
+        v->data = (Value *) realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->len = new_len;
+}
+
+static void push_value(ValueVec *v, Value val)
+{
+    if (v->len >= v->cap) {
+        v->cap = new_cap(v->cap, 256);
+        // TODO Remove cast
+        v->data = (Value *) realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = val;
+}
+
+static void push_callinfo(CallVec *v, const Call *call)
+{
+    if (v->len >= v->cap) {
+        v->cap = new_cap(v->cap, 32);
+        // TODO Remove cast
+        v->data = (Call *) realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = *call;
+}
+
 static void set_ip(VM *vm, Int ip)
 {
     vm->ip_ = ip;
@@ -19,8 +56,8 @@ static void set_ip(VM *vm, Int ip)
 
 static void set_sp(VM *vm, Int sp)
 {
-    if (sp >= vm->stack_.size())
-        vm->stack_.resize(sp + 1);
+    if (sp >= vm->stack_.len)
+        resize_stack(&vm->stack_, sp + 1);
 
     vm->sp_ = sp;
 }
@@ -98,23 +135,23 @@ static Word fetch_str(VM *vm)
 
 static void push(VM *vm, Value val)
 {
-    if (vm->sp_ == vm->stack_.size() - 1) {
-        vm->stack_.push_back(val);
+    if (vm->sp_ == vm->stack_.len - 1) {
+        push_value(&vm->stack_, val);
         vm->sp_++;
     }
     else {
-        vm->stack_[++vm->sp_] = val;
+        vm->stack_.data[++vm->sp_] = val;
     }
 }
 
 static Value pop(VM *vm)
 {
-    return vm->stack_[vm->sp_--];
+    return vm->stack_.data[vm->sp_--];
 }
 
 static Value top(const VM *vm)
 {
-    return vm->stack_[vm->sp_];
+    return vm->stack_.data[vm->sp_];
 }
 
 static Int pop_int(VM *vm)
@@ -143,40 +180,40 @@ static void push_float(VM *vm, Float fpnum)
     push(vm, val);
 }
 
-static void push_call(VM *vm, Call call)
+static void push_call(VM *vm, const Call *call)
 {
-    if (vm->call_sp_ == vm->callstack_.size() - 1) {
-        vm->callstack_.push_back(call);
+    if (vm->call_sp_ == vm->callstack_.len - 1) {
+        push_callinfo(&vm->callstack_, call);
         vm->call_sp_++;
     }
     else {
-        vm->callstack_[++vm->call_sp_] = call;
+        vm->callstack_.data[++vm->call_sp_] = *call;
     }
 }
 
 static Call pop_call(VM *vm)
 {
-    return vm->callstack_[vm->call_sp_--];
+    return vm->callstack_.data[vm->call_sp_--];
 }
 
 static Value get_local(const VM *vm, int id)
 {
-    return vm->stack_[vm->bp_ + 1 + id];
+    return vm->stack_.data[vm->bp_ + 1 + id];
 }
 
 static Value get_global(const VM *vm, int id)
 {
-    return vm->stack_[1 + id];
+    return vm->stack_.data[1 + id];
 }
 
 static void set_local(VM *vm, int id, Value val)
 {
-    vm->stack_[vm->bp_ + 1 + id] = val;
+    vm->stack_.data[vm->bp_ + 1 + id] = val;
 }
 
 static void set_global(VM *vm, int id, Value val)
 {
-    vm->stack_[1 + id] = val;
+    vm->stack_.data[1 + id] = val;
 }
 
 static bool is_eoc(const VM *vm)
@@ -268,7 +305,7 @@ static void run(VM *vm)
         case OP_LOAD:
             {
                 const Value addr = pop(vm);
-                const Value val = vm->stack_[addr.inum];
+                const Value val = vm->stack_.data[addr.inum];
                 push(vm, val);
             }
             break;
@@ -277,7 +314,7 @@ static void run(VM *vm)
             {
                 const Value addr = pop(vm);
                 const Value val = pop(vm);
-                vm->stack_[addr.inum] = val;
+                vm->stack_.data[addr.inum] = val;
             }
             break;
 
@@ -334,7 +371,7 @@ static void run(VM *vm)
         case OP_DEREF:
             {
                 const Int addr  = pop_int(vm);
-                const Value val = vm->stack_[addr];
+                const Value val = vm->stack_.data[addr];
                 push(vm, val);
             }
             break;
@@ -343,7 +380,7 @@ static void run(VM *vm)
             {
                 const long index = pop_int(vm);
                 const long base = pop_int(vm);
-                const long len = vm->stack_[base].inum;
+                const long len = vm->stack_.data[base].inum;
 
                 if (index >= len) {
                     std::cout << "panic: runtime error: index out of range[" <<
@@ -384,11 +421,11 @@ static void run(VM *vm)
                 const Word func_index = func_var.inum;
                 const Int func_addr = GetFunctionAddress(vm->code_, func_index);
 
-                Call call;
+                Call call = {0};
                 call.argc = GetFunctionArgCount(vm->code_, func_index);
                 call.return_ip = vm->ip_;
                 call.return_bp = vm->bp_;
-                push_call(vm, call);
+                push_call(vm, &call);
 
                 set_ip(vm, func_addr);
                 set_bp(vm, vm->sp_ - call.argc);
@@ -860,6 +897,16 @@ void Run(VM *vm, const Bytecode *code)
 {
     vm->code_ = code;
     vm->eoc_ = Size(vm->code_);
+
+    // empty data at the bottom of stacks
+    Value val = {0};
+    push_value(&vm->stack_, val);
+    vm->sp_ = 0;
+
+    Call call = {0};
+    push_callinfo(&vm->callstack_, &call);
+    vm->call_sp_ = 0;
+
     run(vm);
 }
 
@@ -879,7 +926,7 @@ void PrintStack(const VM *vm)
         else
             printf("    ");
 
-        printf("|%4llu|", vm->stack_[i].inum);
+        printf("|%4llu|", vm->stack_.data[i].inum);
 
         if (i == vm->bp_)
             printf("<-BP");

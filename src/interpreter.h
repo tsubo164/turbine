@@ -25,7 +25,7 @@ public:
 private:
     Prog *prog_ = nullptr;
     Bytecode code_ = {{0}};
-    VM vm_;
+    VM vm_ = {{0}};
 
     bool print_token_ = false;
     bool print_token_raw_ = false;
