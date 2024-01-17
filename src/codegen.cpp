@@ -1,8 +1,28 @@
 #include "compiler.h"
 #include "bytecode.h"
+#include "error.h"
 #include "ast.h"
-#include <iostream>
-#include <vector>
+
+typedef struct IntVec {
+    Int *data;
+    int cap;
+    int len;
+} IntVec;
+
+static int new_cap(int cur_cap, int min_cap)
+{
+    return cur_cap < min_cap ? min_cap : cur_cap * 2;
+}
+
+static void push_int(IntVec *v, Int data)
+{
+    if (v->len + 1 > v->cap) {
+        v->cap = new_cap(v->cap, 16);
+        // TODO Remove cast
+        v->data = (Int *) realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = data;
+}
 
 static bool optimize = false;
 
@@ -581,9 +601,8 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
         {
             Int exit = 0;
 
-            std::vector<Int> trues;
+            IntVec trues = {0};
             // eval conds
-            //for (auto &cond: s->conds) {
             for (Stmt *cond = s->children; cond; cond = cond->next) {
                 Int tru = 0;
                 Int fls = 0;
@@ -594,13 +613,14 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
                 fls = JumpIfZero(code, -1);
                 tru = Jump(code, -1);
                 BackPatch(code, fls);
-                trues.push_back(tru);
+                push_int(&trues, tru);
             }
             // all conds false -> close case
             exit = Jump(code, -1);
             // one of cond true -> go to body
-            for (auto t: trues)
-                BackPatch(code, t);
+            for (int i = 0; i < trues.len; i++)
+                BackPatch(code, trues.data[i]);
+            free(trues.data);
 
             // body
             gen_stmt(code, s->body);
@@ -656,8 +676,7 @@ static void gen_funcdef(Bytecode *code, const FuncDef *f)
 static void gen_prog(Bytecode *code, const Prog *p)
 {
     if (!p->main_func) {
-        std::cerr << "'main' function not found" << std::endl;
-        std::exit(EXIT_FAILURE);
+        fprintf(stderr, "error: 'main' function not found");
     }
 
     // global vars
