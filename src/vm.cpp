@@ -1,15 +1,15 @@
 #include "vm.h"
-#include <iostream>
-#include <stack>
-#include <cmath>
+#include "error.h"
+#include <stdio.h>
+#include <math.h>
 
 // for variadic function
-enum class TypeID {
-    NIL = 0,
-    BOL,
-    INT,
-    FLT,
-    STR,
+enum TypeID {
+    TID_NIL = 0,
+    TID_BOL,
+    TID_INT,
+    TID_FLT,
+    TID_STR,
 };
 
 static int new_cap(int cur_cap, int min_cap)
@@ -83,7 +83,7 @@ static Int fetch_word(VM *vm)
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(fetch_byte(vm));
+        buf[i] = (Byte)fetch_byte(vm);
 
     Word ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -97,7 +97,7 @@ static Int fetch_int(VM *vm)
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(fetch_byte(vm));
+        buf[i] = (Byte)fetch_byte(vm);
 
     Int ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -111,7 +111,7 @@ static Float fetch_float(VM *vm)
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(fetch_byte(vm));
+        buf[i] = (Byte)fetch_byte(vm);
 
     Float ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -125,7 +125,7 @@ static Word fetch_str(VM *vm)
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(fetch_byte(vm));
+        buf[i] = (Byte)fetch_byte(vm);
 
     Word ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -383,8 +383,9 @@ static void run(VM *vm)
                 const long len = vm->stack_.data[base].inum;
 
                 if (index >= len) {
-                    std::cout << "panic: runtime error: index out of range[" <<
-                        index << "] with length " << len << std::endl;
+                    fprintf(stderr,
+                            "panic: runtime error: index out of range[%ld] with length %ld",
+                            index, len);
                     std::exit(1);
                 }
 
@@ -395,23 +396,23 @@ static void run(VM *vm)
             break;
 
         case OP_LOADTYPEN:
-            push_int(vm, static_cast<int>(TypeID::NIL));
+            push_int(vm, TID_NIL);
             break;
 
         case OP_LOADTYPEB:
-            push_int(vm, static_cast<int>(TypeID::BOL));
+            push_int(vm, TID_BOL);
             break;
 
         case OP_LOADTYPEI:
-            push_int(vm, static_cast<int>(TypeID::INT));
+            push_int(vm, TID_INT);
             break;
 
         case OP_LOADTYPEF:
-            push_int(vm, static_cast<int>(TypeID::FLT));
+            push_int(vm, TID_FLT);
             break;
 
         case OP_LOADTYPES:
-            push_int(vm, static_cast<int>(TypeID::STR));
+            push_int(vm, TID_STR);
             break;
 
         case OP_CALL:
@@ -440,63 +441,66 @@ static void run(VM *vm)
                     // builtin "print" function
                     // FIXME hard coded variadic
                     const int argc = pop_int(vm);
-                    std::stack<Value> args;
+                    Value dummy = {0};
+                    ValueVec args = {0};
+                    push_value(&args, dummy);
+                    int sp = 0;
 
                     // pop args
                     for (int i = 0; i < argc; i++) {
                         const Value type = pop(vm);
                         const Value val = pop(vm);
-                        args.push(val);
-                        args.push(type);
+                        push_value(&args, val);
+                        sp++;
+                        push_value(&args, type);
+                        sp++;
                     }
 
-                    while (!args.empty()) {
-                        const Value type = args.top();
-                        args.pop();
-                        const Value val = args.top();
-                        args.pop();
+                    while (sp > 0) {
+                        const Value type = args.data[sp--];
+                        const Value val = args.data[sp--];
 
-                        const TypeID id = static_cast<TypeID>(type.inum);
+                        const Int id = type.inum;
 
                         switch (id) {
-                        case TypeID::NIL:
+                        case TID_NIL:
                             break;
 
-                        case TypeID::BOL:
+                        case TID_BOL:
                             if (val.inum == 0)
-                                std::cout << "false";
+                                printf("false");
                             else
-                                std::cout << "true";
+                                printf("true");
                             break;
 
-                        case TypeID::INT:
-                            std::cout << val.inum;
+                        case TID_INT:
+                            printf("%lld", val.inum);
                             break;
 
-                        case TypeID::FLT:
-                            std::cout << val.fpnum;
+                        case TID_FLT:
+                            printf("%g", val.fpnum);
                             break;
 
-                        case TypeID::STR:
-                            std::cout << val.str->str;
+                        case TID_STR:
+                            printf("%s", val.str->str.c_str());
                             break;
                         }
 
                         // peek next arg
-                        if (!args.empty()) {
-                            const Value next_type = args.top();
-                            if (next_type.inum == static_cast<int>(TypeID::NIL)) {
+                        if (sp > 0) {
+                            const Value next_type = args.data[sp];
+                            if (next_type.inum == TID_NIL) {
                                 // remove nil and skip separator
-                                args.pop();
-                                args.pop();
+                                sp--;
+                                sp--;
                                 continue;
                             }
                         }
 
-                        if (args.empty())
-                            std::cout << std::endl;
+                        if (sp == 0)
+                            printf("\n");
                         else
-                            std::cout << ' ';
+                            printf(" ");
                     }
                 }
                 else if (func_index == 1) {
@@ -625,7 +629,7 @@ static void run(VM *vm)
                 const Float r = pop_float(vm);
                 const Float l = pop_float(vm);
                 // TODO check zero div
-                push_float(vm, std::fmod(l, r));
+                push_float(vm, fmod(l, r));
             }
             break;
 
@@ -885,9 +889,7 @@ static void run(VM *vm)
             break;
 
         default:
-            std::cerr << "Opcode: '" << OpcodeString(op) <<
-                "' not in VM::run()" << std::endl;
-            std::exit(EXIT_FAILURE);
+            UNREACHABLE;
             break;
         }
     }
