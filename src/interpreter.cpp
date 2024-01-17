@@ -67,9 +67,9 @@ Int Interpreter::Run(const std::string &src)
     // Run bytecode
     long ret = 0;
     if (!print_tree_ && !print_symbols_ && !print_bytecode_) {
-        vm_.EnablePrintStack(print_stack_);
-        vm_.Run(code_);
-        ret = vm_.StackTopInt();
+        ::EnablePrintStack(&vm_, print_stack_);
+        ::Run(&vm_, &code_);
+        ret = StackTopInt(&vm_);
     }
 
     return ret;

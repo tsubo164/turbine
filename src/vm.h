@@ -5,35 +5,22 @@
 #include "bytecode.h"
 #include "gc.h"
 
-struct Value {
+typedef struct Value {
     union {
         Int inum = 0;
         Float fpnum;
         StringObj *str;
     };
-};
+} Value;
 
-struct Call {
+typedef struct Call {
     int func_index = 0;
     int argc = 0;
     Int return_ip = 0;
     Int return_bp = 0;
-};
+} Call;
 
-class VM {
-public:
-    VM() {}
-    ~VM() {}
-
-    void Run(const Bytecode &code);
-
-    Int StackTopInt() const;
-    void PrintStack() const;
-    void EnablePrintStack(bool enable);
-
-    void PrintObjs() const { gc_.PrintObjs(); }
-
-private:
+typedef struct VM {
     std::vector<Value> stack_ = {{0}};
     const Bytecode *code_ = nullptr;
 
@@ -47,41 +34,13 @@ private:
 
     bool print_stack_ = false;
     GC gc_;
+} VM;
 
-    void run();
+void Run(VM *vm, const Bytecode *code);
+Int StackTopInt(const VM *vm);
 
-    // registers
-    void set_ip(Int ip);
-    void set_sp(Int sp);
-    void set_bp(Int bp);
-
-    // read byte code
-    Int read_byte(Int index) const;
-    Int fetch_byte();
-    Int fetch_word();
-    Int fetch_int();
-    Float fetch_float();
-    Word fetch_str();
-
-    // stack
-    void push(Value obj);
-    Value pop();
-    Value top() const;
-
-    // stack helper
-    void push_int(Int val);
-    void push_float(Float val);
-    Int pop_int();
-    Float pop_float();
-
-    void push_call(Call call);
-    Call pop_call();
-
-    Value get_local(int id) const;
-    Value get_global(int id) const;
-    void set_local(int id, Value obj);
-    void set_global(int id, Value obj);
-    bool is_eoc() const;
-};
+void PrintStack(const VM *vm);
+void EnablePrintStack(VM *vm, bool enable);
+void PrintObjs(const VM *vm);
 
 #endif // _H

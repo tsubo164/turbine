@@ -12,41 +12,41 @@ enum class TypeID {
     STR,
 };
 
-void VM::set_ip(Int ip)
+static void set_ip(VM *vm, Int ip)
 {
-    ip_ = ip;
+    vm->ip_ = ip;
 }
 
-void VM::set_sp(Int sp)
+static void set_sp(VM *vm, Int sp)
 {
-    if (sp >= stack_.size())
-        stack_.resize( sp + 1);
+    if (sp >= vm->stack_.size())
+        vm->stack_.resize(sp + 1);
 
-    sp_ = sp;
+    vm->sp_ = sp;
 }
 
-void VM::set_bp(Int bp)
+static void set_bp(VM *vm, Int bp)
 {
-    bp_ = bp;
+    vm->bp_ = bp;
 }
 
-Int VM::read_byte(Int index) const
+static Int read_byte(const VM *vm, Int index)
 {
-    return Read(code_, index);
+    return Read(vm->code_, index);
 }
 
-Int VM::fetch_byte()
+static Int fetch_byte(VM *vm)
 {
-    return read_byte(ip_++);
+    return read_byte(vm, vm->ip_++);
 }
 
-Int VM::fetch_word()
+static Int fetch_word(VM *vm)
 {
     constexpr int SIZE = sizeof(Word);
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(fetch_byte());
+        buf[i] = static_cast<Byte>(fetch_byte(vm));
 
     Word ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -54,13 +54,13 @@ Int VM::fetch_word()
     return ret;
 }
 
-Int VM::fetch_int()
+static Int fetch_int(VM *vm)
 {
     constexpr int SIZE = sizeof(Int);
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(fetch_byte());
+        buf[i] = static_cast<Byte>(fetch_byte(vm));
 
     Int ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -68,13 +68,13 @@ Int VM::fetch_int()
     return ret;
 }
 
-Float VM::fetch_float()
+static Float fetch_float(VM *vm)
 {
     constexpr int SIZE = sizeof(Float);
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(fetch_byte());
+        buf[i] = static_cast<Byte>(fetch_byte(vm));
 
     Float ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -82,13 +82,13 @@ Float VM::fetch_float()
     return ret;
 }
 
-Word VM::fetch_str()
+static Word fetch_str(VM *vm)
 {
     constexpr int SIZE = sizeof(Word);
     Byte buf[SIZE] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
-        buf[i] = static_cast<Byte>(fetch_byte());
+        buf[i] = static_cast<Byte>(fetch_byte(vm));
 
     Word ret = 0;
     std::memcpy(&ret, buf, SIZE);
@@ -96,112 +96,105 @@ Word VM::fetch_str()
     return ret;
 }
 
-void VM::push(Value val)
+static void push(VM *vm, Value val)
 {
-    if (sp_ == stack_.size() - 1) {
-        stack_.push_back(val);
-        sp_++;
+    if (vm->sp_ == vm->stack_.size() - 1) {
+        vm->stack_.push_back(val);
+        vm->sp_++;
     }
     else {
-        stack_[++sp_] = val;
+        vm->stack_[++vm->sp_] = val;
     }
 }
 
-Value VM::pop()
+static Value pop(VM *vm)
 {
-    return stack_[sp_--];
+    return vm->stack_[vm->sp_--];
 }
 
-Value VM::top() const
+static Value top(const VM *vm)
 {
-    return stack_[sp_];
+    return vm->stack_[vm->sp_];
 }
 
-Int VM::pop_int()
+static Int pop_int(VM *vm)
 {
-    const Value val = pop();
+    const Value val = pop(vm);
     return val.inum;
 }
 
-Float VM::pop_float()
+static Float pop_float(VM *vm)
 {
-    const Value val = pop();
+    const Value val = pop(vm);
     return val.fpnum;
 }
 
-void VM::push_int(Int inum)
+static void push_int(VM *vm, Int inum)
 {
     Value val;
     val.inum = inum;
-    push(val);
+    push(vm, val);
 }
 
-void VM::push_float(Float fpnum)
+static void push_float(VM *vm, Float fpnum)
 {
     Value val;
     val.fpnum = fpnum;
-    push(val);
+    push(vm, val);
 }
 
-void VM::push_call(Call call)
+static void push_call(VM *vm, Call call)
 {
-    if (call_sp_ == callstack_.size() - 1) {
-        callstack_.push_back(call);
-        call_sp_++;
+    if (vm->call_sp_ == vm->callstack_.size() - 1) {
+        vm->callstack_.push_back(call);
+        vm->call_sp_++;
     }
     else {
-        callstack_[++call_sp_] = call;
+        vm->callstack_[++vm->call_sp_] = call;
     }
 }
 
-Call VM::pop_call()
+static Call pop_call(VM *vm)
 {
-    return callstack_[call_sp_--];
+    return vm->callstack_[vm->call_sp_--];
 }
 
-Value VM::get_local(int id) const
+static Value get_local(const VM *vm, int id)
 {
-    return stack_[bp_ + 1 + id];
+    return vm->stack_[vm->bp_ + 1 + id];
 }
 
-Value VM::get_global(int id) const
+static Value get_global(const VM *vm, int id)
 {
-    return stack_[1 + id];
+    return vm->stack_[1 + id];
 }
 
-void VM::set_local(int id, Value val)
+static void set_local(VM *vm, int id, Value val)
 {
-    stack_[bp_ + 1 + id] = val;
+    vm->stack_[vm->bp_ + 1 + id] = val;
 }
 
-void VM::set_global(int id, Value val)
+static void set_global(VM *vm, int id, Value val)
 {
-    stack_[1 + id] = val;
+    vm->stack_[1 + id] = val;
 }
 
-bool VM::is_eoc() const
+static bool is_eoc(const VM *vm)
 {
-    return ip_ == eoc_;
+    return vm->ip_ == vm->eoc_;
 }
 
-void VM::Run(const Bytecode &code)
-{
-    code_ = &code;
-    eoc_ = Size(code_);
-    run();
-}
-
-void VM::run()
+static void run(VM *vm)
 {
     bool brk = false;
 
-    while (!is_eoc() && !brk) {
-        const Int old_ip = ip_;
-        const Int op = fetch_byte();
+    while (!is_eoc(vm) && !brk) {
+        const Int old_ip = vm->ip_;
+        const Int op = fetch_byte(vm);
 
-        if (print_stack_) {
+        if (vm->print_stack_) {
             printf("[%6lld] %s\n", old_ip, OpcodeString(op));
-            PrintStack();
+            PrintStack(vm);
         }
 
         switch (op) {
@@ -209,148 +202,148 @@ void VM::run()
         case OP_LOADB:
             {
                 Value val;
-                val.inum = fetch_byte();
-                push(val);
+                val.inum = fetch_byte(vm);
+                push(vm, val);
             }
             break;
 
         case OP_LOADI:
             {
                 Value val;
-                val.inum = fetch_int();
-                push(val);
+                val.inum = fetch_int(vm);
+                push(vm, val);
             }
             break;
 
         case OP_LOADF:
             {
                 Value val;
-                val.fpnum = fetch_float();
-                push(val);
+                val.fpnum = fetch_float(vm);
+                push(vm, val);
             }
             break;
 
         case OP_LOADS:
             {
-                const Word id = fetch_str();
-                const std::string &s = GetConstString(code_, id);
+                const Word id = fetch_str(vm);
+                const std::string &s = GetConstString(vm->code_, id);
                 Value val;
-                val.str = gc_.NewString(s);
-                push(val);
+                val.str = vm->gc_.NewString(s);
+                push(vm, val);
             }
             break;
 
         case OP_LOADLOCAL:
             {
-                const Int id = fetch_byte();
-                const Value val = get_local(id);
-                push(val);
+                const Int id = fetch_byte(vm);
+                const Value val = get_local(vm, id);
+                push(vm, val);
             }
             break;
 
         case OP_LOADGLOBAL:
             {
-                const Int id = fetch_word();
-                const Value val = get_global(id);
-                push(val);
+                const Int id = fetch_word(vm);
+                const Value val = get_global(vm, id);
+                push(vm, val);
             }
             break;
 
         case OP_STORELOCAL:
             {
-                const Int id = fetch_byte();
-                const Value val = pop();
-                set_local(id, val);
+                const Int id = fetch_byte(vm);
+                const Value val = pop(vm);
+                set_local(vm, id, val);
             }
             break;
 
         case OP_STOREGLOBAL:
             {
-                const Int id = fetch_word();
-                const Value val = pop();
-                set_global(id, val);
+                const Int id = fetch_word(vm);
+                const Value val = pop(vm);
+                set_global(vm, id, val);
             }
             break;
 
         case OP_LOAD:
             {
-                const Value addr = pop();
-                const Value val = stack_[addr.inum];
-                push(val);
+                const Value addr = pop(vm);
+                const Value val = vm->stack_[addr.inum];
+                push(vm, val);
             }
             break;
 
         case OP_STORE:
             {
-                const Value addr = pop();
-                const Value val = pop();
-                stack_[addr.inum] = val;
+                const Value addr = pop(vm);
+                const Value val = pop(vm);
+                vm->stack_[addr.inum] = val;
             }
             break;
 
         case OP_INCLOCAL:
             {
-                const Int id = fetch_byte();
-                Value val = get_local(id);
+                const Int id = fetch_byte(vm);
+                Value val = get_local(vm, id);
                 val.inum++;
-                set_local(id, val);
+                set_local(vm, id, val);
             }
             break;
 
         case OP_INCGLOBAL:
             {
-                const Int id = fetch_word();
-                Value val = get_global(id);
+                const Int id = fetch_word(vm);
+                Value val = get_global(vm, id);
                 val.inum++;
-                set_global(id, val);
+                set_global(vm, id, val);
             }
             break;
 
         case OP_DECLOCAL:
             {
-                const Int id = fetch_byte();
-                Value val = get_local(id);
+                const Int id = fetch_byte(vm);
+                Value val = get_local(vm, id);
                 val.inum--;
-                set_local(id, val);
+                set_local(vm, id, val);
             }
             break;
 
         case OP_DECGLOBAL:
             {
-                const Int id = fetch_word();
-                Value val = get_global(id);
+                const Int id = fetch_word(vm);
+                Value val = get_global(vm, id);
                 val.inum--;
-                set_global(id, val);
+                set_global(vm, id, val);
             }
             break;
 
         case OP_ALLOC:
             {
-                const Int size = fetch_byte();
-                set_sp(sp_ + size);
+                const Int size = fetch_byte(vm);
+                set_sp(vm, vm->sp_ + size);
             }
             break;
 
         case OP_LOADA:
             {
-                const Int id = fetch_word();
-                push_int(bp_ + 1 + id);
+                const Int id = fetch_word(vm);
+                push_int(vm, vm->bp_ + 1 + id);
             }
             break;
 
         case OP_DEREF:
             {
-                const Int addr  = pop_int();
-                const Value val = stack_[addr];
-                push(val);
+                const Int addr  = pop_int(vm);
+                const Value val = vm->stack_[addr];
+                push(vm, val);
             }
             break;
 
         case OP_INDEX:
             {
-                const long index = pop_int();
-                const long base = pop_int();
-                const long len = stack_[base].inum;
+                const long index = pop_int(vm);
+                const long base = pop_int(vm);
+                const long len = vm->stack_[base].inum;
 
                 if (index >= len) {
                     std::cout << "panic: runtime error: index out of range[" <<
@@ -360,62 +353,62 @@ void VM::run()
 
                 // index from next to base
                 const long indexed = base + index + 1;
-                push_int(indexed);
+                push_int(vm, indexed);
             }
             break;
 
         case OP_LOADTYPEN:
-            push_int(static_cast<int>(TypeID::NIL));
+            push_int(vm, static_cast<int>(TypeID::NIL));
             break;
 
         case OP_LOADTYPEB:
-            push_int(static_cast<int>(TypeID::BOL));
+            push_int(vm, static_cast<int>(TypeID::BOL));
             break;
 
         case OP_LOADTYPEI:
-            push_int(static_cast<int>(TypeID::INT));
+            push_int(vm, static_cast<int>(TypeID::INT));
             break;
 
         case OP_LOADTYPEF:
-            push_int(static_cast<int>(TypeID::FLT));
+            push_int(vm, static_cast<int>(TypeID::FLT));
             break;
 
         case OP_LOADTYPES:
-            push_int(static_cast<int>(TypeID::STR));
+            push_int(vm, static_cast<int>(TypeID::STR));
             break;
 
         case OP_CALL:
             {
-                const int var_id = fetch_word();
-                const Value func_var = get_global(var_id);
+                const int var_id = fetch_word(vm);
+                const Value func_var = get_global(vm, var_id);
                 const Word func_index = func_var.inum;
-                const Int func_addr = GetFunctionAddress(code_, func_index);
+                const Int func_addr = GetFunctionAddress(vm->code_, func_index);
 
                 Call call;
-                call.argc = GetFunctionArgCount(code_, func_index);
-                call.return_ip = ip_;
-                call.return_bp = bp_;
-                push_call(call);
+                call.argc = GetFunctionArgCount(vm->code_, func_index);
+                call.return_ip = vm->ip_;
+                call.return_bp = vm->bp_;
+                push_call(vm, call);
 
-                set_ip(func_addr);
-                set_bp(sp_ - call.argc);
+                set_ip(vm, func_addr);
+                set_bp(vm, vm->sp_ - call.argc);
             }
             break;
 
         case OP_CALL_BUILTIN:
             {
-                const Byte func_index = fetch_byte();
+                const Byte func_index = fetch_byte(vm);
 
                 if (func_index == 0) {
                     // builtin "print" function
                     // FIXME hard coded variadic
-                    const int argc = pop_int();
+                    const int argc = pop_int(vm);
                     std::stack<Value> args;
 
                     // pop args
                     for (int i = 0; i < argc; i++) {
-                        const Value type = pop();
-                        const Value val = pop();
+                        const Value type = pop(vm);
+                        const Value val = pop(vm);
                         args.push(val);
                         args.push(type);
                     }
@@ -478,371 +471,371 @@ void VM::run()
 
         case OP_RET:
             {
-                const Value ret_obj = top();
-                const Call call = pop_call();
+                const Value ret_obj = top(vm);
+                const Call call = pop_call(vm);
 
-                set_ip(call.return_ip);
-                set_sp(bp_);
-                set_bp(call.return_bp);
-                push(ret_obj);
+                set_ip(vm, call.return_ip);
+                set_sp(vm, vm->bp_);
+                set_bp(vm, call.return_bp);
+                push(vm, ret_obj);
             }
             break;
 
         case OP_JMP:
             {
-                const Int addr = fetch_word();
-                set_ip(addr);
+                const Int addr = fetch_word(vm);
+                set_ip(vm, addr);
             }
             break;
 
         case OP_JEQ:
             {
-                const Int addr = fetch_word();
-                const Value cond = pop();
+                const Int addr = fetch_word(vm);
+                const Value cond = pop(vm);
 
                 if (cond.inum == 0)
-                    set_ip(addr);
+                    set_ip(vm, addr);
             }
             break;
 
         case OP_ADD:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 + val1);
+                const Int val1 = pop_int(vm);
+                const Int val0 = pop_int(vm);
+                push_int(vm, val0 + val1);
             }
             break;
 
         case OP_ADDF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
-                push_float(val0 + val1);
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
+                push_float(vm, val0 + val1);
             }
             break;
 
         case OP_CATS:
             {
-                const Value val1 = pop();
-                const Value val0 = pop();
+                const Value val1 = pop(vm);
+                const Value val0 = pop(vm);
                 Value val;
-                val.str = gc_.NewString(val0.str->str + val1.str->str);
-                push(val);
+                val.str = vm->gc_.NewString(val0.str->str + val1.str->str);
+                push(vm, val);
             }
             break;
 
         case OP_SUB:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 - val1);
+                const Int val1 = pop_int(vm);
+                const Int val0 = pop_int(vm);
+                push_int(vm, val0 - val1);
             }
             break;
 
         case OP_SUBF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
-                push_float(val0 - val1);
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
+                push_float(vm, val0 - val1);
             }
             break;
 
         case OP_MUL:
             {
-                const Int r = pop_int();
-                const Int l = pop_int();
-                push_int(l * r);
+                const Int r = pop_int(vm);
+                const Int l = pop_int(vm);
+                push_int(vm, l * r);
             }
             break;
 
         case OP_MULF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
-                push_float(val0 * val1);
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
+                push_float(vm, val0 * val1);
             }
             break;
 
         case OP_DIV:
             {
-                const Int r = pop_int();
-                const Int l = pop_int();
+                const Int r = pop_int(vm);
+                const Int l = pop_int(vm);
                 // TODO check zero div
-                push_int(l / r);
+                push_int(vm, l / r);
             }
             break;
 
         case OP_DIVF:
             {
-                const Float r = pop_float();
-                const Float l = pop_float();
+                const Float r = pop_float(vm);
+                const Float l = pop_float(vm);
                 // TODO check zero div
-                push_float(l / r);
+                push_float(vm, l / r);
             }
             break;
 
         case OP_REM:
             {
-                const Int r = pop_int();
-                const Int l = pop_int();
+                const Int r = pop_int(vm);
+                const Int l = pop_int(vm);
                 // TODO check zero div
-                push_int(l % r);
+                push_int(vm, l % r);
             }
             break;
 
         case OP_REMF:
             {
-                const Float r = pop_float();
-                const Float l = pop_float();
+                const Float r = pop_float(vm);
+                const Float l = pop_float(vm);
                 // TODO check zero div
-                push_float(std::fmod(l, r));
+                push_float(vm, std::fmod(l, r));
             }
             break;
 
         case OP_EQ:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 == val1);
+                const Int val1 = pop_int(vm);
+                const Int val0 = pop_int(vm);
+                push_int(vm, val0 == val1);
             }
             break;
 
         case OP_EQF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
                 // TODO do fpnum comp
-                push_int(val0 == val1);
+                push_int(vm, val0 == val1);
             }
             break;
 
         case OP_EQS:
             {
-                const Value val1 = pop();
-                const Value val0 = pop();
+                const Value val1 = pop(vm);
+                const Value val0 = pop(vm);
                 Value val;
                 val.inum = val0.str->str == val1.str->str;
-                push(val);
+                push(vm, val);
             }
             break;
 
         case OP_NEQ:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 != val1);
+                const Int val1 = pop_int(vm);
+                const Int val0 = pop_int(vm);
+                push_int(vm, val0 != val1);
             }
             break;
 
         case OP_NEQF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
-                push_int(val0 != val1);
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
+                push_int(vm, val0 != val1);
             }
             break;
 
         case OP_NEQS:
             {
-                const Value val1 = pop();
-                const Value val0 = pop();
+                const Value val1 = pop(vm);
+                const Value val0 = pop(vm);
                 Value val;
                 val.inum = val0.str->str != val1.str->str;
-                push(val);
+                push(vm, val);
             }
             break;
 
         case OP_LT:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 < val1);
+                const Int val1 = pop_int(vm);
+                const Int val0 = pop_int(vm);
+                push_int(vm, val0 < val1);
             }
             break;
 
         case OP_LTF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
-                push_int(val0 < val1);
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
+                push_int(vm, val0 < val1);
             }
             break;
 
         case OP_LTE:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 <= val1);
+                const Int val1 = pop_int(vm);
+                const Int val0 = pop_int(vm);
+                push_int(vm, val0 <= val1);
             }
             break;
 
         case OP_LTEF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
-                push_int(val0 <= val1);
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
+                push_int(vm, val0 <= val1);
             }
             break;
 
         case OP_GT:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 > val1);
+                const Int val1 = pop_int(vm);
+                const Int val0 = pop_int(vm);
+                push_int(vm, val0 > val1);
             }
             break;
 
         case OP_GTF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
-                push_int(val0 > val1);
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
+                push_int(vm, val0 > val1);
             }
             break;
 
         case OP_GTE:
             {
-                const Int val1 = pop_int();
-                const Int val0 = pop_int();
-                push_int(val0 >= val1);
+                const Int val1 = pop_int(vm);
+                const Int val0 = pop_int(vm);
+                push_int(vm, val0 >= val1);
             }
             break;
 
         case OP_GTEF:
             {
-                const Float val1 = pop_float();
-                const Float val0 = pop_float();
-                push_int(val0 >= val1);
+                const Float val1 = pop_float(vm);
+                const Float val0 = pop_float(vm);
+                push_int(vm, val0 >= val1);
             }
             break;
 
         case OP_AND:
             {
-                const Int r = pop_int();
-                const Int l = pop_int();
-                push_int(l & r);
+                const Int r = pop_int(vm);
+                const Int l = pop_int(vm);
+                push_int(vm, l & r);
             }
             break;
 
         case OP_OR:
             {
-                const Int r = pop_int();
-                const Int l = pop_int();
-                push_int(l | r);
+                const Int r = pop_int(vm);
+                const Int l = pop_int(vm);
+                push_int(vm, l | r);
             }
             break;
 
         case OP_XOR:
             {
-                const Int r = pop_int();
-                const Int l = pop_int();
-                push_int(l ^ r);
+                const Int r = pop_int(vm);
+                const Int l = pop_int(vm);
+                push_int(vm, l ^ r);
             }
             break;
 
         case OP_NOT:
             {
-                const Int i = pop_int();
-                push_int(~i);
+                const Int i = pop_int(vm);
+                push_int(vm, ~i);
             }
             break;
 
         case OP_SHL:
             {
-                const Int r = pop_int();
-                const Int l = pop_int();
-                push_int(l << r);
+                const Int r = pop_int(vm);
+                const Int l = pop_int(vm);
+                push_int(vm, l << r);
             }
             break;
 
         case OP_SHR:
             {
-                const Int r = pop_int();
-                const Int l = pop_int();
-                push_int(l >> r);
+                const Int r = pop_int(vm);
+                const Int l = pop_int(vm);
+                push_int(vm, l >> r);
             }
             break;
 
         case OP_NEG:
             {
-                const Int i = pop_int();
-                push_int(-1 * i);
+                const Int i = pop_int(vm);
+                push_int(vm, -1 * i);
             }
             break;
 
         case OP_NEGF:
             {
-                const Float f = pop_float();
-                push_float(-1 * f);
+                const Float f = pop_float(vm);
+                push_float(vm, -1 * f);
             }
             break;
 
         case OP_SETZ:
             {
-                const Int i = pop_int();
-                push_int(i == 0);
+                const Int i = pop_int(vm);
+                push_int(vm, i == 0);
             }
             break;
 
         case OP_SETNZ:
             {
-                const Int i = pop_int();
-                push_int(i != 0);
+                const Int i = pop_int(vm);
+                push_int(vm, i != 0);
             }
             break;
 
         case OP_POP:
             {
-                pop();
+                pop(vm);
             }
             break;
 
         case OP_DUP:
             {
-                const Value v = top();
-                push(v);
+                const Value v = top(vm);
+                push(vm, v);
             }
             break;
 
         case OP_BTOI:
             {
-                const Int i = pop_int();
-                push_int(i != 0);
+                const Int i = pop_int(vm);
+                push_int(vm, i != 0);
             }
             break;
 
         case OP_BTOF:
             {
-                const Int i = pop_int();
-                push_float(i);
+                const Int i = pop_int(vm);
+                push_float(vm, i);
             }
             break;
 
         case OP_ITOB:
             {
-                const Int i = pop_int();
-                push_int(i != 0);
+                const Int i = pop_int(vm);
+                push_int(vm, i != 0);
             }
             break;
 
         case OP_ITOF:
             {
-                const Int i = pop_int();
-                push_float(i);
+                const Int i = pop_int(vm);
+                push_float(vm, i);
             }
             break;
 
         case OP_FTOB:
             {
-                const Float f = pop_float();
-                push_int(f != 0.f);
+                const Float f = pop_float(vm);
+                push_int(vm, f != 0.f);
             }
             break;
 
         case OP_FTOI:
             {
-                const Float f = pop_float();
-                push_int(f);
+                const Float f = pop_float(vm);
+                push_int(vm, f);
             }
             break;
 
@@ -863,39 +856,44 @@ void VM::run()
     }
 }
 
-Int VM::StackTopInt() const
+void Run(VM *vm, const Bytecode *code)
 {
-    const Value val = top();
+    vm->code_ = code;
+    vm->eoc_ = Size(vm->code_);
+    run(vm);
+}
+
+Int StackTopInt(const VM *vm)
+{
+    const Value val = top(vm);
     return val.inum;
 }
 
-void VM::PrintStack() const
+void PrintStack(const VM *vm)
 {
-    printf( "    ------\n" );
-    for ( Int i = sp_; i >= 0; i-- )
+    printf("    ------\n");
+    for (Int i = vm->sp_; i >= 0; i--)
     {
-        unsigned int index = static_cast< unsigned int >( i );
-        if ( index == sp_ )
-        {
-            printf( "SP->" );
-        }
+        if (i == vm->sp_)
+            printf("SP->");
         else
-        {
-            printf( "    " );
-        }
+            printf("    ");
 
-        printf( "|%4llu|", stack_[index].inum );
+        printf("|%4llu|", vm->stack_[i].inum);
 
-        if ( index == bp_ )
-        {
-            printf( "<-BP" );
-        }
-        printf( "\n" );
+        if (i == vm->bp_)
+            printf("<-BP");
+        printf("\n");
     }
-    printf( "--------------\n" );
+    printf("--------------\n");
 }
 
-void VM::EnablePrintStack(bool enable)
+void EnablePrintStack(VM *vm, bool enable)
 {
-    print_stack_ = enable;
+    vm->print_stack_ = enable;
+}
+
+void PrintObjs(const VM *vm)
+{
+    vm->gc_.PrintObjs();
 }
