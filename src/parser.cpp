@@ -365,7 +365,7 @@ static Expr *unary_expr(Parser *p)
     case T_NOT:
         {
             Expr *e = unary_expr(p);
-            return NewUnaryExpr(e, const_cast<Type*>(e->type), kind);
+            return NewUnaryExpr(e, (Type*)(e->type), kind);
         }
 
     default:
@@ -1113,7 +1113,7 @@ static Prog *program(Parser *p)
 
             {
                 // TODO clean up
-                Expr *ident = NewIdentExpr(const_cast<Var *>(fdef->var));
+                Expr *ident = NewIdentExpr((Var *)(fdef->var));
                 Expr *init = NewIntLitExpr(fdef->funclit_id);
                 tail = tail->next = NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
             }

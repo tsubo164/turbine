@@ -255,7 +255,7 @@ const Var *FindFunc(const Scope *sc, const char *name)
 {
     const Var *var = FindVar(sc, name, true);
     if (var && IsFunc(var->type)) {
-        return const_cast<Var *>(var);
+        return (Var *)(var);
     }
 
     if (sc->parent_)
