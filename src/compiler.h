@@ -8,8 +8,7 @@
 #include <ctype.h>
 
 #define NALLOC(n,type) ((type*) calloc((n),sizeof(type)))
-//#define CALLOC(type) NALLOC(1,type)
-#define CALLOC(type) (new type())
+#define CALLOC(type) NALLOC(1,type)
 
 
 // codegen
@@ -17,7 +16,7 @@ struct Bytecode;
 struct Prog;
 
 void SetOptimize(bool enable);
-void GenerateCode(Bytecode *code, const Prog *prog);
+void GenerateCode(struct Bytecode *code, const struct Prog *prog);
 
 
 // string interning

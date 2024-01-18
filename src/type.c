@@ -84,7 +84,7 @@ int SizeOf(const Type *t)
         // use one value for length info
         return t->len + 1;
     else if (IsClass(t))
-        return Size(t->clss);
+        return ClassSize(t->clss);
     else
         return 1;
 }
@@ -100,7 +100,7 @@ bool IsPtr(const Type *t)     { return t->kind == TY_PTR; }
 bool IsArray(const Type *t)   { return t->kind == TY_ARRAY; }
 bool IsAny(const Type *t)     { return t->kind == TY_ANY; }
 
-static const char *type_kind_string(TY kind)
+static const char *type_kind_string(enum TY kind)
 {
     switch (kind) {
     case TY_NIL: return "nil";
@@ -116,7 +116,7 @@ static const char *type_kind_string(TY kind)
     }
 
     UNREACHABLE;
-    return nullptr;
+    return NULL;
 }
 
 const char *TypeString(const Type *type)

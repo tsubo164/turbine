@@ -52,7 +52,7 @@ static void grow(strbuf *sb, int new_len)
     sb->len = new_len;
 }
 
-void strcat(strbuf *sb, const char *s)
+void strbufcat(strbuf *sb, const char *s)
 {
     if (!sb || !s)
         return;
@@ -75,9 +75,9 @@ const char *read_file(const char *filename)
     char buf[1024] = {'\0'};
     strbuf sb = {0};
     while (fgets(buf, 1024, fp)) {
-        strcat(&sb, buf);
+        strbufcat(&sb, buf);
     }
-    strcat(&sb, "\n");
+    strbufcat(&sb, "\n");
 
     return sb.data;
 }

@@ -299,7 +299,7 @@ static void scan_number(Lexer *l, Token *tok, Pos pos)
 
     unget(l);
 
-    char *end = nullptr;
+    char *end = NULL;
 
     if (fpnum) {
         tok->fval = strtod(&(*start), &end);
@@ -536,7 +536,8 @@ static int scan_indent(Lexer *l, Token *tok)
 
 static void get_token(Lexer *l, Token *tok)
 {
-    *tok = {};
+    const static Token ini = {0};
+    *tok = ini;
 
     if (l->unread_blockend > 0) {
         l->unread_blockend--;

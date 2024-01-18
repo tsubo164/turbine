@@ -1,7 +1,7 @@
 #ifndef BUILTIN_H
 #define BUILTIN_H
 
-struct Scope;
+typedef struct Scope Scope;
 
 void DefineBuiltinFuncs(Scope *builtin);
 

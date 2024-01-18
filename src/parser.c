@@ -20,7 +20,7 @@ typedef struct Parser {
     const char *filename;
 
     // TODO remove this
-    int funclit_id_ = 0;
+    int funclit_id_;
 } Parser;
 
 static void error(const Parser *p, Pos pos, const char *fmt, ...)
@@ -104,7 +104,7 @@ static void enter_scope(Parser *p, Func *func)
     }
 }
 
-static void enter_scope(Parser *p, Class *clss)
+static void enter_class_scope(Parser *p, Class *clss)
 {
     p->scope_ = clss->scope;
 }
@@ -521,7 +521,7 @@ static Expr *logor_expr(Parser *p)
 static Expr *assign_expr(Parser *p)
 {
     Expr *lval = logor_expr(p);
-    Expr *rval = nullptr;
+    Expr *rval = NULL;
     const Token *tok = gettok(p);
     const int kind = tok->kind;
 
@@ -731,7 +731,7 @@ static Stmt *ret_stmt(Parser *p)
     expect(p, T_RET);
 
     const Pos exprpos = tok_pos(p);
-    Expr *expr = nullptr;
+    Expr *expr = NULL;
 
     if (consume(p, T_NEWLINE)) {
         expr = NewNullExpr();
@@ -807,7 +807,7 @@ static Expr *default_value(const Type *type)
     case TY_NIL:
     case TY_ANY:
         UNREACHABLE;
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -825,8 +825,8 @@ static Stmt *var_decl(Parser *p)
 
     // var anme
     const char *name = tok_str(p);
-    Type *type = nullptr;
-    Expr *init = nullptr;
+    Type *type = NULL;
+    Expr *init = NULL;
 
     // type and init
     if (consume(p, T_ASSN)) {
@@ -881,13 +881,13 @@ static Class *class_decl(Parser *p)
     }
 
     expect(p, T_NEWLINE);
-    enter_scope(p, clss);
+    enter_class_scope(p, clss);
     expect(p, T_BLOCKBEGIN);
     field_list(p, clss);
     expect(p, T_BLOCKEND);
     leave_scope(p);
 
-    return nullptr;
+    return NULL;
     //return new ClasDef(clss);
 }
 
@@ -961,7 +961,7 @@ static void param_list(Parser *p, Func *func)
         return;
 
     do {
-        const Type *type = nullptr;
+        const Type *type = NULL;
         const char *name;
 
         if (consume(p, T_CALLER_LINE)) {

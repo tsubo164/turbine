@@ -74,7 +74,7 @@ void DeclareField(Class *c, const char *name, const Type *type)
 
 Field *FindField(const Class *c, const char *name)
 {
-    return FindField(c->scope, name);
+    return FindClassField(c->scope, name);
 }
 
 int FieldCount(const Class *c)
@@ -82,7 +82,7 @@ int FieldCount(const Class *c)
     return c->nflds_;
 }
 
-int Size(const Class *c)
+int ClassSize(const Class *c)
 {
     return FieldSize(c->scope);
 }
@@ -94,7 +94,7 @@ Scope *new_scope(Scope *parent, int level, int var_offset)
     sc->parent_ = parent;
     sc->children_ = NULL;
     sc->child_tail = NULL;
-    sc->next = nullptr;
+    sc->next = NULL;
 
     sc->level_ = level;
     sc->var_offset_ = var_offset;
@@ -117,7 +117,7 @@ static int next_var_id(const Scope *sc);
 
 Scope *OpenChild(Scope *sc)
 {
-    const int next_id = IsGlobal(sc) ? 0 : next_var_id(sc);
+    const int next_id = IsGlobalScope(sc) ? 0 : next_var_id(sc);
 
     Scope *child = new_scope(sc, sc->level_ + 1, next_id);
     if (!sc->children_)
@@ -133,7 +133,7 @@ Scope *Close(const Scope *sc)
     return sc->parent_;
 }
 
-bool IsGlobal(const Scope *sc)
+bool IsGlobalScope(const Scope *sc)
 {
     // level 0: builtin scope
     // level 1: global (file) scope
@@ -157,7 +157,7 @@ Var *DefineVar(Scope *sc, const char *name, const Type *type)
         return NULL;
 
     const int next_id = next_var_id(sc);
-    Var *var = new_var(name, type, next_id, IsGlobal(sc));
+    Var *var = new_var(name, type, next_id, IsGlobalScope(sc));
     if (!sc->vars_)
         sc->vars_tail = sc->vars_ = var;
     else
@@ -196,7 +196,7 @@ static Field *new_field(const char *Name, int ID)
 
 Field *DefineFild(Scope *sc, const char *name)
 {
-    if (FindField(sc, name))
+    if (FindClassField(sc, name))
         return NULL;
 
     const int next_id = sc->field_offset_;
@@ -210,7 +210,7 @@ Field *DefineFild(Scope *sc, const char *name)
     return fld;
 }
 
-Field *FindField(const Scope *sc, const char *name)
+Field *FindClassField(const Scope *sc, const char *name)
 {
     for (Field *f = sc->flds_; f; f = f->next) {
         if (!strcmp(f->name, name))
@@ -218,7 +218,7 @@ Field *FindField(const Scope *sc, const char *name)
     }
 
     if (sc->parent_)
-        return FindField(sc->parent_, name);
+        return FindClassField(sc->parent_, name);
 
     return NULL;
 }
@@ -373,7 +373,7 @@ void PrintScope(const Scope *sc, int depth)
     // when we're in global scope, no need to print child scopes as
     // they are printed by func vars. Otherwise go ahead and print them.
     // TODO may be better to detatch func scope from globals
-    if (IsGlobal(sc))
+    if (IsGlobalScope(sc))
         return;
 
     for (Scope *scope = sc->children_; scope; scope = scope->next) {

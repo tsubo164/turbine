@@ -7,7 +7,8 @@
 
 //--------------------------------
 // Expr
-typedef struct Expr {
+typedef struct Expr Expr;
+struct Expr {
     int kind;
     const Type *type;
 
@@ -26,7 +27,7 @@ typedef struct Expr {
     };
     const char *converted;
     Pos pos;
-} Expr;
+};
 
 Expr *NewNullExpr(void);
 Expr *NewNilLitExpr(void);
@@ -49,7 +50,8 @@ Expr *NewIncDecExpr(Expr *l, int k);
 
 //--------------------------------
 // Stmt
-typedef struct Stmt {
+typedef struct Stmt Stmt;
+struct Stmt {
     int kind;
 
     Expr* expr;
@@ -59,7 +61,7 @@ typedef struct Stmt {
     // children
     Stmt *children;
     Stmt *next;
-} Stmt;
+};
 
 Stmt *NewNopStmt(void);
 Stmt *NewBlockStmt(Stmt *children);

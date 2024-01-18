@@ -52,7 +52,7 @@ void SetOptimize(bool enable)
 static void gen_expr(Bytecode *code, const Expr *e);
 static void gen_addr(Bytecode *code, const Expr *e);
 
-static void gen_convert(Bytecode *code, TY from, TY to)
+static void gen_convert(Bytecode *code, enum TY from, enum TY to)
 {
     switch (from) {
     case TY_BOOL:

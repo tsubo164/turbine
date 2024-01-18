@@ -1,12 +1,13 @@
 #ifndef SCOPE_H
 #define SCOPE_H
 
+#include <stdbool.h>
 // Scope and objects that are managed by scope.
 // Objects are variables, functions, fields, classes.
 // Objects have ownership of their contents like type, children, etc.
 // and they are responsible for memory management.
 
-struct Type;
+typedef struct Type Type;
 typedef struct Scope Scope;
 
 typedef struct Var {
@@ -58,7 +59,7 @@ typedef struct Class {
 
 void DeclareField(Class *c, const char *name, const Type *type);
 Field *FindField(const Class *c, const char *name);
-int Size(const Class *c);
+int ClassSize(const Class *c);
 int FieldCount(const Class *c);
 
 struct Scope {
@@ -68,9 +69,9 @@ struct Scope {
     Scope *next;
 
     int level_;
-    int var_offset_ = 0;
-    int field_offset_ = 0;
-    int class_offset_ = 0;
+    int var_offset_;
+    int field_offset_;
+    int class_offset_;
 
     const Class *clss_;
     Var *vars_;
@@ -84,7 +85,7 @@ struct Scope {
 
 Scope *OpenChild(Scope *sc);
 Scope *Close(const Scope *sc);
-bool IsGlobal(const Scope *sc);
+bool IsGlobalScope(const Scope *sc);
 
 Var *DefineVar(Scope *sc, const char *name, const Type *type);
 Var *FindVar(const Scope *sc, const char *name, bool find_in_parents);
@@ -93,7 +94,7 @@ Func *DeclareFunc(Scope *sc);
 const Var *FindFunc(const Scope *sc, const char *name);
 
 Field *DefineFild(Scope *sc, const char *name);
-Field *FindField(const Scope *sc, const char *name);
+Field *FindClassField(const Scope *sc, const char *name);
 
 Class *DefineClass(Scope *sc, const char *name);
 Class *FindClass(const Scope *sc, const char *name);

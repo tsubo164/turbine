@@ -2,6 +2,7 @@
 #define BYTECODE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef uint8_t  Byte;
 typedef uint16_t Word;
@@ -120,9 +121,9 @@ typedef struct PtrVec {
 } PtrVec;
 
 typedef struct FuncInfo {
-    Word id = 0;
-    Byte argc = 0;
-    Int addr = 0;
+    Word id;
+    Byte argc;
+    Int addr;
 } FuncInfo;
 
 typedef struct FuncInfoVec {

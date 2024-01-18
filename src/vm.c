@@ -80,8 +80,8 @@ static Int fetch_byte(VM *vm)
 
 static Int fetch_word(VM *vm)
 {
-    constexpr int SIZE = sizeof(Word);
-    Byte buf[SIZE] = {0};
+    const int SIZE = sizeof(Word);
+    Byte buf[sizeof(Word)] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
         buf[i] = (Byte)fetch_byte(vm);
@@ -94,8 +94,8 @@ static Int fetch_word(VM *vm)
 
 static Int fetch_int(VM *vm)
 {
-    constexpr int SIZE = sizeof(Int);
-    Byte buf[SIZE] = {0};
+    const int SIZE = sizeof(Int);
+    Byte buf[sizeof(Int)] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
         buf[i] = (Byte)fetch_byte(vm);
@@ -108,8 +108,8 @@ static Int fetch_int(VM *vm)
 
 static Float fetch_float(VM *vm)
 {
-    constexpr int SIZE = sizeof(Float);
-    Byte buf[SIZE] = {0};
+    const int SIZE = sizeof(Float);
+    Byte buf[sizeof(Float)] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
         buf[i] = (Byte)fetch_byte(vm);
@@ -122,8 +122,8 @@ static Float fetch_float(VM *vm)
 
 static Word fetch_str(VM *vm)
 {
-    constexpr int SIZE = sizeof(Word);
-    Byte buf[SIZE] = {0};
+    const int SIZE = sizeof(Word);
+    Byte buf[sizeof(Word)] = {0};
 
     for ( int i = 0; i < SIZE; i++ )
         buf[i] = (Byte)fetch_byte(vm);
@@ -949,5 +949,5 @@ void EnablePrintStack(VM *vm, bool enable)
 
 void PrintObjs(const VM *vm)
 {
-    PrintObjs(&vm->gc_);
+    PrintObjects(&vm->gc_);
 }

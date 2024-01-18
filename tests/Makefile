@@ -1,4 +1,4 @@
-CC = g++
+CC = gcc
 RM = rm -f
 
 SRCS   := libtest
@@ -15,22 +15,22 @@ test: all
 	@echo "\033[0;32mOK\033[0;39m"
 
 libtest: libtest.out
-	@echo "[C++ tests]"
+	@echo "[C tests]"
 	./$@.out
 
 libtest.out: libtest.o test.o ../src/librock.a
 	$(CC) -g -o $@ $^
 
-%.o:%.cpp
-	$(CC) -std=c++17 -g -c $<
+%.o:%.c
+	$(CC) -std=c11 -g -c $<
 
-../src/librock.a: ../src/*.h ../src/*.cpp
+../src/librock.a: ../src/*.h ../src/*.c
 	make -C ../src
 
 clean:
 	$(RM) $(TARGETS) *.o *.d *.out
 
-$(DEPS): %.d: %.cpp
+$(DEPS): %.d: %.c
 	$(CC) $(INCLUDE) -c -MM $< > $@
 
 ifneq "$(MAKECMDGOALS)" "clean"

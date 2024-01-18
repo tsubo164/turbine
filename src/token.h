@@ -1,6 +1,8 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#include <stdbool.h>
+
 enum KindTag {
     T_NUL,
     T_keyword_begin,

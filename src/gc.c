@@ -32,7 +32,7 @@ StringObj *NewString(GC *gc, const char *s)
     return str;
 }
 
-void PrintObjs(const GC *gc)
+void PrintObjects(const GC *gc)
 {
     for (Obj *obj = gc->root; obj; obj = obj->next) {
         print_obj(obj);

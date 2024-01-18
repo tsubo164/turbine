@@ -1,8 +1,10 @@
 #ifndef TYPE_H
 #define TYPE_H
 
-struct Class;
-struct Func;
+#include <stdbool.h>
+
+typedef struct Class Class;
+typedef struct Func Func;
 
 enum TY {
     TY_NIL,
@@ -18,11 +20,11 @@ enum TY {
 };
 
 typedef struct Type {
-    TY kind;
-    const Type *underlying;
+    enum TY kind;
+    const struct Type *underlying;
     const Class *clss;
     const Func *func;
-    int len = 0;
+    int len;
 } Type;
 
 Type *NewNilType();

@@ -1,6 +1,8 @@
 #ifndef GC_H
 #define GC_H
 
+#include <stdbool.h>
+
 enum ObjKind {
     OBJ_NIL,
     OBJ_STRING,
@@ -22,6 +24,6 @@ typedef struct GC {
 } GC;
 
 StringObj *NewString(GC *gc, const char *s);
-void PrintObjs(const GC *gc);
+void PrintObjects(const GC *gc);
 
 #endif // _H

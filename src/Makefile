@@ -1,7 +1,7 @@
-CC      := g++
+CC      := gcc
 AR      := ar
 OPT     := -g
-CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors --std=c++17 -c
+CFLAGS  := $(OPT) $(INCLUDE) -Wall --pedantic-errors -std=c11 -c
 RM      := rm -f
 
 SRCS    := ast ast2 builtin bytecode codegen gc error escseq intern interpreter \
@@ -19,10 +19,10 @@ all: $(ROCK)
 run: $(ROCK)
 	$(ROCK) ./input.ro
 
-$(OBJS): %.o: %.cpp
+$(OBJS): %.o: %.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-main.o: main.cpp
+main.o: main.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 $(ROCK): main.o $(ROCKA)
@@ -37,7 +37,7 @@ clean:
 test: $(ROCKA)
 	$(MAKE) -C tests $@
 
-$(DEPS): %.d: %.cpp
+$(DEPS): %.d: %.c
 	$(CC) $(INCLUDE) -c -MM $< > $@
 
 ifneq "$(MAKECMDGOALS)" "clean"
