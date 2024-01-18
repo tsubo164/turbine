@@ -1,99 +1,147 @@
-#include <string_view>
-#include <iostream>
-#include <fstream>
-#include <string>
+//#include <string_view>
+//#include <iostream>
+//#include <fstream>
+//#include <string>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "interpreter.h"
 
-std::string read_file(const std::string_view filename)
+typedef struct strbuf {
+    char *data;
+    int len;
+    int cap;
+} strbuf;
+
+// calculate new alloc size based on the current alloc and
+// requested new length.
+// the new minimum alloc: 16 bytes
+// grows 2x until 8k bytes e.g. 16 -> 32 -> ... -> 1024
+// adds 1024 bytes until it covers new length
+static int grow_cap(int old_cap, int new_len)
 {
-    std::ifstream ifs(filename);
-    if (!ifs)
-        return "";
+    int new_cap = old_cap < 16 ? 16 : old_cap;
 
-    std::string text;
-    std::string line;
+    while (new_cap < new_len + 1 && new_cap < 1024 * 8)
+        new_cap *= 2;
+    while (new_cap < new_len + 1)
+        new_cap += 1024;
 
-    while (getline(ifs, line))
-        text += line + '\n';
+    return new_cap;
+}
 
-    return text;
+static void grow(strbuf *sb, int new_len)
+{
+    if (!sb)
+        return;
+
+    if (sb->cap >= new_len + 1) {
+        // no reallocation
+        sb->len = new_len;
+        sb->data[sb->len] = '\0';
+        return;
+    }
+
+    int new_cap = grow_cap(sb->cap, new_len);
+    char *new_data = (char *) realloc(sb->data, new_cap);
+    if (!new_data)
+        return;
+
+    sb->data = new_data;
+    sb->cap = new_cap;
+    sb->len = new_len;
+}
+
+void strcat(strbuf *sb, const char *s)
+{
+    if (!sb || !s)
+        return;
+
+    int len = strlen(s);
+    int old_len = sb->len;
+    int new_len = sb->len + len;
+
+    grow(sb, new_len);
+    memcpy(sb->data + old_len, s, len + 1);
+}
+
+const char *read_file(const char *filename)
+{
+    FILE *fp = fopen(filename, "r");
+
+    if (!fp)
+        return NULL;
+
+    char buf[1024] = {'\0'};
+    strbuf sb = {0};
+    while (fgets(buf, 1024, fp)) {
+        strcat(&sb, buf);
+    }
+    strcat(&sb, "\n");
+
+    return sb.data;
 }
 
 int main(int argc, char **argv)
 {
-    bool print_token = false;
-    bool print_token_raw = false;
-    bool print_tree = false;
-    bool print_symbols = false;
-    bool print_symbols_all = false;
-    bool print_bytecode = false;
-    bool print_stack = false;
-    bool enable_optimize = true;
-    std::string_view filename;
+    const char *filename = NULL;
+    Option opt;
 
     for (int i = 1; i < argc; i++) {
-        const std::string_view arg(argv[i]);
+        const char *arg = argv[i];
 
-        if (arg == "--print-token" || arg == "-k") {
-            print_token = true;
+        if (!strcmp(arg, "--print-token") || !strcmp(arg, "-k")) {
+            opt.print_token = true;
         }
-        else if (arg == "--print-token-raw" || arg == "-K") {
-            print_token = true;
-            print_token_raw = true;
+        else if (!strcmp(arg, "--print-token-raw") || !strcmp(arg, "-K")) {
+            opt.print_token = true;
+            opt.print_token_raw = true;
         }
-        else if (arg == "--print-tree" || arg == "-t") {
-            print_tree = true;
+        else if (!strcmp(arg, "--print-tree") || !strcmp(arg, "-t")) {
+            opt.print_tree = true;
         }
-        else if (arg == "--print-symbols" || arg == "-y") {
-            print_symbols = true;
+        else if (!strcmp(arg, "--print-symbols") || !strcmp(arg, "-y")) {
+            opt.print_symbols = true;
         }
-        else if (arg == "--print-symbols-all" || arg == "-Y") {
-            print_symbols = true;
-            print_symbols_all = true;
+        else if (!strcmp(arg, "--print-symbols-all") || !strcmp(arg, "-Y")) {
+            opt.print_symbols = true;
+            opt.print_symbols_all = true;
         }
-        else if (arg == "--print-bytecode" || arg == "-b") {
-            print_bytecode = true;
+        else if (!strcmp(arg, "--print-bytecode") || !strcmp(arg, "-b")) {
+            opt.print_bytecode = true;
         }
-        else if (arg == "--print-stack" || arg == "-s") {
-            print_stack = true;
+        else if (!strcmp(arg, "--print-stack") || !strcmp(arg, "-s")) {
+            opt.print_stack = true;
         }
-        else if (arg == "--disable-optimize" || arg == "-d") {
-            enable_optimize = false;
+        else if (!strcmp(arg, "--disable-optimize") || !strcmp(arg, "-d")) {
+            opt.enable_optimize = false;
         }
         else if (arg[0] == '-') {
-            std::cerr << "error: unknown option: " << arg << std::endl;
-            std::exit(EXIT_FAILURE);
+            fprintf(stderr, "error: unknown option: %s\n", arg);
+            exit(EXIT_FAILURE);
         }
         else {
             filename = arg;
 
             if (i != argc - 1) {
-                std::cerr << "error: unknown argument after filename" << std::endl;
-                std::exit(EXIT_FAILURE);
+                fprintf(stderr, "error: unknown argument after filename\n");
+                exit(EXIT_FAILURE);
             }
         }
     }
 
-    const std::string src = read_file(filename);
+    const char *src = read_file(filename);
 
-    if (src.empty()) {
-        std::cerr << "error: no such file: " << filename << std::endl;
-        std::exit(EXIT_FAILURE);
+    if (!src) {
+        fprintf(stderr, "error: no such file: %s\n", filename);
+        exit(EXIT_FAILURE);
     }
 
-    Option opt;
-    opt.print_token       = print_token_raw;
-    opt.print_token_raw   = print_token_raw;
-    opt.print_tree        = print_tree;
-    opt.print_symbols     = print_symbols;
-    opt.print_symbols_all = print_symbols_all;
-    opt.print_bytecode    = print_bytecode;
-    opt.print_stack       = print_stack;
-    opt.enable_optimize   = enable_optimize;
-
-    int ret = Interpret(src.c_str(), &opt);
-    if (print_token || print_tree || print_bytecode || print_symbols)
+    int ret = Interpret(src, &opt);
+    if (opt.print_token || opt.print_tree || opt.print_bytecode || opt.print_symbols)
         ret = 0;
+
+    free((char *)src);
 
     return ret;
 }
