@@ -11,14 +11,6 @@
 #define CALLOC(type) NALLOC(1,type)
 
 
-// codegen
-struct Bytecode;
-struct Prog;
-
-void SetOptimize(bool enable);
-void GenerateCode(struct Bytecode *code, const struct Prog *prog);
-
-
 // string interning
 const char *intern(const char *str);
 

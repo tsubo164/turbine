@@ -1,7 +1,8 @@
-#include "compiler.h"
+#include "codegen.h"
 #include "bytecode.h"
 #include "error.h"
 #include "ast.h"
+#include <stdio.h>
 
 typedef struct IntVec {
     Int *data;
