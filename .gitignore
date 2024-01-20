@@ -3,4 +3,5 @@
 *.d
 *.a
 *.out
+dep
 rock
