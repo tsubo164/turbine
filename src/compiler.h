@@ -10,9 +10,4 @@
 #define NALLOC(n,type) ((type*) calloc((n),sizeof(type)))
 #define CALLOC(type) NALLOC(1,type)
 
-
-// string interning
-const char *intern(const char *str);
-
-
 #endif // _H

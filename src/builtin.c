@@ -1,5 +1,5 @@
 #include "builtin.h"
-#include "compiler.h"
+#include "intern.h"
 #include "scope.h"
 #include "type.h"
 

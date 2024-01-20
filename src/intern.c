@@ -3,13 +3,14 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "intern.h"
 #include "compiler.h"
 
 
 #if 0
-#define HASH_SIZE 1237 /* a prime number */
+#define HASH_SIZE 1237 // a prime number
 #else
-#define HASH_SIZE 5381 /* a prime number */
+#define HASH_SIZE 5381 // a prime number
 #endif
 #define MULTIPLIER 31
 
@@ -26,8 +27,8 @@ static uint32_t hash_fn(const char *key)
     unsigned char *p = NULL;
 
     for (p = (unsigned char *) key; *p != '\0'; p++)
-        /* h = MULTIPLIER * h + *p; */
-        /* h * 31 + *p */
+        // h = MULTIPLIER * h + *p;
+        // h * 31 + *p
         h = (h << 5) - h + *p;
 
     return h % HASH_SIZE;

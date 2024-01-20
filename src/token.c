@@ -1,8 +1,7 @@
-#include "compiler.h"
-
 #include "token.h"
-#include "error.h"
+#include "intern.h"
 #include "escseq.h"
+#include "error.h"
 
 #include <assert.h>
 #include <string.h>

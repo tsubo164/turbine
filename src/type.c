@@ -1,7 +1,7 @@
 #include "type.h"
-#include "compiler.h"
-#include "scope.h"
+#include "intern.h"
 #include "error.h"
+#include "scope.h"
 
 Type *NewNilType()
 {

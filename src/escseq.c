@@ -1,5 +1,5 @@
 #include "escseq.h"
-#include "compiler.h"
+#include "intern.h"
 
 bool FindEscapedChar(int second_char, int *result_char)
 {
