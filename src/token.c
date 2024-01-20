@@ -2,12 +2,14 @@
 #include "intern.h"
 #include "escseq.h"
 #include "error.h"
+#include "mem.h"
 
 #include <assert.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 
 static const KindInfo table[] = {
     { T_NUL,        "nul" },

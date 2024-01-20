@@ -1,5 +1,9 @@
 #include "bytecode.h"
 #include "error.h"
+#include "mem.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 const char *OpcodeString(Byte op)
 {

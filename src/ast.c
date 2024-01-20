@@ -1,5 +1,6 @@
-#include "compiler.h"
 #include "ast.h"
+#include "mem.h"
+#include <stdio.h>
 
 //--------------------------------
 // Expr

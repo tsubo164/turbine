@@ -2,7 +2,6 @@
 #define ERROR_H
 
 #include "token.h"
-#include "compiler.h"
 #include <stdarg.h>
 
 void Error(const char *src, const char *filename, Pos pos, const char *fmt, ...);

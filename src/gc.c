@@ -1,6 +1,6 @@
 #include "gc.h"
-#include "compiler.h"
 #include "error.h"
+#include "mem.h"
 #include <string.h>
 #include <stdio.h>
 

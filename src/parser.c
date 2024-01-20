@@ -1,5 +1,4 @@
 #include "parser.h"
-#include "compiler.h"
 #include "scope.h"
 #include "token.h"
 #include "type.h"
@@ -8,7 +7,9 @@
 #include "error.h"
 
 #include <assert.h>
+#include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 

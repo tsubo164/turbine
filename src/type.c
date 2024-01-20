@@ -2,6 +2,8 @@
 #include "intern.h"
 #include "error.h"
 #include "scope.h"
+#include "mem.h"
+#include <stdio.h>
 
 Type *NewNilType()
 {

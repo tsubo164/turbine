@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "intern.h"
-#include "compiler.h"
+#include "mem.h"
 
 
 #if 0

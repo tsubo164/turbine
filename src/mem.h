@@ -1,11 +1,7 @@
-#ifndef COMPILER_H
-#define COMPILER_H
+#ifndef MEM_H
+#define MEM_H
 
-#include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
 
 #define NALLOC(n,type) ((type*) calloc((n),sizeof(type)))
 #define CALLOC(type) NALLOC(1,type)

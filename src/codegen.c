@@ -2,6 +2,7 @@
 #include "bytecode.h"
 #include "error.h"
 #include "ast.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 typedef struct IntVec {

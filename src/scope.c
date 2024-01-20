@@ -1,6 +1,7 @@
 #include "scope.h"
-#include "compiler.h"
 #include "type.h"
+#include "mem.h"
+#include <string.h>
 #include <stdio.h>
 
 // Func
