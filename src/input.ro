@@ -1,8 +1,7 @@
-:: token
-  | T_IF
-  | T_FOR
-  | T_ELS
-  | T_BRK
+:: Color
+  | R
+  | G
+  | B
 
 /*
 :: token
@@ -22,14 +21,7 @@
   | NY  | "New Yourk"  |
 */
 
-# add(x int, y int) int
-  - z = x + y
-  return z
-
 # main() int
   - a = 19
-  - s = "Hello"
-  s = s + ", World!"
-  print(s)
-  print(a, "Hello", 3.14)
-  return  23 + a
+  //a = Color.R
+  return  a

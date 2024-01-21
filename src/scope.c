@@ -387,10 +387,15 @@ void PrintScope(const Scope *sc, int depth)
 
     for (Table *t = sc->tables; t; t = t->next) {
         print_header(depth);
-        printf("[tbl] %s %s\n",
-                t->name, "??");//TypeString(t->type));
-        //PrintScope(t->type->func->scope, depth + 1);
-        PrintScope(t->scope, depth + 1);
+        printf("[tbl] %s\n", t->name);
+        for (int i = 0; i < t->rows.cap; i++) {
+            MapEntry *e = &t->rows.buckets[i];
+            if (!e->key)
+                continue;
+            Row *r = e->val;
+            print_header(depth + 1);
+            printf("[row] %s => %lld\n", r->name, r->ival);
+        }
     }
 
     // when we're in global scope, no need to print child scopes as

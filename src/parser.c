@@ -3,6 +3,7 @@
 #include "token.h"
 #include "type.h"
 #include "ast.h"
+#include "mem.h"
 #include "escseq.h"
 #include "error.h"
 
@@ -113,16 +114,6 @@ static void enter_class_scope(Parser *p, Class *clss)
 static void leave_scope(Parser *p)
 {
     p->scope_ = Close(p->scope_);
-}
-
-static void enter_scope__(Parser *p, Scope *new_sc)
-{
-    p->scope_ = new_sc;
-}
-
-static void leave_scope__(Parser *p)
-{
-    p->scope_ = p->scope_->parent_;
 }
 
 // forward decls
@@ -911,26 +902,24 @@ static Table *table_def(Parser *p)
     if (!table) {
         error(p, tok_pos(p), "re-defined table: '%s'", tok_str(p));
     }
-
     expect(p, T_NEWLINE);
-    enter_scope__(p, table->scope);
-    expect(p, T_BLOCKBEGIN);
 
-    int i = 0;
+    expect(p, T_BLOCKBEGIN);
+    int id = 0;
     for (;;) {
         if (consume(p, T_OR)) {
             expect(p, T_IDENT);
-            Var *v = DefineVar(p->scope_, tok_str(p), NewIntType());
-            v->id = i++;
+            Row *r = CALLOC(Row);
+            r->name = tok_str(p);
+            r->ival = id++;
+            HashmapInsert(&table->rows, tok_str(p), r);
             expect(p, T_NEWLINE);
         }
         else {
             break;
         }
     }
-
     expect(p, T_BLOCKEND);
-    leave_scope__(p);
 
     return table;
 }

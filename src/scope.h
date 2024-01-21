@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "hashmap.h"
 // Scope and objects that are managed by scope.
 // Objects are variables, functions, fields, classes.
 // Objects have ownership of their contents like type, children, etc.
@@ -64,26 +65,23 @@ int ClassSize(const Class *c);
 int FieldCount(const Class *c);
 
 //----------------
-typedef struct Cell {
+typedef struct Row {
+    const char *name;
     union {
         int64_t ival;
         double fval;
         const char *sval;
     };
-} Cell;
+} Row;
+
+//void AddCell(Table *tb, const char *name);
 
 typedef struct Table {
     const char *name;
+    HashMap rows;
     Scope *scope;
-
-    int rows;
-    int cols;
-    Cell *cells;
-
     struct Table *next;
 } Table;
-
-//void AddCell(Table *tb, const char *name);
 
 struct Scope {
     Scope *parent_;
