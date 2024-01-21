@@ -1,69 +1,8 @@
-//#include <string_view>
-//#include <iostream>
-//#include <fstream>
-//#include <string>
+#include "interpreter.h"
+#include "strbuf.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "interpreter.h"
-
-typedef struct strbuf {
-    char *data;
-    int len;
-    int cap;
-} strbuf;
-
-// calculate new alloc size based on the current alloc and
-// requested new length.
-// the new minimum alloc: 16 bytes
-// grows 2x until 8k bytes e.g. 16 -> 32 -> ... -> 1024
-// adds 1024 bytes until it covers new length
-static int grow_cap(int old_cap, int new_len)
-{
-    int new_cap = old_cap < 16 ? 16 : old_cap;
-
-    while (new_cap < new_len + 1 && new_cap < 1024 * 8)
-        new_cap *= 2;
-    while (new_cap < new_len + 1)
-        new_cap += 1024;
-
-    return new_cap;
-}
-
-static void grow(strbuf *sb, int new_len)
-{
-    if (!sb)
-        return;
-
-    if (sb->cap >= new_len + 1) {
-        // no reallocation
-        sb->len = new_len;
-        sb->data[sb->len] = '\0';
-        return;
-    }
-
-    int new_cap = grow_cap(sb->cap, new_len);
-    char *new_data = (char *) realloc(sb->data, new_cap);
-    if (!new_data)
-        return;
-
-    sb->data = new_data;
-    sb->cap = new_cap;
-    sb->len = new_len;
-}
-
-void strbufcat(strbuf *sb, const char *s)
-{
-    if (!sb || !s)
-        return;
-
-    int len = strlen(s);
-    int old_len = sb->len;
-    int new_len = sb->len + len;
-
-    grow(sb, new_len);
-    memcpy(sb->data + old_len, s, len + 1);
-}
 
 const char *read_file(const char *filename)
 {
@@ -73,11 +12,11 @@ const char *read_file(const char *filename)
         return NULL;
 
     char buf[1024] = {'\0'};
-    strbuf sb = {0};
+    Strbuf sb = {0};
     while (fgets(buf, 1024, fp)) {
-        strbufcat(&sb, buf);
+        StrbufCat(&sb, buf);
     }
-    strbufcat(&sb, "\n");
+    StrbufCat(&sb, "\n");
 
     return sb.data;
 }
