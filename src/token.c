@@ -57,7 +57,9 @@ static const KindInfo table[] = {
     { T_LBRACK,     "[" },
     { T_RBRACK,     "]" },
     { T_SEM,        ";" },
-    { T_BLOCKBEGIN,     "block_begin" },
+    { T_COLON,      ":" },
+    { T_COLON2,     "::" },
+    { T_BLOCKBEGIN, "block_begin" },
     { T_BLOCKEND,   "block_end" },
     { T_DASH3,      "---" },
     { T_DOT,        "." },
@@ -654,7 +656,6 @@ static void get_token(Lexer *l, Token *tok)
         if (ch == '-') {
             ch = get(l);
             if (ch == '-') {
-                //set(tok, T_MINUS2, pos);
                 ch = get(l);
                 if (ch == '-') {
                     set(tok, T_DASH3, pos);
@@ -754,6 +755,18 @@ static void get_token(Lexer *l, Token *tok)
 
         if (ch == ';') {
             set(tok, T_SEM, pos);
+            return;
+        }
+
+        if (ch == ':') {
+            ch = get(l);
+            if (ch == ':') {
+                set(tok, T_COLON2, pos);
+            }
+            else {
+                unget(l);
+                set(tok, T_COLON, pos);
+            }
             return;
         }
 
@@ -865,6 +878,9 @@ void PrintToken(const Token *token, bool format)
 
     for (const Token *tok = token; tok; tok = tok->next) {
 
+        if (tok->kind == T_NUL)
+            continue;
+
         if (!format) {
             printf("(%4d, %3d) %s",
                     tok->pos.y, tok->pos.x,
@@ -909,4 +925,5 @@ void PrintToken(const Token *token, bool format)
         if (tok->kind == T_EOF)
             break;
     }
+    printf("\n");
 }

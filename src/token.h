@@ -49,6 +49,8 @@ enum KindTag {
     T_LBRACK,
     T_RBRACK,
     T_SEM,
+    T_COLON,
+    T_COLON2,
     T_BLOCKBEGIN,
     T_BLOCKEND,
     T_DASH3,

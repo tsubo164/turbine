@@ -2,6 +2,7 @@
 #define SCOPE_H
 
 #include <stdbool.h>
+#include <stdint.h>
 // Scope and objects that are managed by scope.
 // Objects are variables, functions, fields, classes.
 // Objects have ownership of their contents like type, children, etc.
@@ -62,6 +63,28 @@ Field *FindField(const Class *c, const char *name);
 int ClassSize(const Class *c);
 int FieldCount(const Class *c);
 
+//----------------
+typedef struct Cell {
+    union {
+        int64_t ival;
+        double fval;
+        const char *sval;
+    };
+} Cell;
+
+typedef struct Table {
+    const char *name;
+    Scope *scope;
+
+    int rows;
+    int cols;
+    Cell *cells;
+
+    struct Table *next;
+} Table;
+
+//void AddCell(Table *tb, const char *name);
+
 struct Scope {
     Scope *parent_;
     Scope *children_;
@@ -81,6 +104,9 @@ struct Scope {
     Field *fld_tail;
     Class *clsses_;
     Class *clsses_tail;
+
+    Table *tables;
+    Table *tables_tail;
 };
 
 Scope *OpenChild(Scope *sc);
@@ -98,6 +124,8 @@ Field *FindClassField(const Scope *sc, const char *name);
 
 Class *DefineClass(Scope *sc, const char *name);
 Class *FindClass(const Scope *sc, const char *name);
+
+Table *DefineTable(Scope *sc, const char *name);
 
 int VarSize(const Scope *sc);
 int TotalVarSize(const Scope *sc);

@@ -89,7 +89,7 @@ int ClassSize(const Class *c)
 }
 
 // Scope
-Scope *new_scope(Scope *parent, int level, int var_offset)
+static Scope *new_scope(Scope *parent, int var_offset)
 {
     Scope *sc = CALLOC(Scope);
     sc->parent_ = parent;
@@ -97,7 +97,7 @@ Scope *new_scope(Scope *parent, int level, int var_offset)
     sc->child_tail = NULL;
     sc->next = NULL;
 
-    sc->level_ = level;
+    sc->level_ = parent->level_ + 1;
     sc->var_offset_ = var_offset;
     sc->field_offset_ = 0;
     sc->class_offset_ = 0;
@@ -120,7 +120,7 @@ Scope *OpenChild(Scope *sc)
 {
     const int next_id = IsGlobalScope(sc) ? 0 : next_var_id(sc);
 
-    Scope *child = new_scope(sc, sc->level_ + 1, next_id);
+    Scope *child = new_scope(sc, next_id);
     if (!sc->children_)
         sc->child_tail = sc->children_ = child;
     else
@@ -308,6 +308,20 @@ Class *FindClass(const Scope *sc, const char *name)
     return NULL;
 }
 
+Table *DefineTable(Scope *sc, const char *name)
+{
+    Table *tb = CALLOC(Table);
+    if (!sc->tables)
+        sc->tables_tail = sc->tables = tb;
+    else
+        sc->tables_tail = sc->tables_tail->next = tb;
+
+    tb->name = name;
+    tb->scope = new_scope(sc, 0);
+
+    return tb;
+}
+
 static int next_var_id(const Scope *sc)
 {
     return sc->var_offset_;
@@ -369,6 +383,14 @@ void PrintScope(const Scope *sc, int depth)
         print_header(depth);
         printf("[fld] %s @%d %s\n",
                 fld->name, fld->id, TypeString(fld->type));
+    }
+
+    for (Table *t = sc->tables; t; t = t->next) {
+        print_header(depth);
+        printf("[tbl] %s %s\n",
+                t->name, "??");//TypeString(t->type));
+        //PrintScope(t->type->func->scope, depth + 1);
+        PrintScope(t->scope, depth + 1);
     }
 
     // when we're in global scope, no need to print child scopes as

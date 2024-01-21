@@ -115,6 +115,16 @@ static void leave_scope(Parser *p)
     p->scope_ = Close(p->scope_);
 }
 
+static void enter_scope__(Parser *p, Scope *new_sc)
+{
+    p->scope_ = new_sc;
+}
+
+static void leave_scope__(Parser *p)
+{
+    p->scope_ = p->scope_->parent_;
+}
+
 // forward decls
 static Type *type_spec(Parser *p);
 static Expr *expression(Parser *p);
@@ -892,6 +902,39 @@ static Class *class_decl(Parser *p)
     //return new ClasDef(clss);
 }
 
+static Table *table_def(Parser *p)
+{
+    expect(p, T_COLON2);
+    expect(p, T_IDENT);
+
+    Table *table = DefineTable(p->scope_, tok_str(p));
+    if (!table) {
+        error(p, tok_pos(p), "re-defined table: '%s'", tok_str(p));
+    }
+
+    expect(p, T_NEWLINE);
+    enter_scope__(p, table->scope);
+    expect(p, T_BLOCKBEGIN);
+
+    int i = 0;
+    for (;;) {
+        if (consume(p, T_OR)) {
+            expect(p, T_IDENT);
+            Var *v = DefineVar(p->scope_, tok_str(p), NewIntType());
+            v->id = i++;
+            expect(p, T_NEWLINE);
+        }
+        else {
+            break;
+        }
+    }
+
+    expect(p, T_BLOCKEND);
+    leave_scope__(p);
+
+    return table;
+}
+
 static Stmt *block_stmt(Parser *p, Func *func)
 {
     Stmt head = {0};
@@ -1128,6 +1171,11 @@ static Prog *program(Parser *p)
 
         if (next == T_HASH2) {
             class_decl(p);
+            continue;
+        }
+
+        if (next == T_COLON2) {
+            table_def(p);
             continue;
         }
 
