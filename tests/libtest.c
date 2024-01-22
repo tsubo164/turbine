@@ -120,8 +120,6 @@ int main(int argc, char **argv)
 
         ASSERTL(42, Interpret(input, &opt));
     }
-    // =========================================================================
-    // test cases above copied to test.ro
     {
         const char *input = 
             "# main() int\n"
@@ -146,6 +144,8 @@ int main(int argc, char **argv)
 
         ASSERTL(11, Interpret(input, &opt));
     }
+    // =========================================================================
+    // test cases above copied to test.ro
     {
         const char *input = 
             "# main() int\n"

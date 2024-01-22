@@ -23,5 +23,5 @@
 
 # main() int
   - a = 19
-  //a = Color.R
+  a = Color.G
   return  a

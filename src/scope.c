@@ -189,7 +189,7 @@ static Field *new_field(const char *Name, int ID)
     Field *f = CALLOC(Field);
     f->name = Name;
     // TODO add type
-    f->type = NewIntType();
+    f->type = NewTypeInt();
     f->id = ID;
     f->next = NULL;
     return f;
@@ -310,16 +310,27 @@ Class *FindClass(const Scope *sc, const char *name)
 
 Table *DefineTable(Scope *sc, const char *name)
 {
-    Table *tb = CALLOC(Table);
-    if (!sc->tables)
-        sc->tables_tail = sc->tables = tb;
-    else
-        sc->tables_tail = sc->tables_tail->next = tb;
+    Table *tab = CALLOC(Table);
 
-    tb->name = name;
-    tb->scope = new_scope(sc, 0);
+    if (!HashMapInsert(&sc->tables, name, tab))
+        return NULL;
 
-    return tb;
+    tab->name = name;
+    tab->scope = new_scope(sc, 0);
+
+    return tab;
+}
+
+Table *FindSymbol(Scope *sc, const char *name)
+{
+    Table *t = HashMapLookup(&sc->tables, name);
+    if (t)
+        return t;
+
+    if (sc->parent_)
+        return FindSymbol(sc->parent_, name);
+
+    return NULL;
 }
 
 static int next_var_id(const Scope *sc)
@@ -385,7 +396,12 @@ void PrintScope(const Scope *sc, int depth)
                 fld->name, fld->id, TypeString(fld->type));
     }
 
-    for (Table *t = sc->tables; t; t = t->next) {
+    for (int i = 0; i < sc->tables.cap; i++) {
+        MapEntry *e = &sc->tables.buckets[i];
+        if (!e->key)
+            continue;
+        Table *t = e->val;
+
         print_header(depth);
         printf("[tbl] %s\n", t->name);
         for (int i = 0; i < t->rows.cap; i++) {

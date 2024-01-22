@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 typedef struct Class Class;
+typedef struct Table Table;
 typedef struct Func Func;
 
 enum TY {
@@ -13,6 +14,7 @@ enum TY {
     TY_FLOAT,
     TY_STRING,
     TY_CLASS,
+    TY_TABLE,
     TY_FUNC,
     TY_PTR,
     TY_ARRAY,
@@ -23,20 +25,22 @@ typedef struct Type {
     enum TY kind;
     const struct Type *underlying;
     const Class *clss;
+    const Table *table;
     const Func *func;
     int len;
 } Type;
 
-Type *NewNilType();
-Type *NewBoolType();
-Type *NewIntType();
-Type *NewFloatType();
-Type *NewStringType();
-Type *NewClassType(Class *clss);
-Type *NewFuncType(Func *func);
-Type *NewPtrType(const Type *underlying);
-Type *NewArrayType(int len, Type *underlying);
-Type *NewAnyType();
+Type *NewTypeNil();
+Type *NewTypeBool();
+Type *NewTypeInt();
+Type *NewTypeFloat();
+Type *NewTypeString();
+Type *NewTypeClass(Class *clss);
+Type *NewTypeTable(Table *tab);
+Type *NewTypeFunc(Func *func);
+Type *NewTypePtr(const Type *underlying);
+Type *NewTypeArray(int len, Type *underlying);
+Type *NewTypeAny();
 
 bool IsNil(const Type *t);
 bool IsBool(const Type *t);
@@ -44,6 +48,7 @@ bool IsInt(const Type *t);
 bool IsFloat(const Type *t);
 bool IsString(const Type *t);
 bool IsClass(const Type *t);
+bool IsTable(const Type *t);
 bool IsFunc(const Type *t);
 bool IsPtr(const Type *t);
 bool IsArray(const Type *t);

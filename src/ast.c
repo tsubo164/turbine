@@ -7,7 +7,7 @@
 Expr *NewNullExpr(void)
 {
     Expr *e = CALLOC(Expr);
-    e->type = NewNilType();
+    e->type = NewTypeNil();
     e->kind = T_NUL;
     return e;
 }
@@ -15,7 +15,7 @@ Expr *NewNullExpr(void)
 Expr *NewNilLitExpr(void)
 {
     Expr *e = CALLOC(Expr);
-    e->type = NewNilType();
+    e->type = NewTypeNil();
     e->kind = T_NILLIT;
     return e;
 }
@@ -23,7 +23,7 @@ Expr *NewNilLitExpr(void)
 Expr *NewBoolLitExpr(bool b)
 {
     Expr *e = CALLOC(Expr);
-    e->type = NewBoolType();
+    e->type = NewTypeBool();
     e->kind = T_BOLLIT;
     e->ival = b;
     return e;
@@ -32,7 +32,7 @@ Expr *NewBoolLitExpr(bool b)
 Expr *NewIntLitExpr(long l)
 {
     Expr *e = CALLOC(Expr);
-    e->type = NewIntType();
+    e->type = NewTypeInt();
     e->kind = T_INTLIT;
     e->ival = l;
     return e;
@@ -41,7 +41,7 @@ Expr *NewIntLitExpr(long l)
 Expr *NewFloatLitExpr(double d)
 {
     Expr *e = CALLOC(Expr);
-    e->type = NewFloatType();
+    e->type = NewTypeFloat();
     e->kind = T_FLTLIT;
     e->fval = d;
     return e;
@@ -50,7 +50,7 @@ Expr *NewFloatLitExpr(double d)
 Expr *NewStringLitExpr(const char *s)
 {
     Expr *e = CALLOC(Expr);
-    e->type = NewStringType();
+    e->type = NewTypeString();
     e->kind = T_STRLIT;
     e->sval = s;
     return e;
@@ -136,7 +136,7 @@ Expr *NewBinaryExpr(Expr *L, Expr *R, int k)
 Expr *NewRelationalExpr(Expr *L, Expr *R, int k)
 {
     Expr *e = CALLOC(Expr);
-    e->type = NewBoolType();
+    e->type = NewTypeBool();
     switch (k) {
     case T_EQ: case T_NEQ:
     case T_LT: case T_LTE:

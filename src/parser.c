@@ -265,9 +265,13 @@ static Expr *primary_expr(Parser *p)
         if (tok->kind == T_IDENT) {
             Var *var = FindVar(p->scope_, tok->sval, true);
             if (!var) {
-                error(p, tok_pos(p),
-                        "undefined identifier: '%s'",
-                        tok_str(p));
+                Table *t = FindSymbol(p->scope_, tok->sval);
+                if (!t) {
+                    error(p, tok_pos(p),
+                            "undefined identifier: '%s'",
+                            tok_str(p));
+                }
+                var = DefineVar(p->scope_, t->name, NewTypeTable(t));
             }
 
             expr = NewIdentExpr(var);
@@ -289,16 +293,23 @@ static Expr *primary_expr(Parser *p)
                 fprintf(stderr, "error: no type\n");
                 exit(EXIT_FAILURE);
             }
-            if (!IsClass(expr->type)) {
-                fprintf(stderr, "error: not a class type\n");
-                exit(EXIT_FAILURE);
+            if (!IsClass(expr->type) && !IsTable(expr->type)) {
+                error(p, tok_pos(p),
+                        "dot operator must be used for struct or table type");
             }
 
             expect(p, T_IDENT);
 
-            Field *fld = FindField(expr->type->clss, tok_str(p));
-
-            expr = NewSelectExpr(expr, NewFieldExpr(fld));
+            if (IsClass(expr->type)) {
+                Field *f = FindField(expr->type->clss, tok_str(p));
+                expr = NewSelectExpr(expr, NewFieldExpr(f));
+            }
+            if (IsTable(expr->type)) {
+                Row *r = HashMapLookup(&expr->type->table->rows, tok_str(p));
+                Expr *tmp = expr;
+                expr = NewIntLitExpr(r->ival);
+                expr->l = tmp;
+            }
             continue;
         }
         else if (tok->kind == T_LBRACK) {
@@ -347,7 +358,7 @@ static Expr *unary_expr(Parser *p)
 
     if (kind == T_AND) {
         Expr *expr = unary_expr(p);
-        Type *type = NewPtrType(expr->type);
+        Type *type = NewTypePtr(expr->type);
         return NewUnaryExpr(expr, type, kind);
     }
     if (kind == T_MUL) {
@@ -802,6 +813,7 @@ static Expr *default_value(const Type *type)
         return NewIntLitExpr(type->len);
 
     case TY_CLASS:
+    case TY_TABLE:
     case TY_FUNC:
         // TODO
         return NewNilLitExpr();
@@ -898,8 +910,8 @@ static Table *table_def(Parser *p)
     expect(p, T_COLON2);
     expect(p, T_IDENT);
 
-    Table *table = DefineTable(p->scope_, tok_str(p));
-    if (!table) {
+    Table *tab = DefineTable(p->scope_, tok_str(p));
+    if (!tab) {
         error(p, tok_pos(p), "re-defined table: '%s'", tok_str(p));
     }
     expect(p, T_NEWLINE);
@@ -912,7 +924,7 @@ static Table *table_def(Parser *p)
             Row *r = CALLOC(Row);
             r->name = tok_str(p);
             r->ival = id++;
-            HashmapInsert(&table->rows, tok_str(p), r);
+            HashMapInsert(&tab->rows, tok_str(p), r);
             expect(p, T_NEWLINE);
         }
         else {
@@ -921,7 +933,7 @@ static Table *table_def(Parser *p)
     }
     expect(p, T_BLOCKEND);
 
-    return table;
+    return tab;
 }
 
 static Stmt *block_stmt(Parser *p, Func *func)
@@ -999,7 +1011,7 @@ static void param_list(Parser *p, Func *func)
 
         if (consume(p, T_CALLER_LINE)) {
             name = tok_str(p);
-            type = NewIntType();
+            type = NewTypeInt();
         }
         else {
             expect(p, T_IDENT);
@@ -1019,7 +1031,7 @@ static void ret_type(Parser *p, Func *func)
     const int next = peek(p);
 
     if (next == T_NEWLINE)
-        func->return_type = NewNilType();
+        func->return_type = NewTypeNil();
     else
         func->return_type = type_spec(p);
 }
@@ -1031,7 +1043,7 @@ static Type *type_spec(Parser *p)
     Type *type = NULL;
 
     if (consume(p, T_MUL)) {
-        return NewPtrType(type_spec(p));
+        return NewTypePtr(type_spec(p));
     }
 
     if (consume(p, T_LBRACK)) {
@@ -1046,30 +1058,30 @@ static Type *type_spec(Parser *p)
                     "array length expression must be compile time constant");
         }
         expect(p, T_RBRACK);
-        return NewArrayType(len, type_spec(p));
+        return NewTypeArray(len, type_spec(p));
     }
 
     if (consume(p, T_HASH)) {
         Func *func = DeclareFunc(p->scope_);
         param_list(p, func);
         ret_type(p, func);
-        return NewFuncType(func);
+        return NewTypeFunc(func);
     }
 
     if (consume(p, T_BOL)) {
-        type = NewBoolType();
+        type = NewTypeBool();
     }
     else if (consume(p, T_INT)) {
-        type = NewIntType();
+        type = NewTypeInt();
     }
     else if (consume(p, T_FLT)) {
-        type = NewFloatType();
+        type = NewTypeFloat();
     }
     else if (consume(p, T_STR)) {
-        type = NewStringType();
+        type = NewTypeString();
     }
     else if (consume(p, T_IDENT)) {
-        type = NewClassType(FindClass(p->scope_, tok_str(p)));
+        type = NewTypeClass(FindClass(p->scope_, tok_str(p)));
     }
     else {
         const Token *tok = gettok(p);
@@ -1101,7 +1113,7 @@ static FuncDef *func_def(Parser *p)
         // error
         return NULL;
     }
-    Var *var = DefineVar(p->scope_, name, NewFuncType(func));
+    Var *var = DefineVar(p->scope_, name, NewTypeFunc(func));
 
     // func body
     p->func_ = func;

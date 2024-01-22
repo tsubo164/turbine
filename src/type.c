@@ -5,42 +5,42 @@
 #include "mem.h"
 #include <stdio.h>
 
-Type *NewNilType()
+Type *NewTypeNil()
 {
     static Type t;
     t.kind = TY_NIL;
     return &t;
 }
 
-Type *NewBoolType()
+Type *NewTypeBool()
 {
     static Type t;
     t.kind = TY_BOOL;
     return &t;
 }
 
-Type *NewIntType()
+Type *NewTypeInt()
 {
     static Type t;
     t.kind = TY_INT;
     return &t;
 }
 
-Type *NewFloatType()
+Type *NewTypeFloat()
 {
     static Type t;
     t.kind = TY_FLOAT;
     return &t;
 }
 
-Type *NewStringType()
+Type *NewTypeString()
 {
     static Type t;
     t.kind = TY_STRING;
     return &t;
 }
 
-Type *NewClassType(Class *clss)
+Type *NewTypeClass(Class *clss)
 {
     Type *t = CALLOC(Type);
     t->kind = TY_CLASS;
@@ -48,7 +48,15 @@ Type *NewClassType(Class *clss)
     return t;
 }
 
-Type *NewFuncType(Func *func)
+Type *NewTypeTable(Table *tab)
+{
+    Type *t = CALLOC(Type);
+    t->kind = TY_TABLE;
+    t->table = tab;
+    return t;
+}
+
+Type *NewTypeFunc(Func *func)
 {
     Type *t = CALLOC(Type);
     t->kind = TY_FUNC;
@@ -56,7 +64,7 @@ Type *NewFuncType(Func *func)
     return t;
 }
 
-Type *NewPtrType(const Type *underlying)
+Type *NewTypePtr(const Type *underlying)
 {
     Type *t = CALLOC(Type);
     t->kind = TY_PTR;
@@ -64,7 +72,7 @@ Type *NewPtrType(const Type *underlying)
     return t;
 }
 
-Type *NewArrayType(int len, Type *underlying)
+Type *NewTypeArray(int len, Type *underlying)
 {
     Type *t = CALLOC(Type);
     t->kind = TY_ARRAY;
@@ -73,7 +81,7 @@ Type *NewArrayType(int len, Type *underlying)
     return t;
 }
 
-Type *NewAnyType()
+Type *NewTypeAny()
 {
     static Type t;
     t.kind = TY_ANY;
@@ -97,6 +105,7 @@ bool IsInt(const Type *t)     { return t->kind == TY_INT; }
 bool IsFloat(const Type *t)   { return t->kind == TY_FLOAT; }
 bool IsString(const Type *t)  { return t->kind == TY_STRING; }
 bool IsClass(const Type *t)   { return t->kind == TY_CLASS; }
+bool IsTable(const Type *t)   { return t->kind == TY_TABLE; }
 bool IsFunc(const Type *t)    { return t->kind == TY_FUNC; }
 bool IsPtr(const Type *t)     { return t->kind == TY_PTR; }
 bool IsArray(const Type *t)   { return t->kind == TY_ARRAY; }
@@ -111,6 +120,7 @@ static const char *type_kind_string(enum TY kind)
     case TY_FLOAT: return "float";
     case TY_STRING: return "string";
     case TY_CLASS: return "class";
+    case TY_TABLE: return "table";
     case TY_FUNC: return "#";
     case TY_PTR: return "*";
     case TY_ARRAY: return "[]";

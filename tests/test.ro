@@ -28,6 +28,11 @@
 
 - g_array [4]int
 
+:: Color
+  | R // 0
+  | G // 1
+  | B // 2
+
 # main() int
 
   ---
@@ -90,6 +95,27 @@
 
   ---
     AssertI(42, seven() + add(30, 5))
+
+  ---
+    - a int
+    - b int
+    a = 42
+    if a == 12
+      b = 11
+    or
+      b = 22
+    AssertI(22, b)
+
+  ---
+    - a int
+    - b int
+    a = 42
+    if a == 42
+      b = 11
+    or
+      b = 22
+    AssertI(11, b)
+
   // C++ test
   // ==========================================================================
 
@@ -171,6 +197,13 @@
   ---
     g_array[3] = 99
     AssertI(99, g_array[3])
+
+  // table
+  ---
+    - a = Color.R
+    AssertI(0, a)
+    AssertI(1, Color.G)
+    AssertI(3, a + Color.G + Color.B)
 
   //------------------------------
   print(test_count, "tests done.")

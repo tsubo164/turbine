@@ -12,8 +12,8 @@ typedef struct HashMap {
     int used;
 } HashMap;
 
-void *HashmapInsert(HashMap *map, const char *key, void *data);
-void *HashmapLookup(HashMap *map, const char *key);
-void HashmapPrint(const HashMap *map);
+void *HashMapInsert(HashMap *map, const char *key, void *data);
+void *HashMapLookup(const HashMap *map, const char *key);
+void HashMapPrint(const HashMap *map);
 
 #endif // _H

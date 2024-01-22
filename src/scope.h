@@ -74,13 +74,10 @@ typedef struct Row {
     };
 } Row;
 
-//void AddCell(Table *tb, const char *name);
-
 typedef struct Table {
     const char *name;
     HashMap rows;
     Scope *scope;
-    struct Table *next;
 } Table;
 
 struct Scope {
@@ -103,8 +100,7 @@ struct Scope {
     Class *clsses_;
     Class *clsses_tail;
 
-    Table *tables;
-    Table *tables_tail;
+    HashMap tables;
 };
 
 Scope *OpenChild(Scope *sc);
@@ -124,6 +120,7 @@ Class *DefineClass(Scope *sc, const char *name);
 Class *FindClass(const Scope *sc, const char *name);
 
 Table *DefineTable(Scope *sc, const char *name);
+Table *FindSymbol(Scope *sc, const char *name);
 
 int VarSize(const Scope *sc);
 int TotalVarSize(const Scope *sc);

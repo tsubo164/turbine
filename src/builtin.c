@@ -9,18 +9,18 @@ void DefineBuiltinFuncs(Scope *builtin)
         const char *name = intern("print");
         Func *func = DeclareFunc(builtin);
 
-        DeclareParam(func, "...", NewAnyType());
-        func->return_type = NewNilType();
+        DeclareParam(func, "...", NewTypeAny());
+        func->return_type = NewTypeNil();
 
-        DefineVar(builtin, name, NewFuncType(func));
+        DefineVar(builtin, name, NewTypeFunc(func));
     }
     {
         const char *name = intern("exit");
         Func *func = DeclareFunc(builtin);
 
-        DeclareParam(func, "code", NewIntType());
-        func->return_type = NewNilType();
+        DeclareParam(func, "code", NewTypeInt());
+        func->return_type = NewTypeNil();
 
-        DefineVar(builtin, name, NewFuncType(func));
+        DefineVar(builtin, name, NewTypeFunc(func));
     }
 }
