@@ -80,6 +80,30 @@ typedef struct Table {
     Scope *scope;
 } Table;
 
+
+enum SymKind {
+    SYM_VAR,
+    SYM_FUNC,
+    SYM_TABLE,
+    SYM_STRUCT,
+    SYM_MODULE,
+};
+
+typedef struct Symbol {
+    int kind;
+    int id;
+    const char *name;
+    const Type *type;
+
+    union {
+        Var *var;
+        Func *func;
+        Class *strct;
+        Table *table;
+    };
+} Symbol;
+
+
 struct Scope {
     Scope *parent_;
     Scope *children_;
@@ -101,6 +125,7 @@ struct Scope {
     Class *clsses_tail;
 
     HashMap tables;
+    HashMap symbols;
 };
 
 Scope *OpenChild(Scope *sc);
@@ -120,7 +145,7 @@ Class *DefineClass(Scope *sc, const char *name);
 Class *FindClass(const Scope *sc, const char *name);
 
 Table *DefineTable(Scope *sc, const char *name);
-Table *FindSymbol(Scope *sc, const char *name);
+Symbol *FindSymbol(Scope *sc, const char *name);
 
 int VarSize(const Scope *sc);
 int TotalVarSize(const Scope *sc);

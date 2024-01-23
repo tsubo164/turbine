@@ -17,6 +17,7 @@ struct Expr {
     Expr *list;
     Expr *next;
 
+    Symbol *sym;
     Var *var;
     Field *field;
 

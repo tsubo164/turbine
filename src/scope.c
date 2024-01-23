@@ -308,24 +308,35 @@ Class *FindClass(const Scope *sc, const char *name)
     return NULL;
 }
 
+static Symbol *new_symbol(int kind, const char *name, const Type *t)
+{
+    Symbol *sym = CALLOC(Symbol);
+    sym->kind = kind;
+    sym->name = name;
+    sym->type = t;
+    return sym;
+}
+
 Table *DefineTable(Scope *sc, const char *name)
 {
     Table *tab = CALLOC(Table);
-
-    if (!HashMapInsert(&sc->tables, name, tab))
-        return NULL;
-
     tab->name = name;
     tab->scope = new_scope(sc, 0);
+
+    Symbol *sym = new_symbol(SYM_TABLE, name, NewTypeTable(tab));
+    sym->table = tab;
+
+    if (!HashMapInsert(&sc->symbols, name, sym))
+        return NULL;
 
     return tab;
 }
 
-Table *FindSymbol(Scope *sc, const char *name)
+Symbol *FindSymbol(Scope *sc, const char *name)
 {
-    Table *t = HashMapLookup(&sc->tables, name);
-    if (t)
-        return t;
+    Symbol *sym = HashMapLookup(&sc->symbols, name);
+    if (sym)
+        return sym;
 
     if (sc->parent_)
         return FindSymbol(sc->parent_, name);

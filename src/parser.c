@@ -265,13 +265,13 @@ static Expr *primary_expr(Parser *p)
         if (tok->kind == T_IDENT) {
             Var *var = FindVar(p->scope_, tok->sval, true);
             if (!var) {
-                Table *t = FindSymbol(p->scope_, tok->sval);
+                Symbol *t = FindSymbol(p->scope_, tok->sval);
                 if (!t) {
                     error(p, tok_pos(p),
                             "undefined identifier: '%s'",
                             tok_str(p));
                 }
-                var = DefineVar(p->scope_, t->name, NewTypeTable(t));
+                var = DefineVar(p->scope_, t->name, t->type);
             }
 
             expr = NewIdentExpr(var);
@@ -288,11 +288,6 @@ static Expr *primary_expr(Parser *p)
             continue;
         }
         else if (tok->kind == T_DOT) {
-            // TODO FIX
-            if (!expr || !expr->type) {
-                fprintf(stderr, "error: no type\n");
-                exit(EXIT_FAILURE);
-            }
             if (!IsClass(expr->type) && !IsTable(expr->type)) {
                 error(p, tok_pos(p),
                         "dot operator must be used for struct or table type");
