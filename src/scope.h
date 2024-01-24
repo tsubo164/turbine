@@ -81,7 +81,7 @@ typedef struct Table {
 } Table;
 
 
-enum SymKind {
+enum SymbolKind {
     SYM_VAR,
     SYM_FUNC,
     SYM_TABLE,
@@ -132,7 +132,7 @@ Scope *OpenChild(Scope *sc);
 Scope *Close(const Scope *sc);
 bool IsGlobalScope(const Scope *sc);
 
-Var *DefineVar(Scope *sc, const char *name, const Type *type);
+struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type);
 Var *FindVar(const Scope *sc, const char *name, bool find_in_parents);
 
 Func *DeclareFunc(Scope *sc);

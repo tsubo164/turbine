@@ -238,13 +238,13 @@ static Expr *primary_expr(Parser *p)
     }
 
     if (consume(p, T_CALLER_LINE)) {
-        Var *var = FindVar(p->scope_, tok_str(p), true);
-        if (!var) {
+        struct Symbol *sym = FindSymbol(p->scope_, tok_str(p));
+        if (!sym) {
             error(p, tok_pos(p),
                     "special variable '%s' not declared in parameters",
                     tok_str(p));
         }
-        return NewIdentExpr(var);
+        return NewIdentExpr(sym);
     }
 
     const int next = peek(p);
@@ -263,18 +263,13 @@ static Expr *primary_expr(Parser *p)
         const Token *tok = gettok(p);
 
         if (tok->kind == T_IDENT) {
-            Var *var = FindVar(p->scope_, tok->sval, true);
-            if (!var) {
-                Symbol *t = FindSymbol(p->scope_, tok->sval);
-                if (!t) {
-                    error(p, tok_pos(p),
-                            "undefined identifier: '%s'",
-                            tok_str(p));
-                }
-                var = DefineVar(p->scope_, t->name, t->type);
+            struct Symbol *sym = FindSymbol(p->scope_, tok->sval);
+            if (!sym) {
+                error(p, tok_pos(p),
+                        "undefined identifier: '%s'",
+                        tok_str(p));
             }
-
-            expr = NewIdentExpr(var);
+            expr = NewIdentExpr(sym);
             continue;
         }
         else if (tok->kind == T_LPAREN) {
@@ -827,13 +822,9 @@ static Stmt *var_decl(Parser *p)
     expect(p, T_SUB);
     expect(p, T_IDENT);
 
-    if (FindVar(p->scope_, tok_str(p), false)) {
-        error(p, tok_pos(p),
-                "re-defined variable: '%s'", tok_str(p));
-    }
-
     // var anme
     const char *name = tok_str(p);
+    const struct Pos ident_pos = tok_pos(p);
     Type *type = NULL;
     Expr *init = NULL;
 
@@ -858,8 +849,12 @@ static Stmt *var_decl(Parser *p)
 
     expect(p, T_NEWLINE);
 
-    Var *var = DefineVar(p->scope_, name, type);
-    Expr *ident = NewIdentExpr(var);
+    struct Symbol *sym = DefineVar(p->scope_, name, type);
+    if (!sym) {
+        error(p, ident_pos,
+                "re-defined identifier: '%s'", name);
+    }
+    Expr *ident = NewIdentExpr(sym);
     return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
 
@@ -1096,6 +1091,7 @@ static FuncDef *func_def(Parser *p)
 
     // signature
     const char *name = tok_str(p);
+    const struct Pos ident_pos = tok_pos(p);
     Func *func = DeclareFunc(p->scope_);
 
     // params
@@ -1104,11 +1100,11 @@ static FuncDef *func_def(Parser *p)
     expect(p, T_NEWLINE);
 
     // func var
-    if (FindVar(p->scope_, name, true)) {
-        // error
-        return NULL;
+    struct Symbol *sym = DefineVar(p->scope_, name, NewTypeFunc(func));
+    if (!sym) {
+        error(p, ident_pos,
+                "re-defined identifier: '%s'", name);
     }
-    Var *var = DefineVar(p->scope_, name, NewTypeFunc(func));
 
     // func body
     p->func_ = func;
@@ -1127,7 +1123,7 @@ static FuncDef *func_def(Parser *p)
     p->func_ = NULL;
 
     // XXX temp
-    FuncDef *fdef = NewFuncDef(var, body);
+    FuncDef *fdef = NewFuncDef(sym, body);
     fdef->funclit_id = p->funclit_id_++;
 
     return fdef;
@@ -1153,7 +1149,7 @@ static Prog *program(Parser *p)
 
             {
                 // TODO clean up
-                Expr *ident = NewIdentExpr((Var *)(fdef->var));
+                Expr *ident = NewIdentExpr(fdef->sym);
                 Expr *init = NewIntLitExpr(fdef->funclit_id);
                 tail = tail->next = NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
             }

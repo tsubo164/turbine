@@ -7,7 +7,9 @@
 // Func
 void DeclareParam(Func *f, const char *name, const Type *type)
 {
-    Var *var = DefineVar(f->scope, name, type);
+    struct Symbol *sym = DefineVar(f->scope, name, type);
+    Var *var = sym->var;
+
     if (f->param_count == 0)
         f->params = var;
     f->param_count++;
@@ -152,20 +154,33 @@ static Var *new_var(const char *Name, const Type *t, int ID, bool global)
     return v;
 }
 
-Var *DefineVar(Scope *sc, const char *name, const Type *type)
+// TODO remove forward decls
+static Symbol *new_symbol(int kind, const char *name, const Type *t);
+Symbol *FindSymbolThisScope(Scope *sc, const char *name);
+
+struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type)
 {
-    if (FindVar(sc, name, false))
+    if (FindSymbolThisScope(sc, name))
         return NULL;
 
     const int next_id = next_var_id(sc);
     Var *var = new_var(name, type, next_id, IsGlobalScope(sc));
+
+    Symbol *sym = new_symbol(SYM_VAR, name, type);
+    sym->var = var;
+
+    //-------------------
     if (!sc->vars_)
         sc->vars_tail = sc->vars_ = var;
     else
         sc->vars_tail = sc->vars_tail->next = var;
+    //-------------------
     sc->var_offset_ += SizeOf(var->type);
 
-    return var;
+    if (!HashMapInsert(&sc->symbols, name, sym))
+        return NULL;
+
+    return sym;
 }
 
 Var *FindVar(const Scope *sc, const char *name, bool find_in_parents)
@@ -332,6 +347,15 @@ Table *DefineTable(Scope *sc, const char *name)
     return tab;
 }
 
+Symbol *FindSymbolThisScope(Scope *sc, const char *name)
+{
+    Symbol *sym = HashMapLookup(&sc->symbols, name);
+    if (sym)
+        return sym;
+
+    return NULL;
+}
+
 Symbol *FindSymbol(Scope *sc, const char *name)
 {
     Symbol *sym = HashMapLookup(&sc->symbols, name);
@@ -407,21 +431,24 @@ void PrintScope(const Scope *sc, int depth)
                 fld->name, fld->id, TypeString(fld->type));
     }
 
-    for (int i = 0; i < sc->tables.cap; i++) {
-        MapEntry *e = &sc->tables.buckets[i];
+    for (int i = 0; i < sc->symbols.cap; i++) {
+        const struct MapEntry *e = &sc->symbols.buckets[i];
         if (!e->key)
             continue;
-        Table *t = e->val;
+        const struct Symbol *sym = e->val;
 
-        print_header(depth);
-        printf("[tbl] %s\n", t->name);
-        for (int i = 0; i < t->rows.cap; i++) {
-            MapEntry *e = &t->rows.buckets[i];
-            if (!e->key)
-                continue;
-            Row *r = e->val;
-            print_header(depth + 1);
-            printf("[row] %s => %lld\n", r->name, r->ival);
+        if (sym->kind == SYM_TABLE) {
+            const struct Table *t = sym->table;
+            print_header(depth);
+            printf("[tbl] %s\n", t->name);
+            for (int i = 0; i < t->rows.cap; i++) {
+                MapEntry *e = &t->rows.buckets[i];
+                if (!e->key)
+                    continue;
+                Row *r = e->val;
+                print_header(depth + 1);
+                printf("[row] %s => %lld\n", r->name, r->ival);
+            }
         }
     }
 

@@ -20,8 +20,15 @@
   | TX  | "Texas"      |
   | NY  | "New Yourk"  |
 */
+# add(x int, y int) int
+  return x + y
+
+//# add(x int, y int) int
+//  return x + y
+
+//- add = "foo!"
 
 # main() int
   - a = 19
   a = Color.G
-  return  a
+  return  a + add(9, 4)

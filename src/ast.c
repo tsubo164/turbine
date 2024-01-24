@@ -65,12 +65,12 @@ Expr *NewConversionExpr(Expr *from, Type *to)
     return e;
 }
 
-Expr *NewIdentExpr(Var *v)
+Expr *NewIdentExpr(struct Symbol *sym)
 {
     Expr *e = CALLOC(Expr);
-    e->type = v->type;
+    e->type = sym->type;
     e->kind = T_IDENT;
-    e->var = v;
+    e->var = sym->var;
     return e;
 }
 
@@ -307,12 +307,13 @@ Stmt *NewExprStmt(Expr *e)
 
 //--------------------------------
 // FuncDef
-FuncDef *NewFuncDef(Var *v, Stmt *body)
+FuncDef *NewFuncDef(struct Symbol *sym, Stmt *body)
 {
     FuncDef *f = CALLOC(FuncDef);
-    f->var = v;
+    f->sym = sym;
+    f->var = sym->var;
     f->body = body;
-    f->func = v->type->func;
+    f->func = sym->type->func;
     f->funclit_id = 0;
     f->next = NULL;
     return f;

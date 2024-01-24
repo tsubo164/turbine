@@ -37,7 +37,7 @@ Expr *NewIntLitExpr(long l);
 Expr *NewFloatLitExpr(double d);
 Expr *NewStringLitExpr(const char *s);
 Expr *NewConversionExpr(Expr *from, Type *to);
-Expr *NewIdentExpr(Var *v);
+Expr *NewIdentExpr(struct Symbol *sym);
 Expr *NewFieldExpr(Field *f);
 Expr *NewSelectExpr(Expr *inst, Expr *fld);
 Expr *NewIndexExpr(Expr *ary, Expr *idx);
@@ -81,6 +81,7 @@ Stmt *NewExprStmt(Expr *e);
 typedef struct FuncDef {
     // TODO remove this
     const Func *func;
+    struct Symbol *sym;
     const Var *var;
     Stmt* body;
     // TODO make FuncLitExpr and remove this
@@ -89,7 +90,7 @@ typedef struct FuncDef {
     struct FuncDef *next;
 } FuncDef;
 
-FuncDef *NewFuncDef(Var *v, Stmt *body);
+FuncDef *NewFuncDef(struct Symbol *sym, Stmt *body);
 
 
 //--------------------------------
