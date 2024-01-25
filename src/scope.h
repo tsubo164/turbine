@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hashmap.h"
+#include "vec.h"
 // Scope and objects that are managed by scope.
 // Objects are variables, functions, fields, classes.
 // Objects have ownership of their contents like type, children, etc.
@@ -13,19 +14,17 @@ typedef struct Type Type;
 typedef struct Scope Scope;
 
 typedef struct Var {
+    //TODO remove name and type
     const char *name;
     const Type *type;
     int id;
     bool is_global;
-
-    struct Var *next;
 } Var;
 
 typedef struct Func {
     Scope *scope;
     const Type *return_type;
-    Var *params;
-    int param_count;
+    struct Vec params;
 
     bool is_builtin;
     bool has_special_var;
@@ -116,8 +115,6 @@ struct Scope {
     int class_offset_;
 
     const Class *clss_;
-    Var *vars_;
-    Var *vars_tail;
     Func *funcs_;
     Field *flds_;
     Field *fld_tail;
@@ -133,10 +130,8 @@ Scope *Close(const Scope *sc);
 bool IsGlobalScope(const Scope *sc);
 
 struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type);
-Var *FindVar(const Scope *sc, const char *name, bool find_in_parents);
 
 Func *DeclareFunc(Scope *sc);
-const Var *FindFunc(const Scope *sc, const char *name);
 
 Field *DefineFild(Scope *sc, const char *name);
 Field *FindClassField(const Scope *sc, const char *name);

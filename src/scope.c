@@ -8,11 +8,7 @@
 void DeclareParam(Func *f, const char *name, const Type *type)
 {
     struct Symbol *sym = DefineVar(f->scope, name, type);
-    Var *var = sym->var;
-
-    if (f->param_count == 0)
-        f->params = var;
-    f->param_count++;
+    VecPush(&f->params, sym->var);
 
     if (!strcmp(name, "..."))
         f->ellipsis_index = ParamCount(f) - 1;
@@ -33,10 +29,7 @@ const Var *GetParam(const Func *f, int index)
     if (idx < 0 || idx >= ParamCount(f))
         return NULL;
 
-    Var *param = f->params;
-    for (int i = 0; i < idx; i++)
-        param = param->next;
-    return param;
+    return f->params.data[idx];
 }
 
 int RequiredParamCount(const Func *f)
@@ -49,7 +42,7 @@ int RequiredParamCount(const Func *f)
 
 int ParamCount(const Func *f)
 {
-    return f->param_count;
+    return f->params.len;
 }
 
 bool HasSpecialVar(const Func *f)
@@ -105,8 +98,6 @@ static Scope *new_scope(Scope *parent, int var_offset)
     sc->class_offset_ = 0;
     sc->clss_ = NULL;
 
-    sc->vars_ = NULL;
-    sc->vars_tail = NULL;
     sc->funcs_ = NULL;
     sc->flds_ = NULL;
     sc->fld_tail = NULL;
@@ -150,7 +141,6 @@ static Var *new_var(const char *Name, const Type *t, int ID, bool global)
     v->type = t;
     v->id = ID;
     v->is_global = global;
-    v->next = NULL;
     return v;
 }
 
@@ -169,34 +159,12 @@ struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type)
     Symbol *sym = new_symbol(SYM_VAR, name, type);
     sym->var = var;
 
-    //-------------------
-    if (!sc->vars_)
-        sc->vars_tail = sc->vars_ = var;
-    else
-        sc->vars_tail = sc->vars_tail->next = var;
-    //-------------------
     sc->var_offset_ += SizeOf(var->type);
 
     if (!HashMapInsert(&sc->symbols, name, sym))
         return NULL;
 
     return sym;
-}
-
-Var *FindVar(const Scope *sc, const char *name, bool find_in_parents)
-{
-    for (Var *v = sc->vars_; v; v = v->next) {
-        if (!strcmp(v->name, name))
-            return v;
-    }
-
-    if (!find_in_parents)
-        return NULL;
-
-    if (sc->parent_)
-        return FindVar(sc->parent_, name, true);
-
-    return NULL;
 }
 
 static Field *new_field(const char *Name, int ID)
@@ -244,8 +212,7 @@ Func *new_func(Scope *sc, bool builtin)
     Func *f = CALLOC(Func);
     f->scope = sc;
     f->return_type = NULL;
-    f->params = NULL;
-    f->param_count = 0;
+    f->params.data = NULL;
     f->is_builtin = builtin;
     f->has_special_var = false;
     f->ellipsis_index = -1;
@@ -265,19 +232,6 @@ Func *DeclareFunc(Scope *sc)
     sc->funcs_ = func;
 
     return func;
-}
-
-const Var *FindFunc(const Scope *sc, const char *name)
-{
-    const Var *var = FindVar(sc, name, true);
-    if (var && IsFunc(var->type)) {
-        return (Var *)(var);
-    }
-
-    if (sc->parent_)
-        return FindFunc(sc->parent_, name);
-
-    return NULL;
 }
 
 static Class *new_class(const char *name, int id, Scope *sc)
@@ -409,21 +363,6 @@ static void print_header(int depth)
 
 void PrintScope(const Scope *sc, int depth)
 {
-    for (Var *v = sc->vars_; v; v = v->next) {
-
-        if (IsFunc(v->type)) {
-            print_header(depth);
-            printf("[fnc] %s @%d %s\n",
-                    v->name, v->id, TypeString(v->type));
-            PrintScope(v->type->func->scope, depth + 1);
-        }
-        else {
-            print_header(depth);
-            printf("[var] %s @%d %s\n",
-                    v->name, v->id, TypeString(v->type));
-        }
-    }
-
     for (const Field *fld = sc->flds_; fld; fld = fld->next) {
 
         print_header(depth);
@@ -437,8 +376,25 @@ void PrintScope(const Scope *sc, int depth)
             continue;
         const struct Symbol *sym = e->val;
 
+        if (sym->kind == SYM_VAR) {
+            const struct Var *v = sym->var;
+
+            if (IsFunc(v->type)) {
+                print_header(depth);
+                printf("[fnc] %s @%d %s\n",
+                        v->name, v->id, TypeString(v->type));
+                PrintScope(v->type->func->scope, depth + 1);
+            }
+            else {
+                print_header(depth);
+                printf("[var] %s @%d %s\n",
+                        v->name, v->id, TypeString(v->type));
+            }
+        }
+
         if (sym->kind == SYM_TABLE) {
             const struct Table *t = sym->table;
+
             print_header(depth);
             printf("[tbl] %s\n", t->name);
             for (int i = 0; i < t->rows.cap; i++) {
