@@ -18,6 +18,7 @@ const char *read_file(const char *filename)
     }
     StrbufCat(&sb, "\n");
 
+    fclose(fp);
     return sb.data;
 }
 

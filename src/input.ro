@@ -1,7 +1,15 @@
-:: Color
-  | R
-  | G
-  | B
+//> foo
+
+//[os]
+//[csv]
+//[json]
+//[opengl] (github.com/...)
+[my_calc]
+
+//:: Color
+//  | R
+//  | G
+//  | B
 
 /*
 :: token
@@ -20,15 +28,10 @@
   | TX  | "Texas"      |
   | NY  | "New Yourk"  |
 */
-# add(x int, y int) int
-  return x + y
-
 //# add(x int, y int) int
 //  return x + y
 
-//- add = "foo!"
-
 # main() int
   - a = 19
-  a = Color.G
-  return  a + add(9, 4)
+  //a = Color.G
+  return  a// + calc.add(9, 4)

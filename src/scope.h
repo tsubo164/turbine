@@ -79,6 +79,10 @@ typedef struct Table {
     Scope *scope;
 } Table;
 
+struct Module {
+    const char *name;
+    Scope *scope;
+};
 
 enum SymbolKind {
     SYM_VAR,
@@ -99,6 +103,7 @@ typedef struct Symbol {
         Func *func;
         Class *strct;
         Table *table;
+        struct Module *module;
     };
 } Symbol;
 
@@ -140,6 +145,7 @@ Class *DefineClass(Scope *sc, const char *name);
 Class *FindClass(const Scope *sc, const char *name);
 
 Table *DefineTable(Scope *sc, const char *name);
+struct Module *DefineModule(Scope *sc, const char *name);
 Symbol *FindSymbol(Scope *sc, const char *name);
 
 int VarSize(const Scope *sc);

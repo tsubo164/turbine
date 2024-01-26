@@ -88,21 +88,8 @@ static Scope *new_scope(Scope *parent, int var_offset)
 {
     Scope *sc = CALLOC(Scope);
     sc->parent_ = parent;
-    sc->children_ = NULL;
-    sc->child_tail = NULL;
-    sc->next = NULL;
-
     sc->level_ = parent->level_ + 1;
     sc->var_offset_ = var_offset;
-    sc->field_offset_ = 0;
-    sc->class_offset_ = 0;
-    sc->clss_ = NULL;
-
-    sc->funcs_ = NULL;
-    sc->flds_ = NULL;
-    sc->fld_tail = NULL;
-    sc->clsses_ = NULL;
-    sc->clsses_tail = NULL;
 
     return sc;
 }
@@ -207,26 +194,22 @@ Field *FindClassField(const Scope *sc, const char *name)
     return NULL;
 }
 
-Func *new_func(Scope *sc, bool builtin)
+//Func *new_func(Scope *sc, bool builtin)
+Func *new_func(Scope *parent, bool builtin)
 {
     Func *f = CALLOC(Func);
-    f->scope = sc;
-    f->return_type = NULL;
-    f->params.data = NULL;
+    const int next_id = IsGlobalScope(parent) ? 0 : next_var_id(parent);
+    f->scope = new_scope(parent, next_id);
     f->is_builtin = builtin;
-    f->has_special_var = false;
     f->ellipsis_index = -1;
-    f->next = NULL;
 
     return f;
 }
 
 Func *DeclareFunc(Scope *sc)
 {
-    Scope *param_scope = OpenChild(sc);
-
     const bool is_builtin = sc->level_ == 0;
-    Func *func = new_func(param_scope, is_builtin);
+    Func *func = new_func(sc, is_builtin);
 
     func->next = sc->funcs_;
     sc->funcs_ = func;
@@ -301,6 +284,21 @@ Table *DefineTable(Scope *sc, const char *name)
     return tab;
 }
 
+struct Module *DefineModule(Scope *sc, const char *name)
+{
+    struct Module *mod = CALLOC(struct Module);
+    mod->name = name;
+    mod->scope = new_scope(sc, 0);
+
+    Symbol *sym = new_symbol(SYM_MODULE, name, NewTypeModule(mod));
+    sym->module = mod;
+
+    if (!HashMapInsert(&sc->symbols, name, sym))
+        return NULL;
+
+    return mod;
+}
+
 Symbol *FindSymbolThisScope(Scope *sc, const char *name)
 {
     Symbol *sym = HashMapLookup(&sc->symbols, name);
@@ -370,6 +368,7 @@ void PrintScope(const Scope *sc, int depth)
                 fld->name, fld->id, TypeString(fld->type));
     }
 
+    // symbols
     for (int i = 0; i < sc->symbols.cap; i++) {
         const struct MapEntry *e = &sc->symbols.buckets[i];
         if (!e->key)
@@ -396,7 +395,7 @@ void PrintScope(const Scope *sc, int depth)
             const struct Table *t = sym->table;
 
             print_header(depth);
-            printf("[tbl] %s\n", t->name);
+            printf("[tab] %s\n", t->name);
             for (int i = 0; i < t->rows.cap; i++) {
                 MapEntry *e = &t->rows.buckets[i];
                 if (!e->key)
@@ -406,16 +405,24 @@ void PrintScope(const Scope *sc, int depth)
                 printf("[row] %s => %lld\n", r->name, r->ival);
             }
         }
+
+        if (sym->kind == SYM_MODULE) {
+            const struct Module *m = sym->module;
+
+            print_header(depth);
+            printf("[mod] %s\n", m->name);
+            PrintScope(m->scope, depth + 1);
+        }
     }
 
-    // when we're in global scope, no need to print child scopes as
-    // they are printed by func vars. Otherwise go ahead and print them.
-    // TODO may be better to detatch func scope from globals
-    if (IsGlobalScope(sc))
-        return;
+    if ( sc->symbols.used == 0) {
+        // no symbol
+        print_header(depth);
+        printf("--\n");
+    }
 
+    // children
     for (Scope *scope = sc->children_; scope; scope = scope->next) {
-
         if (scope->clss_) {
             print_header(depth);
             printf("[clss] %s\n", scope->clss_->name);

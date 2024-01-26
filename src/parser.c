@@ -14,6 +14,26 @@
 #include <stdio.h>
 
 
+#include "strbuf.h"
+static const char *read_file(const char *filename)
+{
+    FILE *fp = fopen(filename, "r");
+
+    if (!fp)
+        return NULL;
+
+    char buf[1024] = {'\0'};
+    Strbuf sb = {0};
+    while (fgets(buf, 1024, fp)) {
+        StrbufCat(&sb, buf);
+    }
+    StrbufCat(&sb, "\n");
+
+    fclose(fp);
+
+    return sb.data;
+}
+
 typedef struct Parser {
     Scope *scope_;
     Func *func_;
@@ -283,22 +303,30 @@ static Expr *primary_expr(Parser *p)
             continue;
         }
         else if (tok->kind == T_DOT) {
-            if (!IsClass(expr->type) && !IsTable(expr->type)) {
-                error(p, tok_pos(p),
-                        "dot operator must be used for struct or table type");
-            }
-
-            expect(p, T_IDENT);
-
             if (IsClass(expr->type)) {
+                expect(p, T_IDENT);
                 Field *f = FindField(expr->type->clss, tok_str(p));
                 expr = NewSelectExpr(expr, NewFieldExpr(f));
             }
-            if (IsTable(expr->type)) {
+            else if (IsTable(expr->type)) {
+                expect(p, T_IDENT);
                 Row *r = HashMapLookup(&expr->type->table->rows, tok_str(p));
                 Expr *tmp = expr;
                 expr = NewIntLitExpr(r->ival);
                 expr->l = tmp;
+            }
+            else if (IsModule(expr->type)) {
+                struct Scope *cur = p->scope_;
+                p->scope_ = expr->type->module->scope;
+                Expr *r = primary_expr(p);
+                p->scope_ = cur;
+
+                // TODO keep module expr somewhere
+                expr = r;
+            }
+            else {
+                error(p, tok_pos(p),
+                        "dot operator must be used for struct or table type");
             }
             continue;
         }
@@ -802,9 +830,10 @@ static Expr *default_value(const Type *type)
         // put len at base addr
         return NewIntLitExpr(type->len);
 
+    case TY_FUNC:
     case TY_CLASS:
     case TY_TABLE:
-    case TY_FUNC:
+    case TY_MODULE:
         // TODO
         return NewNilLitExpr();
 
@@ -1129,6 +1158,42 @@ static FuncDef *func_def(Parser *p)
     return fdef;
 }
 
+static void module_import(struct Parser *p)
+{
+    expect(p, T_LBRACK);
+    expect(p, T_IDENT);
+    const char *name = tok_str(p);
+
+    char buf[128] = {'\0'};
+    if (strlen(name) > 120) {
+        error(p, tok_pos(p),
+                "error: too long module name: '%s'", name);
+    }
+
+    // TODO have search paths
+    const char *src = NULL;
+    if (!src) {
+        sprintf(buf, "src/%s.ro", name);
+        src = read_file(buf);
+    }
+    if (!src) {
+        sprintf(buf, "%s.ro", name);
+        src = read_file(buf);
+    }
+    if (!src) {
+        error(p, tok_pos(p),
+                "module %s.ro not found", name);
+    }
+
+    struct Module *mod = DefineModule(p->scope_, name);
+    const struct Token *tok = Tokenize(src);
+    const struct Prog *prog = Parse(src, tok, mod->scope);
+    prog = NULL;
+
+    expect(p, T_RBRACK);
+    expect(p, T_NEWLINE);
+}
+
 static Prog *program(Parser *p)
 {
     Prog *prog = NewProg(p->scope_);
@@ -1173,6 +1238,11 @@ static Prog *program(Parser *p)
 
         if (next == T_SUB) {
             tail = tail->next = var_decl(p);
+            continue;
+        }
+
+        if (next == T_LBRACK) {
+            module_import(p);
             continue;
         }
 

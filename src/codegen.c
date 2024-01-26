@@ -116,9 +116,10 @@ static void gen_call(Bytecode *code, const Expr *e)
             case TY_STRING:
                 LoadTypeString(code);
                 break;
+            case TY_FUNC:
             case TY_CLASS:
             case TY_TABLE:
-            case TY_FUNC:
+            case TY_MODULE:
             case TY_PTR:
             case TY_ARRAY:
             case TY_ANY:

@@ -40,6 +40,14 @@ Type *NewTypeString()
     return &t;
 }
 
+Type *NewTypeFunc(Func *func)
+{
+    Type *t = CALLOC(Type);
+    t->kind = TY_FUNC;
+    t->func = func;
+    return t;
+}
+
 Type *NewTypeClass(Class *clss)
 {
     Type *t = CALLOC(Type);
@@ -56,11 +64,11 @@ Type *NewTypeTable(Table *tab)
     return t;
 }
 
-Type *NewTypeFunc(Func *func)
+struct Type *NewTypeModule(struct Module *mod)
 {
-    Type *t = CALLOC(Type);
-    t->kind = TY_FUNC;
-    t->func = func;
+    struct Type *t = CALLOC(struct Type);
+    t->kind = TY_MODULE;
+    t->module = mod;
     return t;
 }
 
@@ -104,9 +112,10 @@ bool IsBool(const Type *t)    { return t->kind == TY_BOOL; }
 bool IsInt(const Type *t)     { return t->kind == TY_INT; }
 bool IsFloat(const Type *t)   { return t->kind == TY_FLOAT; }
 bool IsString(const Type *t)  { return t->kind == TY_STRING; }
-bool IsClass(const Type *t)   { return t->kind == TY_CLASS; }
-bool IsTable(const Type *t)   { return t->kind == TY_TABLE; }
 bool IsFunc(const Type *t)    { return t->kind == TY_FUNC; }
+bool IsClass(const Type *t)   { return t->kind == TY_CLASS; }
+bool IsTable(const struct Type *t)   { return t->kind == TY_TABLE; }
+bool IsModule(const struct Type *t)   { return t->kind == TY_MODULE; }
 bool IsPtr(const Type *t)     { return t->kind == TY_PTR; }
 bool IsArray(const Type *t)   { return t->kind == TY_ARRAY; }
 bool IsAny(const Type *t)     { return t->kind == TY_ANY; }
@@ -119,9 +128,10 @@ static const char *type_kind_string(enum TY kind)
     case TY_INT: return "int";
     case TY_FLOAT: return "float";
     case TY_STRING: return "string";
+    case TY_FUNC: return "func";
     case TY_CLASS: return "class";
     case TY_TABLE: return "table";
-    case TY_FUNC: return "#";
+    case TY_MODULE: return "module";
     case TY_PTR: return "*";
     case TY_ARRAY: return "[]";
     case TY_ANY: return "any";
