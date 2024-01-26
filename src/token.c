@@ -41,16 +41,16 @@ static const KindInfo table[] = {
     // list
     { T_EXPRLIST,   "xpr_list" },
     // identifier
-    { T_FIELD,      "field" },
-    { T_IDENT,      "ident" },
-    { T_FUNC,       "func" },
-    { T_VAR,        "var" },
+    { T_FIELD,      "field", 'y' },
+    { T_IDENT,      "ident", 'y' },
+    { T_FUNC,       "func",  'y' },
+    { T_VAR,        "var",   'y' },
     // literal
     { T_NILLIT,     "nil_lit" },
-    { T_BOLLIT,     "bool_lit" },
-    { T_INTLIT,     "int_lit" },
-    { T_FLTLIT,     "float_lit" },
-    { T_STRLIT,     "string_lit" },
+    { T_BOLLIT,     "bool_lit",   'i' },
+    { T_INTLIT,     "int_lit",    'i' },
+    { T_FLTLIT,     "float_lit",  'f' },
+    { T_STRLIT,     "string_lit", 's' },
     // separator
     { T_LPAREN,     "(" },
     { T_RPAREN,     ")" },

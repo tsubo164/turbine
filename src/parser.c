@@ -1138,8 +1138,7 @@ static FuncDef *func_def(Parser *p)
     // func body
     p->func_ = func;
 
-    enter_scope(p, func);
-    Stmt *body = block_stmt(p, (Func *)NULL);
+    Stmt *body = block_stmt(p, func);
     // TODO control flow check to allow implicit return
     for (Stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
@@ -1147,7 +1146,6 @@ static FuncDef *func_def(Parser *p)
             break;
         }
     }
-    leave_scope(p);
 
     p->func_ = NULL;
 
@@ -1265,25 +1263,17 @@ static Prog *program(Parser *p)
     return prog;
 }
 
-static Prog *parse(Parser *p,
-        const char *src, const char *filename, const Token *tok, Scope *scope)
-{
-    p->src_ = src;
-    p->curr_ = tok;
-    p->scope_ = scope;
-    p->func_ = NULL;
-    p->filename = filename;
-
-    // global (file) scope
-    enter_scope(p, (Func *)NULL);
-
-    return program(p);
-}
-
 Prog *Parse(const char *src, const Token *tok, Scope *scope)
 {
     static const char filename[] = "fixme.ro";
 
-    Parser parser = {0};
-    return parse(&parser, src, filename, tok, scope);
+    Parser p = {0};
+
+    p.src_ = src;
+    p.curr_ = tok;
+    p.scope_ = scope;
+    p.func_ = NULL;
+    p.filename = filename;
+
+    return program(&p);
 }

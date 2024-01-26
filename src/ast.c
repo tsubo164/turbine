@@ -71,6 +71,7 @@ Expr *NewIdentExpr(struct Symbol *sym)
     e->type = sym->type;
     e->kind = T_IDENT;
     e->var = sym->var;
+    e->sym = sym;
     return e;
 }
 
@@ -465,8 +466,8 @@ static void print_expr(const Expr *e, int depth)
     case 's':
         printf(" (%s)", e->sval);
         break;
-    case 'v':
-        printf(" (%s)", e->var->name);
+    case 'y':
+        printf(" \"%s\"", e->sym->name);
         break;
     }
     printf("\n");
@@ -476,6 +477,10 @@ static void print_expr(const Expr *e, int depth)
         print_expr(e->l, depth + 1);
     if (e->r)
         print_expr(e->r, depth + 1);
+    if (e->list)
+        print_expr(e->list, depth + 1);
+    if (e->next)
+        print_expr(e->next, depth);
 }
 
 static void PrintStmt(const Stmt *s, int depth)

@@ -1,2 +1,4 @@
+- PI = 314159
+
 # add(x int, y int) int
   return x + y

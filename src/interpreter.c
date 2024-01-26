@@ -19,12 +19,13 @@ Int Interpret(const char *src, const Option *opt)
 {
     const Prog *prog = NULL;
     const Token *tok = NULL;
-    Scope scope = {0};
+    Scope builtin = {0};
+    Scope *global = NULL;
     Bytecode code = {{0}};
     VM vm = {{0}};
 
     // Builtin functions
-    DefineBuiltinFuncs(&scope);
+    DefineBuiltinFuncs(&builtin);
 
     // Tokenize
     tok = Tokenize(src);
@@ -38,7 +39,8 @@ Int Interpret(const char *src, const Option *opt)
     }
 
     // Compile source
-    prog = Parse(src, tok, &scope);
+    global = OpenChild(&builtin);
+    prog = Parse(src, tok, global);
 
     if (opt->print_tree) {
         print_header("tree");
@@ -48,7 +50,7 @@ Int Interpret(const char *src, const Option *opt)
     if (opt->print_symbols) {
         print_header("symbol");
         if (opt->print_symbols_all)
-            PrintScope(&scope, 0);
+            PrintScope(&builtin, 0);
         else
             PrintScope(prog->scope, 0);
     }

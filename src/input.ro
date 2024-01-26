@@ -1,5 +1,3 @@
-//> foo
-
 //[os]
 //[csv]
 //[json]
@@ -11,27 +9,24 @@
 //  | G
 //  | B
 
-/*
-:: token
-  | enum  | name
-  | ---   | ---
-  | T_IF  | "if"
-  | T_FOR | "for"
-  | T_ELS | "or"
-  | T_BRK | "break"
-
-:: state
-  |     | name         | zip
-  | --- | ---          | ---
-  | CA  | "California" | 90923
-  | AZ  | "Arizona"    |
-  | TX  | "Texas"      |
-  | NY  | "New Yourk"  |
-*/
-//# add(x int, y int) int
-//  return x + y
+//:: token
+//  | enum  | name
+//  | ---   | ---
+//  | T_IF  | "if"
+//  | T_FOR | "for"
+//  | T_ELS | "or"
+//  | T_BRK | "break"
+//
+//:: state
+//  |     | name         | zip
+//  | --- | ---          | ---
+//  | CA  | "California" | 90923
+//  | AZ  | "Arizona"    |
+//  | TX  | "Texas"      |
+//  | NY  | "New Yourk"  |
 
 # main() int
-  - a = 19
+  //- a = 29
   //a = Color.G
-  return  a// + calc.add(9, 4)
+  //return  a + my_calc.add(9, 4)
+  return 13
