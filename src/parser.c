@@ -2,6 +2,7 @@
 #include "scope.h"
 #include "token.h"
 #include "type.h"
+#include "prog.h"
 #include "ast.h"
 #include "mem.h"
 #include "escseq.h"

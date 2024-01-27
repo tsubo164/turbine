@@ -305,31 +305,6 @@ Stmt *NewExprStmt(Expr *e)
     return s;
 }
 
-
-//--------------------------------
-// FuncDef
-FuncDef *NewFuncDef(struct Symbol *sym, Stmt *body)
-{
-    FuncDef *f = CALLOC(FuncDef);
-    f->sym = sym;
-    f->var = sym->var;
-    f->body = body;
-    f->func = sym->type->func;
-    f->funclit_id = 0;
-    f->next = NULL;
-    return f;
-}
-
-Prog *NewProg(Scope *sc)
-{
-    Prog *p = CALLOC(Prog);
-    p->scope = sc;
-    p->funcs = NULL;
-    p->gvars = NULL;
-    p->main_func = NULL;
-    return p;
-}
-
 bool IsNull(const Expr *e)
 {
     return e->kind == T_NUL;
@@ -484,7 +459,7 @@ static void print_expr(const Expr *e, int depth)
         print_expr(e->next, depth);
 }
 
-static void PrintStmt(const Stmt *s, int depth)
+void PrintStmt(const Stmt *s, int depth)
 {
     const KindInfo *info;
     int i;
@@ -509,43 +484,4 @@ static void PrintStmt(const Stmt *s, int depth)
     print_expr(s->cond, depth + 1);
     print_expr(s->post, depth + 1);
     PrintStmt(s->body, depth + 1);
-}
-
-static void print_funcdef(const FuncDef *f, int depth)
-{
-    if (!f)
-        return;
-
-    // indentation
-    for (int i = 0; i < depth; i++)
-        printf("  ");
-
-    // basic info
-    printf("%d. <func_def> \"%s\"", depth, f->var->name);
-    printf(" %s", TypeString(f->var->type->func->return_type));
-    printf("\n");
-
-    // children
-    PrintStmt(f->body, depth + 1);
-}
-
-void PrintProg(const Prog *p, int depth)
-{
-    if (!p)
-        return;
-
-    // indentation
-    for (int i = 0; i < depth; i++)
-        printf("  ");
-
-    // basic info
-    printf("%d. <prog>", depth);
-    printf("\n");
-
-    // children
-    for (const Stmt *gvar = p->gvars; gvar; gvar = gvar->next)
-        PrintStmt(gvar, depth + 1);
-
-    for (const FuncDef *func = p->funcs; func; func = func->next)
-        print_funcdef(func, depth + 1);
 }

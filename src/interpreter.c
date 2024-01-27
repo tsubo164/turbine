@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "token.h"
 #include "scope.h"
+#include "prog.h"
 #include "ast.h"
 #include "vm.h"
 
@@ -20,7 +21,7 @@ Int Interpret(const char *src, const Option *opt)
     const Token *tok = NULL;
     Scope builtin = {0};
     Scope *global = NULL;
-    Prog prog = {0};
+    struct Prog prog = {0};
     Bytecode code = {{0}};
     VM vm = {{0}};
 

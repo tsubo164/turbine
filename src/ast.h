@@ -75,45 +75,13 @@ Stmt *NewSwitchStmt(Expr *cond, Stmt *cases);
 Stmt *NewReturnStmt(Expr *e);
 Stmt *NewExprStmt(Expr *e);
 
-
-//--------------------------------
-// FuncDef
-typedef struct FuncDef {
-    // TODO remove this
-    const Func *func;
-    struct Symbol *sym;
-    const Var *var;
-    Stmt* body;
-    // TODO make FuncLitExpr and remove this
-    int funclit_id;
-
-    struct FuncDef *next;
-} FuncDef;
-
-FuncDef *NewFuncDef(struct Symbol *sym, Stmt *body);
-
-
-//--------------------------------
-// Prog
-typedef struct Prog {
-    const Scope *scope;
-    // TODO use Vec
-    FuncDef *funcs;
-    FuncDef *funcs_tail;
-    Stmt* gvars;
-    // TODO remove this
-    const Var *main_func;
-    int funclit_id;
-} Prog;
-
-Prog *NewProg(Scope *sc);
-
 bool IsNull(const Expr *e);
 bool IsGlobal(const Expr *e);
 
 int Addr(const Expr *e);
 bool EvalExpr(const Expr *e, long *result);
 bool EvalAddr(const Expr *e, int *result);
-void PrintProg(const Prog *p, int depth);
+
+void PrintStmt(const Stmt *s, int depth);
 
 #endif // _H

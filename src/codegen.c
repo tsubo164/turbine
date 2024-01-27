@@ -1,6 +1,7 @@
 #include "codegen.h"
 #include "bytecode.h"
 #include "error.h"
+#include "prog.h"
 #include "ast.h"
 #include <stdlib.h>
 #include <stdio.h>

@@ -24,10 +24,12 @@
 //  | AZ  | "Arizona"    |
 //  | TX  | "Texas"      |
 //  | NY  | "New Yourk"  |
+//- p = 3.14
 
 # main() int
-  - a = 29
+  //- a = 29
   //a = Color.G
   print(my_calc.PI)
-  return  a + my_calc.add(9, 4)
-  //return 13
+  //print(p)
+  //return  a + my_calc.add(9, 4)
+  return 13
