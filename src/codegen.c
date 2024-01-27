@@ -678,24 +678,26 @@ static void gen_funcdef(Bytecode *code, const FuncDef *f)
     gen_stmt(code, f->body);
 }
 
-static void gen_prog(Bytecode *code, const Prog *p)
+static void gen_prog(Bytecode *code, const Prog *prog)
 {
-    if (!p->main_func) {
+    if (!prog->main_func) {
         fprintf(stderr, "error: 'main' function not found");
     }
 
     // global vars
-    Allocate(code, VarSize(p->scope));
-    for (const Stmt *gvar = p->gvars; gvar; gvar = gvar->next)
+    Allocate(code, VarSize(prog->scope));
+    for (const Stmt *gvar = prog->gvars; gvar; gvar = gvar->next)
         gen_stmt(code, gvar);
 
     // call main
-    CallFunction(code, p->main_func->id, IsBuiltin(p->main_func->type->func));
+    CallFunction(code, prog->main_func->id, IsBuiltin(prog->main_func->type->func));
     Exit(code);
 
     // global funcs
-    for (const FuncDef *func = p->funcs; func; func = func->next)
-        gen_funcdef(code, func);
+    for (int i = 0; i < prog->funcv.len; i++) {
+        FuncDef *f = prog->funcv.data[i];
+        gen_funcdef(code, f);
+    }
 }
 
 void GenerateCode(Bytecode *code, const Prog *prog)

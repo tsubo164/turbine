@@ -7,7 +7,6 @@
 // FuncDef
 FuncDef *NewFuncDef(struct Symbol *sym, Stmt *body)
 {
-    //FuncDef *f = CALLOC(FuncDef);
     struct FuncDef *f = calloc(1, sizeof(struct FuncDef));
     f->sym = sym;
     f->var = sym->var;

@@ -8,5 +8,6 @@ struct Vec {
 };
 
 void VecPush(struct Vec *v, void *data);
+void VecFree(struct Vec *v);
 
 #endif // _H

@@ -1,6 +1,8 @@
 #ifndef PROG_H
 #define PROG_H
 
+#include "vec.h"
+
 struct Func;
 struct Var;
 struct Stmt;
@@ -26,9 +28,7 @@ FuncDef *NewFuncDef(struct Symbol *sym, struct Stmt *body);
 // Prog
 typedef struct Prog {
     const struct Scope *scope;
-    // TODO use Vec
-    FuncDef *funcs;
-    FuncDef *funcs_tail;
+    struct Vec funcv;
     struct Stmt* gvars;
     // TODO remove this
     const struct Var *main_func;

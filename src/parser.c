@@ -1218,10 +1218,7 @@ static void program(Parser *p)
                 tail = tail->next = NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
             }
 
-            if (!prog->funcs)
-                prog->funcs_tail = prog->funcs = fdef;
-            else
-                prog->funcs_tail = prog->funcs_tail->next = fdef;
+            VecPush(&prog->funcv, fdef);
             continue;
         }
 
