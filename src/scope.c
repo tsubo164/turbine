@@ -7,7 +7,7 @@
 // Func
 void DeclareParam(Func *f, const char *name, const Type *type)
 {
-    struct Symbol *sym = DefineVar(f->scope, name, type);
+    struct Symbol *sym = DefineVar(f->scope, name, type, false);
     VecPush(&f->params, sym->var);
 
     if (!strcmp(name, "..."))
@@ -88,7 +88,6 @@ static Scope *new_scope(Scope *parent, int var_offset)
 {
     Scope *sc = CALLOC(Scope);
     sc->parent_ = parent;
-    sc->level_ = parent->level_ + 1;
     sc->var_offset_ = var_offset;
 
     return sc;
@@ -98,7 +97,7 @@ static int next_var_id(const Scope *sc);
 
 Scope *OpenChild(Scope *sc)
 {
-    const int next_id = IsGlobalScope(sc) ? 0 : next_var_id(sc);
+    const int next_id = sc->var_offset_;
 
     Scope *child = new_scope(sc, next_id);
     if (!sc->children_)
@@ -112,13 +111,6 @@ Scope *OpenChild(Scope *sc)
 Scope *Close(const Scope *sc)
 {
     return sc->parent_;
-}
-
-bool IsGlobalScope(const Scope *sc)
-{
-    // level 0: builtin scope
-    // level 1: global (file) scope
-    return sc->level_ == 1;
 }
 
 static Var *new_var(const char *Name, const Type *t, int ID, bool global)
@@ -135,13 +127,13 @@ static Var *new_var(const char *Name, const Type *t, int ID, bool global)
 static Symbol *new_symbol(int kind, const char *name, const Type *t);
 Symbol *FindSymbolThisScope(Scope *sc, const char *name);
 
-struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type)
+struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isglobal)
 {
     if (FindSymbolThisScope(sc, name))
         return NULL;
 
     const int next_id = next_var_id(sc);
-    Var *var = new_var(name, type, next_id, IsGlobalScope(sc));
+    Var *var = new_var(name, type, next_id, isglobal);
 
     Symbol *sym = new_symbol(SYM_VAR, name, type);
     sym->var = var;
@@ -205,10 +197,9 @@ Func *new_func(Scope *parent, bool builtin)
     return f;
 }
 
-Func *DeclareFunc(Scope *sc)
+Func *DeclareFunc(Scope *sc, bool isbuiltin)
 {
-    const bool is_builtin = sc->level_ == 0;
-    Func *func = new_func(sc, is_builtin);
+    Func *func = new_func(sc, isbuiltin);
 
     func->next = sc->funcs_;
     sc->funcs_ = func;

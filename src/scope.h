@@ -114,7 +114,6 @@ struct Scope {
     Scope *child_tail;
     Scope *next;
 
-    int level_;
     int var_offset_;
     int field_offset_;
     int class_offset_;
@@ -132,11 +131,10 @@ struct Scope {
 
 Scope *OpenChild(Scope *sc);
 Scope *Close(const Scope *sc);
-bool IsGlobalScope(const Scope *sc);
 
-struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type);
+struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isglobal);
 
-Func *DeclareFunc(Scope *sc);
+Func *DeclareFunc(Scope *sc, bool isbuiltin);
 
 Field *DefineFild(Scope *sc, const char *name);
 Field *FindClassField(const Scope *sc, const char *name);

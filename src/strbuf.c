@@ -32,7 +32,7 @@ static void resize(Strbuf *sb, int new_len)
     }
 
     int new_cap = grow_cap(sb->cap, new_len + 1);
-    char *new_data = realloc(sb->data, new_cap);
+    char *new_data = realloc(sb->data, new_cap * sizeof(sb->data[0]));
     if (!new_data)
         return;
 

@@ -845,7 +845,7 @@ static Expr *default_value(const Type *type)
 
 // var_decl = "-" identifier type newline
 //          | "-" identifier type = expression newline
-static Stmt *var_decl(Parser *p)
+static Stmt *var_decl(Parser *p, bool isglobal)
 {
     expect(p, T_SUB);
     expect(p, T_IDENT);
@@ -877,7 +877,7 @@ static Stmt *var_decl(Parser *p)
 
     expect(p, T_NEWLINE);
 
-    struct Symbol *sym = DefineVar(p->scope_, name, type);
+    struct Symbol *sym = DefineVar(p->scope_, name, type, isglobal);
     if (!sym) {
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
@@ -966,7 +966,7 @@ static Stmt *block_stmt(Parser *p, Func *func)
         const int next = peek(p);
 
         if (next == T_SUB) {
-            tail = tail->next = var_decl(p);
+            tail = tail->next = var_decl(p, false);
             continue;
         }
         else if (next == T_IF) {
@@ -1080,7 +1080,7 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_HASH)) {
-        Func *func = DeclareFunc(p->scope_);
+        Func *func = DeclareFunc(p->scope_, false);
         param_list(p, func);
         ret_type(p, func);
         return NewTypeFunc(func);
@@ -1120,7 +1120,7 @@ static FuncDef *func_def(Parser *p)
     // signature
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
-    Func *func = DeclareFunc(p->scope_);
+    Func *func = DeclareFunc(p->scope_, false);
 
     // params
     param_list(p, func);
@@ -1128,7 +1128,7 @@ static FuncDef *func_def(Parser *p)
     expect(p, T_NEWLINE);
 
     // func var
-    struct Symbol *sym = DefineVar(p->scope_, name, NewTypeFunc(func));
+    struct Symbol *sym = DefineVar(p->scope_, name, NewTypeFunc(func), false);
     if (!sym) {
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
@@ -1233,7 +1233,7 @@ static void program(Parser *p)
         }
 
         if (next == T_SUB) {
-            tail = tail->next = var_decl(p);
+            tail = tail->next = var_decl(p, true);
             continue;
         }
 
