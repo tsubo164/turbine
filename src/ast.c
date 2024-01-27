@@ -454,17 +454,18 @@ static void print_expr(const Expr *e, int depth)
     // basic info
     info = LookupKindInfo(e->kind);
     printf("%d. <%s>", depth, info->str);
+    printf(" (%s)", TypeString(e->type));
 
     // extra value
     switch (info->type) {
     case 'i':
-        printf(" (%ld)", e->ival);
+        printf(" %ld", e->ival);
         break;
     case 'f':
-        printf(" (%g)", e->fval);
+        printf(" %g", e->fval);
         break;
     case 's':
-        printf(" (%s)", e->sval);
+        printf(" %s", e->sval);
         break;
     case 'y':
         printf(" \"%s\"", e->sym->name);

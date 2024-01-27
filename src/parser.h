@@ -5,6 +5,6 @@ typedef struct Token Token;
 typedef struct Prog Prog;
 typedef struct Scope Scope;
 
-Prog *Parse(const char *src, const Token *tok, Scope *scope);
+void Parse(const char *src, const Token *tok, Scope *scope, Prog *prog);
 
 #endif // _H

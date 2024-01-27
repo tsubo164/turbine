@@ -36,13 +36,11 @@ static const char *read_file(const char *filename)
 
 typedef struct Parser {
     Scope *scope_;
+    Prog *prog;
     Func *func_;
     const Token *curr_;
     const char *src_;
     const char *filename;
-
-    // TODO remove this
-    int funclit_id_;
 } Parser;
 
 static void error(const Parser *p, Pos pos, const char *fmt, ...)
@@ -1151,7 +1149,7 @@ static FuncDef *func_def(Parser *p)
 
     // XXX temp
     FuncDef *fdef = NewFuncDef(sym, body);
-    fdef->funclit_id = p->funclit_id_++;
+    fdef->funclit_id = p->prog->funclit_id++;
 
     return fdef;
 }
@@ -1185,17 +1183,19 @@ static void module_import(struct Parser *p)
 
     struct Module *mod = DefineModule(p->scope_, name);
     const struct Token *tok = Tokenize(src);
-    const struct Prog *prog = Parse(src, tok, mod->scope);
-    prog = NULL;
+    // TODO use this style => enter_scope(p, mod->scope);
+    Parse(src, tok, mod->scope, p->prog);
+    // TODO come up with better way to take over var id from child
+    // Maybe need one more pass to fill id
+    p->scope_->var_offset_ = mod->scope->var_offset_;
 
     expect(p, T_RBRACK);
     expect(p, T_NEWLINE);
 }
 
-static Prog *program(Parser *p)
+static void program(Parser *p)
 {
-    Prog *prog = NewProg(p->scope_);
-    FuncDef *fdef_tail = NULL;
+    Prog *prog = p->prog;
 
     Stmt head = {0};
     Stmt *tail = &head;
@@ -1218,9 +1218,9 @@ static Prog *program(Parser *p)
             }
 
             if (!prog->funcs)
-                fdef_tail = prog->funcs = fdef;
+                prog->funcs_tail = prog->funcs = fdef;
             else
-                fdef_tail = fdef_tail->next = fdef;
+                prog->funcs_tail = prog->funcs_tail->next = fdef;
             continue;
         }
 
@@ -1260,10 +1260,9 @@ static Prog *program(Parser *p)
     }
 
     prog->gvars = head.next;
-    return prog;
 }
 
-Prog *Parse(const char *src, const Token *tok, Scope *scope)
+void Parse(const char *src, const Token *tok, Scope *scope, Prog *prog)
 {
     static const char filename[] = "fixme.ro";
 
@@ -1272,8 +1271,9 @@ Prog *Parse(const char *src, const Token *tok, Scope *scope)
     p.src_ = src;
     p.curr_ = tok;
     p.scope_ = scope;
+    p.prog = prog;
     p.func_ = NULL;
     p.filename = filename;
 
-    return program(&p);
+    program(&p);
 }

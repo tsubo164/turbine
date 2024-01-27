@@ -97,10 +97,13 @@ FuncDef *NewFuncDef(struct Symbol *sym, Stmt *body);
 // Prog
 typedef struct Prog {
     const Scope *scope;
+    // TODO use Vec
     FuncDef *funcs;
+    FuncDef *funcs_tail;
     Stmt* gvars;
     // TODO remove this
     const Var *main_func;
+    int funclit_id;
 } Prog;
 
 Prog *NewProg(Scope *sc);

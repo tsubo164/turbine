@@ -17,10 +17,10 @@ static void print_header(const char *title)
 
 Int Interpret(const char *src, const Option *opt)
 {
-    const Prog *prog = NULL;
     const Token *tok = NULL;
     Scope builtin = {0};
     Scope *global = NULL;
+    Prog prog = {0};
     Bytecode code = {{0}};
     VM vm = {{0}};
 
@@ -40,11 +40,12 @@ Int Interpret(const char *src, const Option *opt)
 
     // Compile source
     global = OpenChild(&builtin);
-    prog = Parse(src, tok, global);
+    prog.scope = global;
+    Parse(src, tok, global, &prog);
 
     if (opt->print_tree) {
         print_header("tree");
-        PrintProg(prog, 0);
+        PrintProg(&prog, 0);
     }
 
     if (opt->print_symbols) {
@@ -52,12 +53,12 @@ Int Interpret(const char *src, const Option *opt)
         if (opt->print_symbols_all)
             PrintScope(&builtin, 0);
         else
-            PrintScope(prog->scope, 0);
+            PrintScope(global, 0);
     }
 
     // Generate bytecode
     SetOptimize(opt->enable_optimize);
-    GenerateCode(&code, prog);
+    GenerateCode(&code, &prog);
 
     if (opt->print_bytecode) {
         print_header("bytecode");

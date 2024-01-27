@@ -194,11 +194,10 @@ Field *FindClassField(const Scope *sc, const char *name)
     return NULL;
 }
 
-//Func *new_func(Scope *sc, bool builtin)
 Func *new_func(Scope *parent, bool builtin)
 {
     Func *f = CALLOC(Func);
-    const int next_id = IsGlobalScope(parent) ? 0 : next_var_id(parent);
+    const int next_id = 0;
     f->scope = new_scope(parent, next_id);
     f->is_builtin = builtin;
     f->ellipsis_index = -1;
@@ -288,7 +287,7 @@ struct Module *DefineModule(Scope *sc, const char *name)
 {
     struct Module *mod = CALLOC(struct Module);
     mod->name = name;
-    mod->scope = new_scope(sc, 0);
+    mod->scope = new_scope(sc, next_var_id(sc));
 
     Symbol *sym = new_symbol(SYM_MODULE, name, NewTypeModule(mod));
     sym->module = mod;
