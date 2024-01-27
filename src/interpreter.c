@@ -3,6 +3,7 @@
 #include "codegen.h"
 #include "parser.h"
 #include "token.h"
+#include "print.h"
 #include "scope.h"
 #include "prog.h"
 #include "ast.h"
@@ -46,7 +47,7 @@ Int Interpret(const char *src, const Option *opt)
 
     if (opt->print_tree) {
         print_header("tree");
-        PrintProg(&prog, 0);
+        PrintProg(&prog);
     }
 
     if (opt->print_symbols) {

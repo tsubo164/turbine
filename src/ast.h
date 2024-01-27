@@ -82,6 +82,4 @@ int Addr(const Expr *e);
 bool EvalExpr(const Expr *e, long *result);
 bool EvalAddr(const Expr *e, int *result);
 
-void PrintStmt(const Stmt *s, int depth);
-
 #endif // _H

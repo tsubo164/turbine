@@ -35,6 +35,4 @@ typedef struct Prog {
     int funclit_id;
 } Prog;
 
-void PrintProg(const struct Prog *prog, int depth);
-
 #endif // _H

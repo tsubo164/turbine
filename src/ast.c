@@ -1,6 +1,5 @@
 #include "ast.h"
 #include "mem.h"
-#include <stdio.h>
 
 //--------------------------------
 // Expr
@@ -411,77 +410,4 @@ bool EvalAddr(const Expr *e, int *result)
     default:
         return false;
     }
-}
-
-static void print_expr(const Expr *e, int depth)
-{
-    const KindInfo *info;
-    int i;
-
-    if (!e || e->kind == T_NUL)
-        return;
-
-    // indentation
-    for (i = 0; i < depth; i++) {
-        printf("  ");
-    }
-
-    // basic info
-    info = LookupKindInfo(e->kind);
-    printf("%d. <%s>", depth, info->str);
-    printf(" (%s)", TypeString(e->type));
-
-    // extra value
-    switch (info->type) {
-    case 'i':
-        printf(" %ld", e->ival);
-        break;
-    case 'f':
-        printf(" %g", e->fval);
-        break;
-    case 's':
-        printf(" %s", e->sval);
-        break;
-    case 'y':
-        printf(" \"%s\"", e->sym->name);
-        break;
-    }
-    printf("\n");
-
-    // children
-    if (e->l)
-        print_expr(e->l, depth + 1);
-    if (e->r)
-        print_expr(e->r, depth + 1);
-    if (e->list)
-        print_expr(e->list, depth + 1);
-    if (e->next)
-        print_expr(e->next, depth);
-}
-
-void PrintStmt(const Stmt *s, int depth)
-{
-    const KindInfo *info;
-    int i;
-
-    if (!s)
-        return;
-
-    // indentation
-    for (i = 0; i < depth; i++)
-        printf("  ");
-
-    // basic info
-    info = LookupKindInfo(s->kind);
-    printf("%d. <%s>", depth, info->str);
-    printf("\n");
-
-    // children
-    for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
-        PrintStmt(stmt, depth + 1);
-
-    print_expr(s->expr, depth + 1);
-    print_expr(s->cond, depth + 1);
-    print_expr(s->post, depth + 1);
-    PrintStmt(s->body, depth + 1);
 }
