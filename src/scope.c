@@ -60,37 +60,32 @@ bool IsBuiltin(const Func *f)
 }
 
 static Field *new_field(const char *Name, int ID);
-// Class
-void DeclareField(Class *c, const char *name, const Type *type)
+// Struct
+void DeclareField(struct Struct *strct, const char *name, const Type *type)
 {
-    if (FindField(c, name))
+    if (FindField(strct, name))
         return;
 
-    struct Field *f = new_field(name, c->offset);
+    struct Field *f = new_field(name, strct->offset);
     f->type = type;
-    c->offset += SizeOf(f->type);
+    strct->offset += SizeOf(f->type);
 
-    VecPush(&c->fields, f);
+    VecPush(&strct->fields, f);
 }
 
-Field *FindField(const Class *c, const char *name)
+Field *FindField(const struct Struct *strct, const char *name)
 {
-    for (int i = 0; i < c->fields.len; i++) {
-        Field *f = c->fields.data[i];
+    for (int i = 0; i < strct->fields.len; i++) {
+        Field *f = strct->fields.data[i];
         if (!strcmp(f->name, name))
             return f;
     }
     return NULL;
 }
 
-int FieldCount(const Class *c)
+int StructSize(const struct Struct *strct)
 {
-    return c->fields.len;
-}
-
-int ClassSize(const Class *c)
-{
-    return c->offset;
+    return strct->offset;
 }
 
 // Scope
@@ -182,31 +177,31 @@ Func *DeclareFunc(Scope *sc, bool isbuiltin)
     return func;
 }
 
-static Class *new_class(const char *name, int id)
+static struct Struct *new_struct(const char *name, int id)
 {
-    Class *c = CALLOC(Class);
-    c->name = name;
-    c->id = id;
+    struct Struct *s = CALLOC(struct Struct);
+    s->name = name;
+    s->id = id;
 
-    return c;
+    return s;
 }
 
-Class *DefineClass(Scope *sc, const char *name)
+struct Struct *DefineStruct(Scope *sc, const char *name)
 {
-    const int next_id = sc->class_offset_;
-    Class *strct = new_class(name, next_id);
+    const int next_id = sc->struct_offset_;
+    struct Struct *strct = new_struct(name, next_id);
 
-    Symbol *sym = new_symbol(SYM_STRUCT, name, NewTypeClass(strct));
+    Symbol *sym = new_symbol(SYM_STRUCT, name, NewTypeStruct(strct));
     sym->strct = strct;
 
     if (!HashMapInsert(&sc->symbols, name, sym))
         return NULL;
 
-    sc->class_offset_++;
+    sc->struct_offset_++;
     return strct;
 }
 
-Class *FindClass(const Scope *sc, const char *name)
+struct Struct *FindStruct(const Scope *sc, const char *name)
 {
     Symbol *sym = FindSymbol(sc, name);
     if (sym)

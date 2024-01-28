@@ -297,9 +297,9 @@ static Expr *primary_expr(Parser *p)
             continue;
         }
         else if (tok->kind == T_DOT) {
-            if (IsClass(expr->type)) {
+            if (IsStruct(expr->type)) {
                 expect(p, T_IDENT);
-                Field *f = FindField(expr->type->clss, tok_str(p));
+                Field *f = FindField(expr->type->strct, tok_str(p));
                 expr = NewSelectExpr(expr, NewFieldExpr(f));
             }
             else if (IsTable(expr->type)) {
@@ -825,7 +825,7 @@ static Expr *default_value(const Type *type)
         return NewIntLitExpr(type->len);
 
     case TY_FUNC:
-    case TY_CLASS:
+    case TY_STRUCT:
     case TY_TABLE:
     case TY_MODULE:
         // TODO
@@ -881,7 +881,7 @@ static Stmt *var_decl(Parser *p, bool isglobal)
     return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
 
-static void field_list(Parser *p, Class *clss)
+static void field_list(Parser *p, struct Struct *strct)
 {
     expect(p, T_SUB);
 
@@ -889,31 +889,30 @@ static void field_list(Parser *p, Class *clss)
         expect(p, T_IDENT);
         const char *name = tok_str(p);
 
-        DeclareField(clss, name, type_spec(p));
+        DeclareField(strct, name, type_spec(p));
         expect(p, T_NEWLINE);
     }
     while (consume(p, T_SUB));
 }
 
-static Class *class_decl(Parser *p)
+static struct Struct *struct_decl(Parser *p)
 {
     expect(p, T_HASH2);
     expect(p, T_IDENT);
 
-    // class name
-    Class *clss = DefineClass(p->scope_, tok_str(p));
-    if (!clss) {
-        fprintf(stderr, "error: re-defined class: '%s'\n", tok_str(p));
+    // struct name
+    struct Struct *strct = DefineStruct(p->scope_, tok_str(p));
+    if (!strct) {
+        fprintf(stderr, "error: re-defined struct: '%s'\n", tok_str(p));
         exit(EXIT_FAILURE);
     }
 
     expect(p, T_NEWLINE);
     expect(p, T_BLOCKBEGIN);
-    field_list(p, clss);
+    field_list(p, strct);
     expect(p, T_BLOCKEND);
 
-    return NULL;
-    //return new ClasDef(clss);
+    return strct;
 }
 
 static Table *table_def(Parser *p)
@@ -1092,7 +1091,7 @@ static Type *type_spec(Parser *p)
         type = NewTypeString();
     }
     else if (consume(p, T_IDENT)) {
-        type = NewTypeClass(FindClass(p->scope_, tok_str(p)));
+        type = NewTypeStruct(FindStruct(p->scope_, tok_str(p)));
     }
     else {
         const Token *tok = gettok(p);
@@ -1216,7 +1215,7 @@ static void program(Parser *p)
         }
 
         if (next == T_HASH2) {
-            class_decl(p);
+            struct_decl(p);
             continue;
         }
 

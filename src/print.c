@@ -124,13 +124,6 @@ static void print_header(int depth)
 
 static void print_scope(const Scope *sc, int depth)
 {
-    //for (const Field *fld = sc->flds_; fld; fld = fld->next) {
-
-    //    print_header(depth);
-    //    printf("[fld] %s @%d %s\n",
-    //            fld->name, fld->id, TypeString(fld->type));
-    //}
-
     // symbols
     for (int i = 0; i < sc->symbols.cap; i++) {
         const struct MapEntry *e = &sc->symbols.buckets[i];
@@ -143,7 +136,7 @@ static void print_scope(const Scope *sc, int depth)
 
             if (IsFunc(v->type)) {
                 print_header(depth);
-                printf("[fnc] %s @%d %s\n",
+                printf("[func] %s @%d %s\n",
                         v->name, v->id, TypeString(v->type));
                 print_scope(v->type->func->scope, depth + 1);
             }
@@ -155,13 +148,23 @@ static void print_scope(const Scope *sc, int depth)
         }
 
         if (sym->kind == SYM_STRUCT) {
+            const struct Struct *strct = sym->strct;
+            print_header(depth);
+            printf("[struct] %s\n", strct->name);
+
+            for (int j = 0; j < strct->fields.len; j++) {
+                const struct Field *f = strct->fields.data[j];
+                print_header(depth + 1);
+                printf("[field] %s @%d %s\n",
+                        f->name, f->id, TypeString(f->type));
+            }
         }
 
         if (sym->kind == SYM_TABLE) {
             const struct Table *t = sym->table;
 
             print_header(depth);
-            printf("[tab] %s\n", t->name);
+            printf("[table] %s\n", t->name);
             for (int i = 0; i < t->rows.cap; i++) {
                 MapEntry *e = &t->rows.buckets[i];
                 if (!e->key)
@@ -176,7 +179,7 @@ static void print_scope(const Scope *sc, int depth)
             const struct Module *m = sym->module;
 
             print_header(depth);
-            printf("[mod] %s\n", m->name);
+            printf("[module] %s\n", m->name);
             print_scope(m->scope, depth + 1);
         }
     }
@@ -189,11 +192,6 @@ static void print_scope(const Scope *sc, int depth)
 
     // children
     for (Scope *scope = sc->children_; scope; scope = scope->next) {
-        if (scope->clss_) {
-            print_header(depth);
-            printf("[clss] %s\n", scope->clss_->name);
-        }
-
         print_scope(scope, depth + 1);
     }
 }

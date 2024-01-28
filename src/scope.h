@@ -6,7 +6,7 @@
 #include "hashmap.h"
 #include "vec.h"
 // Scope and objects that are managed by scope.
-// Objects are variables, functions, fields, classes.
+// Objects are variables, functions, fields, structs.
 // Objects have ownership of their contents like type, children, etc.
 // and they are responsible for memory management.
 
@@ -48,20 +48,19 @@ typedef struct Field {
     const Type *type;
 } Field;
 
-typedef struct Class {
+struct Struct {
     const char *name;
     int id;
 
     struct Vec fields;
     int offset;
 
-    struct Class *next;
-} Class;
+    struct Struct *next;
+};
 
-void DeclareField(Class *c, const char *name, const Type *type);
-Field *FindField(const Class *c, const char *name);
-int ClassSize(const Class *c);
-int FieldCount(const Class *c);
+void DeclareField(struct Struct *s, const char *name, const Type *type);
+Field *FindField(const struct Struct *s, const char *name);
+int StructSize(const struct Struct *s);
 
 //----------------
 typedef struct Row {
@@ -101,7 +100,7 @@ typedef struct Symbol {
     union {
         Var *var;
         Func *func;
-        Class *strct;
+        struct Struct *strct;
         Table *table;
         struct Module *module;
     };
@@ -116,9 +115,8 @@ struct Scope {
 
     int var_offset_;
     int field_offset_;
-    int class_offset_;
+    int struct_offset_;
 
-    const Class *clss_;
     Func *funcs_;
 
     HashMap tables;
@@ -131,8 +129,8 @@ struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isg
 
 Func *DeclareFunc(Scope *sc, bool isbuiltin);
 
-Class *DefineClass(Scope *sc, const char *name);
-Class *FindClass(const Scope *sc, const char *name);
+struct Struct *DefineStruct(Scope *sc, const char *name);
+struct Struct *FindStruct(const Scope *sc, const char *name);
 
 Table *DefineTable(Scope *sc, const char *name);
 struct Module *DefineModule(Scope *sc, const char *name);

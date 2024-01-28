@@ -40,25 +40,25 @@ Type *NewTypeString()
     return &t;
 }
 
-Type *NewTypeFunc(Func *func)
+struct Type *NewTypeFunc(struct Func *f)
 {
-    Type *t = CALLOC(Type);
+    Type *t = CALLOC(struct Type);
     t->kind = TY_FUNC;
-    t->func = func;
+    t->func = f;
     return t;
 }
 
-Type *NewTypeClass(Class *clss)
+struct Type *NewTypeStruct(struct Struct *s)
 {
-    Type *t = CALLOC(Type);
-    t->kind = TY_CLASS;
-    t->clss = clss;
+    Type *t = CALLOC(struct Type);
+    t->kind = TY_STRUCT;
+    t->strct = s;
     return t;
 }
 
-Type *NewTypeTable(Table *tab)
+struct Type *NewTypeTable(struct Table *tab)
 {
-    Type *t = CALLOC(Type);
+    Type *t = CALLOC(struct Type);
     t->kind = TY_TABLE;
     t->table = tab;
     return t;
@@ -101,8 +101,8 @@ int SizeOf(const Type *t)
     if (IsArray(t))
         // use one value for length info
         return t->len + 1;
-    else if (IsClass(t))
-        return ClassSize(t->clss);
+    else if (IsStruct(t))
+        return StructSize(t->strct);
     else
         return 1;
 }
@@ -113,8 +113,8 @@ bool IsInt(const Type *t)     { return t->kind == TY_INT; }
 bool IsFloat(const Type *t)   { return t->kind == TY_FLOAT; }
 bool IsString(const Type *t)  { return t->kind == TY_STRING; }
 bool IsFunc(const Type *t)    { return t->kind == TY_FUNC; }
-bool IsClass(const Type *t)   { return t->kind == TY_CLASS; }
-bool IsTable(const struct Type *t)   { return t->kind == TY_TABLE; }
+bool IsStruct(const struct Type *t)   { return t->kind == TY_STRUCT; }
+bool IsTable(const struct Type *t)    { return t->kind == TY_TABLE; }
 bool IsModule(const struct Type *t)   { return t->kind == TY_MODULE; }
 bool IsPtr(const Type *t)     { return t->kind == TY_PTR; }
 bool IsArray(const Type *t)   { return t->kind == TY_ARRAY; }
@@ -129,7 +129,7 @@ static const char *type_kind_string(enum TY kind)
     case TY_FLOAT: return "float";
     case TY_STRING: return "string";
     case TY_FUNC: return "func";
-    case TY_CLASS: return "class";
+    case TY_STRUCT: return "struct";
     case TY_TABLE: return "table";
     case TY_MODULE: return "module";
     case TY_PTR: return "*";
