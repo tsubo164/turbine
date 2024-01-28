@@ -102,7 +102,7 @@ int SizeOf(const Type *t)
         // use one value for length info
         return t->len + 1;
     else if (IsStruct(t))
-        return StructSize(t->strct);
+        return t->strct->size;
     else
         return 1;
 }

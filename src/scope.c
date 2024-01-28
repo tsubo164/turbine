@@ -59,21 +59,29 @@ bool IsBuiltin(const Func *f)
     return f->is_builtin;
 }
 
-static Field *new_field(const char *Name, int ID);
-// Struct
-void DeclareField(struct Struct *strct, const char *name, const Type *type)
+static Field *new_field(const char *Name, const Type *type, int offset)
 {
-    if (FindField(strct, name))
-        return;
-
-    struct Field *f = new_field(name, strct->offset);
+    Field *f = CALLOC(Field);
+    f->name = Name;
     f->type = type;
-    strct->offset += SizeOf(f->type);
-
-    VecPush(&strct->fields, f);
+    f->offset = offset;
+    return f;
 }
 
-Field *FindField(const struct Struct *strct, const char *name)
+// Struct
+struct Field *AddField(struct Struct *strct, const char *name, const Type *type)
+{
+    if (FindField(strct, name))
+        return NULL;
+
+    struct Field *f = new_field(name, type, strct->size);
+    strct->size += SizeOf(f->type);
+
+    VecPush(&strct->fields, f);
+    return f;
+}
+
+struct Field *FindField(const struct Struct *strct, const char *name)
 {
     for (int i = 0; i < strct->fields.len; i++) {
         Field *f = strct->fields.data[i];
@@ -81,11 +89,6 @@ Field *FindField(const struct Struct *strct, const char *name)
             return f;
     }
     return NULL;
-}
-
-int StructSize(const struct Struct *strct)
-{
-    return strct->offset;
 }
 
 // Scope
@@ -146,16 +149,6 @@ struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isg
     return sym;
 }
 
-static Field *new_field(const char *Name, int ID)
-{
-    Field *f = CALLOC(Field);
-    f->name = Name;
-    // TODO add type
-    f->type = NewTypeInt();
-    f->id = ID;
-    return f;
-}
-
 Func *new_func(Scope *parent, bool builtin)
 {
     Func *f = CALLOC(Func);
@@ -177,27 +170,23 @@ Func *DeclareFunc(Scope *sc, bool isbuiltin)
     return func;
 }
 
-static struct Struct *new_struct(const char *name, int id)
+static struct Struct *new_struct(const char *name)
 {
     struct Struct *s = CALLOC(struct Struct);
     s->name = name;
-    s->id = id;
 
     return s;
 }
 
 struct Struct *DefineStruct(Scope *sc, const char *name)
 {
-    const int next_id = sc->struct_offset_;
-    struct Struct *strct = new_struct(name, next_id);
-
+    struct Struct *strct = new_struct(name);
     Symbol *sym = new_symbol(SYM_STRUCT, name, NewTypeStruct(strct));
     sym->strct = strct;
 
     if (!HashMapInsert(&sc->symbols, name, sym))
         return NULL;
 
-    sc->struct_offset_++;
     return strct;
 }
 
@@ -295,9 +284,4 @@ int VarSize(const Scope *sc)
 int TotalVarSize(const Scope *sc)
 {
     return max_var_id(sc) + 1;
-}
-
-int FieldSize(const Scope *sc)
-{
-    return sc->field_offset_;
 }

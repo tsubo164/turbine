@@ -330,7 +330,7 @@ int Addr(const Expr *e)
         return e->var->id;
 
     case T_FIELD:
-        return e->field->id;
+        return e->field->offset;
 
     case T_SELECT:
         return Addr(e->l) + Addr(e->r);
@@ -404,7 +404,7 @@ bool EvalAddr(const Expr *e, int *result)
         return true;
 
     case T_FIELD:
-        *result = e->field->id;
+        *result = e->field->offset;
         return true;
 
     default:

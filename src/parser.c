@@ -889,7 +889,7 @@ static void field_list(Parser *p, struct Struct *strct)
         expect(p, T_IDENT);
         const char *name = tok_str(p);
 
-        DeclareField(strct, name, type_spec(p));
+        AddField(strct, name, type_spec(p));
         expect(p, T_NEWLINE);
     }
     while (consume(p, T_SUB));

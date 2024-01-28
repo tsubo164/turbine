@@ -469,7 +469,7 @@ static void gen_addr(Bytecode *code, const Expr *e)
         return;
 
     case T_FIELD:
-        LoadByte(code, e->field->id);
+        LoadByte(code, e->field->offset);
         return;
 
     case T_SELECT:

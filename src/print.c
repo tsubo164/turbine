@@ -156,7 +156,7 @@ static void print_scope(const Scope *sc, int depth)
                 const struct Field *f = strct->fields.data[j];
                 print_header(depth + 1);
                 printf("[field] %s @%d %s\n",
-                        f->name, f->id, TypeString(f->type));
+                        f->name, f->offset, TypeString(f->type));
             }
         }
 

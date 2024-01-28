@@ -44,23 +44,18 @@ bool IsBuiltin(const Func *f);
 
 typedef struct Field {
     const char *name;
-    int id;
     const Type *type;
+    int offset;
 } Field;
 
 struct Struct {
     const char *name;
-    int id;
-
     struct Vec fields;
-    int offset;
-
-    struct Struct *next;
+    int size;
 };
 
-void DeclareField(struct Struct *s, const char *name, const Type *type);
-Field *FindField(const struct Struct *s, const char *name);
-int StructSize(const struct Struct *s);
+struct Field *AddField(struct Struct *strct, const char *name, const Type *type);
+struct Field *FindField(const struct Struct *strct, const char *name);
 
 //----------------
 typedef struct Row {
@@ -101,7 +96,7 @@ typedef struct Symbol {
         Var *var;
         Func *func;
         struct Struct *strct;
-        Table *table;
+        struct Table *table;
         struct Module *module;
     };
 } Symbol;
@@ -114,8 +109,6 @@ struct Scope {
     Scope *next;
 
     int var_offset_;
-    int field_offset_;
-    int struct_offset_;
 
     Func *funcs_;
 
