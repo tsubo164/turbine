@@ -52,8 +52,9 @@ typedef struct Field {
 typedef struct Class {
     const char *name;
     int id;
-    Scope *scope;
-    int nflds_;
+
+    struct Vec fields;
+    int offset;
 
     struct Class *next;
 } Class;
@@ -134,9 +135,6 @@ Scope *OpenChild(Scope *sc);
 struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isglobal);
 
 Func *DeclareFunc(Scope *sc, bool isbuiltin);
-
-Field *DefineFild(Scope *sc, const char *name);
-Field *FindClassField(const Scope *sc, const char *name);
 
 Class *DefineClass(Scope *sc, const char *name);
 Class *FindClass(const Scope *sc, const char *name);

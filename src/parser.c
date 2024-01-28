@@ -125,11 +125,6 @@ static void enter_scope(Parser *p, Func *func)
     }
 }
 
-static void enter_class_scope(Parser *p, Class *clss)
-{
-    p->scope_ = clss->scope;
-}
-
 static void leave_scope(Parser *p)
 {
     p->scope_ = p->scope_->parent;
@@ -913,11 +908,9 @@ static Class *class_decl(Parser *p)
     }
 
     expect(p, T_NEWLINE);
-    enter_class_scope(p, clss);
     expect(p, T_BLOCKBEGIN);
     field_list(p, clss);
     expect(p, T_BLOCKEND);
-    leave_scope(p);
 
     return NULL;
     //return new ClasDef(clss);

@@ -59,27 +59,38 @@ bool IsBuiltin(const Func *f)
     return f->is_builtin;
 }
 
+static Field *new_field(const char *Name, int ID);
 // Class
 void DeclareField(Class *c, const char *name, const Type *type)
 {
-    Field *f = DefineFild(c->scope, name);
+    if (FindField(c, name))
+        return;
+
+    struct Field *f = new_field(name, c->offset);
     f->type = type;
-    c->nflds_++;
+    c->offset += SizeOf(f->type);
+
+    VecPush(&c->fields, f);
 }
 
 Field *FindField(const Class *c, const char *name)
 {
-    return FindClassField(c->scope, name);
+    for (int i = 0; i < c->fields.len; i++) {
+        Field *f = c->fields.data[i];
+        if (!strcmp(f->name, name))
+            return f;
+    }
+    return NULL;
 }
 
 int FieldCount(const Class *c)
 {
-    return c->nflds_;
+    return c->fields.len;
 }
 
 int ClassSize(const Class *c)
 {
-    return FieldSize(c->scope);
+    return c->offset;
 }
 
 // Scope
@@ -151,35 +162,6 @@ static Field *new_field(const char *Name, int ID)
     return f;
 }
 
-Field *DefineFild(Scope *sc, const char *name)
-{
-    if (FindClassField(sc, name))
-        return NULL;
-
-    const int next_id = sc->field_offset_;
-    Field *fld = new_field(name, next_id);
-    if (!sc->flds_)
-        sc->fld_tail = sc->flds_ = fld;
-    else
-        sc->fld_tail = sc->fld_tail->next = fld;
-    sc->field_offset_ += SizeOf(fld->type);
-
-    return fld;
-}
-
-Field *FindClassField(const Scope *sc, const char *name)
-{
-    for (Field *f = sc->flds_; f; f = f->next) {
-        if (!strcmp(f->name, name))
-            return f;
-    }
-
-    if (sc->parent)
-        return FindClassField(sc->parent, name);
-
-    return NULL;
-}
-
 Func *new_func(Scope *parent, bool builtin)
 {
     Func *f = CALLOC(Func);
@@ -206,9 +188,6 @@ static Class *new_class(const char *name, int id, Scope *sc)
     Class *c = CALLOC(Class);
     c->name = name;
     c->id = id;
-    c->scope = sc;
-    c->nflds_ = 0;
-    c->next = NULL;
 
     return c;
 }

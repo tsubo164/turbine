@@ -29,7 +29,7 @@
 # main() int
   //- a = 29
   //a = Color.G
-  print(my_calc.PI)
+  //print(my_calc.PI)
   //print(p)
   //return  a + my_calc.add(9, 4)
   return 13
