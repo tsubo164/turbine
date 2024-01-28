@@ -694,8 +694,8 @@ static void gen_prog(Bytecode *code, const Prog *prog)
     Exit(code);
 
     // global funcs
-    for (int i = 0; i < prog->funcv.len; i++) {
-        FuncDef *f = prog->funcv.data[i];
+    for (int i = 0; i < prog->funcdefs.len; i++) {
+        FuncDef *f = prog->funcdefs.data[i];
         gen_funcdef(code, f);
     }
 }

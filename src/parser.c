@@ -1137,7 +1137,12 @@ static FuncDef *func_def(Parser *p)
             break;
         }
     }
-
+    //XXX===============
+    func->body = body;
+    // PushVec(&prog->funcs, func);
+    // AddFunc(p->prog, func);
+    // func->id = p->prog->func_id++;
+    //===============
     p->func_ = NULL;
 
     // XXX temp
@@ -1210,7 +1215,7 @@ static void program(Parser *p)
                 tail = tail->next = NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
             }
 
-            VecPush(&prog->funcv, fdef);
+            VecPush(&prog->funcdefs, fdef);
             continue;
         }
 

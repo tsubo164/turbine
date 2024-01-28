@@ -103,6 +103,11 @@ static Scope *new_scope(Scope *parent, int var_offset)
 
 static int next_var_id(const Scope *sc);
 
+struct Scope *NewScope(struct Scope *parent, int var_offset)
+{
+    return new_scope(parent, var_offset);
+}
+
 Scope *OpenChild(Scope *sc)
 {
     const int next_id = sc->var_offset_;
@@ -147,27 +152,6 @@ struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isg
         return NULL;
 
     return sym;
-}
-
-Func *new_func(Scope *parent, bool builtin)
-{
-    Func *f = CALLOC(Func);
-    const int next_id = 0;
-    f->scope = new_scope(parent, next_id);
-    f->is_builtin = builtin;
-    f->ellipsis_index = -1;
-
-    return f;
-}
-
-Func *DeclareFunc(Scope *sc, bool isbuiltin)
-{
-    Func *func = new_func(sc, isbuiltin);
-
-    func->next = sc->funcs_;
-    sc->funcs_ = func;
-
-    return func;
 }
 
 static struct Struct *new_struct(const char *name)

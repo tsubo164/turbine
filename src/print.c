@@ -109,8 +109,8 @@ void PrintProg(const struct Prog *prog)
     for (const Stmt *gvar = prog->gvars; gvar; gvar = gvar->next)
         print_stmt(gvar, depth + 1);
 
-    for (int i = 0; i < prog->funcv.len; i++) {
-        FuncDef *f = prog->funcv.data[i];
+    for (int i = 0; i < prog->funcdefs.len; i++) {
+        FuncDef *f = prog->funcdefs.data[i];
         print_funcdef(f, depth + 1);
     }
 }

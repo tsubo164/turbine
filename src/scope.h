@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include "hashmap.h"
 #include "vec.h"
+// XXX TMP
+#include "prog.h"
+
 // Scope and objects that are managed by scope.
 // Objects are variables, functions, fields, structs.
 // Objects have ownership of their contents like type, children, etc.
@@ -20,26 +23,17 @@ struct Var {
     bool is_global;
 };
 
-typedef struct Func {
-    Scope *scope;
-    const Type *return_type;
-    struct Vec params;
 
-    bool is_builtin;
-    bool has_special_var;
-    int ellipsis_index;
+struct Func;
 
-    struct Func *next;
-} Func;
+void DeclareParam(struct Func *f, const char *name, const Type *type);
+const struct Var *GetParam(const struct Func *f, int index);
+int RequiredParamCount(const struct Func *f);
+int ParamCount(const struct Func *f);
 
-void DeclareParam(Func *f, const char *name, const Type *type);
-const struct Var *GetParam(const Func *f, int index);
-int RequiredParamCount(const Func *f);
-int ParamCount(const Func *f);
-
-bool HasSpecialVar(const Func *f);
-bool IsVariadic(const Func *f);
-bool IsBuiltin(const Func *f);
+bool HasSpecialVar(const struct Func *f);
+bool IsVariadic(const struct Func *f);
+bool IsBuiltin(const struct Func *f);
 
 typedef struct Field {
     const char *name;
@@ -107,16 +101,17 @@ struct Scope {
     Scope *next;
 
     int var_offset_;
-    Func *funcs_;
+    //Func *funcs_;
 
     HashMap symbols;
 };
 
+struct Scope *NewScope(struct Scope *parent, int var_offset);
 Scope *OpenChild(Scope *sc);
 
 struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isglobal);
 
-Func *DeclareFunc(Scope *sc, bool isbuiltin);
+//struct Func *DeclareFunc(struct Scope *parent, bool isbuiltin);
 
 struct Struct *DefineStruct(Scope *sc, const char *name);
 struct Struct *FindStruct(const Scope *sc, const char *name);
