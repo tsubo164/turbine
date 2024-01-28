@@ -274,9 +274,9 @@ static void gen_expr(Bytecode *code, const Expr *e)
 
     case T_IDENT:
         if (e->var->is_global)
-            LoadGlobal(code, e->var->id);
+            LoadGlobal(code, e->var->offset);
         else
-            LoadLocal(code, e->var->id);
+            LoadLocal(code, e->var->offset);
         return;
 
     case T_SELECT:
@@ -463,9 +463,9 @@ static void gen_addr(Bytecode *code, const Expr *e)
 
     case T_IDENT:
         if (e->var->is_global)
-            LoadByte(code, e->var->id + 1);
+            LoadByte(code, e->var->offset + 1);
         else
-            LoadAddress(code, e->var->id);
+            LoadAddress(code, e->var->offset);
         return;
 
     case T_FIELD:
@@ -690,7 +690,7 @@ static void gen_prog(Bytecode *code, const Prog *prog)
         gen_stmt(code, gvar);
 
     // call main
-    CallFunction(code, prog->main_func->id, IsBuiltin(prog->main_func->type->func));
+    CallFunction(code, prog->main_func->offset, IsBuiltin(prog->main_func->type->func));
     Exit(code);
 
     // global funcs

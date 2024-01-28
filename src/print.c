@@ -137,13 +137,13 @@ static void print_scope(const Scope *sc, int depth)
             if (IsFunc(v->type)) {
                 print_header(depth);
                 printf("[func] %s @%d %s\n",
-                        v->name, v->id, TypeString(v->type));
+                        v->name, v->offset, TypeString(v->type));
                 print_scope(v->type->func->scope, depth + 1);
             }
             else {
                 print_header(depth);
                 printf("[var] %s @%d %s\n",
-                        v->name, v->id, TypeString(v->type));
+                        v->name, v->offset, TypeString(v->type));
             }
         }
 

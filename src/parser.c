@@ -164,7 +164,7 @@ static Expr *arg_list(Parser *p, Expr *call)
 
     const Expr *arg = call->list;
     for (int i = 0; i < argc; i++, arg = arg->next) {
-        const Var *param = GetParam(func, i);
+        const struct Var *param = GetParam(func, i);
 
         if (!param)
             error(p, tok_pos(p), "too many arguments");

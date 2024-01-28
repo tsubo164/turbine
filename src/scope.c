@@ -16,7 +16,7 @@ void DeclareParam(Func *f, const char *name, const Type *type)
         f->has_special_var = true;
 }
 
-const Var *GetParam(const Func *f, int index)
+const struct Var *GetParam(const Func *f, int index)
 {
     int idx = 0;
 
@@ -116,12 +116,12 @@ Scope *OpenChild(Scope *sc)
     return child;
 }
 
-static Var *new_var(const char *Name, const Type *t, int ID, bool global)
+static struct Var *new_var(const char *Name, const Type *t, int offset, bool global)
 {
-    Var *v = CALLOC(Var);
+    struct Var *v = CALLOC(struct Var);
     v->name = Name;
     v->type = t;
-    v->id = ID;
+    v->offset = offset;
     v->is_global = global;
     return v;
 }
@@ -136,7 +136,7 @@ struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isg
         return NULL;
 
     const int next_id = next_var_id(sc);
-    Var *var = new_var(name, type, next_id, isglobal);
+    struct Var *var = new_var(name, type, next_id, isglobal);
 
     Symbol *sym = new_symbol(SYM_VAR, name, type);
     sym->var = var;

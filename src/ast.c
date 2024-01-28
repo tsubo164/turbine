@@ -327,7 +327,7 @@ int Addr(const Expr *e)
 {
     switch (e->kind) {
     case T_IDENT:
-        return e->var->id;
+        return e->var->offset;
 
     case T_FIELD:
         return e->field->offset;
@@ -400,7 +400,7 @@ bool EvalAddr(const Expr *e, int *result)
 {
     switch (e->kind) {
     case T_IDENT:
-        *result = e->var->id;
+        *result = e->var->offset;
         return true;
 
     case T_FIELD:

@@ -18,7 +18,7 @@ struct Expr {
     Expr *next;
 
     Symbol *sym;
-    Var *var;
+    struct Var *var;
     Field *field;
 
     union {

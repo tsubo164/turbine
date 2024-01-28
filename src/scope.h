@@ -13,13 +13,12 @@
 typedef struct Type Type;
 typedef struct Scope Scope;
 
-typedef struct Var {
-    //TODO remove name and type
+struct Var {
     const char *name;
     const Type *type;
-    int id;
+    int offset;
     bool is_global;
-} Var;
+};
 
 typedef struct Func {
     Scope *scope;
@@ -34,7 +33,7 @@ typedef struct Func {
 } Func;
 
 void DeclareParam(Func *f, const char *name, const Type *type);
-const Var *GetParam(const Func *f, int index);
+const struct Var *GetParam(const Func *f, int index);
 int RequiredParamCount(const Func *f);
 int ParamCount(const Func *f);
 
@@ -92,7 +91,7 @@ typedef struct Symbol {
     const Type *type;
 
     union {
-        Var *var;
+        struct Var *var;
         Func *func;
         struct Struct *strct;
         struct Table *table;
