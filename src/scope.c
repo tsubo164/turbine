@@ -87,7 +87,7 @@ int ClassSize(const Class *c)
 static Scope *new_scope(Scope *parent, int var_offset)
 {
     Scope *sc = CALLOC(Scope);
-    sc->parent_ = parent;
+    sc->parent = parent;
     sc->var_offset_ = var_offset;
 
     return sc;
@@ -106,11 +106,6 @@ Scope *OpenChild(Scope *sc)
         sc->child_tail = sc->child_tail->next = child;
 
     return child;
-}
-
-Scope *Close(const Scope *sc)
-{
-    return sc->parent_;
 }
 
 static Var *new_var(const char *Name, const Type *t, int ID, bool global)
@@ -180,8 +175,8 @@ Field *FindClassField(const Scope *sc, const char *name)
             return f;
     }
 
-    if (sc->parent_)
-        return FindClassField(sc->parent_, name);
+    if (sc->parent)
+        return FindClassField(sc->parent, name);
 
     return NULL;
 }
@@ -244,8 +239,8 @@ Class *FindClass(const Scope *sc, const char *name)
             return c;
     }
 
-    if (sc->parent_)
-        return FindClass(sc->parent_, name);
+    if (sc->parent)
+        return FindClass(sc->parent, name);
 
     return NULL;
 }
@@ -304,8 +299,8 @@ Symbol *FindSymbol(Scope *sc, const char *name)
     if (sym)
         return sym;
 
-    if (sc->parent_)
-        return FindSymbol(sc->parent_, name);
+    if (sc->parent)
+        return FindSymbol(sc->parent, name);
 
     return NULL;
 }

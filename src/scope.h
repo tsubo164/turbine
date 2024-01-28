@@ -109,7 +109,7 @@ typedef struct Symbol {
 
 
 struct Scope {
-    Scope *parent_;
+    Scope *parent;
     Scope *children_;
     Scope *child_tail;
     Scope *next;
@@ -130,7 +130,6 @@ struct Scope {
 };
 
 Scope *OpenChild(Scope *sc);
-Scope *Close(const Scope *sc);
 
 struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isglobal);
 

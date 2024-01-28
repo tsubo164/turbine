@@ -132,7 +132,7 @@ static void enter_class_scope(Parser *p, Class *clss)
 
 static void leave_scope(Parser *p)
 {
-    p->scope_ = Close(p->scope_);
+    p->scope_ = p->scope_->parent;
 }
 
 // forward decls
