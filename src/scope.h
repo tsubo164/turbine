@@ -46,7 +46,6 @@ typedef struct Field {
     const char *name;
     int id;
     const Type *type;
-    struct Field *next;
 } Field;
 
 typedef struct Class {
@@ -121,10 +120,6 @@ struct Scope {
 
     const Class *clss_;
     Func *funcs_;
-    Field *flds_;
-    Field *fld_tail;
-    Class *clsses_;
-    Class *clsses_tail;
 
     HashMap tables;
     HashMap symbols;
@@ -141,7 +136,7 @@ Class *FindClass(const Scope *sc, const char *name);
 
 Table *DefineTable(Scope *sc, const char *name);
 struct Module *DefineModule(Scope *sc, const char *name);
-Symbol *FindSymbol(Scope *sc, const char *name);
+Symbol *FindSymbol(const struct Scope *sc, const char *name);
 
 int VarSize(const Scope *sc);
 int TotalVarSize(const Scope *sc);

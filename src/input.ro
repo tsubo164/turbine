@@ -4,6 +4,10 @@
 //[opengl] (github.com/...)
 [my_calc]
 
+## Point
+  - x int
+  - q float
+
 //:: Color
 //  | R
 //  | G

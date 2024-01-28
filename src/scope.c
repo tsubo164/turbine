@@ -158,7 +158,6 @@ static Field *new_field(const char *Name, int ID)
     // TODO add type
     f->type = NewTypeInt();
     f->id = ID;
-    f->next = NULL;
     return f;
 }
 
@@ -183,7 +182,7 @@ Func *DeclareFunc(Scope *sc, bool isbuiltin)
     return func;
 }
 
-static Class *new_class(const char *name, int id, Scope *sc)
+static Class *new_class(const char *name, int id)
 {
     Class *c = CALLOC(Class);
     c->name = name;
@@ -194,31 +193,24 @@ static Class *new_class(const char *name, int id, Scope *sc)
 
 Class *DefineClass(Scope *sc, const char *name)
 {
-    if (FindClass(sc, name))
+    const int next_id = sc->class_offset_;
+    Class *strct = new_class(name, next_id);
+
+    Symbol *sym = new_symbol(SYM_STRUCT, name, NewTypeClass(strct));
+    sym->strct = strct;
+
+    if (!HashMapInsert(&sc->symbols, name, sym))
         return NULL;
 
-    Scope *clss_scope = OpenChild(sc);
-
-    const int next_id = sc->class_offset_;
-    Class *clss = new_class(name, next_id, clss_scope);
-    if (!sc->clsses_)
-        sc->clsses_tail = sc->clsses_ = clss;
-    else
-        sc->clsses_tail = sc->clsses_tail->next = clss;
-    clss_scope->clss_ = clss;
     sc->class_offset_++;
-    return clss;
+    return strct;
 }
 
 Class *FindClass(const Scope *sc, const char *name)
 {
-    for (Class *c = sc->clsses_; c; c = c->next) {
-        if (!strcmp(c->name, name))
-            return c;
-    }
-
-    if (sc->parent)
-        return FindClass(sc->parent, name);
+    Symbol *sym = FindSymbol(sc, name);
+    if (sym)
+        return sym->strct;
 
     return NULL;
 }
@@ -271,7 +263,7 @@ Symbol *FindSymbolThisScope(Scope *sc, const char *name)
     return NULL;
 }
 
-Symbol *FindSymbol(Scope *sc, const char *name)
+Symbol *FindSymbol(const struct Scope *sc, const char *name)
 {
     Symbol *sym = HashMapLookup(&sc->symbols, name);
     if (sym)

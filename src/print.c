@@ -124,12 +124,12 @@ static void print_header(int depth)
 
 static void print_scope(const Scope *sc, int depth)
 {
-    for (const Field *fld = sc->flds_; fld; fld = fld->next) {
+    //for (const Field *fld = sc->flds_; fld; fld = fld->next) {
 
-        print_header(depth);
-        printf("[fld] %s @%d %s\n",
-                fld->name, fld->id, TypeString(fld->type));
-    }
+    //    print_header(depth);
+    //    printf("[fld] %s @%d %s\n",
+    //            fld->name, fld->id, TypeString(fld->type));
+    //}
 
     // symbols
     for (int i = 0; i < sc->symbols.cap; i++) {
@@ -152,6 +152,9 @@ static void print_scope(const Scope *sc, int depth)
                 printf("[var] %s @%d %s\n",
                         v->name, v->id, TypeString(v->type));
             }
+        }
+
+        if (sym->kind == SYM_STRUCT) {
         }
 
         if (sym->kind == SYM_TABLE) {
