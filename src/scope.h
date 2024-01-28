@@ -58,20 +58,19 @@ struct Field *AddField(struct Struct *strct, const char *name, const Type *type)
 struct Field *FindField(const struct Struct *strct, const char *name);
 
 //----------------
-typedef struct Row {
+struct Row {
     const char *name;
     union {
         int64_t ival;
         double fval;
         const char *sval;
     };
-} Row;
+};
 
-typedef struct Table {
+struct Table {
     const char *name;
     HashMap rows;
-    Scope *scope;
-} Table;
+};
 
 struct Module {
     const char *name;
@@ -109,10 +108,8 @@ struct Scope {
     Scope *next;
 
     int var_offset_;
-
     Func *funcs_;
 
-    HashMap tables;
     HashMap symbols;
 };
 
@@ -125,7 +122,7 @@ Func *DeclareFunc(Scope *sc, bool isbuiltin);
 struct Struct *DefineStruct(Scope *sc, const char *name);
 struct Struct *FindStruct(const Scope *sc, const char *name);
 
-Table *DefineTable(Scope *sc, const char *name);
+struct Table *DefineTable(Scope *sc, const char *name);
 struct Module *DefineModule(Scope *sc, const char *name);
 Symbol *FindSymbol(const struct Scope *sc, const char *name);
 

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 typedef struct Struct Struct;
-typedef struct Table Table;
+struct Table;
 struct Module;
 typedef struct Func Func;
 
@@ -28,7 +28,7 @@ typedef struct Type {
     const struct Type *underlying;
     const Func *func;
     const struct Struct *strct;
-    const Table *table;
+    const struct Table *table;
     const struct Module *module;
     int len;
 } Type;

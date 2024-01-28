@@ -169,7 +169,7 @@ static void print_scope(const Scope *sc, int depth)
                 MapEntry *e = &t->rows.buckets[i];
                 if (!e->key)
                     continue;
-                Row *r = e->val;
+                struct Row *r = e->val;
                 print_header(depth + 1);
                 printf("[row] %s => %lld\n", r->name, r->ival);
             }

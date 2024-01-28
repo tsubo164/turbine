@@ -208,11 +208,10 @@ static Symbol *new_symbol(int kind, const char *name, const Type *t)
     return sym;
 }
 
-Table *DefineTable(Scope *sc, const char *name)
+struct Table *DefineTable(Scope *sc, const char *name)
 {
-    Table *tab = CALLOC(Table);
+    struct Table *tab = CALLOC(struct Table);
     tab->name = name;
-    tab->scope = new_scope(sc, 0);
 
     Symbol *sym = new_symbol(SYM_TABLE, name, NewTypeTable(tab));
     sym->table = tab;

@@ -304,7 +304,7 @@ static Expr *primary_expr(Parser *p)
             }
             else if (IsTable(expr->type)) {
                 expect(p, T_IDENT);
-                Row *r = HashMapLookup(&expr->type->table->rows, tok_str(p));
+                struct Row *r = HashMapLookup(&expr->type->table->rows, tok_str(p));
                 Expr *tmp = expr;
                 expr = NewIntLitExpr(r->ival);
                 expr->l = tmp;
@@ -915,12 +915,12 @@ static struct Struct *struct_decl(Parser *p)
     return strct;
 }
 
-static Table *table_def(Parser *p)
+static struct Table *table_def(Parser *p)
 {
     expect(p, T_COLON2);
     expect(p, T_IDENT);
 
-    Table *tab = DefineTable(p->scope_, tok_str(p));
+    struct Table *tab = DefineTable(p->scope_, tok_str(p));
     if (!tab) {
         error(p, tok_pos(p), "re-defined table: '%s'", tok_str(p));
     }
@@ -931,7 +931,7 @@ static Table *table_def(Parser *p)
     for (;;) {
         if (consume(p, T_OR)) {
             expect(p, T_IDENT);
-            Row *r = CALLOC(Row);
+            struct Row *r = CALLOC(struct Row);
             r->name = tok_str(p);
             r->ival = id++;
             HashMapInsert(&tab->rows, tok_str(p), r);
