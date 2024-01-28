@@ -9,49 +9,30 @@ struct Var;
 struct Stmt;
 struct Type;
 
-//--------------------------------
-// FuncDef
-typedef struct FuncDef {
-    // TODO remove this
-    const struct Func *func;
-    struct Symbol *sym;
-    const struct Var *var;
-    struct Stmt* body;
-    // TODO make FuncLitExpr and remove this
-    int funclit_id;
-
-    struct FuncDef *next;
-} FuncDef;
-
-FuncDef *NewFuncDef(struct Symbol *sym, struct Stmt *body);
-
-typedef struct Func {
-    // TODO Store func to prog
+struct Func {
     const char *name;
     const struct Type *return_type;
     struct Vec params;
+    int id;
 
     struct Scope *scope;
     struct Stmt *body;
 
     bool is_builtin;
     bool has_special_var;
+    // TODO remove this
     int ellipsis_index;
-} Func;
+};
 
-//--------------------------------
-// Prog
-typedef struct Prog {
+struct Prog {
     const struct Scope *scope;
-    struct Vec funcdefs;
     struct Vec funcs;
     struct Vec builtinfuncs;
     struct Stmt* gvars;
 
     // TODO remove this
     const struct Var *main_func;
-    int funclit_id;
-} Prog;
+};
 
 struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent);
 struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *parent);

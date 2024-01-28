@@ -86,7 +86,7 @@ typedef struct Symbol {
 
     union {
         struct Var *var;
-        Func *func;
+        struct Func *func;
         struct Struct *strct;
         struct Table *table;
         struct Module *module;

@@ -76,9 +76,9 @@ static void print_stmt(const Stmt *s, int depth)
     print_stmt(s->body, depth + 1);
 }
 
-static void print_funcdef(const FuncDef *f, int depth)
+static void print_func(const struct Func *func, int depth)
 {
-    if (!f)
+    if (!func)
         return;
 
     // indentation
@@ -86,12 +86,12 @@ static void print_funcdef(const FuncDef *f, int depth)
         printf("  ");
 
     // basic info
-    printf("%d. <func_def> \"%s\"", depth, f->var->name);
-    printf(" %s", TypeString(f->var->type->func->return_type));
+    printf("%d. <func> \"%s\"", depth, func->name);
+    printf(" %s", TypeString(func->return_type));
     printf("\n");
 
     // children
-    print_stmt(f->body, depth + 1);
+    print_stmt(func->body, depth + 1);
 }
 
 void PrintProg(const struct Prog *prog)
@@ -109,9 +109,9 @@ void PrintProg(const struct Prog *prog)
     for (const Stmt *gvar = prog->gvars; gvar; gvar = gvar->next)
         print_stmt(gvar, depth + 1);
 
-    for (int i = 0; i < prog->funcdefs.len; i++) {
-        FuncDef *f = prog->funcdefs.data[i];
-        print_funcdef(f, depth + 1);
+    for (int i = 0; i < prog->funcs.len; i++) {
+        struct Func *f = prog->funcs.data[i];
+        print_func(f, depth + 1);
     }
 }
 

@@ -678,7 +678,7 @@ static void gen_func(Bytecode *code, const struct Func *func, int func_id)
     gen_stmt(code, func->body);
 }
 
-static void gen_prog(Bytecode *code, const Prog *prog)
+static void gen_prog(Bytecode *code, const struct Prog *prog)
 {
     if (!prog->main_func) {
         fprintf(stderr, "error: 'main' function not found");
@@ -689,19 +689,21 @@ static void gen_prog(Bytecode *code, const Prog *prog)
     for (const Stmt *gvar = prog->gvars; gvar; gvar = gvar->next)
         gen_stmt(code, gvar);
 
+    // TODO maybe better to search "main" module and "main" func in there
+    // instead of holding main_func
     // call main
     CallFunction(code, prog->main_func->offset, IsBuiltin(prog->main_func->type->func));
     Exit(code);
 
     // global funcs
-    for (int i = 0; i < prog->funcdefs.len; i++) {
+    for (int i = 0; i < prog->funcs.len; i++) {
         Func *f = prog->funcs.data[i];
         if (!f->is_builtin)
             gen_func(code, f, i);
     }
 }
 
-void GenerateCode(Bytecode *code, const Prog *prog)
+void GenerateCode(Bytecode *code, const struct Prog *prog)
 {
     gen_prog(code, prog);
     End(code);

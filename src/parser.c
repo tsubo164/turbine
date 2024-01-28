@@ -1104,7 +1104,7 @@ static Type *type_spec(Parser *p)
 }
 
 // func_def = "#" identifier param_list type_spec? newline block_stmt
-static FuncDef *func_def(Parser *p)
+static struct Stmt *func_def(struct Parser *p)
 {
     expect(p, T_HASH);
     expect(p, T_IDENT);
@@ -1128,7 +1128,6 @@ static FuncDef *func_def(Parser *p)
 
     // func body
     p->func_ = func;
-
     Stmt *body = block_stmt(p, func);
     // TODO control flow check to allow implicit return
     for (Stmt *s = body->children; s; s = s->next) {
@@ -1140,11 +1139,13 @@ static FuncDef *func_def(Parser *p)
     func->body = body;
     p->func_ = NULL;
 
-    // XXX temp
-    FuncDef *fdef = NewFuncDef(sym, body);
-    fdef->funclit_id = p->prog->funclit_id++;
+    // TODO remove this
+    if (!strcmp(sym->name, "main"))
+        p->prog->main_func = sym->var;
 
-    return fdef;
+    struct Expr *ident = NewIdentExpr(sym);
+    struct Expr *init = NewIntLitExpr(func->id);
+    return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
 
 static void module_import(struct Parser *p)
@@ -1197,20 +1198,7 @@ static void program(Parser *p)
         const int next = peek(p);
 
         if (next == T_HASH) {
-            FuncDef *fdef = func_def(p);
-
-            // TODO remove this
-            if (!strcmp(fdef->var->name, "main"))
-                prog->main_func = fdef->var;
-
-            {
-                // TODO clean up
-                Expr *ident = NewIdentExpr(fdef->sym);
-                Expr *init = NewIntLitExpr(fdef->funclit_id);
-                tail = tail->next = NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
-            }
-
-            VecPush(&prog->funcdefs, fdef);
+            tail = tail->next = func_def(p);
             continue;
         }
 
