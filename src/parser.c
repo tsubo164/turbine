@@ -1072,7 +1072,7 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_HASH)) {
-        Func *func = DeclareFunc(p->scope_, false);
+        Func *func = AddFunc(p->prog, "_", p->scope_);
         param_list(p, func);
         ret_type(p, func);
         return NewTypeFunc(func);
@@ -1109,10 +1109,10 @@ static FuncDef *func_def(Parser *p)
     expect(p, T_HASH);
     expect(p, T_IDENT);
 
-    // signature
+    // func
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
-    Func *func = DeclareFunc(p->scope_, false);
+    Func *func = AddFunc(p->prog, name, p->scope_);
 
     // params
     param_list(p, func);
@@ -1137,12 +1137,7 @@ static FuncDef *func_def(Parser *p)
             break;
         }
     }
-    //XXX===============
     func->body = body;
-    // PushVec(&prog->funcs, func);
-    // AddFunc(p->prog, func);
-    // func->id = p->prog->func_id++;
-    //===============
     p->func_ = NULL;
 
     // XXX temp

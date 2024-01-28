@@ -668,14 +668,14 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
     }
 }
 
-static void gen_funcdef(Bytecode *code, const FuncDef *f)
+static void gen_func(Bytecode *code, const struct Func *func, int func_id)
 {
-    RegisterFunction(code, f->funclit_id, ParamCount(f->func));
+    RegisterFunction(code, func_id, func->params.len);
 
     // local vars
-    Allocate(code, TotalVarSize(f->func->scope));
+    Allocate(code, TotalVarSize(func->scope));
 
-    gen_stmt(code, f->body);
+    gen_stmt(code, func->body);
 }
 
 static void gen_prog(Bytecode *code, const Prog *prog)
@@ -695,8 +695,9 @@ static void gen_prog(Bytecode *code, const Prog *prog)
 
     // global funcs
     for (int i = 0; i < prog->funcdefs.len; i++) {
-        FuncDef *f = prog->funcdefs.data[i];
-        gen_funcdef(code, f);
+        Func *f = prog->funcs.data[i];
+        if (!f->is_builtin)
+            gen_func(code, f, i);
     }
 }
 

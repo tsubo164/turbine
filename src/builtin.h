@@ -1,8 +1,9 @@
 #ifndef BUILTIN_H
 #define BUILTIN_H
 
-typedef struct Scope Scope;
+struct Scope;
+struct Prog;
 
-void DefineBuiltinFuncs(Scope *builtin);
+void DefineBuiltinFuncs(struct Prog *prog, struct Scope *builtin);
 
 #endif // _H

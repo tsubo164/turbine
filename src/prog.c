@@ -18,14 +18,30 @@ FuncDef *NewFuncDef(struct Symbol *sym, Stmt *body)
     return f;
 }
 
-struct Func *DeclareFunc(struct Scope *parent, bool isbuiltin)
+struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent)
 {
     struct Func *f = CALLOC(struct Func);
     int offset = 0;
 
+    f->name = name;
     f->scope = NewScope(parent, offset);
-    f->is_builtin = isbuiltin;
+    f->is_builtin = false;
     f->ellipsis_index = -1;
 
+    VecPush(&prog->funcs, f);
+    return f;
+}
+
+struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *parent)
+{
+    struct Func *f = CALLOC(struct Func);
+    int offset = 0;
+
+    f->name = name;
+    f->scope = NewScope(parent, offset);
+    f->is_builtin = true;
+    f->ellipsis_index = -1;
+
+    VecPush(&prog->builtinfuncs, f);
     return f;
 }

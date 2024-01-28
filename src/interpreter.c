@@ -27,7 +27,7 @@ Int Interpret(const char *src, const Option *opt)
     VM vm = {{0}};
 
     // Builtin functions
-    DefineBuiltinFuncs(&builtin);
+    DefineBuiltinFuncs(&prog, &builtin);
 
     // Tokenize
     tok = Tokenize(src);

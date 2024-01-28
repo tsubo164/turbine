@@ -44,7 +44,8 @@ typedef struct Func {
 typedef struct Prog {
     const struct Scope *scope;
     struct Vec funcdefs;
-    //struct Vec funcs;
+    struct Vec funcs;
+    struct Vec builtinfuncs;
     struct Stmt* gvars;
 
     // TODO remove this
@@ -52,6 +53,7 @@ typedef struct Prog {
     int funclit_id;
 } Prog;
 
-struct Func *DeclareFunc(struct Scope *parent, bool isbuiltin);
+struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent);
+struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *parent);
 
 #endif // _H

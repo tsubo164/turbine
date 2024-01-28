@@ -101,7 +101,6 @@ struct Scope {
     Scope *next;
 
     int var_offset_;
-    //Func *funcs_;
 
     HashMap symbols;
 };
@@ -110,8 +109,6 @@ struct Scope *NewScope(struct Scope *parent, int var_offset);
 Scope *OpenChild(Scope *sc);
 
 struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isglobal);
-
-//struct Func *DeclareFunc(struct Scope *parent, bool isbuiltin);
 
 struct Struct *DefineStruct(Scope *sc, const char *name);
 struct Struct *FindStruct(const Scope *sc, const char *name);

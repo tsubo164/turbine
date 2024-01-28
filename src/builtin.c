@@ -1,13 +1,14 @@
 #include "builtin.h"
 #include "intern.h"
 #include "scope.h"
+#include "prog.h"
 #include "type.h"
 
-void DefineBuiltinFuncs(Scope *builtin)
+void DefineBuiltinFuncs(struct Prog *prog, struct Scope *builtin)
 {
     {
         const char *name = intern("print");
-        struct Func *func = DeclareFunc(builtin, true);
+        struct Func *func = AddBuiltinFunc(prog, name, builtin);
 
         DeclareParam(func, "...", NewTypeAny());
         func->return_type = NewTypeNil();
@@ -16,7 +17,7 @@ void DefineBuiltinFuncs(Scope *builtin)
     }
     {
         const char *name = intern("exit");
-        struct Func *func = DeclareFunc(builtin, true);
+        struct Func *func = AddBuiltinFunc(prog, name, builtin);
 
         DeclareParam(func, "code", NewTypeInt());
         func->return_type = NewTypeNil();
