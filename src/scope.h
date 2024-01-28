@@ -148,6 +148,5 @@ Symbol *FindSymbol(Scope *sc, const char *name);
 int VarSize(const Scope *sc);
 int TotalVarSize(const Scope *sc);
 int FieldSize(const Scope *sc);
-void PrintScope(const Scope *sc, int depth);
 
 #endif // _H

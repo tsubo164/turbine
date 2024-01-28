@@ -2,7 +2,6 @@
 #include "type.h"
 #include "mem.h"
 #include <string.h>
-#include <stdio.h>
 
 // Func
 void DeclareParam(Func *f, const char *name, const Type *type)
@@ -335,84 +334,4 @@ int TotalVarSize(const Scope *sc)
 int FieldSize(const Scope *sc)
 {
     return sc->field_offset_;
-}
-
-static void print_header(int depth)
-{
-    for (int i = 0; i < depth; i++)
-        printf("  ");
-    printf("%d. ", depth);
-}
-
-void PrintScope(const Scope *sc, int depth)
-{
-    for (const Field *fld = sc->flds_; fld; fld = fld->next) {
-
-        print_header(depth);
-        printf("[fld] %s @%d %s\n",
-                fld->name, fld->id, TypeString(fld->type));
-    }
-
-    // symbols
-    for (int i = 0; i < sc->symbols.cap; i++) {
-        const struct MapEntry *e = &sc->symbols.buckets[i];
-        if (!e->key)
-            continue;
-        const struct Symbol *sym = e->val;
-
-        if (sym->kind == SYM_VAR) {
-            const struct Var *v = sym->var;
-
-            if (IsFunc(v->type)) {
-                print_header(depth);
-                printf("[fnc] %s @%d %s\n",
-                        v->name, v->id, TypeString(v->type));
-                PrintScope(v->type->func->scope, depth + 1);
-            }
-            else {
-                print_header(depth);
-                printf("[var] %s @%d %s\n",
-                        v->name, v->id, TypeString(v->type));
-            }
-        }
-
-        if (sym->kind == SYM_TABLE) {
-            const struct Table *t = sym->table;
-
-            print_header(depth);
-            printf("[tab] %s\n", t->name);
-            for (int i = 0; i < t->rows.cap; i++) {
-                MapEntry *e = &t->rows.buckets[i];
-                if (!e->key)
-                    continue;
-                Row *r = e->val;
-                print_header(depth + 1);
-                printf("[row] %s => %lld\n", r->name, r->ival);
-            }
-        }
-
-        if (sym->kind == SYM_MODULE) {
-            const struct Module *m = sym->module;
-
-            print_header(depth);
-            printf("[mod] %s\n", m->name);
-            PrintScope(m->scope, depth + 1);
-        }
-    }
-
-    if ( sc->symbols.used == 0) {
-        // no symbol
-        print_header(depth);
-        printf("--\n");
-    }
-
-    // children
-    for (Scope *scope = sc->children_; scope; scope = scope->next) {
-        if (scope->clss_) {
-            print_header(depth);
-            printf("[clss] %s\n", scope->clss_->name);
-        }
-
-        PrintScope(scope, depth + 1);
-    }
 }

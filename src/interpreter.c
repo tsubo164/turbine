@@ -53,9 +53,9 @@ Int Interpret(const char *src, const Option *opt)
     if (opt->print_symbols) {
         print_header("symbol");
         if (opt->print_symbols_all)
-            PrintScope(&builtin, 0);
+            PrintScope(&builtin);
         else
-            PrintScope(global, 0);
+            PrintScope(global);
     }
 
     // Generate bytecode
