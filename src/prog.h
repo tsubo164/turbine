@@ -80,7 +80,6 @@ struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *p
 void DeclareParam(struct Func *f, const char *name, const struct Type *type);
 const struct Var *GetParam(const struct Func *f, int index);
 int RequiredParamCount(const struct Func *f);
-int ParamCount(const struct Func *f);
 bool IsVariadic(const struct Func *f);
 
 // Struct
