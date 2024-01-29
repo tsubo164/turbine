@@ -13,7 +13,6 @@ struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent)
     f->name = name;
     f->scope = NewScope(parent, offset);
     f->is_builtin = false;
-    f->ellipsis_index = -1;
 
     f->id = prog->funcs.len;
     VecPush(&prog->funcs, f);
@@ -28,7 +27,6 @@ struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *p
     f->name = name;
     f->scope = NewScope(parent, offset);
     f->is_builtin = true;
-    f->ellipsis_index = -1;
 
     f->id = prog->builtinfuncs.len;
     VecPush(&prog->builtinfuncs, f);
@@ -46,7 +44,7 @@ void DeclareParam(struct Func *f, const char *name, const Type *type)
     VecPush(&f->params, sym->var);
 
     if (!strcmp(name, "..."))
-        f->ellipsis_index = param_count(f) - 1;
+        f->is_variadic = true;
 
     if (name[0] == '$')
         f->has_special_var = true;
@@ -56,7 +54,7 @@ const struct Var *GetParam(const struct Func *f, int index)
 {
     int idx = 0;
 
-    if (IsVariadic(f) && index >= param_count(f))
+    if (f->is_variadic && index >= param_count(f))
         idx = param_count(f) - 1;
     else
         idx = index;
@@ -69,15 +67,10 @@ const struct Var *GetParam(const struct Func *f, int index)
 
 int RequiredParamCount(const struct Func *f)
 {
-    if (IsVariadic(f))
+    if (f->is_variadic)
         return param_count(f) - 1;
     else
         return param_count(f);
-}
-
-bool IsVariadic(const struct Func *f)
-{
-    return f->ellipsis_index >= 0;
 }
 
 // Struct

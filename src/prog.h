@@ -23,13 +23,12 @@ struct Func {
     struct Vec params;
     int id;
 
+    bool is_builtin;
+    bool is_variadic;
+    bool has_special_var;
+
     struct Scope *scope;
     struct Stmt *body;
-
-    bool is_builtin;
-    bool has_special_var;
-    // TODO remove this
-    int ellipsis_index;
 };
 
 struct Field {
@@ -80,7 +79,6 @@ struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *p
 void DeclareParam(struct Func *f, const char *name, const struct Type *type);
 const struct Var *GetParam(const struct Func *f, int index);
 int RequiredParamCount(const struct Func *f);
-bool IsVariadic(const struct Func *f);
 
 // Struct
 struct Field *AddField(struct Struct *strct, const char *name, const struct Type *type);

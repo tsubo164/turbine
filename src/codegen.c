@@ -95,7 +95,7 @@ static void gen_call(Bytecode *code, const Expr *e)
     // TODO need CallExpr::func?
     const Func *func = e->l->type->func;
 
-    if (IsVariadic(func)) {
+    if (func->is_variadic) {
         int argc = 0;
         for (const Expr *arg = e->list; arg; arg = arg->next, argc++) {
             // arg value
