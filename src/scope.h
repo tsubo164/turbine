@@ -5,54 +5,14 @@
 #include <stdint.h>
 #include "hashmap.h"
 #include "vec.h"
-// XXX TMP
-#include "prog.h"
 
-// Scope and objects that are managed by scope.
-// Objects are variables, functions, fields, structs.
-// Objects have ownership of their contents like type, children, etc.
-// and they are responsible for memory management.
-
-typedef struct Type Type;
-typedef struct Scope Scope;
+struct Type;
 
 struct Var;
 struct Func;
-
-typedef struct Field {
-    const char *name;
-    const Type *type;
-    int offset;
-} Field;
-
-struct Struct {
-    const char *name;
-    struct Vec fields;
-    int size;
-};
-
-struct Field *AddField(struct Struct *strct, const char *name, const Type *type);
-struct Field *FindField(const struct Struct *strct, const char *name);
-
-//----------------
-struct Row {
-    const char *name;
-    union {
-        int64_t ival;
-        double fval;
-        const char *sval;
-    };
-};
-
-struct Table {
-    const char *name;
-    HashMap rows;
-};
-
-struct Module {
-    const char *name;
-    Scope *scope;
-};
+struct Struct;
+struct Table;
+struct Module;
 
 enum SymbolKind {
     SYM_VAR,
@@ -66,7 +26,7 @@ typedef struct Symbol {
     int kind;
     int id;
     const char *name;
-    const Type *type;
+    const struct Type *type;
 
     union {
         struct Var *var;
@@ -79,10 +39,10 @@ typedef struct Symbol {
 
 
 struct Scope {
-    Scope *parent;
-    Scope *children_;
-    Scope *child_tail;
-    Scope *next;
+    struct Scope *parent;
+    struct Scope *children_;
+    struct Scope *child_tail;
+    struct Scope *next;
 
     int var_offset_;
 
@@ -90,19 +50,20 @@ struct Scope {
 };
 
 struct Scope *NewScope(struct Scope *parent, int var_offset);
-Scope *OpenChild(Scope *sc);
+struct Scope *OpenChild(struct Scope *sc);
 
-struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isglobal);
+struct Symbol *DefineVar(struct Scope *sc, const char *name,
+        const struct Type *type, bool isglobal);
 
-struct Struct *DefineStruct(Scope *sc, const char *name);
-struct Struct *FindStruct(const Scope *sc, const char *name);
+struct Struct *DefineStruct(struct Scope *sc, const char *name);
+struct Struct *FindStruct(const struct Scope *sc, const char *name);
 
-struct Table *DefineTable(Scope *sc, const char *name);
-struct Module *DefineModule(Scope *sc, const char *name);
+struct Table *DefineTable(struct Scope *sc, const char *name);
+struct Module *DefineModule(struct Scope *sc, const char *name);
 Symbol *FindSymbol(const struct Scope *sc, const char *name);
 
-int VarSize(const Scope *sc);
-int TotalVarSize(const Scope *sc);
-int FieldSize(const Scope *sc);
+int VarSize(const struct Scope *sc);
+int TotalVarSize(const struct Scope *sc);
+int FieldSize(const struct Scope *sc);
 
 #endif // _H

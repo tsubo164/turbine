@@ -1,5 +1,6 @@
 #include "prog.h"
 #include "scope.h"
+#include "type.h"
 #include "mem.h"
 #include <string.h>
 
@@ -77,4 +78,36 @@ int ParamCount(const struct Func *f)
 bool IsVariadic(const struct Func *f)
 {
     return f->ellipsis_index >= 0;
+}
+
+// Struct
+static struct Field *new_field(const char *Name, const Type *type, int offset)
+{
+    struct Field *f = CALLOC(struct Field);
+    f->name = Name;
+    f->type = type;
+    f->offset = offset;
+    return f;
+}
+
+struct Field *AddField(struct Struct *strct, const char *name, const Type *type)
+{
+    if (FindField(strct, name))
+        return NULL;
+
+    struct Field *f = new_field(name, type, strct->size);
+    strct->size += SizeOf(f->type);
+
+    VecPush(&strct->fields, f);
+    return f;
+}
+
+struct Field *FindField(const struct Struct *strct, const char *name)
+{
+    for (int i = 0; i < strct->fields.len; i++) {
+        struct Field *f = strct->fields.data[i];
+        if (!strcmp(f->name, name))
+            return f;
+    }
+    return NULL;
 }

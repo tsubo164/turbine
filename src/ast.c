@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "prog.h"
 #include "mem.h"
 
 //--------------------------------
@@ -74,7 +75,7 @@ Expr *NewIdentExpr(struct Symbol *sym)
     return e;
 }
 
-Expr *NewFieldExpr(Field *f)
+Expr *NewFieldExpr(struct Field *f)
 {
     Expr *e = CALLOC(Expr);
     e->type = f->type;

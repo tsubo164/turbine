@@ -2,10 +2,13 @@
 #define PROG_H
 
 #include <stdbool.h>
+#include <stdint.h>
+#include "hashmap.h"
 #include "vec.h"
 
 struct Stmt;
 struct Type;
+struct Scope;
 
 struct Var {
     const char *name;
@@ -29,6 +32,37 @@ struct Func {
     int ellipsis_index;
 };
 
+struct Field {
+    const char *name;
+    const struct Type *type;
+    int offset;
+};
+
+struct Struct {
+    const char *name;
+    struct Vec fields;
+    int size;
+};
+
+struct Row {
+    const char *name;
+    union {
+        int64_t ival;
+        double fval;
+        const char *sval;
+    };
+};
+
+struct Table {
+    const char *name;
+    HashMap rows;
+};
+
+struct Module {
+    const char *name;
+    struct Scope *scope;
+};
+
 struct Prog {
     const struct Scope *scope;
     struct Vec funcs;
@@ -48,5 +82,9 @@ const struct Var *GetParam(const struct Func *f, int index);
 int RequiredParamCount(const struct Func *f);
 int ParamCount(const struct Func *f);
 bool IsVariadic(const struct Func *f);
+
+// Struct
+struct Field *AddField(struct Struct *strct, const char *name, const struct Type *type);
+struct Field *FindField(const struct Struct *strct, const char *name);
 
 #endif // _H

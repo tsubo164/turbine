@@ -19,7 +19,7 @@ struct Expr {
 
     Symbol *sym;
     struct Var *var;
-    Field *field;
+    struct Field *field;
 
     union {
         long ival;
@@ -38,7 +38,7 @@ Expr *NewFloatLitExpr(double d);
 Expr *NewStringLitExpr(const char *s);
 Expr *NewConversionExpr(Expr *from, Type *to);
 Expr *NewIdentExpr(struct Symbol *sym);
-Expr *NewFieldExpr(Field *f);
+Expr *NewFieldExpr(struct Field *f);
 Expr *NewSelectExpr(Expr *inst, Expr *fld);
 Expr *NewIndexExpr(Expr *ary, Expr *idx);
 Expr *NewCallExpr(Expr *callee, Pos p);

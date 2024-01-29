@@ -299,7 +299,7 @@ static Expr *primary_expr(Parser *p)
         else if (tok->kind == T_DOT) {
             if (IsStruct(expr->type)) {
                 expect(p, T_IDENT);
-                Field *f = FindField(expr->type->strct, tok_str(p));
+                struct Field *f = FindField(expr->type->strct, tok_str(p));
                 expr = NewSelectExpr(expr, NewFieldExpr(f));
             }
             else if (IsTable(expr->type)) {

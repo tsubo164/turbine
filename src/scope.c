@@ -1,62 +1,31 @@
 #include "scope.h"
+#include "prog.h"
 #include "type.h"
 #include "mem.h"
 #include <string.h>
 
-static Field *new_field(const char *Name, const Type *type, int offset)
-{
-    Field *f = CALLOC(Field);
-    f->name = Name;
-    f->type = type;
-    f->offset = offset;
-    return f;
-}
-
-// Struct
-struct Field *AddField(struct Struct *strct, const char *name, const Type *type)
-{
-    if (FindField(strct, name))
-        return NULL;
-
-    struct Field *f = new_field(name, type, strct->size);
-    strct->size += SizeOf(f->type);
-
-    VecPush(&strct->fields, f);
-    return f;
-}
-
-struct Field *FindField(const struct Struct *strct, const char *name)
-{
-    for (int i = 0; i < strct->fields.len; i++) {
-        Field *f = strct->fields.data[i];
-        if (!strcmp(f->name, name))
-            return f;
-    }
-    return NULL;
-}
-
 // Scope
-static Scope *new_scope(Scope *parent, int var_offset)
+static struct Scope *new_scope(struct Scope *parent, int var_offset)
 {
-    Scope *sc = CALLOC(Scope);
+    struct Scope *sc = CALLOC(struct Scope);
     sc->parent = parent;
     sc->var_offset_ = var_offset;
 
     return sc;
 }
 
-static int next_var_id(const Scope *sc);
+static int next_var_id(const struct Scope *sc);
 
 struct Scope *NewScope(struct Scope *parent, int var_offset)
 {
     return new_scope(parent, var_offset);
 }
 
-Scope *OpenChild(Scope *sc)
+struct Scope *OpenChild(struct Scope *sc)
 {
     const int next_id = sc->var_offset_;
 
-    Scope *child = new_scope(sc, next_id);
+    struct Scope *child = new_scope(sc, next_id);
     if (!sc->children_)
         sc->child_tail = sc->children_ = child;
     else
@@ -65,7 +34,7 @@ Scope *OpenChild(Scope *sc)
     return child;
 }
 
-static struct Var *new_var(const char *Name, const Type *t, int offset, bool global)
+static struct Var *new_var(const char *Name, const struct Type *t, int offset, bool global)
 {
     struct Var *v = CALLOC(struct Var);
     v->name = Name;
@@ -77,9 +46,9 @@ static struct Var *new_var(const char *Name, const Type *t, int offset, bool glo
 
 // TODO remove forward decls
 static Symbol *new_symbol(int kind, const char *name, const Type *t);
-Symbol *FindSymbolThisScope(Scope *sc, const char *name);
+Symbol *FindSymbolThisScope(struct Scope *sc, const char *name);
 
-struct Symbol *DefineVar(Scope *sc, const char *name, const Type *type, bool isglobal)
+struct Symbol *DefineVar(struct Scope *sc, const char *name, const Type *type, bool isglobal)
 {
     if (FindSymbolThisScope(sc, name))
         return NULL;
@@ -106,7 +75,7 @@ static struct Struct *new_struct(const char *name)
     return s;
 }
 
-struct Struct *DefineStruct(Scope *sc, const char *name)
+struct Struct *DefineStruct(struct Scope *sc, const char *name)
 {
     struct Struct *strct = new_struct(name);
     Symbol *sym = new_symbol(SYM_STRUCT, name, NewTypeStruct(strct));
@@ -118,7 +87,7 @@ struct Struct *DefineStruct(Scope *sc, const char *name)
     return strct;
 }
 
-struct Struct *FindStruct(const Scope *sc, const char *name)
+struct Struct *FindStruct(const struct Scope *sc, const char *name)
 {
     Symbol *sym = FindSymbol(sc, name);
     if (sym)
@@ -136,7 +105,7 @@ static Symbol *new_symbol(int kind, const char *name, const Type *t)
     return sym;
 }
 
-struct Table *DefineTable(Scope *sc, const char *name)
+struct Table *DefineTable(struct Scope *sc, const char *name)
 {
     struct Table *tab = CALLOC(struct Table);
     tab->name = name;
@@ -150,7 +119,7 @@ struct Table *DefineTable(Scope *sc, const char *name)
     return tab;
 }
 
-struct Module *DefineModule(Scope *sc, const char *name)
+struct Module *DefineModule(struct Scope *sc, const char *name)
 {
     struct Module *mod = CALLOC(struct Module);
     mod->name = name;
@@ -165,7 +134,7 @@ struct Module *DefineModule(Scope *sc, const char *name)
     return mod;
 }
 
-Symbol *FindSymbolThisScope(Scope *sc, const char *name)
+Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
 {
     Symbol *sym = HashMapLookup(&sc->symbols, name);
     if (sym)
@@ -186,16 +155,16 @@ Symbol *FindSymbol(const struct Scope *sc, const char *name)
     return NULL;
 }
 
-static int next_var_id(const Scope *sc)
+static int next_var_id(const struct Scope *sc)
 {
     return sc->var_offset_;
 }
 
-static int max_var_id(const Scope *sc)
+static int max_var_id(const struct Scope *sc)
 {
     int max = next_var_id(sc) - 1;
 
-    for (Scope *child = sc->children_; child; child = child->next) {
+    for (struct Scope *child = sc->children_; child; child = child->next) {
         int child_max = max_var_id(child);
         max = max < child_max ? child_max : max;
     }
@@ -203,12 +172,12 @@ static int max_var_id(const Scope *sc)
     return max;
 }
 
-int VarSize(const Scope *sc)
+int VarSize(const struct Scope *sc)
 {
     return next_var_id(sc);
 }
 
-int TotalVarSize(const Scope *sc)
+int TotalVarSize(const struct Scope *sc)
 {
     return max_var_id(sc) + 1;
 }

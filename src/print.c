@@ -122,7 +122,7 @@ static void print_header(int depth)
     printf("%d. ", depth);
 }
 
-static void print_scope(const Scope *sc, int depth)
+static void print_scope(const struct Scope *sc, int depth)
 {
     // symbols
     for (int i = 0; i < sc->symbols.cap; i++) {
@@ -191,12 +191,12 @@ static void print_scope(const Scope *sc, int depth)
     }
 
     // children
-    for (Scope *scope = sc->children_; scope; scope = scope->next) {
+    for (struct Scope *scope = sc->children_; scope; scope = scope->next) {
         print_scope(scope, depth + 1);
     }
 }
 
-void PrintScope(const Scope *sc)
+void PrintScope(const struct Scope *sc)
 {
     print_scope(sc, 0);
 }
