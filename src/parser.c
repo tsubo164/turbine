@@ -150,7 +150,7 @@ static Expr *arg_list(Parser *p, Expr *call)
     }
 
     const Func *func = call->l->type->func;
-    if (HasSpecialVar(func)) {
+    if (func->has_special_var) {
         tail = tail->next = NewIntLitExpr(call->pos.y);
         count++;
     }

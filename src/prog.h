@@ -4,10 +4,15 @@
 #include <stdbool.h>
 #include "vec.h"
 
-struct Func;
-struct Var;
 struct Stmt;
 struct Type;
+
+struct Var {
+    const char *name;
+    const struct Type *type;
+    int offset;
+    bool is_global;
+};
 
 struct Func {
     const char *name;
@@ -34,7 +39,14 @@ struct Prog {
     const struct Var *main_func;
 };
 
+// Func
 struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent);
 struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *parent);
+
+void DeclareParam(struct Func *f, const char *name, const struct Type *type);
+const struct Var *GetParam(const struct Func *f, int index);
+int RequiredParamCount(const struct Func *f);
+int ParamCount(const struct Func *f);
+bool IsVariadic(const struct Func *f);
 
 #endif // _H

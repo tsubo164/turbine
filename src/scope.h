@@ -16,24 +16,8 @@
 typedef struct Type Type;
 typedef struct Scope Scope;
 
-struct Var {
-    const char *name;
-    const Type *type;
-    int offset;
-    bool is_global;
-};
-
-
+struct Var;
 struct Func;
-
-void DeclareParam(struct Func *f, const char *name, const Type *type);
-const struct Var *GetParam(const struct Func *f, int index);
-int RequiredParamCount(const struct Func *f);
-int ParamCount(const struct Func *f);
-
-bool HasSpecialVar(const struct Func *f);
-bool IsVariadic(const struct Func *f);
-bool IsBuiltin(const struct Func *f);
 
 typedef struct Field {
     const char *name;
