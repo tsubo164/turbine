@@ -60,6 +60,8 @@ struct Struct *FindStruct(const struct Scope *sc, const char *name);
 
 struct Table *DefineTable(struct Scope *sc, const char *name);
 struct Module *DefineModule(struct Scope *sc, const char *name);
+
+Symbol *PushVar(struct Scope *sc, struct Var *var);
 Symbol *FindSymbol(const struct Scope *sc, const char *name);
 
 int VarSize(const struct Scope *sc);

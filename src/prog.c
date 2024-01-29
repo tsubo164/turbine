@@ -4,6 +4,20 @@
 #include "mem.h"
 #include <string.h>
 
+// Var
+struct Var *AddVar(struct Prog *prog, const char *Name, const struct Type *t,
+        int offset, bool isglobal)
+{
+    struct Var *v = CALLOC(struct Var);
+    v->name = Name;
+    v->type = t;
+    v->offset = offset;
+    v->is_global = isglobal;
+
+    VecPush(&prog->vars, v);
+    return v;
+}
+
 // Func
 struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent)
 {

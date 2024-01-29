@@ -838,6 +838,16 @@ static Expr *default_value(const Type *type)
     }
 }
 
+//static struct Symbol *define_var(struct Parser *p,
+//        const char *name, const struct Type *type, bool isglobal)
+//{
+//    int offset = p->scope_->var_offset_;
+//    struct Var *var = AddVar(p->prog, name, type, offset, isglobal);
+//    struct Symbol *sym = PushVar(p->scope_, var);
+//
+//    return sym;
+//}
+//
 // var_decl = "-" identifier type newline
 //          | "-" identifier type = expression newline
 static Stmt *var_decl(Parser *p, bool isglobal)
@@ -1120,7 +1130,7 @@ static struct Stmt *func_def(struct Parser *p)
     expect(p, T_NEWLINE);
 
     // func var
-    struct Symbol *sym = DefineVar(p->scope_, name, NewTypeFunc(func), false);
+    struct Symbol *sym = DefineVar(p->scope_, name, NewTypeFunc(func), true);
     if (!sym) {
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);

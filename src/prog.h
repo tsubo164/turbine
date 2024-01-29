@@ -64,6 +64,7 @@ struct Module {
 
 struct Prog {
     const struct Scope *scope;
+    struct Vec vars;
     struct Vec funcs;
     struct Vec builtinfuncs;
     struct Stmt* gvars;
@@ -71,6 +72,10 @@ struct Prog {
     // TODO remove this
     const struct Var *main_func;
 };
+
+// Var
+struct Var *AddVar(struct Prog *prog, const char *Name, const struct Type *t,
+        int offset, bool isglobal);
 
 // Func
 struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent);

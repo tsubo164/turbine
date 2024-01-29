@@ -143,6 +143,23 @@ Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
     return NULL;
 }
 
+Symbol *PushVar(struct Scope *sc, struct Var *var)
+{
+    if (FindSymbolThisScope(sc, var->name))
+        return NULL;
+
+    Symbol *sym = new_symbol(SYM_VAR, var->name, var->type);
+    sym->var = var;
+
+    // TODO maybe better to compute this in another pass
+    sc->var_offset_ += SizeOf(var->type);
+
+    if (!HashMapInsert(&sc->symbols, var->name, sym))
+        return NULL;
+
+    return sym;
+}
+
 Symbol *FindSymbol(const struct Scope *sc, const char *name)
 {
     Symbol *sym = HashMapLookup(&sc->symbols, name);
