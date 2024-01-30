@@ -36,7 +36,7 @@ static const char *read_file(const char *filename)
 }
 
 typedef struct Parser {
-    Scope *scope_;
+    Scope *scope; // current scope
     Prog *prog;
     Func *func_;
     const Token *curr_;
@@ -115,25 +115,10 @@ static bool consume(Parser *p, int kind)
     }
 }
 
-static void enter_scope(Parser *p, Func *func)
-{
-    if (func) {
-        p->scope_ = func->scope;
-    }
-    else {
-        p->scope_ = OpenChild(p->scope_);
-    }
-}
-
-static void leave_scope(Parser *p)
-{
-    p->scope_ = p->scope_->parent;
-}
-
 // forward decls
 static Type *type_spec(Parser *p);
 static Expr *expression(Parser *p);
-static Stmt *block_stmt(Parser *p, Func *func);
+static Stmt *block_stmt(Parser *p, struct Scope *block_scope);
 
 static Expr *arg_list(Parser *p, Expr *call)
 {
@@ -252,7 +237,7 @@ static Expr *primary_expr(Parser *p)
     }
 
     if (consume(p, T_CALLER_LINE)) {
-        struct Symbol *sym = FindSymbol(p->scope_, tok_str(p));
+        struct Symbol *sym = FindSymbol(p->scope, tok_str(p));
         if (!sym) {
             error(p, tok_pos(p),
                     "special variable '%s' not declared in parameters",
@@ -277,7 +262,7 @@ static Expr *primary_expr(Parser *p)
         const Token *tok = gettok(p);
 
         if (tok->kind == T_IDENT) {
-            struct Symbol *sym = FindSymbol(p->scope_, tok->sval);
+            struct Symbol *sym = FindSymbol(p->scope, tok->sval);
             if (!sym) {
                 error(p, tok_pos(p),
                         "undefined identifier: '%s'",
@@ -310,10 +295,10 @@ static Expr *primary_expr(Parser *p)
                 expr->l = tmp;
             }
             else if (IsModule(expr->type)) {
-                struct Scope *cur = p->scope_;
-                p->scope_ = expr->type->module->scope;
+                struct Scope *cur = p->scope;
+                p->scope = expr->type->module->scope;
                 Expr *r = primary_expr(p);
-                p->scope_ = cur;
+                p->scope = cur;
 
                 // TODO keep module expr somewhere
                 expr = r;
@@ -599,7 +584,7 @@ static Stmt *or_stmt(Parser *p)
         expect(p, T_NEWLINE);
     }
 
-    Stmt *body = block_stmt(p, (Func *)NULL);
+    Stmt *body = block_stmt(p, OpenChild(p->scope));
 
     return NewOrStmt(cond, body);
 }
@@ -613,7 +598,7 @@ static Stmt *if_stmt(Parser *p)
     Stmt head = {0};
     Stmt *tail = &head;
 
-    Stmt *body = block_stmt(p, (Func *)NULL);
+    Stmt *body = block_stmt(p, OpenChild(p->scope));
     tail = tail->next = NewOrStmt(cond, body);
 
     bool endor = false;
@@ -673,7 +658,7 @@ static Stmt *for_stmt(Parser *p)
     }
 
     // body
-    Stmt *body = block_stmt(p, (Func *)NULL);
+    Stmt *body = block_stmt(p, OpenChild(p->scope));
     return NewForStmt(init, cond, post, body);
 }
 
@@ -711,7 +696,7 @@ static Stmt *case_stmt(Parser *p, int kind)
 
     expect(p, T_NEWLINE);
 
-    Stmt *body = block_stmt(p, (Func *)NULL);
+    Stmt *body = block_stmt(p, OpenChild(p->scope));
     return NewCaseStmt(head.next, body, kind);
 }
 
@@ -791,7 +776,7 @@ static Stmt *scope_stmt(Parser *p)
     expect(p, T_DASH3);
     expect(p, T_NEWLINE);
 
-    return block_stmt(p, (Func *)NULL);
+    return block_stmt(p, OpenChild(p->scope));
 }
 
 static Stmt *nop_stmt(Parser *p)
@@ -841,9 +826,9 @@ static Expr *default_value(const Type *type)
 //static struct Symbol *define_var(struct Parser *p,
 //        const char *name, const struct Type *type, bool isglobal)
 //{
-//    int offset = p->scope_->var_offset_;
+//    int offset = p->scope->var_offset_;
 //    struct Var *var = AddVar(p->prog, name, type, offset, isglobal);
-//    struct Symbol *sym = PushVar(p->scope_, var);
+//    struct Symbol *sym = PushVar(p->scope, var);
 //
 //    return sym;
 //}
@@ -882,7 +867,7 @@ static Stmt *var_decl(Parser *p, bool isglobal)
 
     expect(p, T_NEWLINE);
 
-    struct Symbol *sym = DefineVar(p->scope_, name, type, isglobal);
+    struct Symbol *sym = DefineVar(p->scope, name, type, isglobal);
     if (!sym) {
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
@@ -911,7 +896,7 @@ static struct Struct *struct_decl(Parser *p)
     expect(p, T_IDENT);
 
     // struct name
-    struct Struct *strct = DefineStruct(p->scope_, tok_str(p));
+    struct Struct *strct = DefineStruct(p->scope, tok_str(p));
     if (!strct) {
         fprintf(stderr, "error: re-defined struct: '%s'\n", tok_str(p));
         exit(EXIT_FAILURE);
@@ -930,7 +915,7 @@ static struct Table *table_def(Parser *p)
     expect(p, T_COLON2);
     expect(p, T_IDENT);
 
-    struct Table *tab = DefineTable(p->scope_, tok_str(p));
+    struct Table *tab = DefineTable(p->scope, tok_str(p));
     if (!tab) {
         error(p, tok_pos(p), "re-defined table: '%s'", tok_str(p));
     }
@@ -956,12 +941,13 @@ static struct Table *table_def(Parser *p)
     return tab;
 }
 
-static Stmt *block_stmt(Parser *p, Func *func)
+static Stmt *block_stmt(Parser *p, struct Scope *block_scope)
 {
     Stmt head = {0};
     Stmt *tail = &head;
 
-    enter_scope(p, func);
+    // enter scope
+    p->scope = block_scope;
     expect(p, T_BLOCKBEGIN);
 
     for (;;) {
@@ -1012,8 +998,9 @@ static Stmt *block_stmt(Parser *p, Func *func)
         }
     }
 
+    // leave scope
+    p->scope = p->scope->parent;
     expect(p, T_BLOCKEND);
-    leave_scope(p);
 
     return NewBlockStmt(head.next);
 }
@@ -1082,7 +1069,7 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_HASH)) {
-        Func *func = AddFunc(p->prog, "_", p->scope_);
+        Func *func = AddFunc(p->prog, "_", p->scope);
         param_list(p, func);
         ret_type(p, func);
         return NewTypeFunc(func);
@@ -1101,7 +1088,7 @@ static Type *type_spec(Parser *p)
         type = NewTypeString();
     }
     else if (consume(p, T_IDENT)) {
-        type = NewTypeStruct(FindStruct(p->scope_, tok_str(p)));
+        type = NewTypeStruct(FindStruct(p->scope, tok_str(p)));
     }
     else {
         const Token *tok = gettok(p);
@@ -1122,7 +1109,7 @@ static struct Stmt *func_def(struct Parser *p)
     // func
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
-    Func *func = AddFunc(p->prog, name, p->scope_);
+    Func *func = AddFunc(p->prog, name, p->scope);
 
     // params
     param_list(p, func);
@@ -1130,7 +1117,7 @@ static struct Stmt *func_def(struct Parser *p)
     expect(p, T_NEWLINE);
 
     // func var
-    struct Symbol *sym = DefineVar(p->scope_, name, NewTypeFunc(func), true);
+    struct Symbol *sym = DefineVar(p->scope, name, NewTypeFunc(func), true);
     if (!sym) {
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
@@ -1138,7 +1125,7 @@ static struct Stmt *func_def(struct Parser *p)
 
     // func body
     p->func_ = func;
-    Stmt *body = block_stmt(p, func);
+    Stmt *body = block_stmt(p, func->scope);
     // TODO control flow check to allow implicit return
     for (Stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
@@ -1185,13 +1172,13 @@ static void module_import(struct Parser *p)
                 "module %s.ro not found", name);
     }
 
-    struct Module *mod = DefineModule(p->scope_, name);
+    struct Module *mod = DefineModule(p->scope, name);
     const struct Token *tok = Tokenize(src);
     // TODO use this style => enter_scope(p, mod->scope);
     Parse(src, tok, mod->scope, p->prog);
     // TODO come up with better way to take over var id from child
     // Maybe need one more pass to fill id
-    p->scope_->var_offset_ = mod->scope->var_offset_;
+    p->scope->var_offset_ = mod->scope->var_offset_;
 
     expect(p, T_RBRACK);
     expect(p, T_NEWLINE);
@@ -1258,7 +1245,7 @@ void Parse(const char *src, const Token *tok, Scope *scope, Prog *prog)
 
     p.src_ = src;
     p.curr_ = tok;
-    p.scope_ = scope;
+    p.scope = scope;
     p.prog = prog;
     p.func_ = NULL;
     p.filename = filename;

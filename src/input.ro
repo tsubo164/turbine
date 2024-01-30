@@ -8,6 +8,10 @@
   - x int
   - q float
 
+# add(x int, y int) int
+  - z int
+  z = x + y
+  return z
 //:: Color
 //  | R
 //  | G
