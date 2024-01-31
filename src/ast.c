@@ -1,5 +1,4 @@
 #include "ast.h"
-#include "prog.h"
 #include "mem.h"
 
 //--------------------------------

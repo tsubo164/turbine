@@ -5,7 +5,6 @@
 #include "token.h"
 #include "print.h"
 #include "scope.h"
-#include "prog.h"
 #include "ast.h"
 #include "vm.h"
 

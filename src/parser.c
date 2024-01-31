@@ -2,7 +2,6 @@
 #include "scope.h"
 #include "token.h"
 #include "type.h"
-#include "prog.h"
 #include "ast.h"
 #include "mem.h"
 #include "escseq.h"
@@ -823,16 +822,6 @@ static Expr *default_value(const Type *type)
     }
 }
 
-//static struct Symbol *define_var(struct Parser *p,
-//        const char *name, const struct Type *type, bool isglobal)
-//{
-//    int offset = p->scope->var_offset_;
-//    struct Var *var = AddVar(p->prog, name, type, offset, isglobal);
-//    struct Symbol *sym = PushVar(p->scope, var);
-//
-//    return sym;
-//}
-//
 // var_decl = "-" identifier type newline
 //          | "-" identifier type = expression newline
 static Stmt *var_decl(Parser *p, bool isglobal)

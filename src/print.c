@@ -1,5 +1,4 @@
 #include "print.h"
-#include "prog.h"
 #include "ast.h"
 #include <stdio.h>
 

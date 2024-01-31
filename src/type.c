@@ -2,7 +2,6 @@
 #include "intern.h"
 #include "error.h"
 #include "scope.h"
-#include "prog.h"
 #include "mem.h"
 #include <stdio.h>
 

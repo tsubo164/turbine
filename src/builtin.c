@@ -1,7 +1,6 @@
 #include "builtin.h"
 #include "intern.h"
 #include "scope.h"
-#include "prog.h"
 #include "type.h"
 
 void DefineBuiltinFuncs(struct Prog *prog, struct Scope *builtin)
