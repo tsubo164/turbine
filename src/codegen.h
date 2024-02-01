@@ -4,9 +4,9 @@
 #include <stdbool.h>
 
 struct Bytecode;
-struct Prog;
+struct Module;
 
 void SetOptimize(bool enable);
-void GenerateCode(struct Bytecode *code, const struct Prog *prog);
+void GenerateCode(struct Bytecode *code, const struct Module *mod);
 
 #endif // _H

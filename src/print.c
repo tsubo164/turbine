@@ -130,12 +130,12 @@ static void print_module(const struct Module *mod, int depth)
     //    print_func(funcs[i], depth + 1);
 }
 
-void PrintProg(const struct Prog *prog)
+void PrintProg(const struct Module *mod)
 {
-    if (!prog)
+    if (!mod)
         return;
 
-    print_module(prog->module, 0);
+    print_module(mod, 0);
 }
 
 static void print_header(int depth)

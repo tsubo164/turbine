@@ -720,13 +720,8 @@ static void gen_module(Bytecode *code, const struct Module *mod)
     //    gen_func(code, funcs[i], i);
 }
 
-static void gen_prog(Bytecode *code, const struct Prog *prog)
+void GenerateCode(struct Bytecode *code, const struct Module *mod)
 {
-    gen_module(code, prog->module);
-}
-
-void GenerateCode(Bytecode *code, const struct Prog *prog)
-{
-    gen_prog(code, prog);
+    gen_module(code, mod);
     End(code);
 }

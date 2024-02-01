@@ -19,9 +19,8 @@ static void print_header(const char *title)
 Int Interpret(const char *src, const Option *opt)
 {
     const Token *tok = NULL;
-    Scope builtin = {0};
-    Scope *global = NULL;
-    struct Prog prog = {0};
+    struct Scope builtin = {0};
+    struct Scope *global = NULL;
     Bytecode code = {{0}};
     VM vm = {{0}};
 
@@ -41,12 +40,11 @@ Int Interpret(const char *src, const Option *opt)
 
     // Compile source
     global = OpenChild(&builtin);
-    prog.scope = global;
-    Parse(src, tok, global, &prog);
+    struct Module *module = Parse(src, tok, global);
 
     if (opt->print_tree) {
         print_header("tree");
-        PrintProg(&prog);
+        PrintProg(module);
     }
 
     if (opt->print_symbols) {
@@ -59,7 +57,7 @@ Int Interpret(const char *src, const Option *opt)
 
     // Generate bytecode
     SetOptimize(opt->enable_optimize);
-    GenerateCode(&code, &prog);
+    GenerateCode(&code, module);
 
     if (opt->print_bytecode) {
         print_header("bytecode");
@@ -76,4 +74,3 @@ Int Interpret(const char *src, const Option *opt)
 
     return ret;
 }
-

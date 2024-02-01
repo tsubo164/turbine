@@ -37,10 +37,9 @@ static const char *read_file(const char *filename)
 }
 
 typedef struct Parser {
-    Scope *scope; // current scope
-    Prog *prog;
-    Func *func_;
-    const Token *curr_;
+    struct Scope *scope; // current scope
+    struct Func *func_;
+    const struct Token *curr_;
     const char *src_;
     const char *filename;
 
@@ -1134,10 +1133,8 @@ static struct Stmt *func_def(struct Parser *p)
     p->func_ = NULL;
 
     // TODO remove this
-    if (!strcmp(sym->name, "main")) {
-        p->prog->main_func = sym->var;
+    if (!strcmp(sym->name, "main"))
         p->module->main_func = sym->var;
-    }
 
     struct Expr *ident = NewIdentExpr(sym);
     struct Expr *init = NewIntLitExpr(func->id);
@@ -1171,10 +1168,9 @@ static void module_import(struct Parser *p)
                 "module %s.ro not found", name);
     }
 
-    struct Module *mod = DefineModule(p->scope, name);
     const struct Token *tok = Tokenize(src);
     // TODO use this style => enter_scope(p, mod->scope);
-    Parse(src, tok, mod->scope, p->prog);
+    struct Module *mod = Parse(src, tok, p->scope);
     // TODO come up with better way to take over var id from child
     // Maybe need one more pass to fill id
     p->scope->var_offset_ = mod->scope->var_offset_;
@@ -1185,8 +1181,6 @@ static void module_import(struct Parser *p)
 
 static void program(Parser *p)
 {
-    Prog *prog = p->prog;
-
     Stmt head = {0};
     Stmt *tail = &head;
 
@@ -1233,11 +1227,10 @@ static void program(Parser *p)
                 TokenKindString(next));
     }
 
-    prog->gvars = head.next;
     p->module->gvars = head.next;
 }
 
-void Parse(const char *src, const Token *tok, Scope *scope, Prog *prog)
+struct Module *Parse(const char *src, const struct Token *tok, struct Scope *scope)
 {
     struct Module *mod = DefineModule(scope, intern("_main"));
     static const char filename[] = "__fixme.ro";
@@ -1247,12 +1240,10 @@ void Parse(const char *src, const Token *tok, Scope *scope, Prog *prog)
     p.src_ = src;
     p.curr_ = tok;
     p.scope = mod->scope;
-    p.prog = prog;
     p.func_ = NULL;
     p.filename = filename;
-
     p.module = mod;
-    prog->module = mod;
 
     program(&p);
+    return mod;
 }

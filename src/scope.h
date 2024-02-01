@@ -58,27 +58,13 @@ struct Table {
 struct Module {
     const char *name;
     struct Scope *scope;
-
     struct Stmt* gvars;
     struct Vec funcs;
 
     const char *filename;
     const char *src;
-
     // TODO remove this
     const struct Var *main_func;
-};
-
-struct Prog {
-    struct Scope *scope;
-    struct Vec vars;
-    struct Vec funcs;
-    struct Vec builtinfuncs;
-    struct Stmt* gvars;
-
-    // TODO remove this
-    const struct Var *main_func;
-    struct Module *module;
 };
 
 enum SymbolKind {

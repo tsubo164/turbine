@@ -1,10 +1,10 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-typedef struct Token Token;
-typedef struct Prog Prog;
-typedef struct Scope Scope;
+struct Module;
+struct Scope;
+struct Token;
 
-void Parse(const char *src, const Token *tok, Scope *scope, Prog *prog);
+struct Module *Parse(const char *src, const struct Token *tok, struct Scope *scope);
 
 #endif // _H
