@@ -205,8 +205,6 @@ struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *p
     f->scope = NewScope(parent, offset);
     f->is_builtin = true;
 
-    f->id = prog->builtinfuncs.len;
-    VecPush(&prog->builtinfuncs, f);
     return f;
 }
 

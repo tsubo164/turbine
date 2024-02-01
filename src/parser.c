@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// TODO
+#include "intern.h"
 
 #include "strbuf.h"
 static const char *read_file(const char *filename)
@@ -41,6 +43,8 @@ typedef struct Parser {
     const Token *curr_;
     const char *src_;
     const char *filename;
+
+    struct Module *module;
 } Parser;
 
 static void error(const Parser *p, Pos pos, const char *fmt, ...)
@@ -1126,8 +1130,11 @@ static struct Stmt *func_def(struct Parser *p)
     p->func_ = NULL;
 
     // TODO remove this
-    if (!strcmp(sym->name, "main"))
+    if (!strcmp(sym->name, "main")) {
         p->prog->main_func = sym->var;
+        p->module->main_func = sym->var;
+    }
+    VecPush(&p->module->funcs, func);
 
     struct Expr *ident = NewIdentExpr(sym);
     struct Expr *init = NewIntLitExpr(func->id);
@@ -1224,20 +1231,25 @@ static void program(Parser *p)
     }
 
     prog->gvars = head.next;
+    p->module->gvars = head.next;
 }
 
 void Parse(const char *src, const Token *tok, Scope *scope, Prog *prog)
 {
-    static const char filename[] = "fixme.ro";
+    struct Module *mod = DefineModule(scope, intern("_main"));
+    static const char filename[] = "__fixme.ro";
 
     Parser p = {0};
 
     p.src_ = src;
     p.curr_ = tok;
-    p.scope = scope;
+    p.scope = mod->scope;
     p.prog = prog;
     p.func_ = NULL;
     p.filename = filename;
+
+    p.module = mod;
+    prog->module = mod;
 
     program(&p);
 }

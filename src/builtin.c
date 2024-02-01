@@ -5,12 +5,14 @@
 
 void DefineBuiltinFuncs(struct Prog *prog, struct Scope *builtin)
 {
+    int func_id = 0;
     {
         const char *name = intern("print");
         struct Func *func = AddBuiltinFunc(prog, name, builtin);
 
         DeclareParam(func, "...", NewTypeAny());
         func->return_type = NewTypeNil();
+        func->id = func_id++;
 
         DefineVar(builtin, name, NewTypeFunc(func), false);
     }
@@ -20,6 +22,7 @@ void DefineBuiltinFuncs(struct Prog *prog, struct Scope *builtin)
 
         DeclareParam(func, "code", NewTypeInt());
         func->return_type = NewTypeNil();
+        func->id = func_id++;
 
         DefineVar(builtin, name, NewTypeFunc(func), false);
     }

@@ -677,29 +677,52 @@ static void gen_func(Bytecode *code, const struct Func *func, int func_id)
     gen_stmt(code, func->body);
 }
 
-static void gen_prog(Bytecode *code, const struct Prog *prog)
+static void gen_module(Bytecode *code, const struct Module *mod)
 {
-    if (!prog->main_func) {
+    if (!mod->main_func) {
         fprintf(stderr, "error: 'main' function not found");
     }
 
     // global vars
-    Allocate(code, VarSize(prog->scope));
-    for (const Stmt *gvar = prog->gvars; gvar; gvar = gvar->next)
+    Allocate(code, VarSize(mod->scope));
+    for (const Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
         gen_stmt(code, gvar);
 
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
     // call main
-    CallFunction(code, prog->main_func->offset, prog->main_func->type->func->is_builtin);
+    CallFunction(code, mod->main_func->offset, mod->main_func->type->func->is_builtin);
     Exit(code);
 
     // global funcs
-    for (int i = 0; i < prog->funcs.len; i++) {
-        Func *f = prog->funcs.data[i];
+    for (int i = 0; i < mod->funcs.len; i++) {
+        Func *f = mod->funcs.data[i];
         if (!f->is_builtin)
             gen_func(code, f, i);
     }
+    //const struct Func *funcs[128] = {NULL};
+    //int nfuncs = 0;
+    //for (int i = 0; i < mod->scope->symbols.cap; i++) {
+    //    const struct MapEntry *e = &mod->scope->symbols.buckets[i];
+    //    if (!e->key)
+    //        continue;
+    //    const struct Symbol *sym = e->val;
+
+    //    if (sym->kind == SYM_VAR) {
+    //        const struct Var *var = sym->var;
+    //        if (IsFunc(var->type)) {
+    //            funcs[var->type->func->id] = var->type->func;
+    //            nfuncs++;
+    //        }
+    //    }
+    //}
+    //for (int i = 0; i < nfuncs; i++)
+    //    gen_func(code, funcs[i], i);
+}
+
+static void gen_prog(Bytecode *code, const struct Prog *prog)
+{
+    gen_module(code, prog->module);
 }
 
 void GenerateCode(Bytecode *code, const struct Prog *prog)

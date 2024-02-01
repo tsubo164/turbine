@@ -93,25 +93,49 @@ static void print_func(const struct Func *func, int depth)
     print_stmt(func->body, depth + 1);
 }
 
+static void print_module(const struct Module *mod, int depth)
+{
+    if (!mod)
+        return;
+
+    // basic info
+    printf("%d. <mod> \"%s\"", depth, mod->name);
+    printf("\n");
+
+    // children
+    for (const Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
+        print_stmt(gvar, depth + 1);
+
+    for (int i = 0; i < mod->funcs.len; i++) {
+        struct Func *f = mod->funcs.data[i];
+        print_func(f, depth + 1);
+    }
+    //const struct Func *funcs[128] = {NULL};
+    //int nfuncs = 0;
+    //for (int i = 0; i < mod->scope->symbols.cap; i++) {
+    //    const struct MapEntry *e = &mod->scope->symbols.buckets[i];
+    //    if (!e->key)
+    //        continue;
+    //    const struct Symbol *sym = e->val;
+
+    //    if (sym->kind == SYM_VAR) {
+    //        const struct Var *var = sym->var;
+    //        if (IsFunc(var->type)) {
+    //            funcs[var->type->func->id] = var->type->func;
+    //            nfuncs++;
+    //        }
+    //    }
+    //}
+    //for (int i = 0; i < nfuncs; i++)
+    //    print_func(funcs[i], depth + 1);
+}
+
 void PrintProg(const struct Prog *prog)
 {
     if (!prog)
         return;
 
-    int depth = 0;
-
-    // basic info
-    printf("%d. <prog>", depth);
-    printf("\n");
-
-    // children
-    for (const Stmt *gvar = prog->gvars; gvar; gvar = gvar->next)
-        print_stmt(gvar, depth + 1);
-
-    for (int i = 0; i < prog->funcs.len; i++) {
-        struct Func *f = prog->funcs.data[i];
-        print_func(f, depth + 1);
-    }
+    print_module(prog->module, 0);
 }
 
 static void print_header(int depth)

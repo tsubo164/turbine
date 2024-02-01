@@ -2,15 +2,15 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-[my_calc]
+//[my_calc]
 
 ## Point
   - x int
   - q float
 
-# add(x int, y int) int
+# sub(x int, y int) int
   - z int
-  z = x + y
+  z = x - y
   return z
 //:: Color
 //  | R
@@ -41,4 +41,5 @@
   //print(p)
   print("Hello")
   //return  a + my_calc.add(9, 4)
-  return 13
+  //return 13
+  return sub(42, 4)
