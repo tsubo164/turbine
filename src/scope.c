@@ -182,7 +182,7 @@ int TotalVarSize(const struct Scope *sc)
 }
 
 // Func
-struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent)
+struct Func *AddFunc(struct Scope *parent, const char *name)
 {
     struct Func *f = CALLOC(struct Func);
     int offset = 0;
@@ -191,12 +191,10 @@ struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent)
     f->scope = NewScope(parent, offset);
     f->is_builtin = false;
 
-    f->id = prog->funcs.len;
-    VecPush(&prog->funcs, f);
     return f;
 }
 
-struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *parent)
+struct Func *AddBuiltinFunc(struct Scope *parent, const char *name)
 {
     struct Func *f = CALLOC(struct Func);
     int offset = 0;

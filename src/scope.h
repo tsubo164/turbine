@@ -134,8 +134,8 @@ int TotalVarSize(const struct Scope *sc);
 int FieldSize(const struct Scope *sc);
 
 // Func
-struct Func *AddFunc(struct Prog *prog, const char *name, struct Scope *parent);
-struct Func *AddBuiltinFunc(struct Prog *prog, const char *name, struct Scope *parent);
+struct Func *AddFunc(struct Scope *parent, const char *name);
+struct Func *AddBuiltinFunc(struct Scope *parent, const char *name);
 
 void DeclareParam(struct Func *f, const char *name, const struct Type *type);
 const struct Var *GetParam(const struct Func *f, int index);

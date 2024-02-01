@@ -2,8 +2,7 @@
 #define BUILTIN_H
 
 struct Scope;
-struct Prog;
 
-void DefineBuiltinFuncs(struct Prog *prog, struct Scope *builtin);
+void DefineBuiltinFuncs(struct Scope *builtin);
 
 #endif // _H

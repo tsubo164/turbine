@@ -1062,7 +1062,9 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_HASH)) {
-        Func *func = AddFunc(p->prog, "_", p->scope);
+        Func *func = AddFunc(p->scope, "_");
+        func->id = p->module->funcs.len;
+        VecPush(&p->module->funcs, func);
         param_list(p, func);
         ret_type(p, func);
         return NewTypeFunc(func);
@@ -1102,7 +1104,9 @@ static struct Stmt *func_def(struct Parser *p)
     // func
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
-    Func *func = AddFunc(p->prog, name, p->scope);
+    Func *func = AddFunc(p->scope, name);
+    func->id = p->module->funcs.len;
+    VecPush(&p->module->funcs, func);
 
     // params
     param_list(p, func);
@@ -1134,7 +1138,6 @@ static struct Stmt *func_def(struct Parser *p)
         p->prog->main_func = sym->var;
         p->module->main_func = sym->var;
     }
-    VecPush(&p->module->funcs, func);
 
     struct Expr *ident = NewIdentExpr(sym);
     struct Expr *init = NewIntLitExpr(func->id);
