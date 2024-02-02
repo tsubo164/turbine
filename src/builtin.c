@@ -7,7 +7,7 @@ void DefineBuiltinFuncs(struct Scope *builtin)
 {
     int func_id = 0;
     {
-        const char *name = intern("print");
+        const char *name = StrIntern("print");
         struct Func *func = AddBuiltinFunc(builtin, name);
 
         DeclareParam(func, "...", NewTypeAny());
@@ -17,7 +17,7 @@ void DefineBuiltinFuncs(struct Scope *builtin)
         DefineVar(builtin, name, NewTypeFunc(func), false);
     }
     {
-        const char *name = intern("exit");
+        const char *name = StrIntern("exit");
         struct Func *func = AddBuiltinFunc(builtin, name);
 
         DeclareParam(func, "code", NewTypeInt());

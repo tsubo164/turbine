@@ -153,7 +153,7 @@ const char *TypeString(const Type *type)
         else
             sprintf(buf, "%s%s", interned, type_kind_string(t->kind));
 
-        interned = intern(buf);
+        interned = StrIntern(buf);
     }
 
     return interned;

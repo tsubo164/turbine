@@ -1,6 +1,7 @@
 #include "interpreter.h"
 #include "builtin.h"
 #include "codegen.h"
+#include "intern.h"
 #include "parser.h"
 #include "token.h"
 #include "print.h"
@@ -40,7 +41,7 @@ Int Interpret(const char *src, const Option *opt)
 
     // Compile source
     global = OpenChild(&builtin);
-    struct Module *module = Parse(src, tok, global);
+    struct Module *module = Parse(src, tok, global, StrIntern("_main"));
 
     if (opt->print_tree) {
         print_header("tree");

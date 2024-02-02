@@ -82,7 +82,7 @@ void init_table(void)
         entries[i] = NULL;
 }
 
-const char *intern(const char *str)
+const char *StrIntern(const char *str)
 {
     Ent *e;
     uint32_t h = hash_fn(str);

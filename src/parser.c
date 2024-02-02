@@ -1170,7 +1170,7 @@ static void module_import(struct Parser *p)
 
     const struct Token *tok = Tokenize(src);
     // TODO use this style => enter_scope(p, mod->scope);
-    struct Module *mod = Parse(src, tok, p->scope);
+    struct Module *mod = Parse(src, tok, p->scope, name);
     // TODO come up with better way to take over var id from child
     // Maybe need one more pass to fill id
     p->scope->var_offset_ = mod->scope->var_offset_;
@@ -1230,9 +1230,10 @@ static void program(Parser *p)
     p->module->gvars = head.next;
 }
 
-struct Module *Parse(const char *src, const struct Token *tok, struct Scope *scope)
+struct Module *Parse(const char *src, const struct Token *tok,
+        struct Scope *scope, const char *name)
 {
-    struct Module *mod = DefineModule(scope, intern("_main"));
+    struct Module *mod = DefineModule(scope, name);
     static const char filename[] = "__fixme.ro";
 
     Parser p = {0};

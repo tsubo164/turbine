@@ -368,7 +368,7 @@ static void scan_word(Lexer *l, Token *tok, Pos pos)
     unget(l);
 
     const int kind = keyword_or_ident(buf);
-    tok->sval = intern(buf);
+    tok->sval = StrIntern(buf);
     set(tok, kind, pos);
 }
 
@@ -406,7 +406,7 @@ static void scan_string(Lexer *l, Token *tok, Pos pos)
     *p = '\0';
 
     tok->has_escseq = backslashes > 0;
-    tok->sval = intern(buf);
+    tok->sval = StrIntern(buf);
     set(tok, T_STRLIT, pos);
 }
 

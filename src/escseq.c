@@ -47,7 +47,7 @@ int ConvertEscapeSequence(const char *src, const char **dst)
             }
             else {
                 // error
-                *dst = intern(buf);
+                *dst = StrIntern(buf);
                 return i;
             }
         }

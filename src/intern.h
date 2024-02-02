@@ -2,6 +2,6 @@
 #define INTERN_H
 
 // string interning
-const char *intern(const char *str);
+const char *StrIntern(const char *str);
 
 #endif // _H
