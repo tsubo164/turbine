@@ -1,126 +1,89 @@
+#include "intern.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 
-#include "intern.h"
-#include "mem.h"
+#define MAX_LOAD_FACTOR 70
+#define INIT_SIZE 256
 
+static const char **buckets = NULL;
+static int64_t capacity = 0;
+static int64_t occupied = 0;
 
-#if 0
-#define HASH_SIZE 1237 // a prime number
-#else
-#define HASH_SIZE 5381 // a prime number
-#endif
-#define MULTIPLIER 31
-
-typedef struct Ent {
-    char *str;
-    struct Ent *next;
-} Ent;
-
-static Ent *entries[HASH_SIZE];
-
-static uint32_t hash_fn(const char *key)
+static uint64_t fnv_hash(const char *key)
 {
-    uint32_t h = 0;
-    unsigned char *p = NULL;
-
-    for (p = (unsigned char *) key; *p != '\0'; p++)
-        // h = MULTIPLIER * h + *p;
-        // h * 31 + *p
-        h = (h << 5) - h + *p;
-
-    return h % HASH_SIZE;
+    uint64_t hash = 0xcbf29ce484222325;
+    for (const char *p = key; *p; p++) {
+        hash ^= *p;
+        hash *= 0x100000001b3;
+    }
+    return hash;
 }
 
-static Ent *new_entry(const char *src)
+static const char *insert(const char *key)
 {
-    Ent *e = CALLOC(Ent);
-    size_t alloc = strlen(src) + 1;
-    char *dst = NALLOC(alloc, char);
+    if (!key)
+        return NULL;
 
-    strncpy(dst, src, alloc);
-    e->str = dst;
-    e->next = NULL;
+    uint64_t hash = fnv_hash(key);
 
-    return e;
-}
+    for (int i = 0; i < capacity; i++) {
+        int pos = (hash + i) % capacity;
+        const char *ent = buckets[pos];
 
-static void free_entry(Ent *e)
-{
-    if (!e)
-        return;
-
-    free(e->str);
-    free(e);
-}
-
-void free_table(void)
-{
-    int i;
-
-    for (i = 0; i < HASH_SIZE; i++) {
-        Ent *e = entries[i], *tmp;
-
-        if (!e)
-            continue;
-
-        while (e) {
-            tmp = e->next;
-            free_entry(e);
-            e = tmp;
+        if (!ent) {
+            buckets[pos] = strdup(key);
+            occupied++;
+            return buckets[pos];
+        }
+        else if (!strcmp(ent, key)) {
+            return ent;
         }
     }
+    return NULL;
 }
 
-void init_table(void)
+static void rehash(void)
 {
-    int i;
+    // save old buckets
+    const char **old_buckets = buckets;
+    int old_cap = capacity;
 
-    for (i = 0; i < HASH_SIZE; i++)
-        entries[i] = NULL;
-}
+    // resize buckets
+    capacity = capacity < INIT_SIZE ? INIT_SIZE : 2 * capacity;
+    buckets = calloc(capacity, sizeof(buckets[0]));
+    occupied = 0;
 
-const char *StrIntern(const char *str)
-{
-    Ent *e;
-    uint32_t h = hash_fn(str);
-
-    for (e = entries[h]; e; e = e->next)
-        if (!strcmp(str, e->str))
-            return e->str;
-
-    e = new_entry(str);
-    e->next = entries[h];
-    entries[h] = e;
-
-    return e->str;
-}
-
-void print_table(void)
-{
-    int buckets = 0;
-    int i;
-
-    for (i = 0; i < HASH_SIZE; i++) {
-        int keys = 0;
-        Ent *e = entries[i];
-
-        if (!e)
-            continue;
-
-        printf("%d: ", i);
-
-        for (; e; e = e->next) {
-            printf("\'%s\' ", e->str);
-            keys++;
-        }
-
-        printf("=> %d keys\n", keys);
-        buckets++;
+    // move keys to new buckets
+    for ( int i = 0; i < old_cap; i++ ) {
+        const char *ent = old_buckets[i];
+        if (ent)
+            insert(ent);
     }
 
-    printf( "buckets %d/%d: %g%% used\n",
-            buckets, HASH_SIZE, ((float) buckets) / HASH_SIZE);
+    // free old buckets
+    free(old_buckets);
+}
+
+const char *StrIntern(const char *key)
+{
+    if (!key)
+        return NULL;
+
+    if (100 * occupied >= MAX_LOAD_FACTOR * capacity)
+        rehash();
+
+    return insert(key);
+}
+
+void PrintInternTable(void)
+{
+    for (int i = 0; i < capacity; i++) {
+        const char *ent = buckets[i];
+        if (ent)
+            printf("%4d: \"%s\"\n", i, ent);
+    }
+    printf( "buckets %lld/%lld: %g%% occupied\n",
+            occupied, capacity, ((float) occupied) / capacity);
 }

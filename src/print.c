@@ -159,13 +159,14 @@ static void print_scope(const struct Scope *sc, int depth)
 
             if (IsFunc(v->type)) {
                 print_header(depth);
-                printf("[func] %s @%d %s\n",
-                        v->name, v->offset, TypeString(v->type));
+                printf("[func] \"%s\" @%d %s(%d)\n",
+                        v->name, v->offset,
+                        TypeString(v->type), v->type->func->id);
                 print_scope(v->type->func->scope, depth + 1);
             }
             else {
                 print_header(depth);
-                printf("[var] %s @%d %s\n",
+                printf("[var] \"%s\" @%d %s\n",
                         v->name, v->offset, TypeString(v->type));
             }
         }
@@ -173,12 +174,12 @@ static void print_scope(const struct Scope *sc, int depth)
         if (sym->kind == SYM_STRUCT) {
             const struct Struct *strct = sym->strct;
             print_header(depth);
-            printf("[struct] %s\n", strct->name);
+            printf("[struct] \"%s\"\n", strct->name);
 
             for (int j = 0; j < strct->fields.len; j++) {
                 const struct Field *f = strct->fields.data[j];
                 print_header(depth + 1);
-                printf("[field] %s @%d %s\n",
+                printf("[field] \"%s\" @%d %s\n",
                         f->name, f->offset, TypeString(f->type));
             }
         }
@@ -187,14 +188,14 @@ static void print_scope(const struct Scope *sc, int depth)
             const struct Table *t = sym->table;
 
             print_header(depth);
-            printf("[table] %s\n", t->name);
+            printf("[table] \"%s\"\n", t->name);
             for (int i = 0; i < t->rows.cap; i++) {
                 MapEntry *e = &t->rows.buckets[i];
                 if (!e->key)
                     continue;
                 struct Row *r = e->val;
                 print_header(depth + 1);
-                printf("[row] %s => %lld\n", r->name, r->ival);
+                printf("[row] \"%s\" => %lld\n", r->name, r->ival);
             }
         }
 
@@ -202,7 +203,7 @@ static void print_scope(const struct Scope *sc, int depth)
             const struct Module *m = sym->module;
 
             print_header(depth);
-            printf("[module] %s\n", m->name);
+            printf("[module] \"%s\"\n", m->name);
             print_scope(m->scope, depth + 1);
         }
     }

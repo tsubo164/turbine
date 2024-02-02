@@ -40,6 +40,5 @@
   //print(my_calc.PI)
   //print(p)
   print("Hello")
-  return  my_calc.add(9, 4)
-  //return 13
-  //return sub(42, 4)
+  //return  my_calc.add(9, 4)
+  return sub(42, 20)
