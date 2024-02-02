@@ -135,18 +135,18 @@ struct Module *DefineModule(struct Scope *sc, const char *name)
 
 Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
 {
-    Symbol *sym = HashMapLookup(&sc->symbols, name);
-    if (sym)
-        return sym;
+    struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
+    if (ent)
+        return ent->val;
 
     return NULL;
 }
 
 Symbol *FindSymbol(const struct Scope *sc, const char *name)
 {
-    Symbol *sym = HashMapLookup(&sc->symbols, name);
-    if (sym)
-        return sym;
+    struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
+    if (ent)
+        return ent->val;
 
     if (sc->parent)
         return FindSymbol(sc->parent, name);

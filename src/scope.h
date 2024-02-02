@@ -52,7 +52,7 @@ struct Row {
 
 struct Table {
     const char *name;
-    HashMap rows;
+    struct HashMap rows;
 };
 
 struct Module {
@@ -98,7 +98,7 @@ struct Scope {
 
     int var_offset_;
 
-    HashMap symbols;
+    struct HashMap symbols;
 };
 
 struct Scope *NewScope(struct Scope *parent, int var_offset);

@@ -291,7 +291,8 @@ static Expr *primary_expr(Parser *p)
             }
             else if (IsTable(expr->type)) {
                 expect(p, T_IDENT);
-                struct Row *r = HashMapLookup(&expr->type->table->rows, tok_str(p));
+                struct MapEntry *ent = HashMapLookup(&expr->type->table->rows, tok_str(p));
+                struct Row *r = ent->val;
                 Expr *tmp = expr;
                 expr = NewIntLitExpr(r->ival);
                 expr->l = tmp;
