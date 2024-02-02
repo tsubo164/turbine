@@ -1146,32 +1146,32 @@ static void module_import(struct Parser *p)
 {
     expect(p, T_LBRACK);
     expect(p, T_IDENT);
-    const char *name = tok_str(p);
+    const char *modulename = tok_str(p);
 
-    char buf[128] = {'\0'};
-    if (strlen(name) > 120) {
+    char filename[512] = {'\0'};
+    if (strlen(modulename) > 500) {
         error(p, tok_pos(p),
-                "error: too long module name: '%s'", name);
+                "error: too long module name: '%s'", modulename);
     }
 
     // TODO have search paths
     const char *src = NULL;
     if (!src) {
-        sprintf(buf, "src/%s.ro", name);
-        src = read_file(buf);
+        sprintf(filename, "src/%s.ro", modulename);
+        src = read_file(filename);
     }
     if (!src) {
-        sprintf(buf, "%s.ro", name);
-        src = read_file(buf);
+        sprintf(filename, "%s.ro", modulename);
+        src = read_file(filename);
     }
     if (!src) {
         error(p, tok_pos(p),
-                "module %s.ro not found", name);
+                "module %s.ro not found", modulename);
     }
 
     const struct Token *tok = Tokenize(src);
     // TODO use this style => enter_scope(p, mod->scope);
-    struct Module *mod = Parse(src, tok, p->scope, name);
+    struct Module *mod = Parse(src, filename, modulename, tok, p->scope);
     // TODO come up with better way to take over var id from child
     // Maybe need one more pass to fill id
     p->scope->var_offset_ = mod->scope->var_offset_;
@@ -1231,11 +1231,10 @@ static void program(Parser *p)
     p->module->gvars = head.next;
 }
 
-struct Module *Parse(const char *src, const struct Token *tok,
-        struct Scope *scope, const char *name)
+struct Module *Parse(const char *src, const char *filename, const char *modulename,
+        const struct Token *tok, struct Scope *scope)
 {
-    struct Module *mod = DefineModule(scope, name);
-    static const char filename[] = "__fixme.ro";
+    struct Module *mod = DefineModule(scope, modulename);
 
     Parser p = {0};
 

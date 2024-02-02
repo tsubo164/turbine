@@ -17,7 +17,7 @@ static void print_header(const char *title)
     printf("---\n");
 }
 
-Int Interpret(const char *src, const Option *opt)
+Int Interpret(const char *src, const char *filename, const Option *opt)
 {
     const Token *tok = NULL;
     struct Scope builtin = {0};
@@ -41,7 +41,7 @@ Int Interpret(const char *src, const Option *opt)
 
     // Compile source
     global = OpenChild(&builtin);
-    struct Module *module = Parse(src, tok, global, StrIntern("_main"));
+    struct Module *module = Parse(src, filename, StrIntern("_main"), tok, global);
 
     if (opt->print_tree) {
         print_header("tree");

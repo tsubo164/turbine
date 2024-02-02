@@ -35,7 +35,6 @@
 //- p = 3.14
 
 # main() int
-  //- a = 29
   //a = Color.G
   //print(my_calc.PI)
   //print(p)

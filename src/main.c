@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    int ret = Interpret(src, &opt);
+    int ret = Interpret(src, filename, &opt);
     if (opt.print_token || opt.print_tree || opt.print_bytecode || opt.print_symbols)
         ret = 0;
 

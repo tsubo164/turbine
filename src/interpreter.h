@@ -14,6 +14,6 @@ typedef struct Option {
     bool enable_optimize;
 } Option;
 
-Int Interpret(const char *src, const Option *opt);
+Int Interpret(const char *src, const char *filename, const Option *opt);
 
 #endif // _H
