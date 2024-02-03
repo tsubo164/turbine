@@ -266,6 +266,35 @@ void LoadTypeString(Bytecode *code)
     push_byte(&code->bytes_, OP_LOADTYPES);
 }
 
+void CallFunc(Bytecode *code, const char *fullname, bool builtin)
+{
+    if (builtin) {
+        // XXX builtin funcs are not registered in bytecode
+        // come up with better idea
+        uint16_t func_index = 0;
+        if (!strcmp("fullname", "print"))
+            func_index = 0;
+        else if (!strcmp("fullname", "exit"))
+            func_index = 1;
+        // emit
+        push_byte(&code->bytes_, OP_CALL_BUILTIN);
+        push_byte(&code->bytes_, func_index);
+        return;
+    }
+
+    // lookup
+    struct MapEntry *ent = HashMapLookup(&code->funcnames, fullname);
+    if (!ent) {
+        InternalError(__FILE__, __LINE__, "no function registered: %s\n", fullname);
+    }
+
+    // emit
+    uint64_t func_index = (uint64_t) ent->val;
+    printf("%s => Called. (%llu)\n", fullname, func_index);
+    push_byte(&code->bytes_, OP_CALL);
+    push_word(&code->bytes_, func_index);
+}
+
 void CallFunction(Bytecode *code, Word func_index, bool builtin)
 {
     if (builtin) {
@@ -536,6 +565,32 @@ Int GetFunctionArgCount(const Bytecode *code, Word func_index)
 {
     assert_range(&code->funcs_, func_index);
     return code->funcs_.data[func_index].argc;
+}
+
+void BackPatchFuncAddr(struct Bytecode *code, const char *fullname)
+{
+    struct MapEntry *ent = HashMapLookup(&code->funcnames, fullname);
+    if (!ent)
+        return;
+
+    uint64_t func_index = (uint64_t) ent->val;
+    code->funcs_.data[func_index].addr = NextAddr(code);
+}
+
+uint16_t RegisterFunc(struct Bytecode *code, const char *fullname, uint8_t argc)
+{
+    struct MapEntry *ent = HashMapLookup(&code->funcnames, fullname);
+    if (ent)
+        return (uint64_t) ent->val;
+
+    const uint64_t next_index = code->funcs_.len;
+    HashMapInsert(&code->funcnames, fullname, (void *)next_index);
+
+    //printf("%s => Registered. (%llu)\n", fullname, next_index);
+    const Int next_addr = NextAddr(code);
+    push_info(&code->funcs_, next_index, argc, next_addr);
+
+    return next_index;
 }
 
 void RegisterFunction(Bytecode *code, Word func_index, Byte argc)

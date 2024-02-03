@@ -2,16 +2,16 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-[my_calc]
+//[my_calc]
 
-## Point
-  - x int
-  - q float
-
-# sub(x int, y int) int
-  - z int
-  z = x - y
-  return z
+//## Point
+//  - x int
+//  - q float
+//
+//# sub(x int, y int) int
+//  - z int
+//  z = x - y
+//  return z
 //:: Color
 //  | R
 //  | G
@@ -34,10 +34,19 @@
 //  | NY  | "New Yourk"  |
 //- p = 3.14
 
+//# main() int
+//  //a = Color.G
+//  //print(my_calc.PI)
+//  //print(p)
+//  //print("Hello")
+//  //return  my_calc.add(9, 4)
+//  //return sub(42, 20)
+//  return 20
+# seven() int
+    return 7
+
+//# add(x int, y int) int
+//    return x + y
+//
 # main() int
-  //a = Color.G
-  //print(my_calc.PI)
-  //print(p)
-  print("Hello")
-  //return  my_calc.add(9, 4)
-  return sub(42, 20)
+    return seven() + 35

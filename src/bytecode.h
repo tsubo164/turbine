@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "hashmap.h"
 
 typedef uint8_t  Byte;
 typedef uint16_t Word;
@@ -137,6 +138,8 @@ typedef struct Bytecode {
     PtrVec strings_;
     FuncInfoVec funcs_;
 
+    struct HashMap funcnames;
+
     // back patches
     AddrStack ors_;
     AddrStack breaks_;
@@ -172,6 +175,7 @@ void LoadTypeInt(Bytecode *code);
 void LoadTypeFloat(Bytecode *code);
 void LoadTypeString(Bytecode *code);
 // jump and function
+void CallFunc(Bytecode *code, const char *fullname, bool builtin);
 void CallFunction(Bytecode *code, Word func_index, bool builtin);
 // jump instructions return the address
 // where the destination address is stored.
@@ -245,6 +249,8 @@ void BackPatchContinues(Bytecode *code);
 void BackPatchCaseCloses(Bytecode *code);
 
 // functions
+void BackPatchFuncAddr(struct Bytecode *code, const char *fullname);
+uint16_t RegisterFunc(struct Bytecode *code, const char *fullname, uint8_t argc);
 Int GetFunctionAddress(const Bytecode *code, Word func_index);
 Int GetFunctionArgCount(const Bytecode *code, Word func_index);
 void RegisterFunction(Bytecode *code, Word func_index, Byte argc);
