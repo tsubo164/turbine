@@ -1062,7 +1062,7 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_HASH)) {
-        Func *func = AddFunc(p->scope, "_");
+        Func *func = AddFunc(p->scope, p->module->filename, "_");
         func->id = p->module->funcs.len;
         VecPush(&p->module->funcs, func);
         param_list(p, func);
@@ -1104,7 +1104,7 @@ static struct Stmt *func_def(struct Parser *p)
     // func
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
-    Func *func = AddFunc(p->scope, name);
+    Func *func = AddFunc(p->scope, p->module->filename, name);
     func->id = p->module->funcs.len;
     VecPush(&p->module->funcs, func);
 
@@ -1234,7 +1234,7 @@ static void program(Parser *p)
 struct Module *Parse(const char *src, const char *filename, const char *modulename,
         const struct Token *tok, struct Scope *scope)
 {
-    struct Module *mod = DefineModule(scope, modulename);
+    struct Module *mod = DefineModule(scope, filename, modulename);
 
     Parser p = {0};
 

@@ -17,6 +17,7 @@ struct Var {
 
 struct Func {
     const char *name;
+    const char *fullname;
     const struct Type *return_type;
     struct Vec params;
     int id;
@@ -111,7 +112,7 @@ struct Struct *DefineStruct(struct Scope *sc, const char *name);
 struct Struct *FindStruct(const struct Scope *sc, const char *name);
 
 struct Table *DefineTable(struct Scope *sc, const char *name);
-struct Module *DefineModule(struct Scope *sc, const char *name);
+struct Module *DefineModule(struct Scope *sc, const char *filename, const char *modulename);
 
 Symbol *FindSymbol(const struct Scope *sc, const char *name);
 
@@ -120,7 +121,7 @@ int TotalVarSize(const struct Scope *sc);
 int FieldSize(const struct Scope *sc);
 
 // Func
-struct Func *AddFunc(struct Scope *parent, const char *name);
+struct Func *AddFunc(struct Scope *parent, const char *modulefile, const char *name);
 struct Func *AddBuiltinFunc(struct Scope *parent, const char *name);
 
 void DeclareParam(struct Func *f, const char *name, const struct Type *type);

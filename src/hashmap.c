@@ -45,7 +45,7 @@ static bool match(const struct MapEntry *ent, const char *key)
 
 struct MapEntry *HashMapInsert(struct HashMap *map, const char *key, void *data)
 {
-    if (!key || !data)
+    if (!key)
         return NULL;
 
     if (!map->buckets)

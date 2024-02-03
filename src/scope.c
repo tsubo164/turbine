@@ -1,7 +1,9 @@
 #include "scope.h"
+#include "intern.h"
 #include "type.h"
 #include "mem.h"
 #include <string.h>
+#include <stdio.h>
 
 // Scope
 static struct Scope *new_scope(struct Scope *parent, int var_offset)
@@ -118,16 +120,17 @@ struct Table *DefineTable(struct Scope *sc, const char *name)
     return tab;
 }
 
-struct Module *DefineModule(struct Scope *sc, const char *name)
+struct Module *DefineModule(struct Scope *sc, const char *filename, const char *modulename)
 {
     struct Module *mod = CALLOC(struct Module);
-    mod->name = name;
+    mod->name = modulename;
+    mod->filename = filename;
     mod->scope = new_scope(sc, next_var_id(sc));
 
-    Symbol *sym = new_symbol(SYM_MODULE, name, NewTypeModule(mod));
+    Symbol *sym = new_symbol(SYM_MODULE, modulename, NewTypeModule(mod));
     sym->module = mod;
 
-    if (!HashMapInsert(&sc->symbols, name, sym))
+    if (!HashMapInsert(&sc->symbols, modulename, sym))
         return NULL;
 
     return mod;
@@ -181,13 +184,24 @@ int TotalVarSize(const struct Scope *sc)
     return max_var_id(sc) + 1;
 }
 
+static const char *func_fullname(const char *modulefile, const char *funcname)
+{
+    // unique func name
+    char fullname[1024] = {'\0'};
+    size_t size = sizeof(fullname) / sizeof(fullname[0]);
+
+    snprintf(fullname, size, "%s:%s", modulefile, funcname);
+    return StrIntern(fullname);
+}
+
 // Func
-struct Func *AddFunc(struct Scope *parent, const char *name)
+struct Func *AddFunc(struct Scope *parent, const char *modulefile, const char *name)
 {
     struct Func *f = CALLOC(struct Func);
     int offset = 0;
 
     f->name = name;
+    f->fullname = func_fullname(modulefile, name);
     f->scope = NewScope(parent, offset);
     f->is_builtin = false;
 
@@ -200,6 +214,7 @@ struct Func *AddBuiltinFunc(struct Scope *parent, const char *name)
     int offset = 0;
 
     f->name = name;
+    f->fullname = func_fullname(":buitin", name);
     f->scope = NewScope(parent, offset);
     f->is_builtin = true;
 
