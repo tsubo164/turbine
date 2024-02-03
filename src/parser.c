@@ -119,13 +119,13 @@ static bool consume(Parser *p, int kind)
 
 // forward decls
 static Type *type_spec(Parser *p);
-static Expr *expression(Parser *p);
-static Stmt *block_stmt(Parser *p, struct Scope *block_scope);
+static struct Expr *expression(Parser *p);
+static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope);
 
-static Expr *arg_list(Parser *p, Expr *call)
+static struct Expr *arg_list(Parser *p, struct Expr *call)
 {
-    Expr head = {0};
-    Expr *tail = &head;
+    struct Expr head = {0};
+    struct Expr *tail = &head;
     int count = 0;
 
     if (peek(p) != T_RPAREN) {
@@ -149,7 +149,7 @@ static Expr *arg_list(Parser *p, Expr *call)
     if (argc < paramc)
         error(p, tok_pos(p), "too few arguments");
 
-    const Expr *arg = call->list;
+    const struct Expr *arg = call->list;
     for (int i = 0; i < argc; i++, arg = arg->next) {
         const struct Var *param = GetParam(func, i);
 
@@ -170,13 +170,13 @@ static Expr *arg_list(Parser *p, Expr *call)
     return call;
 }
 
-static Expr *conv_expr(Parser *p, int kind)
+static struct Expr *conv_expr(Parser *p, int kind)
 {
     Type *to_type = type_spec(p);
     const struct Pos tokpos = tok_pos(p);
 
     expect(p, T_LPAREN);
-    Expr *expr = expression(p);
+    struct Expr *expr = expression(p);
     expect(p, T_RPAREN);
 
     switch (expr->type->kind) {
@@ -200,7 +200,7 @@ static Expr *conv_expr(Parser *p, int kind)
 //     FpNum |
 //     StringLit |
 //     primary_expr selector
-static Expr *primary_expr(Parser *p)
+static struct Expr *primary_expr(Parser *p)
 {
     if (consume(p, T_NIL))
         return NewNilLitExpr();
@@ -218,7 +218,7 @@ static Expr *primary_expr(Parser *p)
         return NewFloatLitExpr(tok_float(p));
 
     if (consume(p, T_STRLIT)) {
-        Expr *e = NewStringLitExpr(tok_str(p));
+        struct Expr *e = NewStringLitExpr(tok_str(p));
         const struct Token *tok = curtok(p);
         if (tok->has_escseq) {
             const int errpos = ConvertEscapeSequence(e->sval, &e->converted);
@@ -233,7 +233,7 @@ static Expr *primary_expr(Parser *p)
     }
 
     if (consume(p, T_LPAREN)) {
-        Expr *e = expression(p);
+        struct Expr *e = expression(p);
         expect(p, T_RPAREN);
         return e;
     }
@@ -258,7 +258,7 @@ static Expr *primary_expr(Parser *p)
         break;
     }
 
-    Expr *expr = NULL;
+    struct Expr *expr = NULL;
 
     for (;;) {
         const struct Token *tok = gettok(p);
@@ -279,7 +279,7 @@ static Expr *primary_expr(Parser *p)
                         "call operator must be used for function type");
             }
             // TODO func signature check
-            Expr *call = NewCallExpr(expr, tok->pos);
+            struct Expr *call = NewCallExpr(expr, tok->pos);
             expr = arg_list(p, call);
             continue;
         }
@@ -293,14 +293,14 @@ static Expr *primary_expr(Parser *p)
                 expect(p, T_IDENT);
                 struct MapEntry *ent = HashMapLookup(&expr->type->table->rows, tok_str(p));
                 struct Row *r = ent->val;
-                Expr *tmp = expr;
+                struct Expr *tmp = expr;
                 expr = NewIntLitExpr(r->ival);
                 expr->l = tmp;
             }
             else if (IsModule(expr->type)) {
                 struct Scope *cur = p->scope;
                 p->scope = expr->type->module->scope;
-                Expr *r = primary_expr(p);
+                struct Expr *r = primary_expr(p);
                 p->scope = cur;
 
                 // TODO keep module expr somewhere
@@ -317,7 +317,7 @@ static Expr *primary_expr(Parser *p)
                 error(p, tok_pos(p),
                         "index operator must be used for array type");
             }
-            Expr *idx = expression(p);
+            struct Expr *idx = expression(p);
             if (!IsInt(idx->type)) {
                 error(p, tok_pos(p),
                         "index expression must be integer type");
@@ -351,18 +351,18 @@ static Expr *primary_expr(Parser *p)
 
 // unary_expr = primary_expr (unary_op primary_expr)*
 // unary_op   = "+" | "-" | "!" | "~"
-static Expr *unary_expr(Parser *p)
+static struct Expr *unary_expr(Parser *p)
 {
     const struct Token *tok = gettok(p);
     const int kind = tok->kind;
 
     if (kind == T_AND) {
-        Expr *expr = unary_expr(p);
+        struct Expr *expr = unary_expr(p);
         Type *type = NewTypePtr(expr->type);
         return NewUnaryExpr(expr, type, kind);
     }
     if (kind == T_MUL) {
-        Expr *expr = unary_expr(p);
+        struct Expr *expr = unary_expr(p);
         if (!IsPtr(expr->type)) {
             error(p, tok->pos,
                     "type mismatch: * must be used for pointer type");
@@ -377,7 +377,7 @@ static Expr *unary_expr(Parser *p)
     case T_LNOT:
     case T_NOT:
         {
-            Expr *e = unary_expr(p);
+            struct Expr *e = unary_expr(p);
             return NewUnaryExpr(e, (Type*)(e->type), kind);
         }
 
@@ -389,10 +389,10 @@ static Expr *unary_expr(Parser *p)
 
 // mul_expr = unary_expr (mul_op unary_expr)*
 // mul_op   = "*" | "/" | "%" | "&" | "<<" | ">>"
-static Expr *mul_expr(Parser *p)
+static struct Expr *mul_expr(Parser *p)
 {
-    Expr *L = unary_expr(p);
-    Expr *R = NULL;
+    struct Expr *L = unary_expr(p);
+    struct Expr *R = NULL;
 
     for (;;) {
         const struct Token *tok = gettok(p);
@@ -423,10 +423,10 @@ static Expr *mul_expr(Parser *p)
 
 // add_expr = mul_expr (add_op mul_expr)*
 // add_op   = "+" | "-" | "|" | "^"
-static Expr *add_expr(Parser *p)
+static struct Expr *add_expr(Parser *p)
 {
-    Expr *L = mul_expr(p);
-    Expr *R = NULL;
+    struct Expr *L = mul_expr(p);
+    struct Expr *R = NULL;
 
     for (;;) {
         const struct Token *tok = gettok(p);
@@ -455,10 +455,10 @@ static Expr *add_expr(Parser *p)
 
 // rel_expr = add_expr (rel_op add_expr)*
 // rel_op   = "==" | "!=" | "<" | ">" | "<=" | ">="
-static Expr *rel_expr(Parser *p)
+static struct Expr *rel_expr(Parser *p)
 {
-    Expr *L = add_expr(p);
-    Expr *R = NULL;
+    struct Expr *L = add_expr(p);
+    struct Expr *R = NULL;
 
     for (;;) {
         const struct Token *tok = gettok(p);
@@ -488,9 +488,9 @@ static Expr *rel_expr(Parser *p)
 }
 
 // logand_expr = rel_expr ("&&" rel_expr)*
-static Expr *logand_expr(Parser *p)
+static struct Expr *logand_expr(Parser *p)
 {
-    Expr *expr = rel_expr(p);
+    struct Expr *expr = rel_expr(p);
 
     for (;;) {
         const struct Token *tok = gettok(p);
@@ -508,9 +508,9 @@ static Expr *logand_expr(Parser *p)
 }
 
 // logor_expr = logand_expr ("||" logand_expr)*
-static Expr *logor_expr(Parser *p)
+static struct Expr *logor_expr(Parser *p)
 {
-    Expr *expr = logand_expr(p);
+    struct Expr *expr = logand_expr(p);
 
     for (;;) {
         const struct Token *tok = gettok(p);
@@ -531,10 +531,10 @@ static Expr *logor_expr(Parser *p)
 //             | logand_expr incdec_op
 // assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
 // incdec_op   = "++" | "--"
-static Expr *assign_expr(Parser *p)
+static struct Expr *assign_expr(Parser *p)
 {
-    Expr *lval = logor_expr(p);
-    Expr *rval = NULL;
+    struct Expr *lval = logor_expr(p);
+    struct Expr *rval = NULL;
     const struct Token *tok = gettok(p);
     const int kind = tok->kind;
 
@@ -568,14 +568,14 @@ static Expr *assign_expr(Parser *p)
     }
 }
 
-static Expr *expression(Parser *p)
+static struct Expr *expression(Parser *p)
 {
     return assign_expr(p);
 }
 
-static Stmt *or_stmt(Parser *p)
+static struct Stmt *or_stmt(Parser *p)
 {
-    Expr *cond = NULL;
+    struct Expr *cond = NULL;
 
     if (consume(p, T_NEWLINE)) {
         // or (else)
@@ -587,21 +587,21 @@ static Stmt *or_stmt(Parser *p)
         expect(p, T_NEWLINE);
     }
 
-    Stmt *body = block_stmt(p, OpenChild(p->scope));
+    struct Stmt *body = block_stmt(p, OpenChild(p->scope));
 
     return NewOrStmt(cond, body);
 }
 
-static Stmt *if_stmt(Parser *p)
+static struct Stmt *if_stmt(Parser *p)
 {
     expect(p, T_IF);
-    Expr *cond = expression(p);
+    struct Expr *cond = expression(p);
     expect(p, T_NEWLINE);
 
-    Stmt head = {0};
-    Stmt *tail = &head;
+    struct Stmt head = {0};
+    struct Stmt *tail = &head;
 
-    Stmt *body = block_stmt(p, OpenChild(p->scope));
+    struct Stmt *body = block_stmt(p, OpenChild(p->scope));
     tail = tail->next = NewOrStmt(cond, body);
 
     bool endor = false;
@@ -623,13 +623,13 @@ static Stmt *if_stmt(Parser *p)
     return NewIfStmt(head.next);
 }
 
-static Stmt *for_stmt(Parser *p)
+static struct Stmt *for_stmt(Parser *p)
 {
     expect(p, T_FOR);
 
-    Expr *init = NULL;
-    Expr *cond = NULL;
-    Expr *post = NULL;
+    struct Expr *init = NULL;
+    struct Expr *cond = NULL;
+    struct Expr *post = NULL;
 
     if (consume(p, T_NEWLINE)) {
         // infinite loop
@@ -638,7 +638,7 @@ static Stmt *for_stmt(Parser *p)
         post = NewNullExpr();
     }
     else {
-        Expr *e = expression(p);
+        struct Expr *e = expression(p);
 
         if (consume(p, T_SEM)) {
             // traditional for
@@ -661,11 +661,11 @@ static Stmt *for_stmt(Parser *p)
     }
 
     // body
-    Stmt *body = block_stmt(p, OpenChild(p->scope));
+    struct Stmt *body = block_stmt(p, OpenChild(p->scope));
     return NewForStmt(init, cond, post, body);
 }
 
-static Stmt *jump_stmt(Parser *p)
+static struct Stmt *jump_stmt(Parser *p)
 {
     const struct Token *tok = gettok(p);
     const int kind = tok->kind;
@@ -680,14 +680,14 @@ static Stmt *jump_stmt(Parser *p)
     return NewJumpStmt(kind);
 }
 
-static Stmt *case_stmt(Parser *p, int kind)
+static struct Stmt *case_stmt(Parser *p, int kind)
 {
-    Stmt head = {0};
-    Stmt *tail = &head;
+    struct Stmt head = {0};
+    struct Stmt *tail = &head;
 
     if (kind == T_CASE) {
         do {
-            Expr *expr = expression(p);
+            struct Expr *expr = expression(p);
             // TODO const int check
             tail = tail->next = NewExprStmt(expr);
         }
@@ -699,20 +699,20 @@ static Stmt *case_stmt(Parser *p, int kind)
 
     expect(p, T_NEWLINE);
 
-    Stmt *body = block_stmt(p, OpenChild(p->scope));
+    struct Stmt *body = block_stmt(p, OpenChild(p->scope));
     return NewCaseStmt(head.next, body, kind);
 }
 
-static Stmt *switch_stmt(Parser *p)
+static struct Stmt *switch_stmt(Parser *p)
 {
     expect(p, T_SWT);
 
-    Expr *expr = expression(p);
+    struct Expr *expr = expression(p);
     // TODO int check
     expect(p, T_NEWLINE);
 
-    Stmt head = {0};
-    Stmt *tail = &head;
+    struct Stmt head = {0};
+    struct Stmt *tail = &head;
 
     int default_count = 0;
 
@@ -739,12 +739,12 @@ static Stmt *switch_stmt(Parser *p)
     }
 }
 
-static Stmt *ret_stmt(Parser *p)
+static struct Stmt *ret_stmt(Parser *p)
 {
     expect(p, T_RET);
 
     const struct Pos exprpos = tok_pos(p);
-    Expr *expr = NULL;
+    struct Expr *expr = NULL;
 
     if (consume(p, T_NEWLINE)) {
         expr = NewNullExpr();
@@ -766,15 +766,15 @@ static Stmt *ret_stmt(Parser *p)
     return NewReturnStmt(expr);
 }
 
-static Stmt *expr_stmt(Parser *p)
+static struct Stmt *expr_stmt(Parser *p)
 {
-    Stmt *s = NewExprStmt(expression(p));
+    struct Stmt *s = NewExprStmt(expression(p));
     expect(p, T_NEWLINE);
 
     return s;
 }
 
-static Stmt *scope_stmt(Parser *p)
+static struct Stmt *scope_stmt(Parser *p)
 {
     expect(p, T_DASH3);
     expect(p, T_NEWLINE);
@@ -782,17 +782,17 @@ static Stmt *scope_stmt(Parser *p)
     return block_stmt(p, OpenChild(p->scope));
 }
 
-static Stmt *nop_stmt(Parser *p)
+static struct Stmt *nop_stmt(Parser *p)
 {
     expect(p, T_NOP);
 
-    Stmt *s = NewNopStmt();
+    struct Stmt *s = NewNopStmt();
     expect(p, T_NEWLINE);
 
     return s;
 }
 
-static Expr *default_value(const Type *type)
+static struct Expr *default_value(const Type *type)
 {
     switch (type->kind) {
     case TY_BOOL:
@@ -828,7 +828,7 @@ static Expr *default_value(const Type *type)
 
 // var_decl = "-" identifier type newline
 //          | "-" identifier type = expression newline
-static Stmt *var_decl(Parser *p, bool isglobal)
+static struct Stmt *var_decl(Parser *p, bool isglobal)
 {
     expect(p, T_SUB);
     expect(p, T_IDENT);
@@ -837,7 +837,7 @@ static Stmt *var_decl(Parser *p, bool isglobal)
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
     Type *type = NULL;
-    Expr *init = NULL;
+    struct Expr *init = NULL;
 
     // type and init
     if (consume(p, T_ASSN)) {
@@ -865,7 +865,7 @@ static Stmt *var_decl(Parser *p, bool isglobal)
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
     }
-    Expr *ident = NewIdentExpr(sym);
+    struct Expr *ident = NewIdentExpr(sym);
     return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
 
@@ -934,10 +934,10 @@ static struct Table *table_def(Parser *p)
     return tab;
 }
 
-static Stmt *block_stmt(Parser *p, struct Scope *block_scope)
+static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope)
 {
-    Stmt head = {0};
-    Stmt *tail = &head;
+    struct Stmt head = {0};
+    struct Stmt *tail = &head;
 
     // enter scope
     p->scope = block_scope;
@@ -1047,7 +1047,7 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_LBRACK)) {
-        Expr *e = expression(p);
+        struct Expr *e = expression(p);
         if (!IsInt(e->type)) {
             error(p, tok_pos(p),
                     "array length expression must be integer type");
@@ -1122,9 +1122,9 @@ static struct Stmt *func_def(struct Parser *p)
 
     // func body
     p->func_ = func;
-    Stmt *body = block_stmt(p, func->scope);
+    struct Stmt *body = block_stmt(p, func->scope);
     // TODO control flow check to allow implicit return
-    for (Stmt *s = body->children; s; s = s->next) {
+    for (struct Stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
             s->next = NewReturnStmt(NewNullExpr());
             break;
@@ -1182,8 +1182,8 @@ static void module_import(struct Parser *p)
 
 static void program(Parser *p)
 {
-    Stmt head = {0};
-    Stmt *tail = &head;
+    struct Stmt head = {0};
+    struct Stmt *tail = &head;
 
     for (;;) {
         const int next = peek(p);

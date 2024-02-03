@@ -1,6 +1,8 @@
 #include "codegen.h"
 #include "bytecode.h"
+#include "scope.h"
 #include "error.h"
+#include "type.h"
 #include "ast.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,8 +53,8 @@ void SetOptimize(bool enable)
         ops##String((code)); \
     } while (0)
 
-static void gen_expr(Bytecode *code, const Expr *e);
-static void gen_addr(Bytecode *code, const Expr *e);
+static void gen_expr(Bytecode *code, const struct Expr *e);
+static void gen_addr(Bytecode *code, const struct Expr *e);
 
 static void gen_convert(Bytecode *code, enum TY from, enum TY to)
 {
@@ -90,14 +92,14 @@ static void gen_convert(Bytecode *code, enum TY from, enum TY to)
 }
 
 #define TEST 0
-static void gen_call(Bytecode *code, const Expr *e)
+static void gen_call(Bytecode *code, const struct Expr *e)
 {
     // TODO need CallExpr::func?
     const Func *func = e->l->type->func;
 
     if (func->is_variadic) {
         int argc = 0;
-        for (const Expr *arg = e->list; arg; arg = arg->next, argc++) {
+        for (const struct Expr *arg = e->list; arg; arg = arg->next, argc++) {
             // arg value
             gen_expr(code, arg);
 
@@ -132,7 +134,7 @@ static void gen_call(Bytecode *code, const Expr *e)
         LoadByte(code, argc);
     }
     else {
-        for (const Expr *arg = e->list; arg; arg = arg->next)
+        for (const struct Expr *arg = e->list; arg; arg = arg->next)
             gen_expr(code, arg);
     }
 
@@ -147,7 +149,7 @@ static void gen_call(Bytecode *code, const Expr *e)
 #endif
 }
 
-static void gen_logor(Bytecode *code, const Expr *e)
+static void gen_logor(Bytecode *code, const struct Expr *e)
 {
     Int ELSE = 0;
     Int EXIT = 0;
@@ -166,7 +168,7 @@ static void gen_logor(Bytecode *code, const Expr *e)
     BackPatch(code, EXIT);
 }
 
-static void gen_logand(Bytecode *code, const Expr *e)
+static void gen_logand(Bytecode *code, const struct Expr *e)
 {
     Int ELSE = 0;
     Int EXIT = 0;
@@ -185,7 +187,7 @@ static void gen_logand(Bytecode *code, const Expr *e)
     BackPatch(code, EXIT);
 }
 
-static void gen_assign(Bytecode *code, const Expr *e)
+static void gen_assign(Bytecode *code, const struct Expr *e)
 {
     if (e->kind == T_ASSN) {
         // rval first
@@ -233,7 +235,7 @@ static void gen_assign(Bytecode *code, const Expr *e)
     Store(code);
 }
 
-static void gen_expr(Bytecode *code, const Expr *e)
+static void gen_expr(Bytecode *code, const struct Expr *e)
 {
     switch (e->kind) {
 
@@ -461,7 +463,7 @@ static void gen_expr(Bytecode *code, const Expr *e)
     }
 }
 
-static void gen_addr(Bytecode *code, const Expr *e)
+static void gen_addr(Bytecode *code, const struct Expr *e)
 {
     switch (e->kind) {
 
@@ -519,7 +521,7 @@ static void gen_addr(Bytecode *code, const Expr *e)
     }
 }
 
-static void gen_stmt(Bytecode *code, const Stmt *s)
+static void gen_stmt(Bytecode *code, const struct Stmt *s)
 {
     if (!s)
         return;
@@ -530,7 +532,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
         return;
 
     case T_BLOCK:
-        for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
+        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt(code, stmt);
         return;
 
@@ -559,7 +561,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
     case T_IF:
         BeginIf(code);
 
-        for (Stmt *stmt = s->children; stmt; stmt = stmt->next)
+        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt(code, stmt);
 
         // exit
@@ -612,7 +614,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
 
             IntVec trues = {0};
             // eval conds
-            for (Stmt *cond = s->children; cond; cond = cond->next) {
+            for (struct Stmt *cond = s->children; cond; cond = cond->next) {
                 Int tru = 0;
                 Int fls = 0;
                 DuplicateTop(code);
@@ -652,7 +654,7 @@ static void gen_stmt(Bytecode *code, const Stmt *s)
         gen_expr(code, s->cond);
 
         // cases
-        for (Stmt *cas = s->children; cas; cas = cas->next)
+        for (struct Stmt *cas = s->children; cas; cas = cas->next)
             gen_stmt(code, cas);
 
         // quit
@@ -694,7 +696,7 @@ static void gen_module(Bytecode *code, const struct Module *mod)
 
     // global vars
     Allocate(code, VarSize(mod->scope));
-    for (const Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
+    for (const struct Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
         gen_stmt(code, gvar);
 
     // TODO maybe better to search "main" module and "main" func in there

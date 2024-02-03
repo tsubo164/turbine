@@ -1,72 +1,82 @@
 #include "ast.h"
+#include "scope.h"
+#include "type.h"
 #include "mem.h"
 
-//--------------------------------
 // Expr
-Expr *NewNullExpr(void)
+struct Expr *NewNullExpr(void)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = NewTypeNil();
     e->kind = T_NUL;
     return e;
 }
 
-Expr *NewNilLitExpr(void)
+struct Expr *NewNilLitExpr(void)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = NewTypeNil();
     e->kind = T_NILLIT;
     return e;
 }
 
-Expr *NewBoolLitExpr(bool b)
+struct Expr *NewBoolLitExpr(bool b)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = NewTypeBool();
     e->kind = T_BOLLIT;
     e->ival = b;
     return e;
 }
 
-Expr *NewIntLitExpr(long l)
+struct Expr *NewIntLitExpr(long l)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = NewTypeInt();
     e->kind = T_INTLIT;
     e->ival = l;
     return e;
 }
 
-Expr *NewFloatLitExpr(double d)
+struct Expr *NewFloatLitExpr(double d)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = NewTypeFloat();
     e->kind = T_FLTLIT;
     e->fval = d;
     return e;
 }
 
-Expr *NewStringLitExpr(const char *s)
+struct Expr *NewStringLitExpr(const char *s)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = NewTypeString();
     e->kind = T_STRLIT;
     e->sval = s;
     return e;
 }
 
-Expr *NewConversionExpr(Expr *from, Type *to)
+struct Expr *NewFuncLitExpr(struct Func *func)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
+    e->type = NewTypeString();
+    e->kind = T_FUNCLIT;
+    e->func = func;
+    return e;
+}
+
+struct Expr *NewConversionExpr(struct Expr *from, Type *to)
+{
+    struct Expr *e = CALLOC(struct Expr);
     e->type = to;
     e->kind = T_CONV;
     e->l = from;
     return e;
 }
 
-Expr *NewIdentExpr(struct Symbol *sym)
+struct Expr *NewIdentExpr(struct Symbol *sym)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = sym->type;
     e->kind = T_IDENT;
     e->var = sym->var;
@@ -74,18 +84,18 @@ Expr *NewIdentExpr(struct Symbol *sym)
     return e;
 }
 
-Expr *NewFieldExpr(struct Field *f)
+struct Expr *NewFieldExpr(struct Field *f)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = f->type;
     e->kind = T_FIELD;
     e->field = f;
     return e;
 }
 
-Expr *NewSelectExpr(Expr *inst, Expr *fld)
+struct Expr *NewSelectExpr(struct Expr *inst, struct Expr *fld)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = fld->type;
     e->kind = T_SELECT;
     e->l = inst;
@@ -93,9 +103,9 @@ Expr *NewSelectExpr(Expr *inst, Expr *fld)
     return e;
 }
 
-Expr *NewIndexExpr(Expr *ary, Expr *idx)
+struct Expr *NewIndexExpr(struct Expr *ary, struct Expr *idx)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = ary->type->underlying;
     e->kind = T_INDEX;
     e->l = ary;
@@ -103,9 +113,9 @@ Expr *NewIndexExpr(Expr *ary, Expr *idx)
     return e;
 }
 
-Expr *NewCallExpr(Expr *callee, struct Pos p)
+struct Expr *NewCallExpr(struct Expr *callee, struct Pos p)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = callee->type->func->return_type;
     e->kind = T_CALL;
     e->l = callee;
@@ -113,9 +123,9 @@ Expr *NewCallExpr(Expr *callee, struct Pos p)
     return e;
 }
 
-Expr *NewBinaryExpr(Expr *L, Expr *R, int k)
+struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int k)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = L->type;
     switch (k) {
     case T_ADD: case T_SUB: case T_MUL: case T_DIV: case T_REM:
@@ -133,9 +143,9 @@ Expr *NewBinaryExpr(Expr *L, Expr *R, int k)
     return e;
 }
 
-Expr *NewRelationalExpr(Expr *L, Expr *R, int k)
+struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int k)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = NewTypeBool();
     switch (k) {
     case T_EQ: case T_NEQ:
@@ -152,9 +162,9 @@ Expr *NewRelationalExpr(Expr *L, Expr *R, int k)
     return e;
 }
 
-Expr *NewUnaryExpr(Expr *L, Type *t, int k)
+struct Expr *NewUnaryExpr(struct Expr *L, Type *t, int k)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     switch (k) {
     case T_AND:  e->kind = T_ADR; break;
     case T_ADD:  e->kind = T_POS; break;
@@ -170,9 +180,9 @@ Expr *NewUnaryExpr(Expr *L, Type *t, int k)
     return e;
 }
 
-Expr *NewAssignExpr(Expr *l, Expr *r, int k)
+struct Expr *NewAssignExpr(struct Expr *l, struct Expr *r, int k)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = l->type;
     switch (k) {
     case T_ASSN: case T_AADD: case T_ASUB:
@@ -188,9 +198,9 @@ Expr *NewAssignExpr(Expr *l, Expr *r, int k)
     return e;
 }
 
-Expr *NewIncDecExpr(Expr *l, int k)
+struct Expr *NewIncDecExpr(struct Expr *l, int k)
 {
-    Expr *e = CALLOC(Expr);
+    struct Expr *e = CALLOC(struct Expr);
     e->type = l->type;
     switch (k) {
     case T_INC: case T_DEC:
@@ -203,44 +213,42 @@ Expr *NewIncDecExpr(Expr *l, int k)
     return e;
 }
 
-
-//--------------------------------
 // Stmt
-Stmt *NewNopStmt(void)
+struct Stmt *NewNopStmt(void)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_NOP;
     return s;
 }
 
-Stmt *NewBlockStmt(Stmt *children)
+struct Stmt *NewBlockStmt(struct Stmt *children)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_BLOCK;
     s->children = children;
     return s;
 }
 
-Stmt *NewOrStmt(Expr *cond, Stmt *body)
+struct Stmt *NewOrStmt(struct Expr *cond, struct Stmt *body)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_ELS;
     s->cond = cond;
     s->body = body;
     return s;
 }
 
-Stmt *NewIfStmt(Stmt *or_list)
+struct Stmt *NewIfStmt(struct Stmt *or_list)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_IF;
     s->children = or_list;
     return s;
 }
 
-Stmt *NewForStmt(Expr *init, Expr *cond, Expr *post, Stmt *body)
+struct Stmt *NewForStmt(struct Expr *init, struct Expr *cond, struct Expr *post, struct Stmt *body)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_FOR;
     s->expr = init;
     s->cond = cond;
@@ -249,9 +257,9 @@ Stmt *NewForStmt(Expr *init, Expr *cond, Expr *post, Stmt *body)
     return s;
 }
 
-Stmt *NewJumpStmt(int k)
+struct Stmt *NewJumpStmt(int k)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     switch (k) {
     case T_BRK: case T_CNT:
         s->kind = k;
@@ -263,9 +271,9 @@ Stmt *NewJumpStmt(int k)
     return s;
 }
 
-Stmt *NewCaseStmt(Stmt *conds, Stmt *body, int k)
+struct Stmt *NewCaseStmt(struct Stmt *conds, struct Stmt *body, int k)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     switch (k) {
     case T_CASE: case T_DFLT:
         s->kind = k;
@@ -279,37 +287,37 @@ Stmt *NewCaseStmt(Stmt *conds, Stmt *body, int k)
     return s;
 }
 
-Stmt *NewSwitchStmt(Expr *cond, Stmt *cases)
+struct Stmt *NewSwitchStmt(struct Expr *cond, struct Stmt *cases)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_SWT;
     s->cond = cond;
     s->children = cases;
     return s;
 }
 
-Stmt *NewReturnStmt(Expr *e)
+struct Stmt *NewReturnStmt(struct Expr *e)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_RET;
     s->expr = e;
     return s;
 }
 
-Stmt *NewExprStmt(Expr *e)
+struct Stmt *NewExprStmt(struct Expr *e)
 {
-    Stmt *s = CALLOC(Stmt);
+    struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_EXPR;
     s->expr = e;
     return s;
 }
 
-bool IsNull(const Expr *e)
+bool IsNull(const struct Expr *e)
 {
     return e->kind == T_NUL;
 }
 
-bool IsGlobal(const Expr *e)
+bool IsGlobal(const struct Expr *e)
 {
     switch (e->kind) {
     case T_IDENT:
@@ -323,7 +331,7 @@ bool IsGlobal(const Expr *e)
     }
 }
 
-int Addr(const Expr *e)
+int Addr(const struct Expr *e)
 {
     switch (e->kind) {
     case T_IDENT:
@@ -340,7 +348,7 @@ int Addr(const Expr *e)
     }
 }
 
-static bool eval_binary(const Expr *e, long *result)
+static bool eval_binary(const struct Expr *e, long *result)
 {
     long L = 0, R = 0;
 
@@ -360,7 +368,7 @@ static bool eval_binary(const Expr *e, long *result)
     }
 }
 
-static bool eval_unary(const Expr *e, long *result)
+static bool eval_unary(const struct Expr *e, long *result)
 {
     long L = 0;
 
@@ -376,7 +384,7 @@ static bool eval_unary(const Expr *e, long *result)
     }
 }
 
-bool EvalExpr(const Expr *e, long *result)
+bool EvalExpr(const struct Expr *e, long *result)
 {
     switch (e->kind) {
     case T_INTLIT:
@@ -396,7 +404,7 @@ bool EvalExpr(const Expr *e, long *result)
     }
 }
 
-bool EvalAddr(const Expr *e, int *result)
+bool EvalAddr(const struct Expr *e, int *result)
 {
     switch (e->kind) {
     case T_IDENT:
