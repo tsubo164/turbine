@@ -79,7 +79,7 @@ static struct Struct *new_struct(const char *name)
 struct Struct *DefineStruct(struct Scope *sc, const char *name)
 {
     struct Struct *strct = new_struct(name);
-    Symbol *sym = new_symbol(SYM_STRUCT, name, NewTypeStruct(strct));
+    Symbol *sym = new_symbol(SYM_STRUCT, name, NewStructType(strct));
     sym->strct = strct;
 
     if (!HashMapInsert(&sc->symbols, name, sym))
@@ -111,7 +111,7 @@ struct Table *DefineTable(struct Scope *sc, const char *name)
     struct Table *tab = CALLOC(struct Table);
     tab->name = name;
 
-    Symbol *sym = new_symbol(SYM_TABLE, name, NewTypeTable(tab));
+    Symbol *sym = new_symbol(SYM_TABLE, name, NewTableType(tab));
     sym->table = tab;
 
     if (!HashMapInsert(&sc->symbols, name, sym))
@@ -127,7 +127,7 @@ struct Module *DefineModule(struct Scope *sc, const char *filename, const char *
     mod->filename = filename;
     mod->scope = new_scope(sc, next_var_id(sc));
 
-    Symbol *sym = new_symbol(SYM_MODULE, modulename, NewTypeModule(mod));
+    Symbol *sym = new_symbol(SYM_MODULE, modulename, NewModuleType(mod));
     sym->module = mod;
 
     if (!HashMapInsert(&sc->symbols, modulename, sym))

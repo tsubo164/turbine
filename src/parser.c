@@ -358,7 +358,7 @@ static struct Expr *unary_expr(Parser *p)
 
     if (kind == T_AND) {
         struct Expr *expr = unary_expr(p);
-        Type *type = NewTypePtr(expr->type);
+        Type *type = NewPtrType(expr->type);
         return NewUnaryExpr(expr, type, kind);
     }
     if (kind == T_MUL) {
@@ -1011,7 +1011,7 @@ static void param_list(Parser *p, Func *func)
 
         if (consume(p, T_CALLER_LINE)) {
             name = tok_str(p);
-            type = NewTypeInt();
+            type = NewIntType();
         }
         else {
             expect(p, T_IDENT);
@@ -1031,7 +1031,7 @@ static void ret_type(Parser *p, Func *func)
     const int next = peek(p);
 
     if (next == T_NEWLINE)
-        func->return_type = NewTypeNil();
+        func->return_type = NewNilType();
     else
         func->return_type = type_spec(p);
 }
@@ -1043,7 +1043,7 @@ static Type *type_spec(Parser *p)
     Type *type = NULL;
 
     if (consume(p, T_MUL)) {
-        return NewTypePtr(type_spec(p));
+        return NewPtrType(type_spec(p));
     }
 
     if (consume(p, T_LBRACK)) {
@@ -1058,7 +1058,7 @@ static Type *type_spec(Parser *p)
                     "array length expression must be compile time constant");
         }
         expect(p, T_RBRACK);
-        return NewTypeArray(len, type_spec(p));
+        return NewArrayType(len, type_spec(p));
     }
 
     if (consume(p, T_HASH)) {
@@ -1067,23 +1067,23 @@ static Type *type_spec(Parser *p)
         VecPush(&p->module->funcs, func);
         param_list(p, func);
         ret_type(p, func);
-        return NewTypeFunc(func);
+        return NewFuncType(func);
     }
 
     if (consume(p, T_BOL)) {
-        type = NewTypeBool();
+        type = NewBoolType();
     }
     else if (consume(p, T_INT)) {
-        type = NewTypeInt();
+        type = NewIntType();
     }
     else if (consume(p, T_FLT)) {
-        type = NewTypeFloat();
+        type = NewFloatType();
     }
     else if (consume(p, T_STR)) {
-        type = NewTypeString();
+        type = NewStringType();
     }
     else if (consume(p, T_IDENT)) {
-        type = NewTypeStruct(FindStruct(p->scope, tok_str(p)));
+        type = NewStructType(FindStruct(p->scope, tok_str(p)));
     }
     else {
         const struct Token *tok = gettok(p);
@@ -1114,7 +1114,7 @@ static struct Stmt *func_def(struct Parser *p)
     expect(p, T_NEWLINE);
 
     // func var
-    struct Symbol *sym = DefineVar(p->scope, name, NewTypeFunc(func), true);
+    struct Symbol *sym = DefineVar(p->scope, name, NewFuncType(func), true);
     if (!sym) {
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);

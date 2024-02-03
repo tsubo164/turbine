@@ -5,42 +5,42 @@
 #include "mem.h"
 #include <stdio.h>
 
-Type *NewTypeNil()
+Type *NewNilType()
 {
     static Type t;
     t.kind = TY_NIL;
     return &t;
 }
 
-Type *NewTypeBool()
+Type *NewBoolType()
 {
     static Type t;
     t.kind = TY_BOOL;
     return &t;
 }
 
-Type *NewTypeInt()
+Type *NewIntType()
 {
     static Type t;
     t.kind = TY_INT;
     return &t;
 }
 
-Type *NewTypeFloat()
+Type *NewFloatType()
 {
     static Type t;
     t.kind = TY_FLOAT;
     return &t;
 }
 
-Type *NewTypeString()
+Type *NewStringType()
 {
     static Type t;
     t.kind = TY_STRING;
     return &t;
 }
 
-struct Type *NewTypeFunc(struct Func *f)
+struct Type *NewFuncType(struct Func *f)
 {
     Type *t = CALLOC(struct Type);
     t->kind = TY_FUNC;
@@ -48,7 +48,7 @@ struct Type *NewTypeFunc(struct Func *f)
     return t;
 }
 
-struct Type *NewTypeStruct(struct Struct *s)
+struct Type *NewStructType(struct Struct *s)
 {
     Type *t = CALLOC(struct Type);
     t->kind = TY_STRUCT;
@@ -56,7 +56,7 @@ struct Type *NewTypeStruct(struct Struct *s)
     return t;
 }
 
-struct Type *NewTypeTable(struct Table *tab)
+struct Type *NewTableType(struct Table *tab)
 {
     Type *t = CALLOC(struct Type);
     t->kind = TY_TABLE;
@@ -64,7 +64,7 @@ struct Type *NewTypeTable(struct Table *tab)
     return t;
 }
 
-struct Type *NewTypeModule(struct Module *mod)
+struct Type *NewModuleType(struct Module *mod)
 {
     struct Type *t = CALLOC(struct Type);
     t->kind = TY_MODULE;
@@ -72,7 +72,7 @@ struct Type *NewTypeModule(struct Module *mod)
     return t;
 }
 
-Type *NewTypePtr(const Type *underlying)
+Type *NewPtrType(const Type *underlying)
 {
     Type *t = CALLOC(Type);
     t->kind = TY_PTR;
@@ -80,7 +80,7 @@ Type *NewTypePtr(const Type *underlying)
     return t;
 }
 
-Type *NewTypeArray(int len, Type *underlying)
+Type *NewArrayType(int len, Type *underlying)
 {
     Type *t = CALLOC(Type);
     t->kind = TY_ARRAY;
@@ -89,7 +89,7 @@ Type *NewTypeArray(int len, Type *underlying)
     return t;
 }
 
-Type *NewTypeAny()
+Type *NewAnyType()
 {
     static Type t;
     t.kind = TY_ANY;

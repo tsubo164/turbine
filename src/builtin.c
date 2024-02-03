@@ -10,20 +10,20 @@ void DefineBuiltinFuncs(struct Scope *builtin)
         const char *name = StrIntern("print");
         struct Func *func = AddBuiltinFunc(builtin, name);
 
-        DeclareParam(func, "...", NewTypeAny());
-        func->return_type = NewTypeNil();
+        DeclareParam(func, "...", NewAnyType());
+        func->return_type = NewNilType();
         func->id = func_id++;
 
-        DefineVar(builtin, name, NewTypeFunc(func), false);
+        DefineVar(builtin, name, NewFuncType(func), false);
     }
     {
         const char *name = StrIntern("exit");
         struct Func *func = AddBuiltinFunc(builtin, name);
 
-        DeclareParam(func, "code", NewTypeInt());
-        func->return_type = NewTypeNil();
+        DeclareParam(func, "code", NewIntType());
+        func->return_type = NewNilType();
         func->id = func_id++;
 
-        DefineVar(builtin, name, NewTypeFunc(func), false);
+        DefineVar(builtin, name, NewFuncType(func), false);
     }
 }

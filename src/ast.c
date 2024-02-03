@@ -7,7 +7,7 @@
 struct Expr *NewNullExpr(void)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewTypeNil();
+    e->type = NewNilType();
     e->kind = T_NUL;
     return e;
 }
@@ -15,7 +15,7 @@ struct Expr *NewNullExpr(void)
 struct Expr *NewNilLitExpr(void)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewTypeNil();
+    e->type = NewNilType();
     e->kind = T_NILLIT;
     return e;
 }
@@ -23,7 +23,7 @@ struct Expr *NewNilLitExpr(void)
 struct Expr *NewBoolLitExpr(bool b)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewTypeBool();
+    e->type = NewBoolType();
     e->kind = T_BOLLIT;
     e->ival = b;
     return e;
@@ -32,7 +32,7 @@ struct Expr *NewBoolLitExpr(bool b)
 struct Expr *NewIntLitExpr(long l)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewTypeInt();
+    e->type = NewIntType();
     e->kind = T_INTLIT;
     e->ival = l;
     return e;
@@ -41,7 +41,7 @@ struct Expr *NewIntLitExpr(long l)
 struct Expr *NewFloatLitExpr(double d)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewTypeFloat();
+    e->type = NewFloatType();
     e->kind = T_FLTLIT;
     e->fval = d;
     return e;
@@ -50,7 +50,7 @@ struct Expr *NewFloatLitExpr(double d)
 struct Expr *NewStringLitExpr(const char *s)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewTypeString();
+    e->type = NewStringType();
     e->kind = T_STRLIT;
     e->sval = s;
     return e;
@@ -59,7 +59,7 @@ struct Expr *NewStringLitExpr(const char *s)
 struct Expr *NewFuncLitExpr(struct Func *func)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewTypeString();
+    e->type = NewStringType();
     e->kind = T_FUNCLIT;
     e->func = func;
     return e;
@@ -146,7 +146,7 @@ struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int k)
 struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int k)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewTypeBool();
+    e->type = NewBoolType();
     switch (k) {
     case T_EQ: case T_NEQ:
     case T_LT: case T_LTE:

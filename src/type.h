@@ -33,18 +33,18 @@ typedef struct Type {
     int len;
 } Type;
 
-Type *NewTypeNil();
-Type *NewTypeBool();
-Type *NewTypeInt();
-Type *NewTypeFloat();
-Type *NewTypeString();
-struct Type *NewTypeFunc(struct Func *f);
-struct Type *NewTypeStruct(struct Struct *s);
-struct Type *NewTypeTable(struct Table *t);
-struct Type *NewTypeModule(struct Module *m);
-Type *NewTypePtr(const Type *underlying);
-Type *NewTypeArray(int len, Type *underlying);
-Type *NewTypeAny();
+Type *NewNilType();
+Type *NewBoolType();
+Type *NewIntType();
+Type *NewFloatType();
+Type *NewStringType();
+struct Type *NewFuncType(struct Func *f);
+struct Type *NewStructType(struct Struct *s);
+struct Type *NewTableType(struct Table *t);
+struct Type *NewModuleType(struct Module *m);
+Type *NewPtrType(const Type *underlying);
+Type *NewArrayType(int len, Type *underlying);
+Type *NewAnyType();
 
 bool IsNil(const Type *t);
 bool IsBool(const Type *t);
