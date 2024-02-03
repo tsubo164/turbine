@@ -2,9 +2,66 @@
 #include "ast.h"
 #include <stdio.h>
 
+void PrintToken(const struct Token *token, bool format)
+{
+    int indent = 0;
+    bool bol = true;
+
+    for (const struct Token *tok = token; tok; tok = tok->next) {
+
+        if (tok->kind == T_NUL)
+            continue;
+
+        if (!format) {
+            printf("(%4d, %3d) %s",
+                    tok->pos.y, tok->pos.x,
+                    TokenString(tok->kind));
+
+            if (tok->kind == T_IDENT)
+                printf(" (%s)", tok->sval);
+            if (tok->kind == T_INTLIT)
+                printf(" (%ld)", tok->ival);
+            if (tok->kind == T_FLTLIT)
+                printf(" (%g)", tok->fval);
+            if (tok->kind == T_STRLIT)
+                printf(" (\"%s\")", tok->sval);
+
+            printf("\n");
+        }
+        else {
+            if (tok->kind == T_BLOCKBEGIN) {
+                indent++;
+                continue;
+            }
+            else if (tok->kind == T_BLOCKEND) {
+                indent--;
+                continue;
+            }
+
+            if (bol) {
+                bol = false;
+                for (int i = 0; i < indent; i++)
+                    printf("....");
+            }
+
+            if (tok->kind == T_NEWLINE) {
+                printf("%s\n", TokenString(tok->kind));
+                bol = true;
+            }
+            else if (tok->kind != T_BLOCKBEGIN && tok->kind != T_BLOCKEND) {
+                printf("%s ", TokenString(tok->kind));
+            }
+        }
+
+        if (tok->kind == T_EOF)
+            break;
+    }
+    printf("\n");
+}
+
 static void print_expr(const Expr *e, int depth)
 {
-    const KindInfo *info;
+    const struct KindInfo *info;
     int i;
 
     if (!e || e->kind == T_NUL)
@@ -50,7 +107,7 @@ static void print_expr(const Expr *e, int depth)
 
 static void print_stmt(const Stmt *s, int depth)
 {
-    const KindInfo *info;
+    const struct KindInfo *info;
     int i;
 
     if (!s)

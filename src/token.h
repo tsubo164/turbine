@@ -30,8 +30,6 @@ enum KindTag {
     // special
     T_CALLER_LINE,
     T_keyword_end,
-    // list
-    T_EXPRLIST,
     // identifier
     T_FIELD,
     T_IDENT,
@@ -43,6 +41,7 @@ enum KindTag {
     T_INTLIT,
     T_FLTLIT,
     T_STRLIT,
+    T_FUNCLIT,
     // separator
     T_LPAREN,
     T_RPAREN,
@@ -105,22 +104,19 @@ enum KindTag {
     T_EOF
 };
 
-
-typedef struct KindInfo {
+struct KindInfo {
     int kind;
     const char *str;
     char type;
-} KindInfo;
+};
 
-
-typedef struct Pos {
+struct Pos {
     int x, y;
-} Pos;
+};
 
-
-typedef struct Token {
+struct Token {
     int kind;
-    Pos pos;
+    struct Pos pos;
     union {
         long ival;
         double fval;
@@ -129,13 +125,10 @@ typedef struct Token {
     bool has_escseq;
     struct Token *prev;
     struct Token *next;
-} Token;
+};
 
-
-const Token *Tokenize(const char *src);
-const char *TokenKindString(int kind);
-const KindInfo *LookupKindInfo(int kind);
-void PrintToken(const Token *token, bool format);
-
+const struct Token *Tokenize(const char *src);
+const struct KindInfo *LookupKindInfo(int kind);
+const char *TokenString(int kind);
 
 #endif // _H

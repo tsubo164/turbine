@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
-static const KindInfo table[] = {
+static const struct KindInfo table[] = {
     { T_NUL,        "nul" },
     // type
     { T_keyword_begin, "keyword_begin" },
@@ -38,8 +38,6 @@ static const KindInfo table[] = {
     // special
     { T_CALLER_LINE, "$caller_line" },
     { T_keyword_end, "keyword_end" },
-    // list
-    { T_EXPRLIST,   "xpr_list" },
     // identifier
     { T_FIELD,      "field", 'y' },
     { T_IDENT,      "ident", 'y' },
@@ -51,6 +49,7 @@ static const KindInfo table[] = {
     { T_INTLIT,     "int_lit",    'i' },
     { T_FLTLIT,     "float_lit",  'f' },
     { T_STRLIT,     "string_lit", 's' },
+    { T_FUNCLIT,    "func_lit",   's' },
     // separator
     { T_LPAREN,     "(" },
     { T_RPAREN,     ")" },
@@ -115,7 +114,7 @@ static const KindInfo table[] = {
 
 static_assert(sizeof(table)/sizeof(table[0])==T_EOF+1, "MISSING_TOKEN_STRING");
 
-const KindInfo *LookupKindInfo(int kind)
+const struct KindInfo *LookupKindInfo(int kind)
 {
     int N = sizeof(table)/sizeof(table[0]);
 
@@ -129,20 +128,20 @@ const KindInfo *LookupKindInfo(int kind)
 static int keyword_or_ident(const char *word)
 {
     for (int i = T_keyword_begin + 1; i < T_keyword_end; i++) {
-        const KindInfo *info = &table[i];
+        const struct KindInfo *info = &table[i];
         if (!strcmp(word, info->str))
             return info->kind;
     }
     return T_IDENT;
 }
 
-const char *TokenKindString(int kind)
+const char *TokenString(int kind)
 {
-    const KindInfo *info = LookupKindInfo(kind);
+    const struct KindInfo *info = LookupKindInfo(kind);
     return info->str;
 }
 
-static void set(Token *t, int k, Pos p)
+static void set(struct Token *t, int k, struct Pos p)
 {
     t->kind = k;
     t->pos = p;
@@ -152,7 +151,7 @@ typedef struct Lexer {
     // src text
     const char *src;
     const char *it;
-    Pos pos;
+    struct Pos pos;
     int prevx;
 
     // indent
@@ -272,7 +271,7 @@ static int top(const Lexer *l)
     return l->indent_stack[l->sp];
 }
 
-static void scan_number(Lexer *l, Token *tok, Pos pos)
+static void scan_number(Lexer *l, struct Token *tok, struct Pos pos)
 {
     const char *start = l->it;
     bool fpnum = false;
@@ -316,7 +315,7 @@ static void scan_number(Lexer *l, Token *tok, Pos pos)
     assert(end && (len == (end - &(*start))));
 }
 
-static void scan_char_literal(Lexer *l, Token *tok, Pos pos)
+static void scan_char_literal(Lexer *l, struct Token *tok, struct Pos pos)
 {
     int ch = get(l);
 
@@ -344,7 +343,7 @@ static bool isword(int ch)
     return isalnum(ch) || ch == '_';
 }
 
-static void scan_word(Lexer *l, Token *tok, Pos pos)
+static void scan_word(Lexer *l, struct Token *tok, struct Pos pos)
 {
     static char buf[128] = {'\0'};
     char *p = buf;
@@ -372,12 +371,12 @@ static void scan_word(Lexer *l, Token *tok, Pos pos)
     set(tok, kind, pos);
 }
 
-static void scan_string(Lexer *l, Token *tok, Pos pos)
+static void scan_string(Lexer *l, struct Token *tok, struct Pos pos)
 {
     static char buf[4096] = {'\0'};
     char *p = buf;
 
-    const Pos strpos = pos;
+    const struct Pos strpos = pos;
     int len = 0;
     int backslashes = 0;
 
@@ -422,9 +421,9 @@ static void scan_line_comment(Lexer *l)
     }
 }
 
-static void scan_block_comment(Lexer *l, Pos pos)
+static void scan_block_comment(Lexer *l, struct Pos pos)
 {
-    const Pos commentpos = pos;
+    const struct Pos commentpos = pos;
     // already accepted "/*"
     int depth = 1;
 
@@ -498,7 +497,7 @@ static int count_indent(Lexer *l)
     return indent;
 }
 
-static int scan_indent(Lexer *l, Token *tok)
+static int scan_indent(Lexer *l, struct Token *tok)
 {
     const int indent = count_indent(l);
 
@@ -537,9 +536,9 @@ static int scan_indent(Lexer *l, Token *tok)
     }
 }
 
-static void get_token(Lexer *l, Token *tok)
+static void get_token(Lexer *l, struct Token *tok)
 {
-    const static Token ini = {0};
+    const static struct Token ini = {0};
     *tok = ini;
 
     if (l->unread_blockend > 0) {
@@ -558,7 +557,7 @@ static void get_token(Lexer *l, Token *tok)
 
     while (!eof(l)) {
         int ch = get(l);
-        const Pos pos = l->pos;
+        const struct Pos pos = l->pos;
 
         // number
         if (isdigit(ch)) {
@@ -848,16 +847,16 @@ static void get_token(Lexer *l, Token *tok)
     set(tok, T_EOF, l->pos);
 }
 
-const Token *Tokenize(const char *src)
+const struct Token *Tokenize(const char *src)
 {
     Lexer l;
     set_input(&l, src);
 
-    Token *head = CALLOC(Token);
-    Token *tail = head;
+    struct Token *head = CALLOC(struct Token);
+    struct Token *tail = head;
 
     for (;;) {
-        Token *t = CALLOC(Token);
+        struct Token *t = CALLOC(struct Token);
         get_token(&l, t);
 
         tail->next = t;
@@ -869,61 +868,4 @@ const Token *Tokenize(const char *src)
     }
 
     return head;
-}
-
-void PrintToken(const Token *token, bool format)
-{
-    int indent = 0;
-    bool bol = true;
-
-    for (const Token *tok = token; tok; tok = tok->next) {
-
-        if (tok->kind == T_NUL)
-            continue;
-
-        if (!format) {
-            printf("(%4d, %3d) %s",
-                    tok->pos.y, tok->pos.x,
-                    TokenKindString(tok->kind));
-
-            if (tok->kind == T_IDENT)
-                printf(" (%s)", tok->sval);
-            if (tok->kind == T_INTLIT)
-                printf(" (%ld)", tok->ival);
-            if (tok->kind == T_FLTLIT)
-                printf(" (%g)", tok->fval);
-            if (tok->kind == T_STRLIT)
-                printf(" (\"%s\")", tok->sval);
-
-            printf("\n");
-        }
-        else {
-            if (tok->kind == T_BLOCKBEGIN) {
-                indent++;
-                continue;
-            }
-            else if (tok->kind == T_BLOCKEND) {
-                indent--;
-                continue;
-            }
-
-            if (bol) {
-                bol = false;
-                for (int i = 0; i < indent; i++)
-                    printf("....");
-            }
-
-            if (tok->kind == T_NEWLINE) {
-                printf("%s\n", TokenKindString(tok->kind));
-                bol = true;
-            }
-            else if (tok->kind != T_BLOCKBEGIN && tok->kind != T_BLOCKEND) {
-                printf("%s ", TokenKindString(tok->kind));
-            }
-        }
-
-        if (tok->kind == T_EOF)
-            break;
-    }
-    printf("\n");
 }

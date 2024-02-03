@@ -27,7 +27,7 @@ struct Expr {
         const char *sval;
     };
     const char *converted;
-    Pos pos;
+    struct Pos pos;
 };
 
 Expr *NewNullExpr(void);
@@ -41,7 +41,7 @@ Expr *NewIdentExpr(struct Symbol *sym);
 Expr *NewFieldExpr(struct Field *f);
 Expr *NewSelectExpr(Expr *inst, Expr *fld);
 Expr *NewIndexExpr(Expr *ary, Expr *idx);
-Expr *NewCallExpr(Expr *callee, Pos p);
+Expr *NewCallExpr(Expr *callee, struct Pos p);
 Expr *NewBinaryExpr(Expr *L, Expr *R, int k);
 Expr *NewRelationalExpr(Expr *L, Expr *R, int k);
 Expr *NewUnaryExpr(Expr *L, Type *t, int k);

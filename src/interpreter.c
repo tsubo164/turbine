@@ -19,7 +19,7 @@ static void print_header(const char *title)
 
 Int Interpret(const char *src, const char *filename, const Option *opt)
 {
-    const Token *tok = NULL;
+    const struct Token *tok = NULL;
     struct Scope builtin = {0};
     struct Scope *global = NULL;
     Bytecode code = {{0}};

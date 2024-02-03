@@ -46,7 +46,7 @@ typedef struct Parser {
     struct Module *module;
 } Parser;
 
-static void error(const Parser *p, Pos pos, const char *fmt, ...)
+static void error(const Parser *p, struct Pos pos, const char *fmt, ...)
 {
     va_list args; 
     va_start(args, fmt);
@@ -54,12 +54,12 @@ static void error(const Parser *p, Pos pos, const char *fmt, ...)
     va_end(args);
 }
 
-static const Token *curtok(const Parser *p)
+static const struct Token *curtok(const Parser *p)
 {
     return p->curr_;
 }
 
-static const Token *gettok(Parser *p)
+static const struct Token *gettok(Parser *p)
 {
     p->curr_ = p->curr_->next;
     return p->curr_;
@@ -70,7 +70,7 @@ static void ungettok(Parser *p)
     p->curr_ = p->curr_->prev;
 }
 
-static Pos tok_pos(const Parser *p)
+static struct Pos tok_pos(const Parser *p)
 {
     return p->curr_->pos;
 }
@@ -100,9 +100,9 @@ static int peek(const Parser *p)
 
 static void expect(Parser *p, int kind)
 {
-    const Token *tok = gettok(p);
+    const struct Token *tok = gettok(p);
     if (tok->kind != kind) {
-        error(p, tok->pos, "expected '%s'", TokenKindString(kind));
+        error(p, tok->pos, "expected '%s'", TokenString(kind));
     }
 }
 
@@ -173,7 +173,7 @@ static Expr *arg_list(Parser *p, Expr *call)
 static Expr *conv_expr(Parser *p, int kind)
 {
     Type *to_type = type_spec(p);
-    const Pos tokpos = tok_pos(p);
+    const struct Pos tokpos = tok_pos(p);
 
     expect(p, T_LPAREN);
     Expr *expr = expression(p);
@@ -219,12 +219,12 @@ static Expr *primary_expr(Parser *p)
 
     if (consume(p, T_STRLIT)) {
         Expr *e = NewStringLitExpr(tok_str(p));
-        const Token *tok = curtok(p);
+        const struct Token *tok = curtok(p);
         if (tok->has_escseq) {
             const int errpos = ConvertEscapeSequence(e->sval, &e->converted);
             if (errpos != -1) {
                 printf("!! e->val.s [%s] errpos %d\n", e->sval, errpos);
-                Pos pos = tok->pos;
+                struct Pos pos = tok->pos;
                 pos.x += errpos + 1;
                 error(p, pos, "unknown escape sequence");
             }
@@ -261,7 +261,7 @@ static Expr *primary_expr(Parser *p)
     Expr *expr = NULL;
 
     for (;;) {
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
 
         if (tok->kind == T_IDENT) {
             struct Symbol *sym = FindSymbol(p->scope, tok->sval);
@@ -338,7 +338,7 @@ static Expr *primary_expr(Parser *p)
             if (!expr) {
                 error(p, tok->pos,
                         "unknown token for primary expression: \"%s\"",
-                        TokenKindString(tok->kind));
+                        TokenString(tok->kind));
             }
 
             ungettok(p);
@@ -353,7 +353,7 @@ static Expr *primary_expr(Parser *p)
 // unary_op   = "+" | "-" | "!" | "~"
 static Expr *unary_expr(Parser *p)
 {
-    const Token *tok = gettok(p);
+    const struct Token *tok = gettok(p);
     const int kind = tok->kind;
 
     if (kind == T_AND) {
@@ -395,7 +395,7 @@ static Expr *mul_expr(Parser *p)
     Expr *R = NULL;
 
     for (;;) {
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_MUL:
@@ -429,7 +429,7 @@ static Expr *add_expr(Parser *p)
     Expr *R = NULL;
 
     for (;;) {
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_ADD:
@@ -461,7 +461,7 @@ static Expr *rel_expr(Parser *p)
     Expr *R = NULL;
 
     for (;;) {
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_EQ:
@@ -493,7 +493,7 @@ static Expr *logand_expr(Parser *p)
     Expr *expr = rel_expr(p);
 
     for (;;) {
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_LAND:
@@ -513,7 +513,7 @@ static Expr *logor_expr(Parser *p)
     Expr *expr = logand_expr(p);
 
     for (;;) {
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_LOR:
@@ -535,7 +535,7 @@ static Expr *assign_expr(Parser *p)
 {
     Expr *lval = logor_expr(p);
     Expr *rval = NULL;
-    const Token *tok = gettok(p);
+    const struct Token *tok = gettok(p);
     const int kind = tok->kind;
 
     switch (kind) {
@@ -655,7 +655,7 @@ static Stmt *for_stmt(Parser *p)
             post = NewNullExpr();
         }
         else {
-            const Token *tok = gettok(p);
+            const struct Token *tok = gettok(p);
             error(p, tok->pos, "unknown token");
         }
     }
@@ -667,7 +667,7 @@ static Stmt *for_stmt(Parser *p)
 
 static Stmt *jump_stmt(Parser *p)
 {
-    const Token *tok = gettok(p);
+    const struct Token *tok = gettok(p);
     const int kind = tok->kind;
 
     if (kind == T_BRK) {
@@ -717,7 +717,7 @@ static Stmt *switch_stmt(Parser *p)
     int default_count = 0;
 
     for (;;) {
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
         case T_CASE:
@@ -743,7 +743,7 @@ static Stmt *ret_stmt(Parser *p)
 {
     expect(p, T_RET);
 
-    const Pos exprpos = tok_pos(p);
+    const struct Pos exprpos = tok_pos(p);
     Expr *expr = NULL;
 
     if (consume(p, T_NEWLINE)) {
@@ -1086,10 +1086,10 @@ static Type *type_spec(Parser *p)
         type = NewTypeStruct(FindStruct(p->scope, tok_str(p)));
     }
     else {
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
         error(p, tok->pos,
                 "not a type name: '%s'",
-                TokenKindString(tok->kind));
+                TokenString(tok->kind));
     }
 
     return type;
@@ -1222,10 +1222,10 @@ static void program(Parser *p)
             break;
         }
 
-        const Token *tok = gettok(p);
+        const struct Token *tok = gettok(p);
         error(p, tok->pos,
                 "error: unexpected token for global object: '%s'",
-                TokenKindString(next));
+                TokenString(next));
     }
 
     p->module->gvars = head.next;

@@ -103,7 +103,7 @@ Expr *NewIndexExpr(Expr *ary, Expr *idx)
     return e;
 }
 
-Expr *NewCallExpr(Expr *callee, Pos p)
+Expr *NewCallExpr(Expr *callee, struct Pos p)
 {
     Expr *e = CALLOC(Expr);
     e->type = callee->type->func->return_type;
