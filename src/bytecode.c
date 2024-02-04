@@ -290,7 +290,6 @@ void CallFunc(Bytecode *code, const char *fullname, bool builtin)
 
     // emit
     uint64_t func_index = (uint64_t) ent->val;
-    printf("%s => Called. (%llu)\n", fullname, func_index);
     push_byte(&code->bytes_, OP_CALL);
     push_word(&code->bytes_, func_index);
 }
@@ -586,7 +585,6 @@ uint16_t RegisterFunc(struct Bytecode *code, const char *fullname, uint8_t argc)
     const uint64_t next_index = code->funcs_.len;
     HashMapInsert(&code->funcnames, fullname, (void *)next_index);
 
-    //printf("%s => Registered. (%llu)\n", fullname, next_index);
     const Int next_addr = NextAddr(code);
     push_info(&code->funcs_, next_index, argc, next_addr);
 

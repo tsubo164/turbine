@@ -14,8 +14,6 @@
 #include <stdio.h>
 
 // TODO
-#include "intern.h"
-
 #include "strbuf.h"
 static const char *read_file(const char *filename)
 {
@@ -1138,7 +1136,7 @@ static struct Stmt *func_def(struct Parser *p)
         p->module->main_func = sym->var;
 
     struct Expr *ident = NewIdentExpr(sym);
-    struct Expr *init = NewIntLitExpr(func->id);
+    struct Expr *init = NewFuncLitExpr(func);
     return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
 

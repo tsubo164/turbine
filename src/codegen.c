@@ -91,7 +91,6 @@ static void gen_convert(Bytecode *code, enum TY from, enum TY to)
     }
 }
 
-#define TEST 0
 static void gen_call(Bytecode *code, const struct Expr *e)
 {
     // TODO need CallExpr::func?
@@ -138,15 +137,11 @@ static void gen_call(Bytecode *code, const struct Expr *e)
             gen_expr(code, arg);
     }
 
-#if TEST
-    CallFunc(code, func->fullname, func->is_builtin);
-#else
     // TODO remove this by doing expr->Gen()
     int addr = 0;
     if (EvalAddr(e->l, &addr)) {
         CallFunction(code, addr, func->is_builtin);
     }
-#endif
 }
 
 static void gen_logor(Bytecode *code, const struct Expr *e)
@@ -271,6 +266,10 @@ static void gen_expr(Bytecode *code, const struct Expr *e)
             const Word id = RegisterConstString(code, s);
             LoadString(code, id);
         }
+        return;
+
+    case T_FUNCLIT:
+        LoadInt(code, e->func->id);
         return;
 
     case T_CONV:
@@ -676,11 +675,8 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
 
 static void gen_func(Bytecode *code, const struct Func *func, int func_id)
 {
-#if TEST
-    BackPatchFuncAddr(code, func->fullname);
-#else
+    //BackPatchFuncAddr(code, func->fullname);
     RegisterFunction(code, func_id, func->params.len);
-#endif
 
     // local vars
     Allocate(code, TotalVarSize(func->scope));
@@ -702,12 +698,7 @@ static void gen_module(Bytecode *code, const struct Module *mod)
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
     // call main
-#if TEST
-    const struct Func *main_func = mod->main_func->type->func;
-    CallFunc(code, main_func->fullname, main_func->is_builtin);
-#else
     CallFunction(code, mod->main_func->offset, mod->main_func->type->func->is_builtin);
-#endif
     Exit(code);
 
     // global funcs
@@ -718,21 +709,19 @@ static void gen_module(Bytecode *code, const struct Module *mod)
     }
 }
 
-static void register_funcs(Bytecode *code, const struct Module *mod)
+/*static*/ void register_funcs(Bytecode *code, const struct Module *mod)
 {
-#if TEST
     for (int i = 0; i < mod->funcs.len; i++) {
         Func *func = mod->funcs.data[i];
         if (!func->is_builtin) {
             func->id = RegisterFunc(code, func->fullname, func->params.len);
         }
     }
-#endif
 }
 
 void GenerateCode(struct Bytecode *code, const struct Module *mod)
 {
-    register_funcs(code, mod);
+    //register_funcs(code, mod);
     gen_module(code, mod);
     End(code);
 }
