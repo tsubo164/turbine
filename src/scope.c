@@ -15,19 +15,6 @@ struct Scope *NewScope(struct Scope *parent, int var_offset)
     return sc;
 }
 
-struct Scope *OpenChild(struct Scope *sc)
-{
-    const int next_id = sc->cur_offset;
-
-    struct Scope *child = NewScope(sc, next_id);
-    if (!sc->children_)
-        sc->child_tail = sc->children_ = child;
-    else
-        sc->child_tail = sc->child_tail->next = child;
-
-    return child;
-}
-
 static struct Var *new_var(const char *Name, const struct Type *t, int offset, bool global)
 {
     struct Var *v = CALLOC(struct Var);

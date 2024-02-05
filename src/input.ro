@@ -8,10 +8,10 @@
 //  - x int
 //  - q float
 //
-//# sub(x int, y int) int
-//  - z int
-//  z = x - y
-//  return z
+# sub(x int, y int) int
+  - z int
+  z = x - y
+  return z
 //:: Color
 //  | R
 //  | G
@@ -32,21 +32,13 @@
 //  | AZ  | "Arizona"    |
 //  | TX  | "Texas"      |
 //  | NY  | "New Yourk"  |
-//- p = 3.14
+- p = 3.14
 
 # main() int
   //a = Color.G
   //print(my_calc.PI)
   //print(p)
-  //print("Hello")
+  print("Hello", p)
   //return  my_calc.add(9, 4)
   //return sub(42, 20)
-  return 42
-//# seven() int
-//    return 7
-//
-//# add(x int, y int) int
-//    return x + y
-//
-//# main() int
-//    return seven() + 35
+  return sub(48, 6)

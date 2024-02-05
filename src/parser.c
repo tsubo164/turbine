@@ -571,6 +571,19 @@ static struct Expr *expression(Parser *p)
     return assign_expr(p);
 }
 
+static struct Scope *new_child_scope(struct Parser *p)
+{
+    struct Scope *parent = p->scope;
+    struct Scope *child = NewScope(parent, parent->cur_offset);
+
+    if (!parent->children_)
+        parent->child_tail = parent->children_ = child;
+    else
+        parent->child_tail = parent->child_tail->next = child;
+
+    return child;
+}
+
 static struct Stmt *or_stmt(Parser *p)
 {
     struct Expr *cond = NULL;
@@ -585,7 +598,7 @@ static struct Stmt *or_stmt(Parser *p)
         expect(p, T_NEWLINE);
     }
 
-    struct Stmt *body = block_stmt(p, OpenChild(p->scope));
+    struct Stmt *body = block_stmt(p, new_child_scope(p));
 
     return NewOrStmt(cond, body);
 }
@@ -599,7 +612,7 @@ static struct Stmt *if_stmt(Parser *p)
     struct Stmt head = {0};
     struct Stmt *tail = &head;
 
-    struct Stmt *body = block_stmt(p, OpenChild(p->scope));
+    struct Stmt *body = block_stmt(p, new_child_scope(p));
     tail = tail->next = NewOrStmt(cond, body);
 
     bool endor = false;
@@ -659,7 +672,7 @@ static struct Stmt *for_stmt(Parser *p)
     }
 
     // body
-    struct Stmt *body = block_stmt(p, OpenChild(p->scope));
+    struct Stmt *body = block_stmt(p, new_child_scope(p));
     return NewForStmt(init, cond, post, body);
 }
 
@@ -697,7 +710,7 @@ static struct Stmt *case_stmt(Parser *p, int kind)
 
     expect(p, T_NEWLINE);
 
-    struct Stmt *body = block_stmt(p, OpenChild(p->scope));
+    struct Stmt *body = block_stmt(p, new_child_scope(p));
     return NewCaseStmt(head.next, body, kind);
 }
 
@@ -777,7 +790,7 @@ static struct Stmt *scope_stmt(Parser *p)
     expect(p, T_DASH3);
     expect(p, T_NEWLINE);
 
-    return block_stmt(p, OpenChild(p->scope));
+    return block_stmt(p, new_child_scope(p));
 }
 
 static struct Stmt *nop_stmt(Parser *p)

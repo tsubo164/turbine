@@ -103,7 +103,6 @@ struct Scope {
 };
 
 struct Scope *NewScope(struct Scope *parent, int var_offset);
-struct Scope *OpenChild(struct Scope *sc);
 
 struct Symbol *DefineVar(struct Scope *sc, const char *name,
         const struct Type *type, bool isglobal);

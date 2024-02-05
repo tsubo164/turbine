@@ -21,7 +21,6 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
 {
     const struct Token *tok = NULL;
     struct Scope builtin = {0};
-    struct Scope *global = NULL;
     Bytecode code = {{0}};
     VM vm = {{0}};
 
@@ -40,12 +39,11 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     }
 
     // Compile source
-    global = OpenChild(&builtin);
-    struct Module *module = Parse(src, filename, StrIntern("_main"), tok, global);
+    struct Module *prog = Parse(src, filename, StrIntern("_main"), tok, &builtin);
 
     if (opt->print_tree) {
         print_header("tree");
-        PrintProg(module);
+        PrintProg(prog);
     }
 
     if (opt->print_symbols) {
@@ -53,12 +51,12 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
         if (opt->print_symbols_all)
             PrintScope(&builtin);
         else
-            PrintScope(global);
+            PrintScope(prog->scope);
     }
 
     // Generate bytecode
     SetOptimize(opt->enable_optimize);
-    GenerateCode(&code, module);
+    GenerateCode(&code, prog);
 
     if (opt->print_bytecode) {
         print_header("bytecode");
