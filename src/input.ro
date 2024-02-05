@@ -34,19 +34,19 @@
 //  | NY  | "New Yourk"  |
 //- p = 3.14
 
-//# main() int
-//  //a = Color.G
-//  //print(my_calc.PI)
-//  //print(p)
-//  //print("Hello")
-//  //return  my_calc.add(9, 4)
-//  //return sub(42, 20)
-//  return 20
-# seven() int
-    return 7
-
+# main() int
+  //a = Color.G
+  //print(my_calc.PI)
+  //print(p)
+  //print("Hello")
+  //return  my_calc.add(9, 4)
+  //return sub(42, 20)
+  return 42
+//# seven() int
+//    return 7
+//
 //# add(x int, y int) int
 //    return x + y
 //
-# main() int
-    return seven() + 35
+//# main() int
+//    return seven() + 35

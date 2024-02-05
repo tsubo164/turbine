@@ -76,7 +76,7 @@ enum SymbolKind {
     SYM_MODULE,
 };
 
-typedef struct Symbol {
+struct Symbol {
     int kind;
     int id;
     const char *name;
@@ -89,7 +89,7 @@ typedef struct Symbol {
         struct Table *table;
         struct Module *module;
     };
-} Symbol;
+};
 
 struct Scope {
     struct Scope *parent;
@@ -114,7 +114,7 @@ struct Struct *FindStruct(const struct Scope *sc, const char *name);
 struct Table *DefineTable(struct Scope *sc, const char *name);
 struct Module *DefineModule(struct Scope *sc, const char *filename, const char *modulename);
 
-Symbol *FindSymbol(const struct Scope *sc, const char *name);
+struct Symbol *FindSymbol(const struct Scope *sc, const char *name);
 
 int VarSize(const struct Scope *sc);
 int TotalVarSize(const struct Scope *sc);

@@ -46,8 +46,8 @@ static struct Var *new_var(const char *Name, const struct Type *t, int offset, b
 }
 
 // TODO remove forward decls
-static Symbol *new_symbol(int kind, const char *name, const Type *t);
-Symbol *FindSymbolThisScope(struct Scope *sc, const char *name);
+static struct Symbol *new_symbol(int kind, const char *name, const Type *t);
+struct Symbol *FindSymbolThisScope(struct Scope *sc, const char *name);
 
 struct Symbol *DefineVar(struct Scope *sc, const char *name, const Type *type, bool isglobal)
 {
@@ -57,7 +57,7 @@ struct Symbol *DefineVar(struct Scope *sc, const char *name, const Type *type, b
     const int next_id = next_var_id(sc);
     struct Var *var = new_var(name, type, next_id, isglobal);
 
-    Symbol *sym = new_symbol(SYM_VAR, name, type);
+    struct Symbol *sym = new_symbol(SYM_VAR, name, type);
     sym->var = var;
 
     sc->var_offset_ += SizeOf(var->type);
@@ -79,7 +79,7 @@ static struct Struct *new_struct(const char *name)
 struct Struct *DefineStruct(struct Scope *sc, const char *name)
 {
     struct Struct *strct = new_struct(name);
-    Symbol *sym = new_symbol(SYM_STRUCT, name, NewStructType(strct));
+    struct Symbol *sym = new_symbol(SYM_STRUCT, name, NewStructType(strct));
     sym->strct = strct;
 
     if (!HashMapInsert(&sc->symbols, name, sym))
@@ -90,16 +90,16 @@ struct Struct *DefineStruct(struct Scope *sc, const char *name)
 
 struct Struct *FindStruct(const struct Scope *sc, const char *name)
 {
-    Symbol *sym = FindSymbol(sc, name);
+    struct Symbol *sym = FindSymbol(sc, name);
     if (sym)
         return sym->strct;
 
     return NULL;
 }
 
-static Symbol *new_symbol(int kind, const char *name, const Type *t)
+static struct Symbol *new_symbol(int kind, const char *name, const Type *t)
 {
-    Symbol *sym = CALLOC(Symbol);
+    struct Symbol *sym = CALLOC(struct Symbol);
     sym->kind = kind;
     sym->name = name;
     sym->type = t;
@@ -111,7 +111,7 @@ struct Table *DefineTable(struct Scope *sc, const char *name)
     struct Table *tab = CALLOC(struct Table);
     tab->name = name;
 
-    Symbol *sym = new_symbol(SYM_TABLE, name, NewTableType(tab));
+    struct Symbol *sym = new_symbol(SYM_TABLE, name, NewTableType(tab));
     sym->table = tab;
 
     if (!HashMapInsert(&sc->symbols, name, sym))
@@ -127,7 +127,7 @@ struct Module *DefineModule(struct Scope *sc, const char *filename, const char *
     mod->filename = filename;
     mod->scope = new_scope(sc, next_var_id(sc));
 
-    Symbol *sym = new_symbol(SYM_MODULE, modulename, NewModuleType(mod));
+    struct Symbol *sym = new_symbol(SYM_MODULE, modulename, NewModuleType(mod));
     sym->module = mod;
 
     if (!HashMapInsert(&sc->symbols, modulename, sym))
@@ -136,7 +136,7 @@ struct Module *DefineModule(struct Scope *sc, const char *filename, const char *
     return mod;
 }
 
-Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
+struct Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
 {
     struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
     if (ent)
@@ -145,7 +145,7 @@ Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
     return NULL;
 }
 
-Symbol *FindSymbol(const struct Scope *sc, const char *name)
+struct Symbol *FindSymbol(const struct Scope *sc, const char *name)
 {
     struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
     if (ent)
