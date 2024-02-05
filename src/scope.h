@@ -97,7 +97,7 @@ struct Scope {
     struct Scope *child_tail;
     struct Scope *next;
 
-    int var_offset_;
+    int cur_offset;
 
     struct HashMap symbols;
 };

@@ -1172,7 +1172,7 @@ static void module_import(struct Parser *p)
     struct Module *mod = Parse(src, filename, modulename, tok, p->scope);
     // TODO come up with better way to take over var id from child
     // Maybe need one more pass to fill id
-    p->scope->var_offset_ = mod->scope->var_offset_;
+    p->scope->cur_offset = mod->scope->cur_offset;
 
     expect(p, T_RBRACK);
     expect(p, T_NEWLINE);

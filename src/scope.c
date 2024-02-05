@@ -6,27 +6,20 @@
 #include <stdio.h>
 
 // Scope
-static struct Scope *new_scope(struct Scope *parent, int var_offset)
+struct Scope *NewScope(struct Scope *parent, int var_offset)
 {
     struct Scope *sc = CALLOC(struct Scope);
     sc->parent = parent;
-    sc->var_offset_ = var_offset;
+    sc->cur_offset = var_offset;
 
     return sc;
 }
 
-static int next_var_id(const struct Scope *sc);
-
-struct Scope *NewScope(struct Scope *parent, int var_offset)
-{
-    return new_scope(parent, var_offset);
-}
-
 struct Scope *OpenChild(struct Scope *sc)
 {
-    const int next_id = sc->var_offset_;
+    const int next_id = sc->cur_offset;
 
-    struct Scope *child = new_scope(sc, next_id);
+    struct Scope *child = NewScope(sc, next_id);
     if (!sc->children_)
         sc->child_tail = sc->children_ = child;
     else
@@ -54,13 +47,13 @@ struct Symbol *DefineVar(struct Scope *sc, const char *name, const Type *type, b
     if (FindSymbolThisScope(sc, name))
         return NULL;
 
-    const int next_id = next_var_id(sc);
+    const int next_id = sc->cur_offset;
     struct Var *var = new_var(name, type, next_id, isglobal);
 
     struct Symbol *sym = new_symbol(SYM_VAR, name, type);
     sym->var = var;
 
-    sc->var_offset_ += SizeOf(var->type);
+    sc->cur_offset += SizeOf(var->type);
 
     if (!HashMapInsert(&sc->symbols, name, sym))
         return NULL;
@@ -125,7 +118,7 @@ struct Module *DefineModule(struct Scope *sc, const char *filename, const char *
     struct Module *mod = CALLOC(struct Module);
     mod->name = modulename;
     mod->filename = filename;
-    mod->scope = new_scope(sc, next_var_id(sc));
+    mod->scope = NewScope(sc, sc->cur_offset);
 
     struct Symbol *sym = new_symbol(SYM_MODULE, modulename, NewModuleType(mod));
     sym->module = mod;
@@ -157,14 +150,9 @@ struct Symbol *FindSymbol(const struct Scope *sc, const char *name)
     return NULL;
 }
 
-static int next_var_id(const struct Scope *sc)
-{
-    return sc->var_offset_;
-}
-
 static int max_var_id(const struct Scope *sc)
 {
-    int max = next_var_id(sc) - 1;
+    int max = sc->cur_offset - 1;
 
     for (struct Scope *child = sc->children_; child; child = child->next) {
         int child_max = max_var_id(child);
@@ -176,7 +164,7 @@ static int max_var_id(const struct Scope *sc)
 
 int VarSize(const struct Scope *sc)
 {
-    return next_var_id(sc);
+    return sc->cur_offset;
 }
 
 int TotalVarSize(const struct Scope *sc)
