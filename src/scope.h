@@ -12,6 +12,7 @@ struct Var {
     const char *name;
     const struct Type *type;
     int offset;
+    int id;
     bool is_global;
 };
 
@@ -74,6 +75,7 @@ enum SymbolKind {
     SYM_TABLE,
     SYM_STRUCT,
     SYM_MODULE,
+    SYM_SCOPE,
 };
 
 struct Symbol {
@@ -88,6 +90,7 @@ struct Symbol {
         struct Struct *strct;
         struct Table *table;
         struct Module *module;
+        struct Scope *scope;
     };
 };
 
@@ -99,6 +102,7 @@ struct Scope {
 
     int cur_offset;
 
+    struct Vec syms;
     struct HashMap symbols;
 };
 
@@ -113,6 +117,7 @@ struct Struct *FindStruct(const struct Scope *sc, const char *name);
 struct Table *DefineTable(struct Scope *sc, const char *name);
 struct Module *DefineModule(struct Scope *sc, const char *filename, const char *modulename);
 
+struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type);
 struct Symbol *FindSymbol(const struct Scope *sc, const char *name);
 
 int VarSize(const struct Scope *sc);

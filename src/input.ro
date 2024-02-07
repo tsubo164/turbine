@@ -11,7 +11,16 @@
 # sub(x int, y int) int
   - z int
   z = x - y
+  ---
+    - p = 44
+    - q = 11
+  - a int = 99
   return z
+
+# add(a int, b int, c int) int
+  - d int
+  d = a + b + c
+  return d
 //:: Color
 //  | R
 //  | G

@@ -169,24 +169,6 @@ static void print_module(const struct Module *mod, int depth)
         struct Func *f = mod->funcs.data[i];
         print_func(f, depth + 1);
     }
-    //const struct Func *funcs[128] = {NULL};
-    //int nfuncs = 0;
-    //for (int i = 0; i < mod->scope->symbols.cap; i++) {
-    //    const struct MapEntry *e = &mod->scope->symbols.buckets[i];
-    //    if (!e->key)
-    //        continue;
-    //    const struct Symbol *sym = e->val;
-
-    //    if (sym->kind == SYM_VAR) {
-    //        const struct Var *var = sym->var;
-    //        if (IsFunc(var->type)) {
-    //            funcs[var->type->func->id] = var->type->func;
-    //            nfuncs++;
-    //        }
-    //    }
-    //}
-    //for (int i = 0; i < nfuncs; i++)
-    //    print_func(funcs[i], depth + 1);
 }
 
 void PrintProg(const struct Module *mod)
@@ -207,26 +189,23 @@ static void print_header(int depth)
 static void print_scope(const struct Scope *sc, int depth)
 {
     // symbols
-    for (int i = 0; i < sc->symbols.cap; i++) {
-        const struct MapEntry *e = &sc->symbols.buckets[i];
-        if (!e->key)
-            continue;
-        const struct Symbol *sym = e->val;
+    for (int i = 0; i < sc->syms.len; i++) {
+        const struct Symbol *sym = sc->syms.data[i];
 
         if (sym->kind == SYM_VAR) {
             const struct Var *v = sym->var;
 
             if (IsFunc(v->type)) {
                 print_header(depth);
-                printf("[func] \"%s\" @%d %s(%d)\n",
+                printf("[func] \"%s\" @%d %s(%d) (index %d)\n",
                         v->name, v->offset,
-                        TypeString(v->type), v->type->func->id);
+                        TypeString(v->type), v->type->func->id, v->id);
                 print_scope(v->type->func->scope, depth + 1);
             }
             else {
                 print_header(depth);
-                printf("[var] \"%s\" @%d %s\n",
-                        v->name, v->offset, TypeString(v->type));
+                printf("[var] \"%s\" @%d %s (index %d)\n",
+                        v->name, v->offset, TypeString(v->type), v->id);
             }
         }
 
@@ -265,17 +244,17 @@ static void print_scope(const struct Scope *sc, int depth)
             printf("[module] \"%s\"\n", m->name);
             print_scope(m->scope, depth + 1);
         }
+
+        if (sym->kind == SYM_SCOPE) {
+            const struct Scope *child = sym->scope;
+            print_scope(child, depth + 1);
+        }
     }
 
     if ( sc->symbols.used == 0) {
         // no symbol
         print_header(depth);
         printf("--\n");
-    }
-
-    // children
-    for (struct Scope *scope = sc->children_; scope; scope = scope->next) {
-        print_scope(scope, depth + 1);
     }
 }
 

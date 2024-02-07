@@ -41,6 +41,7 @@ typedef struct Parser {
     const char *src_;
     const char *filename;
 
+    int lvar_id;
     struct Module *module;
 } Parser;
 
@@ -581,6 +582,10 @@ static struct Scope *new_child_scope(struct Parser *p)
     else
         parent->child_tail = parent->child_tail->next = child;
 
+    struct Symbol *sym = NewSymbol(SYM_SCOPE, "_", NewNilType());
+    sym->scope = child;
+    VecPush(&parent->syms, sym);
+
     return child;
 }
 
@@ -839,7 +844,7 @@ static struct Expr *default_value(const Type *type)
 
 // var_decl = "-" identifier type newline
 //          | "-" identifier type = expression newline
-static struct Stmt *var_decl(Parser *p, bool isglobal)
+static struct Stmt *var_decl(Parser *p, int var_id, bool isglobal)
 {
     expect(p, T_SUB);
     expect(p, T_IDENT);
@@ -876,6 +881,7 @@ static struct Stmt *var_decl(Parser *p, bool isglobal)
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
     }
+    sym->var->id = var_id;
     struct Expr *ident = NewIdentExpr(sym);
     return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
 }
@@ -958,7 +964,7 @@ static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope)
         const int next = peek(p);
 
         if (next == T_SUB) {
-            tail = tail->next = var_decl(p, false);
+            tail = tail->next = var_decl(p, p->lvar_id++, false);
             continue;
         }
         else if (next == T_IF) {
@@ -1009,6 +1015,19 @@ static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope)
     return NewBlockStmt(head.next);
 }
 
+static void declare_param(struct Func *f, const char *name, const Type *type, int lvar_id)
+{
+    struct Symbol *sym = DefineVar(f->scope, name, type, false);
+    VecPush(&f->params, sym->var);
+    sym->var->id = lvar_id;
+
+    if (!strcmp(name, "..."))
+        f->is_variadic = true;
+
+    if (name[0] == '$')
+        f->has_special_var = true;
+}
+
 static void param_list(Parser *p, Func *func)
 {
     expect(p, T_LPAREN);
@@ -1030,7 +1049,8 @@ static void param_list(Parser *p, Func *func)
             type = type_spec(p);
         }
 
-        DeclareParam(func, name, type);
+        // TODO use param_decl(p, p->lvar_id++);
+        declare_param(func, name, type, p->lvar_id++);
     }
     while (consume(p, T_COMMA));
 
@@ -1107,7 +1127,7 @@ static Type *type_spec(Parser *p)
 }
 
 // func_def = "#" identifier param_list type_spec? newline block_stmt
-static struct Stmt *func_def(struct Parser *p)
+static struct Stmt *func_def(struct Parser *p, int gvar_id)
 {
     expect(p, T_HASH);
     expect(p, T_IDENT);
@@ -1119,17 +1139,19 @@ static struct Stmt *func_def(struct Parser *p)
     func->id = p->module->funcs.len;
     VecPush(&p->module->funcs, func);
 
-    // params
-    param_list(p, func);
-    ret_type(p, func);
-    expect(p, T_NEWLINE);
-
     // func var
     struct Symbol *sym = DefineVar(p->scope, name, NewFuncType(func), true);
     if (!sym) {
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
     }
+    sym->var->id = gvar_id;
+
+    // params
+    p->lvar_id = 0;
+    param_list(p, func);
+    ret_type(p, func);
+    expect(p, T_NEWLINE);
 
     // func body
     p->func_ = func;
@@ -1195,12 +1217,13 @@ static void program(Parser *p)
 {
     struct Stmt head = {0};
     struct Stmt *tail = &head;
+    int gvar_id = 0;
 
     for (;;) {
         const int next = peek(p);
 
         if (next == T_HASH) {
-            tail = tail->next = func_def(p);
+            tail = tail->next = func_def(p, gvar_id++);
             continue;
         }
 
@@ -1215,7 +1238,7 @@ static void program(Parser *p)
         }
 
         if (next == T_SUB) {
-            tail = tail->next = var_decl(p, true);
+            tail = tail->next = var_decl(p, gvar_id++, true);
             continue;
         }
 
