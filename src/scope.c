@@ -140,26 +140,9 @@ struct Symbol *FindSymbol(const struct Scope *sc, const char *name)
     return NULL;
 }
 
-static int max_var_id(const struct Scope *sc)
-{
-    int max = sc->cur_offset - 1;
-
-    for (struct Scope *child = sc->children_; child; child = child->next) {
-        int child_max = max_var_id(child);
-        max = max < child_max ? child_max : max;
-    }
-
-    return max;
-}
-
 int VarSize(const struct Scope *sc)
 {
     return sc->cur_offset;
-}
-
-int TotalVarSize(const struct Scope *sc)
-{
-    return max_var_id(sc) + 1;
 }
 
 static const char *func_fullname(const char *modulefile, const char *funcname)

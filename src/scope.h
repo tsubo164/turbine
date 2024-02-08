@@ -21,6 +21,7 @@ struct Func {
     const char *fullname;
     const struct Type *return_type;
     struct Vec params;
+    int size;
     int id;
 
     bool is_builtin;
@@ -121,7 +122,6 @@ struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type);
 struct Symbol *FindSymbol(const struct Scope *sc, const char *name);
 
 int VarSize(const struct Scope *sc);
-int TotalVarSize(const struct Scope *sc);
 int FieldSize(const struct Scope *sc);
 
 // Func

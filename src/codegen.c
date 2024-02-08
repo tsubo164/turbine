@@ -679,7 +679,7 @@ static void gen_func(Bytecode *code, const struct Func *func, int func_id)
     RegisterFunction(code, func_id, func->params.len);
 
     // local vars
-    Allocate(code, TotalVarSize(func->scope));
+    Allocate(code, func->size);
 
     gen_stmt(code, func->body);
 }
@@ -724,4 +724,41 @@ void GenerateCode(struct Bytecode *code, const struct Module *mod)
     //register_funcs(code, mod);
     gen_module(code, mod);
     End(code);
+}
+
+int resolve_offset(struct Scope *scope, int start_offset)
+{
+    int offset = start_offset;
+    int max_offset = start_offset;
+
+    for (int i = 0; i < scope->syms.len; i++) {
+        struct Symbol *sym = scope->syms.data[i];
+
+        // TODO may need SYM_FUNC
+        if (sym->kind == SYM_VAR) {
+            struct Var *var = sym->var;
+            var->id = offset;
+            offset += SizeOf(var->type);
+            max_offset = max_offset < offset ? offset : max_offset;
+
+            if (IsFunc(var->type)) {
+                struct Scope *child = var->type->func->scope;
+                // start over from offset 0
+                int child_max = resolve_offset(child, 0);
+                var->type->func->size = child_max;
+            }
+        }
+        else if (sym->kind == SYM_SCOPE) {
+            struct Scope *child = sym->scope;
+            int child_max = resolve_offset(child, offset);
+            max_offset = max_offset < child_max ? child_max : max_offset;
+        }
+    }
+
+    return max_offset;
+}
+
+void ResolveOffset(struct Module *mod)
+{
+    resolve_offset(mod->scope, 0);
 }

@@ -4,15 +4,15 @@
 //[opengl] (github.com/...)
 //[my_calc]
 
-//## Point
-//  - x int
-//  - q float
-//
+## Point
+  - x int
+  - q float
+
 # sub(x int, y int) int
   - z int
   z = x - y
   ---
-    - p = 44
+    - p Point
     - q = 11
   - a int = 99
   return z

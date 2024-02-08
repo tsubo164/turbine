@@ -40,6 +40,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
 
     // Compile source
     struct Module *prog = Parse(src, filename, StrIntern("_main"), tok, &builtin);
+    ResolveOffset(prog);
 
     if (opt->print_tree) {
         print_header("tree");

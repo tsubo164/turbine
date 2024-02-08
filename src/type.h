@@ -26,11 +26,13 @@ enum TY {
 typedef struct Type {
     enum TY kind;
     const struct Type *underlying;
-    const Func *func;
-    const struct Struct *strct;
-    const struct Table *table;
-    const struct Module *module;
-    int len;
+    union {
+        struct Func *func;
+        const struct Struct *strct;
+        const struct Table *table;
+        const struct Module *module;
+        int len;
+    };
 } Type;
 
 Type *NewNilType();

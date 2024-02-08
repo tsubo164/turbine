@@ -148,10 +148,15 @@ const char *TypeString(const Type *type)
     for (const Type *t = type; t; t = t->underlying) {
         char buf[128] = {'\0'};
 
-        if (t->kind == TY_ARRAY)
+        if (t->kind == TY_ARRAY) {
             sprintf(buf, "%s[%d]", interned, t->len);
-        else
+        }
+        else if (t->kind == TY_STRUCT) {
+            sprintf(buf, "%s %s", type_kind_string(t->kind), t->strct->name);
+        }
+        else {
             sprintf(buf, "%s%s", interned, type_kind_string(t->kind));
+        }
 
         interned = StrIntern(buf);
     }
