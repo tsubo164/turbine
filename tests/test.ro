@@ -1,3 +1,5 @@
+[my_calc]
+
 - test_count int
 
 // asserts bool
@@ -10,6 +12,14 @@
 
 // asserts int
 # AssertI(expected int, actual int, $caller_line)
+  test_count++
+
+  if expected != actual
+    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+    exit(1)
+
+// asserts float
+# AssertF(expected float, actual float, $caller_line)
   test_count++
 
   if expected != actual
@@ -204,6 +214,11 @@
     AssertI(0, a)
     AssertI(1, Color.G)
     AssertI(3, a + Color.G + Color.B)
+
+  // module import
+  ---
+    my_calc.PI = 1.23
+    AssertF(1.23, my_calc.PI)
 
   //------------------------------
   print(test_count, "tests done.")

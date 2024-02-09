@@ -2,7 +2,7 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-//[my_calc]
+[my_calc]
 
 ## Point
   - x int
@@ -42,12 +42,17 @@
 //  | TX  | "Texas"      |
 //  | NY  | "New Yourk"  |
 - p = 3.14
+- q = 111
 
 # main() int
   //a = Color.G
   //print(my_calc.PI)
   //print(p)
-  print("Hello", p)
-  //return  my_calc.add(9, 4)
+  //print("Hello", p)
+  //print(my_calc.E)
+  return  my_calc.add(9, 4)
   //return sub(42, 20)
-  return sub(48, 6)
+  //return sub(48, 6)
+  //my_calc.E = 99
+  //return q
+  //return my_calc.E

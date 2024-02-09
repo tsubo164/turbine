@@ -726,6 +726,11 @@ void GenerateCode(struct Bytecode *code, const struct Module *mod)
     End(code);
 }
 
+static int max(int a, int b)
+{
+    return a < b ? b : a;
+}
+
 int resolve_offset(struct Scope *scope, int start_offset)
 {
     int offset = start_offset;
@@ -737,9 +742,9 @@ int resolve_offset(struct Scope *scope, int start_offset)
         // TODO may need SYM_FUNC
         if (sym->kind == SYM_VAR) {
             struct Var *var = sym->var;
-            var->id = offset;
+            var->offset = offset;
             offset += SizeOf(var->type);
-            max_offset = max_offset < offset ? offset : max_offset;
+            max_offset = max(max_offset, offset);
 
             if (IsFunc(var->type)) {
                 struct Scope *child = var->type->func->scope;
@@ -748,10 +753,17 @@ int resolve_offset(struct Scope *scope, int start_offset)
                 var->type->func->size = child_max;
             }
         }
+        else if (sym->kind == SYM_MODULE) {
+            struct Scope *child = sym->module->scope;
+            int child_max = resolve_offset(child, offset);
+            max_offset = max(max_offset, child_max);
+            // take over module's offset
+            offset = max_offset;
+        }
         else if (sym->kind == SYM_SCOPE) {
             struct Scope *child = sym->scope;
             int child_max = resolve_offset(child, offset);
-            max_offset = max_offset < child_max ? child_max : max_offset;
+            max_offset = max(max_offset, child_max);
         }
     }
 
