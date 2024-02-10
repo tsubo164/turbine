@@ -886,6 +886,25 @@ static void run(VM *vm)
             }
             break;
 
+        case OP_PUSH_CHECK_NUM:
+            {
+                Value val;
+                val.inum = fetch_int(vm);
+                push(vm, val);
+            }
+            break;
+
+        case OP_POP_CHECK_NUM:
+            {
+                int64_t check_num = fetch_int(vm);
+                Value val = pop(vm);
+                if (val.inum != check_num) {
+                    fprintf(stderr, "ERROR: checknum %lld\n", check_num);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            break;
+
         case OP_EXIT:
         case OP_EOC:
             brk = true;

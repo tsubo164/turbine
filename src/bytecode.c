@@ -544,6 +544,18 @@ void FloatToInt(Bytecode *code)
     push_byte(&code->bytes_, OP_FTOI);
 }
 
+void PushCheckNum(Bytecode *code, int64_t num)
+{
+    push_byte(&code->bytes_, OP_PUSH_CHECK_NUM);
+    push_int(&code->bytes_, num);
+}
+
+void PopCheckNum(Bytecode *code, int64_t num)
+{
+    push_byte(&code->bytes_, OP_POP_CHECK_NUM);
+    push_int(&code->bytes_, num);
+}
+
 void Exit(Bytecode *code)
 {
     push_byte(&code->bytes_, OP_EXIT);

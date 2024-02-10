@@ -92,6 +92,9 @@ typedef double   Float;
     OP(OP_ITOF,         OPERAND_NONE) \
     OP(OP_FTOB,         OPERAND_NONE) \
     OP(OP_FTOI,         OPERAND_NONE) \
+    /* debug */\
+    OP(OP_PUSH_CHECK_NUM, OPERAND_QUAD) \
+    OP(OP_POP_CHECK_NUM,  OPERAND_QUAD) \
     /* exit */\
     OP(OP_EXIT,         OPERAND_NONE) \
     OP(OP_EOC,          OPERAND_NONE) \
@@ -230,6 +233,9 @@ void IntToBool(Bytecode *code);
 void IntToFloat(Bytecode *code);
 void FloatToBool(Bytecode *code);
 void FloatToInt(Bytecode *code);
+//
+void PushCheckNum(Bytecode *code, int64_t num);
+void PopCheckNum(Bytecode *code, int64_t num);
 //
 void Exit(Bytecode *code);
 void End(Bytecode *code);
