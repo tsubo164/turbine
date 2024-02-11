@@ -885,7 +885,7 @@ static struct Stmt *var_decl(Parser *p, int var_id, bool isglobal)
     }
     sym->var->id = var_id;
     struct Expr *ident = NewIdentExpr(sym);
-    return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
+    return NewAssignStmt(ident, init, T_ASSN);
 }
 
 static void field_list(Parser *p, struct Struct *strct)
@@ -1174,7 +1174,7 @@ static struct Stmt *func_def(struct Parser *p, int gvar_id)
 
     struct Expr *ident = NewIdentExpr(sym);
     struct Expr *init = NewFuncLitExpr(func);
-    return NewExprStmt(NewAssignExpr(ident, init, T_ASSN));
+    return NewAssignStmt(ident, init, T_ASSN);
 }
 
 static void module_import(struct Parser *p)

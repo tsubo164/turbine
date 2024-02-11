@@ -172,7 +172,7 @@ struct Expr *NewUnaryExpr(struct Expr *L, Type *t, int k)
     return e;
 }
 
-struct Expr *NewAssignExpr(struct Expr *l, struct Expr *r, int k)
+static struct Expr *new_assign_expr(struct Expr *l, struct Expr *r, int k)
 {
     struct Expr *e = CALLOC(struct Expr);
     e->type = l->type;
@@ -190,7 +190,7 @@ struct Expr *NewAssignExpr(struct Expr *l, struct Expr *r, int k)
     return e;
 }
 
-struct Expr *NewIncDecExpr(struct Expr *l, int k)
+static struct Expr *new_incdec_expr(struct Expr *l, int k)
 {
     struct Expr *e = CALLOC(struct Expr);
     e->type = l->type;
@@ -309,7 +309,7 @@ struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind)
 {
     struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_ASSN;
-    s->expr = NewAssignExpr(l, r, kind);
+    s->expr = new_assign_expr(l, r, kind);
     return s;
 }
 
@@ -317,7 +317,7 @@ struct Stmt *NewIncDecStmt(struct Expr *l, int kind)
 {
     struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_ASSN;
-    s->expr = NewIncDecExpr(l, kind);
+    s->expr = new_incdec_expr(l, kind);
     return s;
 }
 

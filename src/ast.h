@@ -62,8 +62,6 @@ struct Expr *NewCallExpr(struct Expr *callee, struct Pos p);
 struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int k);
 struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int k);
 struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int k);
-struct Expr *NewAssignExpr(struct Expr *l, struct Expr *r, int k);
-struct Expr *NewIncDecExpr(struct Expr *l, int k);
 
 // Stmt
 struct Stmt *NewNopStmt(void);
