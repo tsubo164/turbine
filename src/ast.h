@@ -37,8 +37,9 @@ struct Stmt {
     int kind;
 
     struct Expr* expr;
+    struct Stmt* init;
     struct Expr* cond;
-    struct Expr* post;
+    struct Stmt* post;
     struct Stmt* body;
     // children
     struct Stmt *children;
@@ -46,7 +47,6 @@ struct Stmt {
 };
 
 // Expr
-struct Expr *NewNullExpr(void);
 struct Expr *NewNilLitExpr(void);
 struct Expr *NewBoolLitExpr(bool b);
 struct Expr *NewIntLitExpr(long l);
@@ -70,12 +70,15 @@ struct Stmt *NewNopStmt(void);
 struct Stmt *NewBlockStmt(struct Stmt *children);
 struct Stmt *NewOrStmt(struct Expr *cond, struct Stmt *body);
 struct Stmt *NewIfStmt(struct Stmt *or_list);
-struct Stmt *NewForStmt(struct Expr *init, struct Expr *cond, struct Expr *post, struct Stmt *body);
+struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
+        struct Stmt *body);
 struct Stmt *NewJumpStmt(int k);
 struct Stmt *NewCaseStmt(struct Stmt *conds, struct Stmt *body, int k);
 struct Stmt *NewSwitchStmt(struct Expr *cond, struct Stmt *cases);
 struct Stmt *NewReturnStmt(struct Expr *e);
 struct Stmt *NewExprStmt(struct Expr *e);
+struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind);
+struct Stmt *NewIncDecStmt(struct Expr *l, int kind);
 
 bool IsNull(const struct Expr *e);
 bool IsGlobal(const struct Expr *e);

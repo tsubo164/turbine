@@ -232,6 +232,9 @@ static void gen_assign(Bytecode *code, const struct Expr *e)
 
 static void gen_expr(Bytecode *code, const struct Expr *e)
 {
+    if (!e)
+        return;
+
     switch (e->kind) {
 
     case T_NILLIT:
@@ -464,6 +467,9 @@ static void gen_expr(Bytecode *code, const struct Expr *e)
 
 static void gen_addr(Bytecode *code, const struct Expr *e)
 {
+    if (!e)
+        return;
+
     switch (e->kind) {
 
     case T_IDENT:
@@ -539,7 +545,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
         {
             Int next = 0;
 
-            if (!IsNull(s->cond)) {
+            if (s->cond) {
                 // cond
                 gen_expr(code, s->cond);
                 next = JumpIfZero(code, -1);
@@ -548,7 +554,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
             // true
             gen_stmt(code, s->body);
 
-            if (!IsNull(s->cond)) {
+            if (s->cond) {
                 // close
                 const Int addr = Jump(code, -1);
                 PushOrClose(code, addr);
@@ -571,7 +577,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
         {
             // init
             BeginFor(code);
-            gen_expr(code, s->expr);
+            gen_stmt(code, s->init);
 
             // FIXME cond first??
             // body
@@ -580,7 +586,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
 
             // post
             BackPatchContinues(code);
-            gen_expr(code, s->post);
+            gen_stmt(code, s->post);
 
             // cond
             gen_expr(code, s->cond);
@@ -668,6 +674,10 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
         return;
 
     case T_EXPR:
+        gen_expr(code, s->expr);
+        return;
+
+    case T_ASSN:
         gen_expr(code, s->expr);
         return;
     }

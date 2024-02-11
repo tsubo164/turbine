@@ -526,13 +526,18 @@ static struct Expr *logor_expr(Parser *p)
     }
 }
 
+static struct Expr *expression(Parser *p)
+{
+    return logor_expr(p);
+}
+
 // assign_expr = logand_expr assing_op expression
 //             | logand_expr incdec_op
 // assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
 // incdec_op   = "++" | "--"
-static struct Expr *assign_expr(Parser *p)
+static struct Stmt *assign_stmt(Parser *p)
 {
-    struct Expr *lval = logor_expr(p);
+    struct Expr *lval = expression(p);
     struct Expr *rval = NULL;
     const struct Token *tok = gettok(p);
     const int kind = tok->kind;
@@ -551,7 +556,7 @@ static struct Expr *assign_expr(Parser *p)
                     TypeString(lval->type),
                     TypeString(rval->type));
         }
-        return NewAssignExpr(lval, rval, kind);
+        return NewAssignStmt(lval, rval, kind);
 
     case T_INC:
     case T_DEC:
@@ -559,17 +564,12 @@ static struct Expr *assign_expr(Parser *p)
             error(p, tok->pos,
                     "type mismatch: ++/-- must be used for int");
         }
-        return NewIncDecExpr(lval, kind);
+        return NewIncDecStmt(lval, kind);
 
     default:
         ungettok(p);
-        return lval;
+        return NewExprStmt(lval);
     }
-}
-
-static struct Expr *expression(Parser *p)
-{
-    return assign_expr(p);
 }
 
 static struct Scope *new_child_scope(struct Parser *p)
@@ -595,7 +595,7 @@ static struct Stmt *or_stmt(Parser *p)
 
     if (consume(p, T_NEWLINE)) {
         // or (else)
-        cond = NewNullExpr();
+        cond = NULL;
     }
     else {
         // or if (else if)
@@ -643,32 +643,34 @@ static struct Stmt *for_stmt(Parser *p)
 {
     expect(p, T_FOR);
 
-    struct Expr *init = NULL;
+    struct Stmt *init = NULL;
     struct Expr *cond = NULL;
-    struct Expr *post = NULL;
+    struct Stmt *post = NULL;
 
     if (consume(p, T_NEWLINE)) {
         // infinite loop
-        init = NewNullExpr();
+        init = NULL;
         cond = NewIntLitExpr(1);
-        post = NewNullExpr();
+        post = NULL;
     }
     else {
-        struct Expr *e = expression(p);
+        struct Stmt *stmt = assign_stmt(p);
 
         if (consume(p, T_SEM)) {
             // traditional for
-            init = e;
+            init = stmt;
             cond = expression(p);
             expect(p, T_SEM);
-            post = expression(p);
+            post = assign_stmt(p);
             expect(p, T_NEWLINE);
         }
         else if (consume(p, T_NEWLINE)) {
             // while style
-            init = NewNullExpr();
-            cond = e;
-            post = NewNullExpr();
+            init = NULL;
+            cond = stmt->expr;
+            post = NULL;
+            // TODO need mem pool?
+            free(stmt);
         }
         else {
             const struct Token *tok = gettok(p);
@@ -710,7 +712,7 @@ static struct Stmt *case_stmt(Parser *p, int kind)
         while (consume(p, T_COMMA));
     }
     else if (kind == T_DFLT) {
-        tail = tail->next = NewExprStmt(NewNullExpr());
+        tail = tail->next = NewExprStmt(NULL);
     }
 
     expect(p, T_NEWLINE);
@@ -763,7 +765,7 @@ static struct Stmt *ret_stmt(Parser *p)
     struct Expr *expr = NULL;
 
     if (consume(p, T_NEWLINE)) {
-        expr = NewNullExpr();
+        expr = NULL;
     }
     else {
         expr = expression(p);
@@ -772,7 +774,7 @@ static struct Stmt *ret_stmt(Parser *p)
 
     assert(p->func_);
 
-    if (p->func_->return_type->kind != expr->type->kind) {
+    if (expr && p->func_->return_type->kind != expr->type->kind) {
         error(p, exprpos,
                 "type mismatch: function type '%s': expression type '%s'",
                 TypeString(p->func_->return_type),
@@ -784,7 +786,7 @@ static struct Stmt *ret_stmt(Parser *p)
 
 static struct Stmt *expr_stmt(Parser *p)
 {
-    struct Stmt *s = NewExprStmt(expression(p));
+    struct Stmt *s = assign_stmt(p);
     expect(p, T_NEWLINE);
 
     return s;
@@ -1159,7 +1161,7 @@ static struct Stmt *func_def(struct Parser *p, int gvar_id)
     // TODO control flow check to allow implicit return
     for (struct Stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
-            s->next = NewReturnStmt(NewNullExpr());
+            s->next = NewReturnStmt(NULL);
             break;
         }
     }

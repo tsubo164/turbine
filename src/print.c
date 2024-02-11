@@ -63,19 +63,16 @@ void PrintToken(const struct Token *token, bool format)
 
 static void print_expr(const struct Expr *e, int depth)
 {
-    const struct KindInfo *info;
-    int i;
-
-    if (!e || e->kind == T_NUL)
+    if (!e)
         return;
 
     // indentation
-    for (i = 0; i < depth; i++) {
+    for (int i = 0; i < depth; i++) {
         printf("  ");
     }
 
     // basic info
-    info = LookupKindInfo(e->kind);
+    const struct KindInfo *info = LookupKindInfo(e->kind);
     printf("%d. <%s>", depth, info->str);
     printf(" (%s)", TypeString(e->type));
 
@@ -109,18 +106,15 @@ static void print_expr(const struct Expr *e, int depth)
 
 static void print_stmt(const struct Stmt *s, int depth)
 {
-    const struct KindInfo *info;
-    int i;
-
     if (!s)
         return;
 
     // indentation
-    for (i = 0; i < depth; i++)
+    for (int i = 0; i < depth; i++)
         printf("  ");
 
     // basic info
-    info = LookupKindInfo(s->kind);
+    const struct KindInfo *info = LookupKindInfo(s->kind);
     printf("%d. <%s>", depth, info->str);
     printf("\n");
 
@@ -129,8 +123,9 @@ static void print_stmt(const struct Stmt *s, int depth)
         print_stmt(stmt, depth + 1);
 
     print_expr(s->expr, depth + 1);
+    print_stmt(s->init, depth + 1);
     print_expr(s->cond, depth + 1);
-    print_expr(s->post, depth + 1);
+    print_stmt(s->post, depth + 1);
     print_stmt(s->body, depth + 1);
 }
 

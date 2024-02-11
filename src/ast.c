@@ -4,14 +4,6 @@
 #include "mem.h"
 
 // Expr
-struct Expr *NewNullExpr(void)
-{
-    struct Expr *e = CALLOC(struct Expr);
-    e->type = NewNilType();
-    e->kind = T_NUL;
-    return e;
-}
-
 struct Expr *NewNilLitExpr(void)
 {
     struct Expr *e = CALLOC(struct Expr);
@@ -246,11 +238,12 @@ struct Stmt *NewIfStmt(struct Stmt *or_list)
     return s;
 }
 
-struct Stmt *NewForStmt(struct Expr *init, struct Expr *cond, struct Expr *post, struct Stmt *body)
+struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
+        struct Stmt *body)
 {
     struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_FOR;
-    s->expr = init;
+    s->init = init;
     s->cond = cond;
     s->post = post;
     s->body = body;
@@ -309,6 +302,22 @@ struct Stmt *NewExprStmt(struct Expr *e)
     struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_EXPR;
     s->expr = e;
+    return s;
+}
+
+struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind)
+{
+    struct Stmt *s = CALLOC(struct Stmt);
+    s->kind = T_ASSN;
+    s->expr = NewAssignExpr(l, r, kind);
+    return s;
+}
+
+struct Stmt *NewIncDecStmt(struct Expr *l, int kind)
+{
+    struct Stmt *s = CALLOC(struct Stmt);
+    s->kind = T_ASSN;
+    s->expr = NewIncDecExpr(l, kind);
     return s;
 }
 

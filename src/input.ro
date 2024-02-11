@@ -63,6 +63,19 @@
   //return q
   //return my_calc.E
 
+//# main() int
+//  - a int
+//  return int(a == 11)
 # main() int
-  - a int
-  return a = 11
+  - i int
+  for i < 10
+    i++
+  print(i)
+  //for i = 0; i < 10; i++
+  //  print(i)
+    //print("Hello")
+  //- id int
+  //id = 114
+  //21 + 99
+  //return id + 11
+  return i
