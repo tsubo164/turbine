@@ -619,12 +619,11 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
 
             IntVec trues = {0};
             // eval conds
-            for (struct Stmt *cond = s->children; cond; cond = cond->next) {
+            for (struct Expr *cond = s->cond; cond; cond = cond->next) {
                 Int tru = 0;
                 Int fls = 0;
                 DuplicateTop(code);
-                //gen_expr(code, cond);
-                gen_stmt(code, cond);
+                gen_expr(code, cond);
                 EqualInt(code);
                 fls = JumpIfZero(code, -1);
                 tru = Jump(code, -1);
@@ -675,6 +674,8 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
 
     case T_EXPR:
         gen_expr(code, s->expr);
+        // remove the result
+        Pop(code);
         return;
 
     case T_ASSN:

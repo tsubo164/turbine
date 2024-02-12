@@ -264,18 +264,18 @@ struct Stmt *NewJumpStmt(int k)
     return s;
 }
 
-struct Stmt *NewCaseStmt(struct Stmt *conds, struct Stmt *body, int k)
+struct Stmt *NewCaseStmt(struct Expr *conds, struct Stmt *body, int kind)
 {
     struct Stmt *s = CALLOC(struct Stmt);
-    switch (k) {
+    switch (kind) {
     case T_CASE: case T_DFLT:
-        s->kind = k;
+        s->kind = kind;
         break;
     default:
         // error
         break;
     }
-    s->children = conds;
+    s->cond = conds;
     s->body = body;
     return s;
 }

@@ -71,7 +71,7 @@ struct Stmt *NewIfStmt(struct Stmt *or_list);
 struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
         struct Stmt *body);
 struct Stmt *NewJumpStmt(int k);
-struct Stmt *NewCaseStmt(struct Stmt *conds, struct Stmt *body, int k);
+struct Stmt *NewCaseStmt(struct Expr *conds, struct Stmt *body, int kind);
 struct Stmt *NewSwitchStmt(struct Expr *cond, struct Stmt *cases);
 struct Stmt *NewReturnStmt(struct Expr *e);
 struct Stmt *NewExprStmt(struct Expr *e);

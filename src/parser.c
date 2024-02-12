@@ -700,25 +700,25 @@ static struct Stmt *jump_stmt(Parser *p)
 
 static struct Stmt *case_stmt(Parser *p, int kind)
 {
-    struct Stmt head = {0};
-    struct Stmt *tail = &head;
+    struct Expr conds = {0};
+    struct Expr *cond = &conds;
 
     if (kind == T_CASE) {
         do {
             struct Expr *expr = expression(p);
             // TODO const int check
-            tail = tail->next = NewExprStmt(expr);
+            cond = cond->next = expr;
         }
         while (consume(p, T_COMMA));
     }
     else if (kind == T_DFLT) {
-        tail = tail->next = NewExprStmt(NULL);
+        cond = cond->next = NULL;
     }
 
     expect(p, T_NEWLINE);
 
     struct Stmt *body = block_stmt(p, new_child_scope(p));
-    return NewCaseStmt(head.next, body, kind);
+    return NewCaseStmt(conds.next, body, kind);
 }
 
 static struct Stmt *switch_stmt(Parser *p)

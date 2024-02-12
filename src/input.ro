@@ -48,9 +48,6 @@
 //- q = 111
 
 //# main() int
-//  - i = 42
-//  3 + 8
-//  return i
   //a = Color.G
   //print(my_calc.PI)
   //print(p)
@@ -62,20 +59,18 @@
   //my_calc.E = 99
   //return q
   //return my_calc.E
-
-//# main() int
-//  - a int
-//  return int(a == 11)
 # main() int
   - i int
-  for i < 10
-    i++
-  print(i)
-  //for i = 0; i < 10; i++
-  //  print(i)
-    //print("Hello")
-  //- id int
-  //id = 114
-  //21 + 99
-  //return id + 11
-  return i
+  - j int
+  i = 2
+  j = 19
+  switch i
+  case 0
+    j = 0
+  case 1
+    j = 23
+  case 2
+    j = 34
+  case 3
+    j = 77
+  return  j

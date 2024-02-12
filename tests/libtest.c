@@ -8,67 +8,67 @@ int main(int argc, char **argv)
     const char *filename = "libtest.c";
 
     {
-        const char *input = "# main() int\n - id int\n id = 114 \n id + 11\n";
+        const char *input = "# main() int\n - id int\n id = 114 \n return id + 11\n";
 
         ASSERTL(125, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n 42 \n 19\n";
+        const char *input = "# main() int\n 42 \n return 19\n";
 
         ASSERTL(19, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n 12 \n";
+        const char *input = "# main() int\n return 12 \n";
 
         ASSERTL(12, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n 39 + 3 \n";
+        const char *input = "# main() int\n return 39 + 3 \n";
 
         ASSERTL(42, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n - id int\n id = 0 \n id + 114\n";
+        const char *input = "# main() int\n - id int\n id = 0 \n return id + 114\n";
 
         ASSERTL(114, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n 3129 + 1293 \n";
+        const char *input = "# main() int\n return 3129 + 1293 \n";
 
         ASSERTL(4422, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n 3129 + 1293+1111\n";
+        const char *input = "# main() int\n return 3129 + 1293+1111\n";
 
         ASSERTL(5533, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n 20+22\n";
+        const char *input = "# main() int\n return 20+22\n";
 
         ASSERTL(42, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n - a int\n a = 12 \n a\n";
+        const char *input = "# main() int\n - a int\n a = 12 \n return a\n";
 
         ASSERTL(12, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n - a int\n a = 11\n";
+        const char *input = "# main() int\n - a int\n a = 11\n return a\n";
 
         ASSERTL(11, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n 12 == 11\n";
+        const char *input = "# main() int\n return int(12 == 11)\n";
 
         ASSERTL(0, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int\n 42 == 42\n";
+        const char *input = "# main() int\n return int(42 == 42)\n";
 
         ASSERTL(1, Interpret(input, filename, &opt));
     }
     {
-        const char *input = "# main() int  \n - a int\n a = 39\n a == 39\n";
+        const char *input = "# main() int  \n - a int\n a = 39\n return int(a == 39)\n";
 
         ASSERTL(1, Interpret(input, filename, &opt));
     }
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
             "# main() int\n"
             "    - a int\n"
             "    a = 39\n"
-            "    a == 39\n"
+            "    return int(a == 39)\n"
             ;
 
 
