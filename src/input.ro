@@ -3,7 +3,7 @@
 //[json]
 //[opengl] (github.com/...)
 
-//[my_calc]
+[my_calc]
 //
 //## Point
 //  - x int
@@ -45,7 +45,7 @@
 //  | NY  | "New Yourk"  |
 
 //- p = 3.14
-//- q = 111
+- q = 111
 
 //# main() int
   //a = Color.G
@@ -60,17 +60,7 @@
   //return q
   //return my_calc.E
 # main() int
-  - i int
-  - j int
-  i = 2
-  j = 19
-  switch i
-  case 0
-    j = 0
-  case 1
-    j = 23
-  case 2
-    j = 34
-  case 3
-    j = 77
-  return  j
+  - i int = 9999
+  i = 42
+  i = my_calc.UINT8_MAX - 55
+  return  i + my_calc.add(3, 4)

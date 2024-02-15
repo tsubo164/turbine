@@ -100,7 +100,8 @@ struct Scope {
     struct Scope *children_;
     struct Scope *child_tail;
     struct Scope *next;
-
+    int size;
+    // TODO remove this
     int cur_offset;
 
     struct Vec syms;

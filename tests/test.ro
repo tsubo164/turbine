@@ -217,8 +217,10 @@
 
   // module import
   ---
+    AssertF(3.1415, my_calc.PI)
     my_calc.PI = 1.23
     AssertF(1.23, my_calc.PI)
+    AssertI(42, my_calc.add(31, 11))
 
   //------------------------------
   print(test_count, "tests done.")

@@ -695,6 +695,43 @@ static void gen_func(Bytecode *code, const struct Func *func, int func_id)
     gen_stmt(code, func->body);
 }
 
+static void gen_gvars(Bytecode *code, const struct Module *mod)
+{
+    struct Scope *scope = mod->scope;
+
+    // imported modules first
+    for (int i = 0; i < scope->syms.len; i++) {
+        struct Symbol *sym = scope->syms.data[i];
+
+        if (sym->kind == SYM_MODULE)
+            gen_gvars(code, sym->module);
+    }
+
+    // self module next
+    for (const struct Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
+        gen_stmt(code, gvar);
+}
+
+static void gen_funcs(Bytecode *code, const struct Module *mod)
+{
+    struct Scope *scope = mod->scope;
+
+    // imported modules first
+    for (int i = 0; i < scope->syms.len; i++) {
+        struct Symbol *sym = scope->syms.data[i];
+
+        if (sym->kind == SYM_MODULE)
+            gen_funcs(code, sym->module);
+    }
+
+    // self module next
+    for (int i = 0; i < mod->funcs.len; i++) {
+        Func *f = mod->funcs.data[i];
+        if (!f->is_builtin)
+            gen_func(code, f, f->id);
+    }
+}
+
 static void gen_module(Bytecode *code, const struct Module *mod)
 {
     if (!mod->main_func) {
@@ -702,9 +739,8 @@ static void gen_module(Bytecode *code, const struct Module *mod)
     }
 
     // global vars
-    Allocate(code, VarSize(mod->scope));
-    for (const struct Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
-        gen_stmt(code, gvar);
+    Allocate(code, mod->scope->size);
+    gen_gvars(code, mod);
 
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
@@ -713,11 +749,7 @@ static void gen_module(Bytecode *code, const struct Module *mod)
     Exit(code);
 
     // global funcs
-    for (int i = 0; i < mod->funcs.len; i++) {
-        Func *f = mod->funcs.data[i];
-        if (!f->is_builtin)
-            gen_func(code, f, i);
-    }
+    gen_funcs(code, mod);
 }
 
 /*static*/ void register_funcs(Bytecode *code, const struct Module *mod)
@@ -737,23 +769,47 @@ void GenerateCode(struct Bytecode *code, const struct Module *mod)
     End(code);
 }
 
+static int resolve_func_id(struct Scope *scope, int start_id)
+{
+    int next_id = start_id;
+
+    for (int i = 0; i < scope->syms.len; i++) {
+        struct Symbol *sym = scope->syms.data[i];
+
+        if (sym->kind == SYM_VAR) {
+            struct Var *var = sym->var;
+
+            if (IsFunc(var->type))
+                var->type->func->id = next_id++;
+        }
+        else if (sym->kind == SYM_MODULE) {
+            next_id = resolve_func_id(sym->module->scope, next_id);
+        }
+    }
+
+    return next_id;
+}
+
 static int max(int a, int b)
 {
     return a < b ? b : a;
 }
 
-int resolve_offset(struct Scope *scope, int start_offset)
+static int resolve_offset(struct Scope *scope, int start_offset)
 {
     int offset = start_offset;
     int max_offset = start_offset;
+    int total_size = 0;
 
     for (int i = 0; i < scope->syms.len; i++) {
         struct Symbol *sym = scope->syms.data[i];
+        int sym_size = 0;
 
         // TODO may need SYM_FUNC
         if (sym->kind == SYM_VAR) {
             struct Var *var = sym->var;
             var->offset = offset;
+            sym_size = SizeOf(var->type);
             offset += SizeOf(var->type);
             max_offset = max(max_offset, offset);
 
@@ -767,6 +823,7 @@ int resolve_offset(struct Scope *scope, int start_offset)
         else if (sym->kind == SYM_MODULE) {
             struct Scope *child = sym->module->scope;
             int child_max = resolve_offset(child, offset);
+            sym_size = child->size;
             max_offset = max(max_offset, child_max);
             // take over module's offset
             offset = max_offset;
@@ -776,12 +833,16 @@ int resolve_offset(struct Scope *scope, int start_offset)
             int child_max = resolve_offset(child, offset);
             max_offset = max(max_offset, child_max);
         }
+
+        total_size += sym_size;
     }
 
+    scope->size = total_size;
     return max_offset;
 }
 
 void ResolveOffset(struct Module *mod)
 {
     resolve_offset(mod->scope, 0);
+    resolve_func_id(mod->scope, 0);
 }
