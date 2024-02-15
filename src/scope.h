@@ -97,9 +97,6 @@ struct Symbol {
 
 struct Scope {
     struct Scope *parent;
-    struct Scope *children_;
-    struct Scope *child_tail;
-    struct Scope *next;
     int size;
 
     struct Vec syms;

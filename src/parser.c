@@ -576,13 +576,8 @@ static struct Scope *new_child_scope(struct Parser *p)
 {
     struct Scope *parent = p->scope;
     struct Scope *child = NewScope(parent);
-
-    if (!parent->children_)
-        parent->child_tail = parent->children_ = child;
-    else
-        parent->child_tail = parent->child_tail->next = child;
-
     struct Symbol *sym = NewSymbol(SYM_SCOPE, "_", NewNilType());
+
     sym->scope = child;
     VecPush(&parent->syms, sym);
 
@@ -1206,7 +1201,7 @@ static void module_import(struct Parser *p)
 
     const struct Token *tok = Tokenize(src);
     // TODO use this style => enter_scope(p, mod->scope);
-    struct Module *mod = Parse(src, filename, modulename, tok, p->scope);
+    Parse(src, filename, modulename, tok, p->scope);
 
     expect(p, T_RBRACK);
     expect(p, T_NEWLINE);
