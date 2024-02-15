@@ -575,7 +575,7 @@ static struct Stmt *assign_stmt(Parser *p)
 static struct Scope *new_child_scope(struct Parser *p)
 {
     struct Scope *parent = p->scope;
-    struct Scope *child = NewScope(parent, parent->cur_offset);
+    struct Scope *child = NewScope(parent);
 
     if (!parent->children_)
         parent->child_tail = parent->children_ = child;
@@ -1207,9 +1207,6 @@ static void module_import(struct Parser *p)
     const struct Token *tok = Tokenize(src);
     // TODO use this style => enter_scope(p, mod->scope);
     struct Module *mod = Parse(src, filename, modulename, tok, p->scope);
-    // TODO come up with better way to take over var id from child
-    // Maybe need one more pass to fill id
-    p->scope->cur_offset = mod->scope->cur_offset;
 
     expect(p, T_RBRACK);
     expect(p, T_NEWLINE);

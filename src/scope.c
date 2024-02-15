@@ -6,21 +6,18 @@
 #include <stdio.h>
 
 // Scope
-struct Scope *NewScope(struct Scope *parent, int var_offset)
+struct Scope *NewScope(struct Scope *parent)
 {
     struct Scope *sc = CALLOC(struct Scope);
     sc->parent = parent;
-    sc->cur_offset = var_offset;
-
     return sc;
 }
 
-static struct Var *new_var(const char *Name, const struct Type *t, int offset, bool global)
+static struct Var *new_var(const char *Name, const struct Type *t, bool global)
 {
     struct Var *v = CALLOC(struct Var);
     v->name = Name;
     v->type = t;
-    v->offset = offset;
     v->is_global = global;
     return v;
 }
@@ -33,13 +30,8 @@ struct Symbol *DefineVar(struct Scope *sc, const char *name, const Type *type, b
     if (FindSymbolThisScope(sc, name))
         return NULL;
 
-    const int next_id = sc->cur_offset;
-    struct Var *var = new_var(name, type, next_id, isglobal);
-
     struct Symbol *sym = NewSymbol(SYM_VAR, name, type);
-    sym->var = var;
-
-    sc->cur_offset += SizeOf(var->type);
+    sym->var = new_var(name, type, isglobal);
 
     if (!HashMapInsert(&sc->symbols, name, sym))
         return NULL;
@@ -98,7 +90,7 @@ struct Module *DefineModule(struct Scope *sc, const char *filename, const char *
     struct Module *mod = CALLOC(struct Module);
     mod->name = modulename;
     mod->filename = filename;
-    mod->scope = NewScope(sc, sc->cur_offset);
+    mod->scope = NewScope(sc);
 
     struct Symbol *sym = NewSymbol(SYM_MODULE, modulename, NewModuleType(mod));
     sym->module = mod;
@@ -140,11 +132,6 @@ struct Symbol *FindSymbol(const struct Scope *sc, const char *name)
     return NULL;
 }
 
-int VarSize(const struct Scope *sc)
-{
-    return sc->cur_offset;
-}
-
 static const char *func_fullname(const char *modulefile, const char *funcname)
 {
     // unique func name
@@ -159,26 +146,20 @@ static const char *func_fullname(const char *modulefile, const char *funcname)
 struct Func *AddFunc(struct Scope *parent, const char *modulefile, const char *name)
 {
     struct Func *f = CALLOC(struct Func);
-    int offset = 0;
-
     f->name = name;
     f->fullname = func_fullname(modulefile, name);
-    f->scope = NewScope(parent, offset);
+    f->scope = NewScope(parent);
     f->is_builtin = false;
-
     return f;
 }
 
 struct Func *AddBuiltinFunc(struct Scope *parent, const char *name)
 {
     struct Func *f = CALLOC(struct Func);
-    int offset = 0;
-
     f->name = name;
     f->fullname = func_fullname(":buitin", name);
-    f->scope = NewScope(parent, offset);
+    f->scope = NewScope(parent);
     f->is_builtin = true;
-
     return f;
 }
 

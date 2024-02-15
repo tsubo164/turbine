@@ -101,14 +101,12 @@ struct Scope {
     struct Scope *child_tail;
     struct Scope *next;
     int size;
-    // TODO remove this
-    int cur_offset;
 
     struct Vec syms;
     struct HashMap symbols;
 };
 
-struct Scope *NewScope(struct Scope *parent, int var_offset);
+struct Scope *NewScope(struct Scope *parent);
 
 struct Symbol *DefineVar(struct Scope *sc, const char *name,
         const struct Type *type, bool isglobal);
@@ -121,9 +119,6 @@ struct Module *DefineModule(struct Scope *sc, const char *filename, const char *
 
 struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type);
 struct Symbol *FindSymbol(const struct Scope *sc, const char *name);
-
-int VarSize(const struct Scope *sc);
-int FieldSize(const struct Scope *sc);
 
 // Func
 struct Func *AddFunc(struct Scope *parent, const char *modulefile, const char *name);
