@@ -192,15 +192,16 @@ static void print_scope(const struct Scope *sc, int depth)
 
             if (IsFunc(v->type)) {
                 print_header(depth);
-                printf("[func] \"%s\" @%d %s(%d) (index %d)\n",
-                        v->name, v->offset,
-                        TypeString(v->type), v->type->func->id, v->id);
+                printf("[fnc] \"%s\" %s(id:%d) @%d\n",
+                        v->name, TypeString(v->type),
+                        v->type->func->id, v->offset);
                 print_scope(v->type->func->scope, depth + 1);
             }
             else {
                 print_header(depth);
-                printf("[var] \"%s\" @%d %s (index %d)\n",
-                        v->name, v->offset, TypeString(v->type), v->id);
+                printf("[var] \"%s\" %s @%d\n",
+                        v->name, TypeString(v->type),
+                        v->offset);
             }
         }
 

@@ -12,7 +12,6 @@ struct Var {
     const char *name;
     const struct Type *type;
     int offset;
-    int id;
     bool is_global;
 };
 
