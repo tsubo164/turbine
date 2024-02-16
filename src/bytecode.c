@@ -1,22 +1,123 @@
 #include "bytecode.h"
 #include "error.h"
 #include "mem.h"
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
+enum OperandSize {
+    OPERAND_NONE,
+    OPERAND_BYTE,
+    OPERAND_WORD,
+    OPERAND_QUAD,
+};
+
+static const struct OpcodeInfo opcode_table[] = {
+    { OP_NOP,          "NOP",          OPERAND_NONE },
+    // local and arg
+    { OP_LOADB,        "LOADB",        OPERAND_BYTE },
+    { OP_LOADI,        "LOADI",        OPERAND_QUAD },
+    { OP_LOADF,        "LOADF",        OPERAND_QUAD },
+    { OP_LOADS,        "LOADS",        OPERAND_WORD },
+    { OP_LOADLOCAL,    "LOADLOCAL",    OPERAND_BYTE },
+    { OP_LOADGLOBAL,   "LOADGLOBAL",   OPERAND_WORD },
+    { OP_STORELOCAL,   "STORELOCAL",   OPERAND_BYTE },
+    { OP_STOREGLOBAL,  "STOREGLOBAL",  OPERAND_WORD },
+    { OP_LOAD,         "LOAD",         OPERAND_NONE },
+    { OP_STORE,        "STORE",        OPERAND_NONE },
+    { OP_INCLOCAL,     "INCLOCAL",     OPERAND_BYTE },
+    { OP_INCGLOBAL,    "INCGLOBAL",    OPERAND_WORD },
+    { OP_DECLOCAL,     "DECLOCAL",     OPERAND_BYTE },
+    { OP_DECGLOBAL,    "DECGLOBAL",    OPERAND_WORD },
+    { OP_ALLOC,        "ALLOC",        OPERAND_BYTE },
+    // address
+    { OP_LOADA,        "LOADA",        OPERAND_WORD },
+    { OP_DEREF,        "DEREF",        OPERAND_NONE },
+    { OP_INDEX,        "INDEX",        OPERAND_NONE },
+    // arg type spec
+    { OP_LOADTYPEN,    "LOADTYPEN",    OPERAND_NONE },
+    { OP_LOADTYPEB,    "LOADTYPEB",    OPERAND_NONE },
+    { OP_LOADTYPEI,    "LOADTYPEI",    OPERAND_NONE },
+    { OP_LOADTYPEF,    "LOADTYPEF",    OPERAND_NONE },
+    { OP_LOADTYPES,    "LOADTYPES",    OPERAND_NONE },
+    // jump and function
+    { OP_CALL,         "CALL",         OPERAND_WORD },
+    { OP_CALL_BUILTIN, "CALL_BUILTIN", OPERAND_BYTE },
+    { OP_RET,          "RET",          OPERAND_NONE },
+    { OP_JMP,          "JMP",          OPERAND_WORD },
+    { OP_JEQ,          "JEQ",          OPERAND_WORD },
+    // arithmetic
+    { OP_ADD,          "ADD",          OPERAND_NONE },
+    { OP_ADDF,         "ADDF",         OPERAND_NONE },
+    { OP_CATS,         "CATS",         OPERAND_NONE },
+    { OP_SUB,          "SUB",          OPERAND_NONE },
+    { OP_SUBF,         "SUBF",         OPERAND_NONE },
+    { OP_MUL,          "MUL",          OPERAND_NONE },
+    { OP_MULF,         "MULF",         OPERAND_NONE },
+    { OP_DIV,          "DIV",          OPERAND_NONE },
+    { OP_DIVF,         "DIVF",         OPERAND_NONE },
+    { OP_REM,          "REM",          OPERAND_NONE },
+    { OP_REMF,         "REMF",         OPERAND_NONE },
+    // relational
+    { OP_EQ,           "EQ",           OPERAND_NONE },
+    { OP_EQF,          "EQF",          OPERAND_NONE },
+    { OP_EQS,          "EQS",          OPERAND_NONE },
+    { OP_NEQ,          "NEQ",          OPERAND_NONE },
+    { OP_NEQF,         "NEQF",         OPERAND_NONE },
+    { OP_NEQS,         "NEQS",         OPERAND_NONE },
+    { OP_LT,           "LT",           OPERAND_NONE },
+    { OP_LTF,          "LTF",          OPERAND_NONE },
+    { OP_LTE,          "LTE",          OPERAND_NONE },
+    { OP_LTEF,         "LTEF",         OPERAND_NONE },
+    { OP_GT,           "GT",           OPERAND_NONE },
+    { OP_GTF,          "GTF",          OPERAND_NONE },
+    { OP_GTE,          "GTE",          OPERAND_NONE },
+    { OP_GTEF,         "GTEF",         OPERAND_NONE },
+    { OP_AND,          "AND",          OPERAND_NONE },
+    { OP_OR,           "OR",           OPERAND_NONE },
+    { OP_XOR,          "XOR",          OPERAND_NONE },
+    { OP_NOT,          "NOT",          OPERAND_NONE },
+    { OP_SHL,          "SHL",          OPERAND_NONE },
+    { OP_SHR,          "SHR",          OPERAND_NONE },
+    { OP_NEG,          "NEG",          OPERAND_NONE },
+    { OP_NEGF,         "NEGF",         OPERAND_NONE },
+    { OP_SETZ,         "SETZ",         OPERAND_NONE },
+    { OP_SETNZ,        "SETNZ",        OPERAND_NONE },
+    { OP_POP,          "POP",          OPERAND_NONE },
+    { OP_DUP,          "DUP",          OPERAND_NONE },
+    // conversion
+    { OP_BTOI,         "BTOI",         OPERAND_NONE },
+    { OP_BTOF,         "BTOF",         OPERAND_NONE },
+    { OP_ITOB,         "ITOB",         OPERAND_NONE },
+    { OP_ITOF,         "ITOF",         OPERAND_NONE },
+    { OP_FTOB,         "FTOB",         OPERAND_NONE },
+    { OP_FTOI,         "FTOI",         OPERAND_NONE },
+    // debug
+    { OP_PUSH_CHECK_NUM,    "PUSH_CHECK_NUM",   OPERAND_QUAD },
+    { OP_POP_CHECK_NUM,     "POP_CHECK_NUM",    OPERAND_QUAD },
+    // exit
+    { OP_EXIT,         "EXIT",         OPERAND_NONE },
+    { OP_EOC,          "EOC",          OPERAND_NONE },
+};
+
+static_assert(sizeof(opcode_table)/sizeof(opcode_table[0])==OP_EOC+1, "MISSING_OPCODE_ENTRY");
+
+const struct OpcodeInfo *LookupOpcodeInfo(Byte op)
+{
+    int N = sizeof(opcode_table)/sizeof(opcode_table[0]);
+
+    for (int i = 0; i < N; i++) {
+        if (op == opcode_table[i].opcode)
+            return &opcode_table[i];
+    }
+    return &opcode_table[0];
+}
+
 const char *OpcodeString(Byte op)
 {
-    switch (op) {
-
-#define OP(opcode, operand_size) case opcode: return #opcode;
-    BYTECODE_LIST
-#undef OP
-
-    default:
-        UNREACHABLE;
-        return NULL;
-    }
+    const struct OpcodeInfo *info = LookupOpcodeInfo(op);
+    return info->mnemonic;
 }
 
 void push(AddrStack *s, Int addr)
@@ -773,26 +874,18 @@ void BackPatchCaseCloses(Bytecode *code)
     }
 }
 
-enum OperandSize {
-    OPERAND_NONE,
-    OPERAND_BYTE,
-    OPERAND_WORD,
-    OPERAND_QUAD,
-};
-
 static Int print_op(const Bytecode *code, int op, int operand, Int address)
 {
     const Int addr = address;
     Int inc = 0;
 
-    // remove prefix "OP_"
-    const char *opcode = OpcodeString(op) + 3;
+    const char *mnemonic = OpcodeString(op);
 
     // padding spaces
     if (operand != OPERAND_NONE)
-        printf("%-12s", opcode);
+        printf("%-12s", mnemonic);
     else
-        printf("%s", opcode);
+        printf("%s", mnemonic);
 
     char prefix;
     if (op == OP_LOADLOCAL || op == OP_LOADGLOBAL ||
@@ -854,18 +947,8 @@ void PrintBytecode(const Bytecode *code)
         printf("[%6lld] ", addr);
 
         const int op = Read(code, addr++);
-
-        switch (op) {
-
-#define OP(opcode, operand_size) \
-            case opcode: addr = print_op(code, op, operand_size, addr); break;
-        BYTECODE_LIST
-#undef OP
-
-        default:
-            UNREACHABLE;
-            break;
-        }
+        const struct OpcodeInfo *info = LookupOpcodeInfo(op);
+        addr = print_op(code, info->opcode, info->operand_size, addr);
 
         if (op == OP_EOC)
             break;

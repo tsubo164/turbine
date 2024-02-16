@@ -10,99 +10,98 @@ typedef uint16_t Word;
 typedef int64_t  Int;
 typedef double   Float;
 
-#define BYTECODE_LIST \
-    /* OPCODE        OPERAND_SIZE */\
-    /* ========================== */\
-    OP(OP_NOP,          OPERAND_NONE) \
-    /* local and arg */\
-    OP(OP_LOADB,        OPERAND_BYTE) \
-    OP(OP_LOADI,        OPERAND_QUAD) \
-    OP(OP_LOADF,        OPERAND_QUAD) \
-    OP(OP_LOADS,        OPERAND_WORD) \
-    OP(OP_LOADLOCAL,    OPERAND_BYTE) \
-    OP(OP_LOADGLOBAL,   OPERAND_WORD) \
-    OP(OP_STORELOCAL,   OPERAND_BYTE) \
-    OP(OP_STOREGLOBAL,  OPERAND_WORD) \
-    OP(OP_LOAD,         OPERAND_NONE) \
-    OP(OP_STORE,        OPERAND_NONE) \
-    OP(OP_INCLOCAL,     OPERAND_BYTE) \
-    OP(OP_INCGLOBAL,    OPERAND_WORD) \
-    OP(OP_DECLOCAL,     OPERAND_BYTE) \
-    OP(OP_DECGLOBAL,    OPERAND_WORD) \
-    OP(OP_ALLOC,        OPERAND_BYTE) \
-    /* address */\
-    OP(OP_LOADA,        OPERAND_WORD) \
-    OP(OP_DEREF,        OPERAND_NONE) \
-    OP(OP_INDEX,        OPERAND_NONE) \
-    /* arg type spec */\
-    OP(OP_LOADTYPEN,    OPERAND_NONE) \
-    OP(OP_LOADTYPEB,    OPERAND_NONE) \
-    OP(OP_LOADTYPEI,    OPERAND_NONE) \
-    OP(OP_LOADTYPEF,    OPERAND_NONE) \
-    OP(OP_LOADTYPES,    OPERAND_NONE) \
-    /* jump and function */\
-    OP(OP_CALL,         OPERAND_WORD) \
-    OP(OP_CALL_BUILTIN, OPERAND_BYTE) \
-    OP(OP_RET,          OPERAND_NONE) \
-    OP(OP_JMP,          OPERAND_WORD) \
-    OP(OP_JEQ,          OPERAND_WORD) \
-    /* arithmetic */\
-    OP(OP_ADD,          OPERAND_NONE) \
-    OP(OP_ADDF,         OPERAND_NONE) \
-    OP(OP_CATS,         OPERAND_NONE) \
-    OP(OP_SUB,          OPERAND_NONE) \
-    OP(OP_SUBF,         OPERAND_NONE) \
-    OP(OP_MUL,          OPERAND_NONE) \
-    OP(OP_MULF,         OPERAND_NONE) \
-    OP(OP_DIV,          OPERAND_NONE) \
-    OP(OP_DIVF,         OPERAND_NONE) \
-    OP(OP_REM,          OPERAND_NONE) \
-    OP(OP_REMF,         OPERAND_NONE) \
-    /* relational */\
-    OP(OP_EQ,           OPERAND_NONE) \
-    OP(OP_EQF,          OPERAND_NONE) \
-    OP(OP_EQS,          OPERAND_NONE) \
-    OP(OP_NEQ,          OPERAND_NONE) \
-    OP(OP_NEQF,         OPERAND_NONE) \
-    OP(OP_NEQS,         OPERAND_NONE) \
-    OP(OP_LT,           OPERAND_NONE) \
-    OP(OP_LTF,          OPERAND_NONE) \
-    OP(OP_LTE,          OPERAND_NONE) \
-    OP(OP_LTEF,         OPERAND_NONE) \
-    OP(OP_GT,           OPERAND_NONE) \
-    OP(OP_GTF,          OPERAND_NONE) \
-    OP(OP_GTE,          OPERAND_NONE) \
-    OP(OP_GTEF,         OPERAND_NONE) \
-    OP(OP_AND,          OPERAND_NONE) \
-    OP(OP_OR,           OPERAND_NONE) \
-    OP(OP_XOR,          OPERAND_NONE) \
-    OP(OP_NOT,          OPERAND_NONE) \
-    OP(OP_SHL,          OPERAND_NONE) \
-    OP(OP_SHR,          OPERAND_NONE) \
-    OP(OP_NEG,          OPERAND_NONE) \
-    OP(OP_NEGF,         OPERAND_NONE) \
-    OP(OP_SETZ,         OPERAND_NONE) \
-    OP(OP_SETNZ,        OPERAND_NONE) \
-    OP(OP_POP,          OPERAND_NONE) \
-    OP(OP_DUP,          OPERAND_NONE) \
-    /* conversion */\
-    OP(OP_BTOI,         OPERAND_NONE) \
-    OP(OP_BTOF,         OPERAND_NONE) \
-    OP(OP_ITOB,         OPERAND_NONE) \
-    OP(OP_ITOF,         OPERAND_NONE) \
-    OP(OP_FTOB,         OPERAND_NONE) \
-    OP(OP_FTOI,         OPERAND_NONE) \
-    /* debug */\
-    OP(OP_PUSH_CHECK_NUM, OPERAND_QUAD) \
-    OP(OP_POP_CHECK_NUM,  OPERAND_QUAD) \
-    /* exit */\
-    OP(OP_EXIT,         OPERAND_NONE) \
-    OP(OP_EOC,          OPERAND_NONE) \
-
 enum Opcode {
-#define OP(opcode, operand_size) opcode,
-    BYTECODE_LIST
-#undef OP
+    OP_NOP = 0,
+    // local and arg
+    OP_LOADB,
+    OP_LOADI,
+    OP_LOADF,
+    OP_LOADS,
+    OP_LOADLOCAL,
+    OP_LOADGLOBAL,
+    OP_STORELOCAL,
+    OP_STOREGLOBAL,
+    OP_LOAD,
+    OP_STORE,
+    OP_INCLOCAL,
+    OP_INCGLOBAL,
+    OP_DECLOCAL,
+    OP_DECGLOBAL,
+    OP_ALLOC,
+    // address
+    OP_LOADA,
+    OP_DEREF,
+    OP_INDEX,
+    // arg type spec
+    OP_LOADTYPEN,
+    OP_LOADTYPEB,
+    OP_LOADTYPEI,
+    OP_LOADTYPEF,
+    OP_LOADTYPES,
+    // jump and function
+    OP_CALL,
+    OP_CALL_BUILTIN,
+    OP_RET,
+    OP_JMP,
+    OP_JEQ,
+    // arithmetic
+    OP_ADD,
+    OP_ADDF,
+    OP_CATS,
+    OP_SUB,
+    OP_SUBF,
+    OP_MUL,
+    OP_MULF,
+    OP_DIV,
+    OP_DIVF,
+    OP_REM,
+    OP_REMF,
+    // relational
+    OP_EQ,
+    OP_EQF,
+    OP_EQS,
+    OP_NEQ,
+    OP_NEQF,
+    OP_NEQS,
+    OP_LT,
+    OP_LTF,
+    OP_LTE,
+    OP_LTEF,
+    OP_GT,
+    OP_GTF,
+    OP_GTE,
+    OP_GTEF,
+    OP_AND,
+    OP_OR,
+    OP_XOR,
+    OP_NOT,
+    OP_SHL,
+    OP_SHR,
+    OP_NEG,
+    OP_NEGF,
+    OP_SETZ,
+    OP_SETNZ,
+    OP_POP,
+    OP_DUP,
+    // conversion
+    OP_BTOI,
+    OP_BTOF,
+    OP_ITOB,
+    OP_ITOF,
+    OP_FTOB,
+    OP_FTOI,
+    // debug
+    OP_PUSH_CHECK_NUM,
+    OP_POP_CHECK_NUM,
+    // exit
+    OP_EXIT,
+    OP_EOC,
+};
+
+struct OpcodeInfo {
+    int opcode;
+    const char *mnemonic;
+    int operand_size;
 };
 
 const char *OpcodeString(Byte op);
