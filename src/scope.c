@@ -100,6 +100,24 @@ struct Func *AddBuiltinFunc(struct Scope *parent, const char *name)
     return f;
 }
 
+struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *modulefile)
+{
+    struct Func *func = AddFunc(parent, modulefile, name);
+
+    if (FindSymbol(parent, func->fullname))
+        return NULL;
+
+    // Add func itself to symbol table
+    struct Symbol *sym = NewSymbol(SYM_FUNC, func->fullname, NewFuncType(func));
+    sym->func = func;
+
+    if (!HashMapInsert(&parent->symbols, func->fullname, sym))
+        return NULL;
+    VecPush(&parent->syms, sym);
+
+    return func;
+}
+
 static int param_count(const struct Func *f)
 {
     return f->params.len;
