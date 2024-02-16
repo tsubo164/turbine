@@ -13,6 +13,38 @@ struct Scope *NewScope(struct Scope *parent)
     return sc;
 }
 
+// Symbol
+struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type)
+{
+    struct Symbol *sym = CALLOC(struct Symbol);
+    sym->kind = kind;
+    sym->name = name;
+    sym->type = type;
+    return sym;
+}
+
+struct Symbol *FindSymbol(const struct Scope *sc, const char *name)
+{
+    struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
+    if (ent)
+        return ent->val;
+
+    if (sc->parent)
+        return FindSymbol(sc->parent, name);
+
+    return NULL;
+}
+
+struct Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
+{
+    struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
+    if (ent)
+        return ent->val;
+
+    return NULL;
+}
+
+// Var
 static struct Var *new_var(const char *Name, const struct Type *t, bool global)
 {
     struct Var *v = CALLOC(struct Var);
@@ -21,9 +53,6 @@ static struct Var *new_var(const char *Name, const struct Type *t, bool global)
     v->is_global = global;
     return v;
 }
-
-// TODO remove forward decls
-struct Symbol *FindSymbolThisScope(struct Scope *sc, const char *name);
 
 struct Symbol *DefineVar(struct Scope *sc, const char *name, const Type *type, bool isglobal)
 {
@@ -40,103 +69,11 @@ struct Symbol *DefineVar(struct Scope *sc, const char *name, const Type *type, b
     return sym;
 }
 
-static struct Struct *new_struct(const char *name)
-{
-    struct Struct *s = CALLOC(struct Struct);
-    s->name = name;
-
-    return s;
-}
-
-struct Struct *DefineStruct(struct Scope *sc, const char *name)
-{
-    struct Struct *strct = new_struct(name);
-    struct Symbol *sym = NewSymbol(SYM_STRUCT, name, NewStructType(strct));
-    sym->strct = strct;
-
-    if (!HashMapInsert(&sc->symbols, name, sym))
-        return NULL;
-    VecPush(&sc->syms, sym);
-
-    return strct;
-}
-
-struct Struct *FindStruct(const struct Scope *sc, const char *name)
-{
-    struct Symbol *sym = FindSymbol(sc, name);
-    if (sym)
-        return sym->strct;
-
-    return NULL;
-}
-
-struct Table *DefineTable(struct Scope *sc, const char *name)
-{
-    struct Table *tab = CALLOC(struct Table);
-    tab->name = name;
-
-    struct Symbol *sym = NewSymbol(SYM_TABLE, name, NewTableType(tab));
-    sym->table = tab;
-
-    if (!HashMapInsert(&sc->symbols, name, sym))
-        return NULL;
-    VecPush(&sc->syms, sym);
-
-    return tab;
-}
-
-struct Module *DefineModule(struct Scope *sc, const char *filename, const char *modulename)
-{
-    struct Module *mod = CALLOC(struct Module);
-    mod->name = modulename;
-    mod->filename = filename;
-    mod->scope = NewScope(sc);
-
-    struct Symbol *sym = NewSymbol(SYM_MODULE, modulename, NewModuleType(mod));
-    sym->module = mod;
-
-    if (!HashMapInsert(&sc->symbols, modulename, sym))
-        return NULL;
-    VecPush(&sc->syms, sym);
-
-    return mod;
-}
-
-struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type)
-{
-    struct Symbol *sym = CALLOC(struct Symbol);
-    sym->kind = kind;
-    sym->name = name;
-    sym->type = type;
-    return sym;
-}
-
-struct Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
-{
-    struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
-    if (ent)
-        return ent->val;
-
-    return NULL;
-}
-
-struct Symbol *FindSymbol(const struct Scope *sc, const char *name)
-{
-    struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
-    if (ent)
-        return ent->val;
-
-    if (sc->parent)
-        return FindSymbol(sc->parent, name);
-
-    return NULL;
-}
-
 static const char *func_fullname(const char *modulefile, const char *funcname)
 {
     // unique func name
-    char fullname[1024] = {'\0'};
-    size_t size = sizeof(fullname) / sizeof(fullname[0]);
+    static char fullname[1024] = {'\0'};
+    static const size_t size = sizeof(fullname) / sizeof(fullname[0]);
 
     snprintf(fullname, size, "%s:%s", modulefile, funcname);
     return StrIntern(fullname);
@@ -204,6 +141,36 @@ int RequiredParamCount(const struct Func *f)
 }
 
 // Struct
+static struct Struct *new_struct(const char *name)
+{
+    struct Struct *s = CALLOC(struct Struct);
+    s->name = name;
+
+    return s;
+}
+
+struct Struct *DefineStruct(struct Scope *sc, const char *name)
+{
+    struct Struct *strct = new_struct(name);
+    struct Symbol *sym = NewSymbol(SYM_STRUCT, name, NewStructType(strct));
+    sym->strct = strct;
+
+    if (!HashMapInsert(&sc->symbols, name, sym))
+        return NULL;
+    VecPush(&sc->syms, sym);
+
+    return strct;
+}
+
+struct Struct *FindStruct(const struct Scope *sc, const char *name)
+{
+    struct Symbol *sym = FindSymbol(sc, name);
+    if (sym)
+        return sym->strct;
+
+    return NULL;
+}
+
 static struct Field *new_field(const char *Name, const Type *type, int offset)
 {
     struct Field *f = CALLOC(struct Field);
@@ -233,4 +200,38 @@ struct Field *FindField(const struct Struct *strct, const char *name)
             return f;
     }
     return NULL;
+}
+
+// Table
+struct Table *DefineTable(struct Scope *sc, const char *name)
+{
+    struct Table *tab = CALLOC(struct Table);
+    tab->name = name;
+
+    struct Symbol *sym = NewSymbol(SYM_TABLE, name, NewTableType(tab));
+    sym->table = tab;
+
+    if (!HashMapInsert(&sc->symbols, name, sym))
+        return NULL;
+    VecPush(&sc->syms, sym);
+
+    return tab;
+}
+
+// Module
+struct Module *DefineModule(struct Scope *sc, const char *filename, const char *modulename)
+{
+    struct Module *mod = CALLOC(struct Module);
+    mod->name = modulename;
+    mod->filename = filename;
+    mod->scope = NewScope(sc);
+
+    struct Symbol *sym = NewSymbol(SYM_MODULE, modulename, NewModuleType(mod));
+    sym->module = mod;
+
+    if (!HashMapInsert(&sc->symbols, modulename, sym))
+        return NULL;
+    VecPush(&sc->syms, sym);
+
+    return mod;
 }

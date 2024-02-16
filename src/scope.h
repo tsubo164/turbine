@@ -103,30 +103,34 @@ struct Scope {
     struct HashMap symbols;
 };
 
+// Scope
 struct Scope *NewScope(struct Scope *parent);
 
-struct Symbol *DefineVar(struct Scope *sc, const char *name,
-        const struct Type *type, bool isglobal);
-
-struct Struct *DefineStruct(struct Scope *sc, const char *name);
-struct Struct *FindStruct(const struct Scope *sc, const char *name);
-
-struct Table *DefineTable(struct Scope *sc, const char *name);
-struct Module *DefineModule(struct Scope *sc, const char *filename, const char *modulename);
-
+// Symbol
 struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type);
 struct Symbol *FindSymbol(const struct Scope *sc, const char *name);
+
+// Var
+struct Symbol *DefineVar(struct Scope *sc, const char *name,
+        const struct Type *type, bool isglobal);
 
 // Func
 struct Func *AddFunc(struct Scope *parent, const char *modulefile, const char *name);
 struct Func *AddBuiltinFunc(struct Scope *parent, const char *name);
-
 void DeclareParam(struct Func *f, const char *name, const struct Type *type);
 const struct Var *GetParam(const struct Func *f, int index);
 int RequiredParamCount(const struct Func *f);
 
 // Struct
+struct Struct *DefineStruct(struct Scope *sc, const char *name);
+struct Struct *FindStruct(const struct Scope *sc, const char *name);
 struct Field *AddField(struct Struct *strct, const char *name, const struct Type *type);
 struct Field *FindField(const struct Struct *strct, const char *name);
+
+// Table
+struct Table *DefineTable(struct Scope *sc, const char *name);
+
+// Module
+struct Module *DefineModule(struct Scope *sc, const char *filename, const char *modulename);
 
 #endif // _H
