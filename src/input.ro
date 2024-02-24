@@ -2,26 +2,12 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
+//[my_calc]
 
-[my_calc]
-//
 //## Point
 //  - x int
 //  - q float
 //
-//# sub(x int, y int) int
-//  - z int
-//  z = x - y
-//  ---
-//    - p Point
-//    - q = 11
-//  - a int = 99
-//  return z
-//
-//# add(a int, b int, c int) int
-//  - d int
-//  d = a + b + c
-//  return d
 
 //:: Color
 //  | R
@@ -47,20 +33,9 @@
 //- p = 3.14
 - q = 111
 
-//# main() int
-  //a = Color.G
-  //print(my_calc.PI)
-  //print(p)
-  //print("Hello", p)
-  //print(my_calc.E)
-  //return  my_calc.add(9, 4)
-  //return sub(42, 20)
-  //return sub(48, 6)
-  //my_calc.E = 99
-  //return q
-  //return my_calc.E
 # main() int
-  - i int = 9999
-  i = 42
-  i = my_calc.UINT8_MAX - 55
-  return  i + my_calc.add(3, 4)
+  return 42
+  //- i int = 9999
+  //i = 42
+  //i = my_calc.UINT8_MAX - 55
+  //return  i + my_calc.add(3, 4)

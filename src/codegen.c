@@ -184,8 +184,8 @@ static void gen_logand(Bytecode *code, const struct Expr *e)
 
 static void gen_assign(Bytecode *code, const struct Expr *e)
 {
+    // rval first
     if (e->kind == T_ASSN) {
-        // rval first
         gen_expr(code, e->r);
     }
     else {
@@ -215,19 +215,21 @@ static void gen_assign(Bytecode *code, const struct Expr *e)
         }
     }
 
-    //if (optimize) {
-    //    int addr = 0;
-    //    const bool isconst = lval->EvalAddr(addr);
-    //    if (isconst) {
-    //        if (lval->IsGlobal())
-    //            code.StoreGlobal(addr);
-    //        else
-    //            code.StoreLocal(addr);
-    //        return;
-    //    }
-    //}
-    gen_addr(code, e->l);
-    Store(code);
+    // lval
+    int addr = 0;
+    const bool isconst = EvalAddr(e->l, &addr);
+
+    // store
+    if (isconst) {
+        if (IsGlobal(e->l))
+            StoreGlobal(code, addr);
+        else
+            StoreLocal(code, addr);
+    }
+    else {
+        gen_addr(code, e->l);
+        Store(code);
+    }
 }
 
 static void gen_expr(Bytecode *code, const struct Expr *e)

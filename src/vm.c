@@ -955,6 +955,9 @@ void PrintStack(const VM *vm)
 
         printf("|%4llu|", vm->stack_.data[i].inum);
 
+        if (i <= vm->sp_ && i > vm->bp_)
+            printf(" [%lld]", i - vm->bp_ - 1);
+
         if (i == vm->bp_)
             printf("<-BP");
         printf("\n");
