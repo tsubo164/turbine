@@ -1,4 +1,4 @@
-CFLAGS := -O2 -Wall --pedantic-errors -std=c11
+CFLAGS := -g -Wall --pedantic-errors -std=c11
 SRCS   := $(wildcard *.c)
 
 ROCK  := ../rock

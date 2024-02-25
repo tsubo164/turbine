@@ -34,7 +34,12 @@
 - q = 111
 
 # main() int
-  return 42
+  - i int
+  - a = 13
+  for i = 0; i < 0; i++
+    a *= 2
+  return a
+  //return 42
   //- i int = 9999
   //i = 42
   //i = my_calc.UINT8_MAX - 55

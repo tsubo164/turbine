@@ -222,6 +222,14 @@
     AssertF(1.23, my_calc.PI)
     AssertI(42, my_calc.add(31, 11))
 
+  // module import
+  ---
+    - i int
+    - a = 13
+    for i = 0; i < 0; i++
+      a *= 2
+    AssertI(13, a)
+
   //------------------------------
   print(test_count, "tests done.")
 

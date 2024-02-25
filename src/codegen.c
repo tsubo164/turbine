@@ -581,18 +581,17 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
             BeginFor(code);
             gen_stmt(code, s->init);
 
-            // FIXME cond first??
-            // body
+            // cond
             const Int begin = NextAddr(code);
+            gen_expr(code, s->cond);
+            const Int exit = JumpIfZero(code, -1);
+
+            // body
             gen_stmt(code, s->body);
 
             // post
             BackPatchContinues(code);
             gen_stmt(code, s->post);
-
-            // cond
-            gen_expr(code, s->cond);
-            const Int exit = JumpIfZero(code, -1);
             Jump(code, begin);
 
             // exit
