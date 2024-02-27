@@ -30,17 +30,15 @@
 //  | TX  | "Texas"      |
 //  | NY  | "New Yourk"  |
 
-//- p = 3.14
 - q = 111
 
+# add(a int, b int) int
+  return a + b
+
+- a = add
+
 # main() int
-  - i int
-  - a = 13
-  for i = 0; i < 0; i++
-    a *= 2
-  return a
-  //return 42
-  //- i int = 9999
-  //i = 42
-  //i = my_calc.UINT8_MAX - 55
-  //return  i + my_calc.add(3, 4)
+  //print("Hello!", q)
+  print(a(9, 13))
+  //- x = a(9, 13)
+  return 42

@@ -33,6 +33,9 @@
 # add(x int, y int) int
   return x + y
 
+// global pointer to function
+- addfp = add
+
 # twice(n *int)
   *n = *n * 2
 
@@ -222,13 +225,17 @@
     AssertF(1.23, my_calc.PI)
     AssertI(42, my_calc.add(31, 11))
 
-  // module import
+  // for zero times loop
   ---
     - i int
     - a = 13
     for i = 0; i < 0; i++
       a *= 2
     AssertI(13, a)
+
+  // global pointer to function
+  ---
+    AssertI(2222, addfp(19, 2203))
 
   //------------------------------
   print(test_count, "tests done.")

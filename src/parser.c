@@ -530,7 +530,7 @@ static struct Expr *expression(Parser *p)
     return logor_expr(p);
 }
 
-// assign_expr = logand_expr assing_op expression
+// assign_stmt = logand_expr assing_op expression
 //             | logand_expr incdec_op
 // assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
 // incdec_op   = "++" | "--"
@@ -554,6 +554,12 @@ static struct Stmt *assign_stmt(Parser *p)
                     "type mismatch: l-value type '%s': r-value type '%s'",
                     TypeString(lval->type),
                     TypeString(rval->type));
+        }
+        // TODO make new_assign_stmt()
+        if (IsFunc(rval->type) && rval->type->func->is_builtin) {
+            error(p, tok->pos,
+                    "builtin function can not be assigned: '%s'",
+                    rval->type->func->name);
         }
         return NewAssignStmt(lval, rval, kind);
 
@@ -869,6 +875,7 @@ static struct Stmt *var_decl(Parser *p, bool isglobal)
             init = default_value(type);
         }
     }
+    const struct Pos init_pos = tok_pos(p);
 
     expect(p, T_NEWLINE);
 
@@ -878,6 +885,12 @@ static struct Stmt *var_decl(Parser *p, bool isglobal)
                 "re-defined identifier: '%s'", name);
     }
     struct Expr *ident = NewIdentExpr(sym);
+    // TODO make new_assign_stmt()
+    if (init && IsFunc(init->type) && init->type->func->is_builtin) {
+        error(p, init_pos,
+                "builtin function can not be assigned: '%s'",
+                init->type->func->name);
+    }
     return NewAssignStmt(ident, init, T_ASSN);
 }
 
@@ -1086,8 +1099,8 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_HASH)) {
-        Func *func = AddFunc(p->scope, p->module->filename, "_");
-        func->id = p->module->funcs.len;
+        Func *func = DeclareFunc(p->scope, "_", p->module->filename);
+        // TODO check NULL func
         VecPush(&p->module->funcs, func);
         param_list(p, func);
         ret_type(p, func);
@@ -1128,8 +1141,8 @@ static struct Stmt *func_def(struct Parser *p)
     // func
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
-    Func *func = AddFunc(p->scope, p->module->filename, name);
-    func->id = p->module->funcs.len;
+    Func *func = DeclareFunc(p->scope, name, p->module->filename);
+    // TODO check NULL func
     VecPush(&p->module->funcs, func);
 
     // func var

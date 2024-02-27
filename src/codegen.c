@@ -140,7 +140,10 @@ static void gen_call(Bytecode *code, const struct Expr *e)
     // TODO remove this by doing expr->Gen()
     int addr = 0;
     if (EvalAddr(e->l, &addr)) {
-        CallFunction(code, addr, func->is_builtin);
+        if (func->is_builtin)
+            CallFunction(code, func->id, func->is_builtin);
+        else
+            CallFunction(code, addr, func->is_builtin);
     }
 }
 
@@ -777,11 +780,9 @@ static int resolve_func_id(struct Scope *scope, int start_id)
     for (int i = 0; i < scope->syms.len; i++) {
         struct Symbol *sym = scope->syms.data[i];
 
-        if (sym->kind == SYM_VAR) {
-            struct Var *var = sym->var;
-
-            if (IsFunc(var->type))
-                var->type->func->id = next_id++;
+        if (sym->kind == SYM_FUNC) {
+            if (!sym->func->is_builtin)
+                sym->func->id = next_id++;
         }
         else if (sym->kind == SYM_MODULE) {
             next_id = resolve_func_id(sym->module->scope, next_id);
@@ -806,20 +807,18 @@ static int resolve_offset(struct Scope *scope, int start_offset)
         struct Symbol *sym = scope->syms.data[i];
         int sym_size = 0;
 
-        // TODO may need SYM_FUNC
         if (sym->kind == SYM_VAR) {
             struct Var *var = sym->var;
             var->offset = offset;
             sym_size = SizeOf(var->type);
             offset += SizeOf(var->type);
             max_offset = max(max_offset, offset);
-
-            if (IsFunc(var->type)) {
-                struct Scope *child = var->type->func->scope;
-                // start over from offset 0
-                int child_max = resolve_offset(child, 0);
-                var->type->func->size = child_max;
-            }
+        }
+        else if (sym->kind == SYM_FUNC) {
+            struct Scope *child = sym->func->scope;
+            // start over from offset 0
+            int child_max = resolve_offset(child, 0);
+            sym->func->size = child_max;
         }
         else if (sym->kind == SYM_MODULE) {
             struct Scope *child = sym->module->scope;
