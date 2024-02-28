@@ -90,18 +90,17 @@ static void print_expr(const struct Expr *e, int depth)
     case 'y':
         printf(" \"%s\"", e->sym->name);
         break;
+    case 'F':
+        printf(" %s", e->func->fullname);
+        break;
     }
     printf("\n");
 
     // children
-    if (e->l)
-        print_expr(e->l, depth + 1);
-    if (e->r)
-        print_expr(e->r, depth + 1);
-    if (e->list)
-        print_expr(e->list, depth + 1);
-    if (e->next)
-        print_expr(e->next, depth);
+    print_expr(e->l, depth + 1);
+    print_expr(e->r, depth + 1);
+    print_expr(e->list, depth + 1);
+    print_expr(e->next, depth);
 }
 
 static void print_stmt(const struct Stmt *s, int depth)

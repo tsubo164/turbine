@@ -49,7 +49,7 @@ static const struct KindInfo table[] = {
     { T_INTLIT,     "int_lit",    'i' },
     { T_FLTLIT,     "float_lit",  'f' },
     { T_STRLIT,     "string_lit", 's' },
-    { T_FUNCLIT,    "func_lit",   's' },
+    { T_FUNCLIT,    "func_lit",   'F' },
     // separator
     { T_LPAREN,     "(" },
     { T_RPAREN,     ")" },

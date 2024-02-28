@@ -51,7 +51,7 @@ struct Expr *NewStringLitExpr(const char *s)
 struct Expr *NewFuncLitExpr(struct Func *func)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewStringType();
+    e->type = NewFuncType(func);
     e->kind = T_FUNCLIT;
     e->func = func;
     return e;
