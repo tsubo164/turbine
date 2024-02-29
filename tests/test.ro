@@ -33,6 +33,23 @@
 # add(x int, y int) int
   return x + y
 
+# upper(s string) string
+  return s
+
+# foo(x int) int
+  return 19
+  if x == 10
+      - y int
+      y = 23
+      x = y
+  return x + 3
+
+## Point
+  - x int
+  - y int
+
+- pt Point
+    
 // global pointer to function
 - addfp = add
 
@@ -40,6 +57,12 @@
   *n = *n * 2
 
 - g_array [4]int
+
+- gcount int
+- gvar int
+    
+# set_gvar() int
+  gvar = 119
 
 :: Color
   | R // 0
@@ -128,6 +151,93 @@
     or
       b = 22
     AssertI(11, b)
+
+  ---
+    - a int
+    - b int
+    a = 42
+    if a == 42
+      b = 1
+    or
+      b = 0
+    AssertI(1, b)
+
+  ---
+    - a int
+    - b int
+    a = 42
+    if a == 41
+      b = 1
+    or
+      b = 0
+    AssertI(0, b)
+
+  // if statement
+  // line comment at beginning of line
+  ---
+    - a int
+    - b int
+   // comment with incorrect indetation
+    a = 42 // comment after vaid statement
+    if a == 42
+      b = 1
+    or
+      b = 0
+    // comment with the same indetation
+    AssertI(1, b)
+
+  ---
+    // if statement
+    // line comment at beginning of line
+    - a int
+    - b int
+  // comment with incorrect indetation
+    a = 42 // comment after vaid statement
+    if a == 42
+      b = seven()
+    or
+      b = 0
+    // comment with the same indetation
+    AssertI(7, b)
+
+  ---
+    - s string
+    - a = 33
+    AssertI(33, a)
+
+  ---
+    - a int
+    a = 42
+    if a == 42
+        - b int
+        b = 13
+   
+        if  b == 13
+            - c int
+            c = 9
+   
+    //b = 4 // error
+    a = 31
+    AssertI(31, a)
+
+  ---
+    - a = seven() + add(30, 5)
+    AssertI(42, a)
+
+  ---
+    AssertI(0, gvar)
+    set_gvar()
+    AssertI(119, gvar)
+
+  ---
+    AssertI(42, foo(10) + add(20, 3))
+
+  ---
+    - a int
+    pt.x = 2
+    pt.y = 3
+    a = pt.y
+    AssertI(5, pt.x + pt.y)
 
   // C++ test
   // ==========================================================================

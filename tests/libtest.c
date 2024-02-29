@@ -145,8 +145,6 @@ int main(int argc, char **argv)
 
         ASSERTL(11, Interpret(input, filename, &opt));
     }
-    // =========================================================================
-    // test cases above copied to test.ro
     {
         const char *input = 
             "# main() int\n"
@@ -334,6 +332,8 @@ int main(int argc, char **argv)
 
         ASSERTL(5, Interpret(input, filename, &opt));
     }
+    // =========================================================================
+    // test cases above copied to test.ro
     {
         const char *input = 
             "# main() int\n"
