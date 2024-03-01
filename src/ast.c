@@ -357,9 +357,9 @@ int Addr(const struct Expr *e)
     }
 }
 
-static bool eval_binary(const struct Expr *e, long *result)
+static bool eval_binary(const struct Expr *e, int64_t *result)
 {
-    long L = 0, R = 0;
+    int64_t L = 0, R = 0;
 
     if (!EvalExpr(e->l, &L))
         return false;
@@ -377,9 +377,9 @@ static bool eval_binary(const struct Expr *e, long *result)
     }
 }
 
-static bool eval_unary(const struct Expr *e, long *result)
+static bool eval_unary(const struct Expr *e, int64_t *result)
 {
-    long L = 0;
+    int64_t L = 0;
 
     if (!EvalExpr(e->l, &L))
         return false;
@@ -393,11 +393,16 @@ static bool eval_unary(const struct Expr *e, long *result)
     }
 }
 
-bool EvalExpr(const struct Expr *e, long *result)
+bool EvalExpr(const struct Expr *e, int64_t *result)
 {
     switch (e->kind) {
+
     case T_INTLIT:
         *result = e->ival;
+        return true;
+
+    case T_FUNCLIT:
+        *result = e->func->id;
         return true;
 
     case T_ADD: case T_SUB:
@@ -416,6 +421,7 @@ bool EvalExpr(const struct Expr *e, long *result)
 bool EvalAddr(const struct Expr *e, int *result)
 {
     switch (e->kind) {
+
     case T_IDENT:
         *result = e->var->offset;
         return true;

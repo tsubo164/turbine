@@ -66,7 +66,7 @@ struct Module {
     const char *filename;
     const char *src;
     // TODO remove this
-    const struct Var *main_func;
+    const struct Func *main_func;
 };
 
 enum SymbolKind {
@@ -114,7 +114,6 @@ struct Symbol *DefineVar(struct Scope *sc, const char *name,
         const struct Type *type, bool isglobal);
 
 // Func
-struct Func *AddFunc(struct Scope *parent, const char *modulefile, const char *name);
 struct Func *AddBuiltinFunc(struct Scope *parent, const char *name);
 struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *modulefile);
 void DeclareParam(struct Func *f, const char *name, const struct Type *type);

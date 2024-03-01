@@ -138,12 +138,9 @@ static void gen_call(Bytecode *code, const struct Expr *e)
     }
 
     // TODO remove this by doing expr->Gen()
-    int addr = 0;
-    if (EvalAddr(e->l, &addr)) {
-        if (func->is_builtin)
-            CallFunction(code, func->id, func->is_builtin);
-        else
-            CallFunction(code, addr, func->is_builtin);
+    int64_t func_id = 0;
+    if (EvalExpr(e->l, &func_id)) {
+        CallFunction(code, func_id, func->is_builtin);
     }
 }
 
@@ -749,7 +746,7 @@ static void gen_module(Bytecode *code, const struct Module *mod)
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
     // call main
-    CallFunction(code, mod->main_func->offset, mod->main_func->type->func->is_builtin);
+    CallFunction(code, mod->main_func->id, mod->main_func->is_builtin);
     Exit(code);
 
     // global funcs

@@ -80,7 +80,7 @@ static const char *func_fullname(const char *modulefile, const char *funcname)
 }
 
 // Func
-struct Func *AddFunc(struct Scope *parent, const char *modulefile, const char *name)
+static struct Func *new_func(struct Scope *parent, const char *modulefile, const char *name)
 {
     struct Func *f = CALLOC(struct Func);
     f->name = name;
@@ -102,16 +102,16 @@ struct Func *AddBuiltinFunc(struct Scope *parent, const char *name)
 
 struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *modulefile)
 {
-    struct Func *func = AddFunc(parent, modulefile, name);
+    struct Func *func = new_func(parent, modulefile, name);
 
-    if (FindSymbol(parent, func->fullname))
+    if (FindSymbol(parent, func->name))
         return NULL;
 
     // Add func itself to symbol table
-    struct Symbol *sym = NewSymbol(SYM_FUNC, func->fullname, NewFuncType(func));
+    struct Symbol *sym = NewSymbol(SYM_FUNC, func->name, NewFuncType(func));
     sym->func = func;
 
-    if (!HashMapInsert(&parent->symbols, func->fullname, sym))
+    if (!HashMapInsert(&parent->symbols, func->name, sym))
         return NULL;
     VecPush(&parent->syms, sym);
 

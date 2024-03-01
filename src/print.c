@@ -188,20 +188,18 @@ static void print_scope(const struct Scope *sc, int depth)
 
         if (sym->kind == SYM_VAR) {
             const struct Var *v = sym->var;
+            print_header(depth);
+            printf("[var] \"%s\" %s @%d\n",
+                    v->name, TypeString(v->type),
+                    v->offset);
+        }
 
-            if (IsFunc(v->type)) {
-                print_header(depth);
-                printf("[fnc] \"%s\" %s(id:%d) @%d\n",
-                        v->name, TypeString(v->type),
-                        v->type->func->id, v->offset);
-                print_scope(v->type->func->scope, depth + 1);
-            }
-            else {
-                print_header(depth);
-                printf("[var] \"%s\" %s @%d\n",
-                        v->name, TypeString(v->type),
-                        v->offset);
-            }
+        if (sym->kind == SYM_FUNC) {
+            const struct Func *func = sym->func;
+            print_header(depth);
+            printf("[fnc] \"%s\" %s (id:%d)\n",
+                    func->name, TypeString(func->return_type), func->id);
+            print_scope(func->scope, depth + 1);
         }
 
         if (sym->kind == SYM_STRUCT) {
@@ -246,7 +244,7 @@ static void print_scope(const struct Scope *sc, int depth)
         }
     }
 
-    if ( sc->symbols.used == 0) {
+    if (sc->symbols.used == 0) {
         // no symbol
         print_header(depth);
         printf("--\n");

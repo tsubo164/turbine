@@ -2,6 +2,7 @@
 #define AST_H
 
 #include "token.h"
+#include <stdint.h>
 
 struct Type;
 struct Symbol;
@@ -82,7 +83,7 @@ bool IsNull(const struct Expr *e);
 bool IsGlobal(const struct Expr *e);
 
 int Addr(const struct Expr *e);
-bool EvalExpr(const struct Expr *e, long *result);
+bool EvalExpr(const struct Expr *e, int64_t *result);
 bool EvalAddr(const struct Expr *e, int *result);
 
 #endif // _H

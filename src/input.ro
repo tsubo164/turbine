@@ -31,14 +31,18 @@
 //  | NY  | "New Yourk"  |
 
 - q = 111
-
+//
 # add(a int, b int) int
   return a + b
 
-- a = add
+//- a = add
+# foo() int
+  return 19
 
 # main() int
+  - f = foo
   //print("Hello!", q)
-  print(a(9, 13))
+  //print(a(9, 13))
   //- x = a(9, 13)
-  return 42
+  return foo()
+  //return 42

@@ -268,7 +268,10 @@ static struct Expr *primary_expr(Parser *p)
                         "undefined identifier: '%s'",
                         tok_str(p));
             }
-            expr = NewIdentExpr(sym);
+            if (sym->kind == SYM_FUNC)
+                expr = NewFuncLitExpr(sym->func);
+            else
+                expr = NewIdentExpr(sym);
             continue;
         }
         else if (tok->kind == T_LPAREN) {
@@ -320,9 +323,9 @@ static struct Expr *primary_expr(Parser *p)
                 error(p, tok_pos(p),
                         "index expression must be integer type");
             }
-            long index = 0;
+            int64_t index = 0;
             if (EvalExpr(idx, &index)) {
-                const long len = expr->type->len;
+                const int64_t len = expr->type->len;
                 if (index >= len) {
                     error(p, tok_pos(p),
                             "index out of range[%d] with length %d",
@@ -1089,7 +1092,7 @@ static Type *type_spec(Parser *p)
             error(p, tok_pos(p),
                     "array length expression must be integer type");
         }
-        long len = 0;
+        int64_t len = 0;
         if (!EvalExpr(e, &len)) {
             error(p, tok_pos(p),
                     "array length expression must be compile time constant");
@@ -1133,7 +1136,7 @@ static Type *type_spec(Parser *p)
 }
 
 // func_def = "#" identifier param_list type_spec? newline block_stmt
-static struct Stmt *func_def(struct Parser *p)
+static void func_def(struct Parser *p)
 {
     expect(p, T_HASH);
     expect(p, T_IDENT);
@@ -1142,15 +1145,10 @@ static struct Stmt *func_def(struct Parser *p)
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
     Func *func = DeclareFunc(p->scope, name, p->module->filename);
-    // TODO check NULL func
-    VecPush(&p->module->funcs, func);
-
-    // func var
-    struct Symbol *sym = DefineVar(p->scope, name, NewFuncType(func), true);
-    if (!sym) {
-        error(p, ident_pos,
-                "re-defined identifier: '%s'", name);
+    if (!func) {
+        error(p, ident_pos, "re-defined identifier: '%s'", name);
     }
+    VecPush(&p->module->funcs, func);
 
     // params
     param_list(p, func);
@@ -1171,12 +1169,8 @@ static struct Stmt *func_def(struct Parser *p)
     p->func_ = NULL;
 
     // TODO remove this
-    if (!strcmp(sym->name, "main"))
-        p->module->main_func = sym->var;
-
-    struct Expr *ident = NewIdentExpr(sym);
-    struct Expr *init = NewFuncLitExpr(func);
-    return NewAssignStmt(ident, init, T_ASSN);
+    if (!strcmp(func->name, "main"))
+        p->module->main_func = func;
 }
 
 static void module_import(struct Parser *p)
@@ -1223,7 +1217,7 @@ static void program(Parser *p)
         const int next = peek(p);
 
         if (next == T_HASH) {
-            tail = tail->next = func_def(p);
+            func_def(p);
             continue;
         }
 

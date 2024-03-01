@@ -419,10 +419,8 @@ static void run(VM *vm)
 
         case OP_CALL:
             {
-                const int var_id = fetch_word(vm);
-                const Value func_var = get_global(vm, var_id);
-                const Word func_index = func_var.inum;
-                const Int func_addr = GetFunctionAddress(vm->code_, func_index);
+                const uint16_t func_index = fetch_word(vm);
+                const int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
 
                 Call call = {0};
                 call.argc = GetFunctionArgCount(vm->code_, func_index);
