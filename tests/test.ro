@@ -347,6 +347,13 @@
   ---
     AssertI(2222, addfp(19, 2203))
 
+  // local pointer to function
+  ---
+    - twicefp = twice
+    - xxxxxxxxxxxxxxxxxxxxxxxxxxxx = -128
+    twicefp(&xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+    AssertI(-256, xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+
   //------------------------------
   print(test_count, "tests done.")
 

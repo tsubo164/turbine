@@ -40,6 +40,7 @@ enum Opcode {
     OP_LOADTYPES,
     // jump and function
     OP_CALL,
+    OP_CALL_POINTER,
     OP_CALL_BUILTIN,
     OP_RET,
     OP_JMP,
@@ -179,6 +180,7 @@ void LoadTypeString(Bytecode *code);
 // jump and function
 void CallFunc(Bytecode *code, const char *fullname, bool builtin);
 void CallFunction(Bytecode *code, Word func_index, bool builtin);
+void CallFunctionPointer(struct Bytecode *code);
 // jump instructions return the address
 // where the destination address is stored.
 Int Jump(Bytecode *code, Int addr);

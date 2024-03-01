@@ -43,6 +43,7 @@ static const struct OpcodeInfo opcode_table[] = {
     { OP_LOADTYPES,    "LOADTYPES",    OPERAND_NONE },
     // jump and function
     { OP_CALL,         "CALL",         OPERAND_WORD },
+    { OP_CALL_POINTER, "CALL_POINTER", OPERAND_NONE },
     { OP_CALL_BUILTIN, "CALL_BUILTIN", OPERAND_BYTE },
     { OP_RET,          "RET",          OPERAND_NONE },
     { OP_JMP,          "JMP",          OPERAND_WORD },
@@ -405,6 +406,11 @@ void CallFunction(Bytecode *code, Word func_index, bool builtin)
         push_byte(&code->bytes_, OP_CALL);
         push_word(&code->bytes_, func_index);
     }
+}
+
+void CallFunctionPointer(struct Bytecode *code)
+{
+    push_byte(&code->bytes_, OP_CALL_POINTER);
 }
 
 Int JumpIfZero(Bytecode *code, Int addr)

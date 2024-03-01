@@ -433,6 +433,24 @@ static void run(VM *vm)
             }
             break;
 
+        case OP_CALL_POINTER:
+            {
+                const Value val = pop(vm);
+                const uint16_t func_index = val.inum;
+                const int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
+
+                // TODO make function for common part
+                Call call = {0};
+                call.argc = GetFunctionArgCount(vm->code_, func_index);
+                call.return_ip = vm->ip_;
+                call.return_bp = vm->bp_;
+                push_call(vm, &call);
+
+                set_ip(vm, func_addr);
+                set_bp(vm, vm->sp_ - call.argc);
+            }
+            break;
+
         case OP_CALL_BUILTIN:
             {
                 const Byte func_index = fetch_byte(vm);

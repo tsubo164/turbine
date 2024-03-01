@@ -44,5 +44,6 @@
   //print("Hello!", q)
   //print(a(9, 13))
   //- x = a(9, 13)
-  return foo()
+  print(f())
+  return f()
   //return 42

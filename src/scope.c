@@ -90,16 +90,6 @@ static struct Func *new_func(struct Scope *parent, const char *modulefile, const
     return f;
 }
 
-struct Func *AddBuiltinFunc(struct Scope *parent, const char *name)
-{
-    struct Func *f = CALLOC(struct Func);
-    f->name = name;
-    f->fullname = func_fullname(":buitin", name);
-    f->scope = NewScope(parent);
-    f->is_builtin = true;
-    return f;
-}
-
 struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *modulefile)
 {
     struct Func *func = new_func(parent, modulefile, name);
@@ -115,6 +105,13 @@ struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *mod
         return NULL;
     VecPush(&parent->syms, sym);
 
+    return func;
+}
+
+struct Func *DeclareBuiltinFunc(struct Scope *parent, const char *name)
+{
+    struct Func *func = DeclareFunc(parent, name, ":buitin");
+    func->is_builtin = true;
     return func;
 }
 

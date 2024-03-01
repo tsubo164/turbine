@@ -137,10 +137,14 @@ static void gen_call(Bytecode *code, const struct Expr *e)
             gen_expr(code, arg);
     }
 
-    // TODO remove this by doing expr->Gen()
     int64_t func_id = 0;
     if (EvalExpr(e->l, &func_id)) {
+        // TODO remove func and add FuncType
         CallFunction(code, func_id, func->is_builtin);
+    }
+    else {
+        gen_expr(code, e->l);
+        CallFunctionPointer(code);
     }
 }
 

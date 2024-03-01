@@ -114,8 +114,8 @@ struct Symbol *DefineVar(struct Scope *sc, const char *name,
         const struct Type *type, bool isglobal);
 
 // Func
-struct Func *AddBuiltinFunc(struct Scope *parent, const char *name);
 struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *modulefile);
+struct Func *DeclareBuiltinFunc(struct Scope *parent, const char *name);
 void DeclareParam(struct Func *f, const char *name, const struct Type *type);
 const struct Var *GetParam(const struct Func *f, int index);
 int RequiredParamCount(const struct Func *f);
