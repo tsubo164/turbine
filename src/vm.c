@@ -520,9 +520,15 @@ static void run(VM *vm)
                         else
                             printf(" ");
                     }
+                    // ret val
+                    Value ret = {0};
+                    push(vm, ret);
                 }
                 else if (func_index == 1) {
                     // builtin "exit" function
+                    Value ret_code = pop(vm);
+                    // ret val
+                    push(vm, ret_code);
                     brk = true;
                 }
             }

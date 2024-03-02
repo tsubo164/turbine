@@ -39,11 +39,14 @@
 # foo() int
   return 19
 
+- a = add
+
 # main() int
   - f = foo
   //print("Hello!", q)
   //print(a(9, 13))
   //- x = a(9, 13)
   print(f())
+  print(a(2, 7))
   return f()
   //return 42
