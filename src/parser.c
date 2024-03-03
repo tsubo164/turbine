@@ -1026,18 +1026,6 @@ static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope)
     return NewBlockStmt(head.next);
 }
 
-static void param_decl(struct Func *f, const char *name, const Type *type)
-{
-    struct Symbol *sym = DefineVar(f->scope, name, type, false);
-    VecPush(&f->params, sym->var);
-
-    if (!strcmp(name, "..."))
-        f->is_variadic = true;
-
-    if (name[0] == '$')
-        f->has_special_var = true;
-}
-
 static void param_list(Parser *p, Func *func)
 {
     expect(p, T_LPAREN);
@@ -1059,7 +1047,7 @@ static void param_list(Parser *p, Func *func)
             type = type_spec(p);
         }
 
-        param_decl(func, name, type);
+        DeclareParam(func, name, type);
     }
     while (consume(p, T_COMMA));
 

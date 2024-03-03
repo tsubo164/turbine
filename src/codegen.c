@@ -695,7 +695,7 @@ static void gen_func(Bytecode *code, const struct Func *func, int func_id)
     RegisterFunction(code, func_id, func->params.len);
 
     // local vars
-    Allocate(code, func->size);
+    Allocate(code, func->scope->size);
 
     gen_stmt(code, func->body);
 }
@@ -800,45 +800,50 @@ static int max(int a, int b)
 
 static int resolve_offset(struct Scope *scope, int start_offset)
 {
-    int offset = start_offset;
+    int cur_offset = start_offset;
     int max_offset = start_offset;
-    int total_size = 0;
+    int cur_size = 0;
+    int max_size = 0;
 
     for (int i = 0; i < scope->syms.len; i++) {
         struct Symbol *sym = scope->syms.data[i];
-        int sym_size = 0;
 
         if (sym->kind == SYM_VAR) {
             struct Var *var = sym->var;
-            var->offset = offset;
-            sym_size = SizeOf(var->type);
-            offset += SizeOf(var->type);
-            max_offset = max(max_offset, offset);
+            // offset
+            var->offset = cur_offset;
+            cur_offset += SizeOf(var->type);
+            max_offset = max(max_offset, cur_offset);
+            // size
+            if (!var->is_param)
+                cur_size += SizeOf(var->type);
+            max_size = max(max_size, cur_size);
         }
         else if (sym->kind == SYM_FUNC) {
             struct Scope *child = sym->func->scope;
             // start over from offset 0
-            int child_max = resolve_offset(child, 0);
-            sym->func->size = child_max;
-        }
-        else if (sym->kind == SYM_MODULE) {
-            struct Scope *child = sym->module->scope;
-            int child_max = resolve_offset(child, offset);
-            sym_size = child->size;
-            max_offset = max(max_offset, child_max);
-            // take over module's offset
-            offset = max_offset;
+            resolve_offset(child, 0);
         }
         else if (sym->kind == SYM_SCOPE) {
             struct Scope *child = sym->scope;
-            int child_max = resolve_offset(child, offset);
+            int child_max = resolve_offset(child, cur_offset);
+            // offset
             max_offset = max(max_offset, child_max);
+            // size
+            max_size = max(max_size, cur_size + child->size);
         }
-
-        total_size += sym_size;
+        else if (sym->kind == SYM_MODULE) {
+            struct Scope *child = sym->module->scope;
+            // offset
+            cur_offset = resolve_offset(child, cur_offset);
+            max_offset = max(max_offset, cur_offset);
+            // size
+            cur_size += child->size;
+            max_size = max(max_size, cur_size);
+        }
     }
 
-    scope->size = total_size;
+    scope->size = max_size;
     return max_offset;
 }
 

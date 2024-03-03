@@ -115,14 +115,25 @@ struct Func *DeclareBuiltinFunc(struct Scope *parent, const char *name)
     return func;
 }
 
-static int param_count(const struct Func *f)
+struct FuncType *MakeFuncType(struct Func *func)
 {
-    return f->params.len;
+    struct FuncType *func_type = CALLOC(struct FuncType);
+
+    func_type->return_type = func->return_type;
+    for (int i = 0; i < func->params.len; i++)
+        VecPush(&func_type->param_types, (void*)GetParam(func, i));
+
+    func_type->is_builtin = func->is_builtin;
+    func_type->is_variadic = func->is_variadic;
+    func_type->has_special_var = func->has_special_var;
+
+    return func_type;
 }
 
 void DeclareParam(struct Func *f, const char *name, const Type *type)
 {
     struct Symbol *sym = DefineVar(f->scope, name, type, false);
+    sym->var->is_param = true;
     VecPush(&f->params, sym->var);
 
     if (!strcmp(name, "..."))
@@ -135,13 +146,14 @@ void DeclareParam(struct Func *f, const char *name, const Type *type)
 const struct Var *GetParam(const struct Func *f, int index)
 {
     int idx = 0;
+    int param_count = f->params.len;
 
-    if (f->is_variadic && index >= param_count(f))
-        idx = param_count(f) - 1;
+    if (f->is_variadic && index >= param_count)
+        idx = param_count - 1;
     else
         idx = index;
 
-    if (idx < 0 || idx >= param_count(f))
+    if (idx < 0 || idx >= param_count)
         return NULL;
 
     return f->params.data[idx];
@@ -149,10 +161,12 @@ const struct Var *GetParam(const struct Func *f, int index)
 
 int RequiredParamCount(const struct Func *f)
 {
+    int param_count = f->params.len;
+
     if (f->is_variadic)
-        return param_count(f) - 1;
+        return param_count - 1;
     else
-        return param_count(f);
+        return param_count;
 }
 
 // Struct
