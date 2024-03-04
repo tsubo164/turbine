@@ -93,10 +93,9 @@ static void gen_convert(Bytecode *code, enum TY from, enum TY to)
 
 static void gen_call(Bytecode *code, const struct Expr *e)
 {
-    // TODO need CallExpr::func?
-    const Func *func = e->l->type->func;
+    const struct FuncType *func_type = e->l->type->func_type;
 
-    if (func->is_variadic) {
+    if (func_type->is_variadic) {
         int argc = 0;
         for (const struct Expr *arg = e->list; arg; arg = arg->next, argc++) {
             // arg value
@@ -139,8 +138,7 @@ static void gen_call(Bytecode *code, const struct Expr *e)
 
     int64_t func_id = 0;
     if (EvalExpr(e->l, &func_id)) {
-        // TODO remove func and add FuncType
-        CallFunction(code, func_id, func->is_builtin);
+        CallFunction(code, func_id, func_type->is_builtin);
     }
     else {
         gen_expr(code, e->l);
@@ -731,9 +729,9 @@ static void gen_funcs(Bytecode *code, const struct Module *mod)
 
     // self module next
     for (int i = 0; i < mod->funcs.len; i++) {
-        Func *f = mod->funcs.data[i];
-        if (!f->is_builtin)
-            gen_func(code, f, f->id);
+        struct Func *func = mod->funcs.data[i];
+        if (!func->is_builtin)
+            gen_func(code, func, func->id);
     }
 }
 
@@ -760,7 +758,7 @@ static void gen_module(Bytecode *code, const struct Module *mod)
 /*static*/ void register_funcs(Bytecode *code, const struct Module *mod)
 {
     for (int i = 0; i < mod->funcs.len; i++) {
-        Func *func = mod->funcs.data[i];
+        struct Func *func = mod->funcs.data[i];
         if (!func->is_builtin) {
             func->id = RegisterFunc(code, func->fullname, func->params.len);
         }

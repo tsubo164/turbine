@@ -12,6 +12,7 @@ void DefineBuiltinFuncs(struct Scope *builtin)
 
         DeclareParam(func, "...", NewAnyType());
         func->return_type = NewNilType();
+        func->func_type = MakeFuncType(func);
         func->id = func_id++;
     }
     {
@@ -20,6 +21,7 @@ void DefineBuiltinFuncs(struct Scope *builtin)
 
         DeclareParam(func, "code", NewIntType());
         func->return_type = NewIntType();
+        func->func_type = MakeFuncType(func);
         func->id = func_id++;
     }
 }

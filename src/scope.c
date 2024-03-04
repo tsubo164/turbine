@@ -54,7 +54,7 @@ static struct Var *new_var(const char *Name, const struct Type *t, bool global)
     return v;
 }
 
-struct Symbol *DefineVar(struct Scope *sc, const char *name, const Type *type, bool isglobal)
+struct Symbol *DefineVar(struct Scope *sc, const char *name, const struct Type *type, bool isglobal)
 {
     if (FindSymbolThisScope(sc, name))
         return NULL;
@@ -98,7 +98,7 @@ struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *mod
         return NULL;
 
     // Add func itself to symbol table
-    struct Symbol *sym = NewSymbol(SYM_FUNC, func->name, NewFuncType(func));
+    struct Symbol *sym = NewSymbol(SYM_FUNC, func->name, NewFuncType(func->func_type));
     sym->func = func;
 
     if (!HashMapInsert(&parent->symbols, func->name, sym))
@@ -120,8 +120,10 @@ struct FuncType *MakeFuncType(struct Func *func)
     struct FuncType *func_type = CALLOC(struct FuncType);
 
     func_type->return_type = func->return_type;
-    for (int i = 0; i < func->params.len; i++)
-        VecPush(&func_type->param_types, (void*)GetParam(func, i));
+    for (int i = 0; i < func->params.len; i++) {
+        const struct Var *var = GetParam(func, i);
+        VecPush(&func_type->param_types, (void*) var->type);
+    }
 
     func_type->is_builtin = func->is_builtin;
     func_type->is_variadic = func->is_variadic;
@@ -130,7 +132,7 @@ struct FuncType *MakeFuncType(struct Func *func)
     return func_type;
 }
 
-void DeclareParam(struct Func *f, const char *name, const Type *type)
+void DeclareParam(struct Func *f, const char *name, const struct Type *type)
 {
     struct Symbol *sym = DefineVar(f->scope, name, type, false);
     sym->var->is_param = true;
@@ -159,11 +161,27 @@ const struct Var *GetParam(const struct Func *f, int index)
     return f->params.data[idx];
 }
 
-int RequiredParamCount(const struct Func *f)
+const struct Type *GetParamType(const struct FuncType *func_type, int index)
 {
-    int param_count = f->params.len;
+    int idx = 0;
+    int param_count = func_type->param_types.len;
 
-    if (f->is_variadic)
+    if (func_type->is_variadic && index >= param_count)
+        idx = param_count - 1;
+    else
+        idx = index;
+
+    if (idx < 0 || idx >= param_count)
+        return NULL;
+
+    return func_type->param_types.data[idx];
+}
+
+int RequiredParamCount(const struct FuncType *func_type)
+{
+    int param_count = func_type->param_types.len;
+
+    if (func_type->is_variadic)
         return param_count - 1;
     else
         return param_count;
@@ -200,7 +218,7 @@ struct Struct *FindStruct(const struct Scope *sc, const char *name)
     return NULL;
 }
 
-static struct Field *new_field(const char *Name, const Type *type, int offset)
+static struct Field *new_field(const char *Name, const struct Type *type, int offset)
 {
     struct Field *f = CALLOC(struct Field);
     f->name = Name;
@@ -209,7 +227,7 @@ static struct Field *new_field(const char *Name, const Type *type, int offset)
     return f;
 }
 
-struct Field *AddField(struct Struct *strct, const char *name, const Type *type)
+struct Field *AddField(struct Struct *strct, const char *name, const struct Type *type)
 {
     if (FindField(strct, name))
         return NULL;

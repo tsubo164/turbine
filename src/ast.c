@@ -51,13 +51,13 @@ struct Expr *NewStringLitExpr(const char *s)
 struct Expr *NewFuncLitExpr(struct Func *func)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = NewFuncType(func);
+    e->type = NewFuncType(func->func_type);
     e->kind = T_FUNCLIT;
     e->func = func;
     return e;
 }
 
-struct Expr *NewConversionExpr(struct Expr *from, Type *to)
+struct Expr *NewConversionExpr(struct Expr *from, struct Type *to)
 {
     struct Expr *e = CALLOC(struct Expr);
     e->type = to;
@@ -108,7 +108,7 @@ struct Expr *NewIndexExpr(struct Expr *ary, struct Expr *idx)
 struct Expr *NewCallExpr(struct Expr *callee, struct Pos p)
 {
     struct Expr *e = CALLOC(struct Expr);
-    e->type = callee->type->func->return_type;
+    e->type = callee->type->func_type->return_type;
     e->kind = T_CALL;
     e->l = callee;
     e->pos = p;
@@ -154,7 +154,7 @@ struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int k)
     return e;
 }
 
-struct Expr *NewUnaryExpr(struct Expr *L, Type *t, int k)
+struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int k)
 {
     struct Expr *e = CALLOC(struct Expr);
     switch (k) {

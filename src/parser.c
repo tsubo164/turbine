@@ -116,7 +116,7 @@ static bool consume(Parser *p, int kind)
 }
 
 // forward decls
-static Type *type_spec(Parser *p);
+static struct Type *type_spec(Parser *p);
 static struct Expr *expression(Parser *p);
 static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope);
 
@@ -134,8 +134,8 @@ static struct Expr *arg_list(Parser *p, struct Expr *call)
         while (consume(p, T_COMMA));
     }
 
-    const Func *func = call->l->type->func;
-    if (func->has_special_var) {
+    const struct FuncType *func_type = call->l->type->func_type;
+    if (func_type->has_special_var) {
         tail = tail->next = NewIntLitExpr(call->pos.y);
         count++;
     }
@@ -143,22 +143,22 @@ static struct Expr *arg_list(Parser *p, struct Expr *call)
     call->list = head.next;
 
     const int argc = count;
-    const int paramc = RequiredParamCount(func);
+    const int paramc = RequiredParamCount(func_type);
     if (argc < paramc)
         error(p, tok_pos(p), "too few arguments");
 
     const struct Expr *arg = call->list;
     for (int i = 0; i < argc; i++, arg = arg->next) {
-        const struct Var *param = GetParam(func, i);
+        const struct Type *param_type = GetParamType(func_type, i);
 
-        if (!param)
+        if (!param_type)
             error(p, tok_pos(p), "too many arguments");
 
         // TODO arg needs to know its pos
-        if (!MatchType(arg->type, param->type)) {
+        if (!MatchType(arg->type, param_type)) {
             error(p, tok_pos(p),
                     "type mismatch: parameter type '%s': argument type '%s'",
-                    TypeString(param->type),
+                    TypeString(param_type),
                     TypeString(arg->type));
         }
     }
@@ -170,7 +170,7 @@ static struct Expr *arg_list(Parser *p, struct Expr *call)
 
 static struct Expr *conv_expr(Parser *p, int kind)
 {
-    Type *to_type = type_spec(p);
+    struct Type *to_type = type_spec(p);
     const struct Pos tokpos = tok_pos(p);
 
     expect(p, T_LPAREN);
@@ -359,7 +359,7 @@ static struct Expr *unary_expr(Parser *p)
 
     if (kind == T_AND) {
         struct Expr *expr = unary_expr(p);
-        Type *type = NewPtrType(expr->type);
+        struct Type *type = NewPtrType(expr->type);
         return NewUnaryExpr(expr, type, kind);
     }
     if (kind == T_MUL) {
@@ -368,7 +368,7 @@ static struct Expr *unary_expr(Parser *p)
             error(p, tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
-        Type *type = DuplicateType(expr->type->underlying);
+        struct Type *type = DuplicateType(expr->type->underlying);
         return NewUnaryExpr(expr, type, kind);
     }
 
@@ -379,7 +379,7 @@ static struct Expr *unary_expr(Parser *p)
     case T_NOT:
         {
             struct Expr *e = unary_expr(p);
-            return NewUnaryExpr(e, (Type*)(e->type), kind);
+            return NewUnaryExpr(e, (struct Type*)(e->type), kind);
         }
 
     default:
@@ -559,10 +559,12 @@ static struct Stmt *assign_stmt(Parser *p)
                     TypeString(rval->type));
         }
         // TODO make new_assign_stmt()
-        if (IsFunc(rval->type) && rval->type->func->is_builtin) {
+        if (IsFunc(rval->type) && rval->type->func_type->is_builtin) {
+            assert(rval->kind == T_FUNCLIT);
+            struct Func *func = rval->func;
             error(p, tok->pos,
                     "builtin function can not be assigned: '%s'",
-                    rval->type->func->name);
+                    func->name);
         }
         return NewAssignStmt(lval, rval, kind);
 
@@ -813,7 +815,7 @@ static struct Stmt *nop_stmt(Parser *p)
     return s;
 }
 
-static struct Expr *default_value(const Type *type)
+static struct Expr *default_value(const struct Type *type)
 {
     switch (type->kind) {
     case TY_BOOL:
@@ -857,7 +859,7 @@ static struct Stmt *var_decl(Parser *p, bool isglobal)
     // var anme
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
-    Type *type = NULL;
+    struct Type *type = NULL;
     struct Expr *init = NULL;
 
     // type and init
@@ -889,10 +891,12 @@ static struct Stmt *var_decl(Parser *p, bool isglobal)
     }
     struct Expr *ident = NewIdentExpr(sym);
     // TODO make new_assign_stmt()
-    if (init && IsFunc(init->type) && init->type->func->is_builtin) {
+    if (init && IsFunc(init->type) && init->type->func_type->is_builtin) {
+        assert(init->kind == T_FUNCLIT);
+        struct Func *func = init->func;
         error(p, init_pos,
                 "builtin function can not be assigned: '%s'",
-                init->type->func->name);
+                func->name);
     }
     return NewAssignStmt(ident, init, T_ASSN);
 }
@@ -1026,7 +1030,7 @@ static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope)
     return NewBlockStmt(head.next);
 }
 
-static void param_list(Parser *p, Func *func)
+static void param_list(Parser *p, struct Func *func)
 {
     expect(p, T_LPAREN);
 
@@ -1034,7 +1038,7 @@ static void param_list(Parser *p, Func *func)
         return;
 
     do {
-        const Type *type = NULL;
+        const struct Type *type = NULL;
         const char *name;
 
         if (consume(p, T_CALLER_LINE)) {
@@ -1054,7 +1058,7 @@ static void param_list(Parser *p, Func *func)
     expect(p, T_RPAREN);
 }
 
-static void ret_type(Parser *p, Func *func)
+static void ret_type(Parser *p, struct Func *func)
 {
     const int next = peek(p);
 
@@ -1066,9 +1070,9 @@ static void ret_type(Parser *p, Func *func)
 
 // type_spec = "bool" | "int" | "float" | "string" | identifier
 // func_type = "#" param_list type_spec?
-static Type *type_spec(Parser *p)
+static struct Type *type_spec(Parser *p)
 {
-    Type *type = NULL;
+    struct Type *type = NULL;
 
     if (consume(p, T_MUL)) {
         return NewPtrType(type_spec(p));
@@ -1090,12 +1094,14 @@ static Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_HASH)) {
-        Func *func = DeclareFunc(p->scope, "_", p->module->filename);
+        struct Func *func = DeclareFunc(p->scope, "_", p->module->filename);
         // TODO check NULL func
         VecPush(&p->module->funcs, func);
         param_list(p, func);
         ret_type(p, func);
-        return NewFuncType(func);
+        // func type
+        func->func_type = MakeFuncType(func);
+        return NewFuncType(func->func_type);
     }
 
     if (consume(p, T_BOL)) {
@@ -1132,7 +1138,7 @@ static void func_def(struct Parser *p)
     // func
     const char *name = tok_str(p);
     const struct Pos ident_pos = tok_pos(p);
-    Func *func = DeclareFunc(p->scope, name, p->module->filename);
+    struct Func *func = DeclareFunc(p->scope, name, p->module->filename);
     if (!func) {
         error(p, ident_pos, "re-defined identifier: '%s'", name);
     }
@@ -1142,6 +1148,9 @@ static void func_def(struct Parser *p)
     param_list(p, func);
     ret_type(p, func);
     expect(p, T_NEWLINE);
+
+    // func type
+    func->func_type = MakeFuncType(func);
 
     // func body
     p->func_ = func;

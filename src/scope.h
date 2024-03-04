@@ -16,6 +16,14 @@ struct Var {
     bool is_param;
 };
 
+struct FuncType {
+    const struct Type *return_type;
+    struct Vec param_types;
+    bool is_builtin;
+    bool is_variadic;
+    bool has_special_var;
+};
+
 struct Func {
     const char *name;
     const char *fullname;
@@ -30,14 +38,7 @@ struct Func {
 
     struct Scope *scope;
     struct Stmt *body;
-};
-
-struct FuncType {
-    const struct Type *return_type;
-    struct Vec param_types;
-    bool is_builtin;
-    bool is_variadic;
-    bool has_special_var;
+    struct FuncType *func_type;
 };
 
 struct Field {
@@ -128,7 +129,8 @@ struct Func *DeclareBuiltinFunc(struct Scope *parent, const char *name);
 struct FuncType *MakeFuncType(struct Func *func);
 void DeclareParam(struct Func *f, const char *name, const struct Type *type);
 const struct Var *GetParam(const struct Func *f, int index);
-int RequiredParamCount(const struct Func *f);
+const struct Type *GetParamType(const struct FuncType *func_type, int index);
+int RequiredParamCount(const struct FuncType *func_type);
 
 // Struct
 struct Struct *DefineStruct(struct Scope *sc, const char *name);

@@ -5,52 +5,52 @@
 #include "mem.h"
 #include <stdio.h>
 
-Type *NewNilType()
+struct Type *NewNilType()
 {
-    static Type t;
+    static struct Type t;
     t.kind = TY_NIL;
     return &t;
 }
 
-Type *NewBoolType()
+struct Type *NewBoolType()
 {
-    static Type t;
+    static struct Type t;
     t.kind = TY_BOOL;
     return &t;
 }
 
-Type *NewIntType()
+struct Type *NewIntType()
 {
-    static Type t;
+    static struct Type t;
     t.kind = TY_INT;
     return &t;
 }
 
-Type *NewFloatType()
+struct Type *NewFloatType()
 {
-    static Type t;
+    static struct Type t;
     t.kind = TY_FLOAT;
     return &t;
 }
 
-Type *NewStringType()
+struct Type *NewStringType()
 {
-    static Type t;
+    static struct Type t;
     t.kind = TY_STRING;
     return &t;
 }
 
-struct Type *NewFuncType(struct Func *f)
+struct Type *NewFuncType(struct FuncType *func_type)
 {
-    Type *t = CALLOC(struct Type);
+    struct Type *t = CALLOC(struct Type);
     t->kind = TY_FUNC;
-    t->func = f;
+    t->func_type = func_type;
     return t;
 }
 
 struct Type *NewStructType(struct Struct *s)
 {
-    Type *t = CALLOC(struct Type);
+    struct Type *t = CALLOC(struct Type);
     t->kind = TY_STRUCT;
     t->strct = s;
     return t;
@@ -58,7 +58,7 @@ struct Type *NewStructType(struct Struct *s)
 
 struct Type *NewTableType(struct Table *tab)
 {
-    Type *t = CALLOC(struct Type);
+    struct Type *t = CALLOC(struct Type);
     t->kind = TY_TABLE;
     t->table = tab;
     return t;
@@ -72,31 +72,31 @@ struct Type *NewModuleType(struct Module *mod)
     return t;
 }
 
-Type *NewPtrType(const Type *underlying)
+struct Type *NewPtrType(const struct Type *underlying)
 {
-    Type *t = CALLOC(Type);
+    struct Type *t = CALLOC(struct Type);
     t->kind = TY_PTR;
     t->underlying = underlying;
     return t;
 }
 
-Type *NewArrayType(int len, Type *underlying)
+struct Type *NewArrayType(int len, struct Type *underlying)
 {
-    Type *t = CALLOC(Type);
+    struct Type *t = CALLOC(struct Type);
     t->kind = TY_ARRAY;
     t->len = len;
     t->underlying = underlying;
     return t;
 }
 
-Type *NewAnyType()
+struct Type *NewAnyType()
 {
-    static Type t;
+    static struct Type t;
     t.kind = TY_ANY;
     return &t;
 }
 
-int SizeOf(const Type *t)
+int SizeOf(const struct Type *t)
 {
     if (IsArray(t))
         // use one value for length info
@@ -107,18 +107,18 @@ int SizeOf(const Type *t)
         return 1;
 }
 
-bool IsNil(const Type *t)     { return t->kind == TY_NIL; }
-bool IsBool(const Type *t)    { return t->kind == TY_BOOL; }
-bool IsInt(const Type *t)     { return t->kind == TY_INT; }
-bool IsFloat(const Type *t)   { return t->kind == TY_FLOAT; }
-bool IsString(const Type *t)  { return t->kind == TY_STRING; }
-bool IsFunc(const Type *t)    { return t->kind == TY_FUNC; }
+bool IsNil(const struct Type *t)     { return t->kind == TY_NIL; }
+bool IsBool(const struct Type *t)    { return t->kind == TY_BOOL; }
+bool IsInt(const struct Type *t)     { return t->kind == TY_INT; }
+bool IsFloat(const struct Type *t)   { return t->kind == TY_FLOAT; }
+bool IsString(const struct Type *t)  { return t->kind == TY_STRING; }
+bool IsFunc(const struct Type *t)    { return t->kind == TY_FUNC; }
 bool IsStruct(const struct Type *t)   { return t->kind == TY_STRUCT; }
 bool IsTable(const struct Type *t)    { return t->kind == TY_TABLE; }
 bool IsModule(const struct Type *t)   { return t->kind == TY_MODULE; }
-bool IsPtr(const Type *t)     { return t->kind == TY_PTR; }
-bool IsArray(const Type *t)   { return t->kind == TY_ARRAY; }
-bool IsAny(const Type *t)     { return t->kind == TY_ANY; }
+bool IsPtr(const struct Type *t)     { return t->kind == TY_PTR; }
+bool IsArray(const struct Type *t)   { return t->kind == TY_ARRAY; }
+bool IsAny(const struct Type *t)     { return t->kind == TY_ANY; }
 
 static const char *type_kind_string(enum TY kind)
 {
@@ -141,11 +141,11 @@ static const char *type_kind_string(enum TY kind)
     return NULL;
 }
 
-const char *TypeString(const Type *type)
+const char *TypeString(const struct Type *type)
 {
     const char *interned = "";
 
-    for (const Type *t = type; t; t = t->underlying) {
+    for (const struct Type *t = type; t; t = t->underlying) {
         char buf[128] = {'\0'};
 
         if (t->kind == TY_ARRAY) {
@@ -164,16 +164,16 @@ const char *TypeString(const Type *type)
     return interned;
 }
 
-bool MatchType(const Type *t1, const Type *t2)
+bool MatchType(const struct Type *t1, const struct Type *t2)
 {
     if (IsAny(t1) || IsAny(t2))
         return true;
     return t1->kind == t2->kind;
 }
 
-Type *DuplicateType(const Type *t)
+struct Type *DuplicateType(const struct Type *t)
 {
-    Type *dup = CALLOC(Type);
+    struct Type *dup = CALLOC(struct Type);
     *dup = *t;
     return dup;
 }
