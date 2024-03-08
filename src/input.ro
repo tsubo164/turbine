@@ -30,23 +30,23 @@
 //  | TX  | "Texas"      |
 //  | NY  | "New Yourk"  |
 
-- q = 111
-//
-# add(a int, b int) int
-  return a + b
-
-//- a = add
-# foo() int
-  return 19
-
-- a = add
-
 # main() int
-  - f = foo
-  //print("Hello!", q)
-  //print(a(9, 13))
-  //- x = a(9, 13)
-  print(f())
-  print(a(2, 7))
-  return f()
-  //return 42
+  - a = [99, 11, 22, 33]          // OK [4]int
+  //- a = [0.0, 1, 2, 3.0]      // ERROR
+  //- a [4]float = [0, 1, 2, 3] // ERROR
+  //- a [2]int = [0, 1, 2, 3]   // ERROR
+  //- a [5]int = [0, 1]         // OK [0, 2, 0, 0]
+  //- a []int = [0, 1, 2, 3]    // OK [4]int
+
+  //for i in a
+  //  print(i * 2)
+  //for i in 8
+  //  print("Hello!", i)
+
+  //- a [4] int
+  //a[2] = 19
+  //- i = 0
+  //for i = 0; i < 4; i++
+  //  print(a[i])
+  return 42
+  //return a[2]

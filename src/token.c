@@ -50,6 +50,7 @@ static const struct KindInfo table[] = {
     { T_FLTLIT,     "float_lit",  'f' },
     { T_STRLIT,     "string_lit", 's' },
     { T_FUNCLIT,    "func_lit",   'F' },
+    { T_ARRAYLIT,   "array_lit" },
     // separator
     { T_LPAREN,     "(" },
     { T_RPAREN,     ")" },

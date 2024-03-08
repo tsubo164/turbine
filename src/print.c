@@ -99,7 +99,6 @@ static void print_expr(const struct Expr *e, int depth)
     // children
     print_expr(e->l, depth + 1);
     print_expr(e->r, depth + 1);
-    print_expr(e->list, depth + 1);
     print_expr(e->next, depth);
 }
 

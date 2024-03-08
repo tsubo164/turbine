@@ -17,7 +17,6 @@ struct Expr {
 
     struct Expr *l;
     struct Expr *r;
-    struct Expr *list;
     struct Expr *next;
 
     struct Symbol *sym;
@@ -54,6 +53,7 @@ struct Expr *NewIntLitExpr(long l);
 struct Expr *NewFloatLitExpr(double d);
 struct Expr *NewStringLitExpr(const char *s);
 struct Expr *NewFuncLitExpr(struct Func *func);
+struct Expr *NewArrayLitExpr(struct Expr *elems, int len);
 struct Expr *NewConversionExpr(struct Expr *from, struct Type *to);
 struct Expr *NewIdentExpr(struct Symbol *sym);
 struct Expr *NewFieldExpr(struct Field *f);

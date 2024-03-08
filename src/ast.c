@@ -57,6 +57,15 @@ struct Expr *NewFuncLitExpr(struct Func *func)
     return e;
 }
 
+struct Expr *NewArrayLitExpr(struct Expr *elems, int len)
+{
+    struct Expr *e = CALLOC(struct Expr);
+    e->type = NewArrayType(len, elems->type);
+    e->kind = T_ARRAYLIT;
+    e->l = elems;
+    return e;
+}
+
 struct Expr *NewConversionExpr(struct Expr *from, struct Type *to)
 {
     struct Expr *e = CALLOC(struct Expr);

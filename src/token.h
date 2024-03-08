@@ -42,6 +42,7 @@ enum KindTag {
     T_FLTLIT,
     T_STRLIT,
     T_FUNCLIT,
+    T_ARRAYLIT,
     // separator
     T_LPAREN,
     T_RPAREN,

@@ -91,13 +91,13 @@ static void gen_convert(Bytecode *code, enum TY from, enum TY to)
     }
 }
 
-static void gen_call(Bytecode *code, const struct Expr *e)
+static void gen_call(Bytecode *code, const struct Expr *call)
 {
-    const struct FuncType *func_type = e->l->type->func_type;
+    const struct FuncType *func_type = call->l->type->func_type;
 
     if (func_type->is_variadic) {
         int argc = 0;
-        for (const struct Expr *arg = e->list; arg; arg = arg->next, argc++) {
+        for (const struct Expr *arg = call->r; arg; arg = arg->next, argc++) {
             // arg value
             gen_expr(code, arg);
 
@@ -132,16 +132,16 @@ static void gen_call(Bytecode *code, const struct Expr *e)
         LoadByte(code, argc);
     }
     else {
-        for (const struct Expr *arg = e->list; arg; arg = arg->next)
+        for (const struct Expr *arg = call->r; arg; arg = arg->next)
             gen_expr(code, arg);
     }
 
     int64_t func_id = 0;
-    if (EvalExpr(e->l, &func_id)) {
+    if (EvalExpr(call->l, &func_id)) {
         CallFunction(code, func_id, func_type->is_builtin);
     }
     else {
-        gen_expr(code, e->l);
+        gen_expr(code, call->l);
         CallFunctionPointer(code);
     }
 }

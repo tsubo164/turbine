@@ -45,7 +45,7 @@ struct Type *NewStructType(struct Struct *s);
 struct Type *NewTableType(struct Table *t);
 struct Type *NewModuleType(struct Module *m);
 struct Type *NewPtrType(const struct Type *underlying);
-struct Type *NewArrayType(int len, struct Type *underlying);
+struct Type *NewArrayType(int len, const struct Type *underlying);
 struct Type *NewAnyType();
 
 bool IsNil(const struct Type *t);

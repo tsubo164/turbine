@@ -140,14 +140,14 @@ static struct Expr *arg_list(Parser *p, struct Expr *call)
         count++;
     }
 
-    call->list = head.next;
+    call->r = head.next;
 
     const int argc = count;
     const int paramc = RequiredParamCount(func_type);
     if (argc < paramc)
         error(p, tok_pos(p), "too few arguments");
 
-    const struct Expr *arg = call->list;
+    const struct Expr *arg = call->r;
     for (int i = 0; i < argc; i++, arg = arg->next) {
         const struct Type *param_type = GetParamType(func_type, i);
 
@@ -193,6 +193,28 @@ static struct Expr *conv_expr(Parser *p, int kind)
     return NewConversionExpr(expr, to_type);
 }
 
+static struct Expr *array_lit_expr(Parser *p)
+{
+    struct Expr *expr = expression(p);
+    struct Expr *e = expr;
+    const struct Type *elem_type = expr->type;
+    int len = 1;
+
+    while (consume(p, T_COMMA)) {
+        e = e->next = expression(p);
+        if (!MatchType(elem_type, e->type)) {
+            error(p, tok_pos(p),
+                    "type mismatch: first element type '%s': this element type '%s'",
+                    TypeString(elem_type),
+                    TypeString(e->type));
+        }
+        len++;
+    }
+    expect(p, T_RBRACK);
+
+    return NewArrayLitExpr(expr, len);
+}
+
 // primary_expr =
 //     IntNum |
 //     FpNum |
@@ -228,6 +250,10 @@ static struct Expr *primary_expr(Parser *p)
             }
         }
         return e;
+    }
+
+    if (consume(p, T_LBRACK)) {
+        return array_lit_expr(p);
     }
 
     if (consume(p, T_LPAREN)) {

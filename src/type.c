@@ -80,7 +80,7 @@ struct Type *NewPtrType(const struct Type *underlying)
     return t;
 }
 
-struct Type *NewArrayType(int len, struct Type *underlying)
+struct Type *NewArrayType(int len, const struct Type *underlying)
 {
     struct Type *t = CALLOC(struct Type);
     t->kind = TY_ARRAY;
