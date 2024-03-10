@@ -48,5 +48,5 @@
   //- i = 0
   //for i = 0; i < 4; i++
   //  print(a[i])
-  return 42
-  //return a[2]
+  //return 42
+  return a[2]

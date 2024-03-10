@@ -234,6 +234,28 @@ static void gen_assign(Bytecode *code, const struct Expr *e)
     }
 }
 
+static void gen_init(Bytecode *code, const struct Expr *e)
+{
+    // rval
+    gen_expr(code, e->r);
+
+    // lval
+    int addr = 0;
+    const bool isconst = EvalAddr(e->l, &addr);
+
+    // store
+    if (isconst) {
+        if (IsGlobal(e->l))
+            StoreGlobal(code, addr);
+        else
+            StoreLocal(code, addr);
+    }
+    else {
+        gen_addr(code, e->l);
+        Store(code);
+    }
+}
+
 static void gen_expr(Bytecode *code, const struct Expr *e)
 {
     if (!e)
@@ -451,6 +473,10 @@ static void gen_expr(Bytecode *code, const struct Expr *e)
     case T_AADD: case T_ASUB:
     case T_AMUL: case T_ADIV: case T_AREM:
         gen_assign(code, e);
+        return;
+
+    case T_INIT:
+        gen_init(code, e);
         return;
 
     case T_INC:
@@ -682,6 +708,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
         return;
 
     case T_ASSN:
+    case T_INIT:
         gen_expr(code, s->expr);
         return;
     }

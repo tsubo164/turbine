@@ -77,6 +77,7 @@ struct Stmt *NewSwitchStmt(struct Expr *cond, struct Stmt *cases);
 struct Stmt *NewReturnStmt(struct Expr *e);
 struct Stmt *NewExprStmt(struct Expr *e);
 struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind);
+struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r);
 struct Stmt *NewIncDecStmt(struct Expr *l, int kind);
 
 bool IsNull(const struct Expr *e);

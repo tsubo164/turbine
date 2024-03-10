@@ -386,7 +386,7 @@ static void run(VM *vm)
 
                 if (index >= len) {
                     fprintf(stderr,
-                            "panic: runtime error: index out of range[%ld] with length %ld",
+                            "panic: runtime error: index out of range[%ld] with length %ld\n",
                             index, len);
                     exit(1);
                 }

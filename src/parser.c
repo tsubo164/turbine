@@ -924,7 +924,7 @@ static struct Stmt *var_decl(Parser *p, bool isglobal)
                 "builtin function can not be assigned: '%s'",
                 func->name);
     }
-    return NewAssignStmt(ident, init, T_ASSN);
+    return NewInitStmt(ident, init);
 }
 
 static void field_list(Parser *p, struct Struct *strct)

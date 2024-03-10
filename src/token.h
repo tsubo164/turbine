@@ -101,6 +101,7 @@ enum KindTag {
     T_AMUL,
     T_ADIV,
     T_AREM,
+    T_INIT,
     // eof
     T_EOF
 };

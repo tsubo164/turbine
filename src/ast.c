@@ -199,6 +199,16 @@ static struct Expr *new_assign_expr(struct Expr *l, struct Expr *r, int k)
     return e;
 }
 
+static struct Expr *new_init_expr(struct Expr *l, struct Expr *r)
+{
+    struct Expr *e = CALLOC(struct Expr);
+    e->type = l->type;
+    e->kind = T_INIT;
+    e->l = l;
+    e->r = r;
+    return e;
+}
+
 static struct Expr *new_incdec_expr(struct Expr *l, int k)
 {
     struct Expr *e = CALLOC(struct Expr);
@@ -319,6 +329,14 @@ struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind)
     struct Stmt *s = CALLOC(struct Stmt);
     s->kind = T_ASSN;
     s->expr = new_assign_expr(l, r, kind);
+    return s;
+}
+
+struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r)
+{
+    struct Stmt *s = CALLOC(struct Stmt);
+    s->kind = T_INIT;
+    s->expr = new_init_expr(l, r);
     return s;
 }
 

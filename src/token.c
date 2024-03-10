@@ -109,6 +109,7 @@ static const struct KindInfo table[] = {
     { T_AMUL,       "*=" },
     { T_ADIV,       "/=" },
     { T_AREM,       "%=" },
+    { T_INIT,       "init" },
     // eof
     { T_EOF,        "EOF" },
 };
