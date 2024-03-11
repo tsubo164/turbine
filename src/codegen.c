@@ -234,6 +234,37 @@ static void gen_assign(Bytecode *code, const struct Expr *e)
     }
 }
 
+static void gen_init_array(Bytecode *code, const struct Expr *e)
+{
+    // lval
+    int addr = 0;
+    // an init expr always has identifier on the left
+    EvalAddr(e->l, &addr);
+
+    // array len
+    LoadInt(code, e->type->len);
+    if (IsGlobal(e->l))
+        StoreGlobal(code, addr);
+    else
+        StoreLocal(code, addr);
+    addr++;
+
+    // array lit
+    struct Expr *array_lit = e->r;
+
+    for (struct Expr *expr = array_lit->l; expr; expr = expr->next) {
+        // rval
+        gen_expr(code, expr);
+
+        // store
+        if (IsGlobal(e->l))
+            StoreGlobal(code, addr);
+        else
+            StoreLocal(code, addr);
+        addr++;
+    }
+}
+
 static void gen_init(Bytecode *code, const struct Expr *e)
 {
     // rval
@@ -476,7 +507,10 @@ static void gen_expr(Bytecode *code, const struct Expr *e)
         return;
 
     case T_INIT:
-        gen_init(code, e);
+        if (IsArray(e->type))
+            gen_init_array(code, e);
+        else
+            gen_init(code, e);
         return;
 
     case T_INC:

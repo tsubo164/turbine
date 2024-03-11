@@ -31,7 +31,7 @@
 //  | NY  | "New Yourk"  |
 
 # main() int
-  - a = [99, 11, 22, 33]          // OK [4]int
+  - a = [99, 11, 22, 33 + 9]          // OK [4]int
   //- a = [0.0, 1, 2, 3.0]      // ERROR
   //- a [4]float = [0, 1, 2, 3] // ERROR
   //- a [2]int = [0, 1, 2, 3]   // ERROR
@@ -49,4 +49,4 @@
   //for i = 0; i < 4; i++
   //  print(a[i])
   //return 42
-  return a[2]
+  return a[2] + a[3]

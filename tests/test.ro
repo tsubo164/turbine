@@ -239,6 +239,29 @@
     a = pt.y
     AssertI(5, pt.x + pt.y)
 
+  ---
+    - f float
+    f = 3.14
+    AssertF(3.14, f)
+
+  ---
+    AssertI(25, 0xF + 0Xa)
+
+  ---
+    - f float
+    - g float
+    f = 3.14
+    g = 0.86
+    AssertF(4.0, f + g)
+
+  ---
+    - i int
+    if 13 == 13
+      i = 42
+    or
+      i = 99
+    AssertI(42, i)
+
   // C++ test
   // ==========================================================================
 
@@ -353,6 +376,11 @@
     - xxxxxxxxxxxxxxxxxxxxxxxxxxxx = -128
     twicefp(&xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
     AssertI(-256, xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+
+  // array initialization
+  ---
+    - a = [99, 11, 22, 33 + 9]
+    AssertI(64, a[2] + a[3])
 
   //------------------------------
   print(test_count, "tests done.")
