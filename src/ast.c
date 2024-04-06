@@ -66,6 +66,15 @@ struct Expr *NewArrayLitExpr(struct Expr *elems, int len)
     return e;
 }
 
+struct Expr *NewStructLitExpr(struct Struct *strct, struct Expr *fields)
+{
+    struct Expr *e = CALLOC(struct Expr);
+    e->type = NewStructType(strct);
+    e->kind = T_STRUCTLIT;
+    e->l = fields;
+    return e;
+}
+
 struct Expr *NewConversionExpr(struct Expr *from, struct Type *to)
 {
     struct Expr *e = CALLOC(struct Expr);
@@ -178,6 +187,16 @@ struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int k)
     }
     e->type = t;
     e->l = L;
+    return e;
+}
+
+struct Expr *NewElementExpr(struct Expr *key, struct Expr *val)
+{
+    struct Expr *e = CALLOC(struct Expr);
+    e->type = val->type;
+    e->kind = T_ELEMENT;
+    e->l = key;
+    e->r = val;
     return e;
 }
 

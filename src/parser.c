@@ -215,6 +215,39 @@ static struct Expr *array_lit_expr(Parser *p)
     return NewArrayLitExpr(expr, len);
 }
 
+static struct Expr *struct_lit_expr(struct Parser *p, struct Symbol *sym)
+{
+    struct Struct *strct = sym->strct;
+    struct Expr *elems = NULL;
+    struct Expr *e = NULL;
+
+    expect(p, T_LBRACE);
+
+    do {
+        expect(p, T_IDENT);
+        struct Field *field = FindField(strct, tok_str(p));
+        if (!field) {
+            error(p, tok_pos(p),
+                    "struct '%s' has no field '%s'", strct->name, tok_str(p));
+        }
+        expect(p, T_ASSN);
+
+        struct Expr *f = NewFieldExpr(field);
+        struct Expr *elem = NewElementExpr(f, expression(p));
+
+        //struct Expr *expr = expression(p);
+        struct Expr *expr = elem;
+        if (!e)
+            e = elems = expr;
+        else
+            e = e->next = expr;
+    }
+    while (consume(p, T_COMMA));
+
+    expect(p, T_RBRACE);
+    return NewStructLitExpr(strct, elems);
+}
+
 // primary_expr =
 //     IntNum |
 //     FpNum |
@@ -296,6 +329,8 @@ static struct Expr *primary_expr(Parser *p)
             }
             if (sym->kind == SYM_FUNC)
                 expr = NewFuncLitExpr(sym->func);
+            else if (sym->kind == SYM_STRUCT)
+                expr = struct_lit_expr(p, sym);
             else
                 expr = NewIdentExpr(sym);
             continue;

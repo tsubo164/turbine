@@ -90,6 +90,9 @@ static void print_expr(const struct Expr *e, int depth)
     case 'y':
         printf(" \"%s\"", e->sym->name);
         break;
+    case 'g':
+        printf(" \"%s\"", e->field->name);
+        break;
     case 'F':
         printf(" %s", e->func->fullname);
         break;

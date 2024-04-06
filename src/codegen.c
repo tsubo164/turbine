@@ -265,6 +265,32 @@ static void gen_init_array(Bytecode *code, const struct Expr *e)
     }
 }
 
+static void gen_init_struct(Bytecode *code, const struct Expr *e)
+{
+    // lval
+    int addr = 0;
+    // an init expr always has identifier on the left
+    EvalAddr(e->l, &addr);
+
+    // struct lit
+    struct Expr *struct_lit = e->r;
+
+    for (struct Expr *elem = struct_lit->l; elem; elem = elem->next) {
+        // rval
+        gen_expr(code, elem->r);
+
+        // lval
+        int offset = 0;
+        EvalAddr(elem->l, &offset);
+
+        // store
+        if (IsGlobal(e->l))
+            StoreGlobal(code, addr + offset);
+        else
+            StoreLocal(code, addr + offset);
+    }
+}
+
 static void gen_init(Bytecode *code, const struct Expr *e)
 {
     // rval
@@ -509,6 +535,8 @@ static void gen_expr(Bytecode *code, const struct Expr *e)
     case T_INIT:
         if (IsArray(e->type))
             gen_init_array(code, e);
+        else if (IsStruct(e->type))
+            gen_init_struct(code, e);
         else
             gen_init(code, e);
         return;

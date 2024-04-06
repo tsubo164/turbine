@@ -382,6 +382,20 @@
     - a = [99, 11, 22, 33 + 9]
     AssertI(64, a[2] + a[3])
 
+  // struct initialization
+  ---
+    - p = Point { x = 99, y = 11 }
+    AssertI(99, p.x)
+    AssertI(11, p.y)
+
+    - q = Point { y = p.x - 49, x = p.y * 2 }
+    AssertI(22, q.x)
+    AssertI(50, q.y)
+
+    //- r Point
+    //AssertI(22, r.x)
+    //AssertI(50, r.y)
+
   //------------------------------
   print(test_count, "tests done.")
 

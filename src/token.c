@@ -39,7 +39,7 @@ static const struct KindInfo table[] = {
     { T_CALLER_LINE, "$caller_line" },
     { T_keyword_end, "keyword_end" },
     // identifier
-    { T_FIELD,      "field", 'y' },
+    { T_FIELD,      "field", 'g' },
     { T_IDENT,      "ident", 'y' },
     { T_FUNC,       "func",  'y' },
     { T_VAR,        "var",   'y' },
@@ -51,11 +51,14 @@ static const struct KindInfo table[] = {
     { T_STRLIT,     "string_lit", 's' },
     { T_FUNCLIT,    "func_lit",   'F' },
     { T_ARRAYLIT,   "array_lit" },
+    { T_STRUCTLIT,  "struct_lit" },
     // separator
     { T_LPAREN,     "(" },
     { T_RPAREN,     ")" },
     { T_LBRACK,     "[" },
     { T_RBRACK,     "]" },
+    { T_LBRACE,     "{" },
+    { T_RBRACE,     "}" },
     { T_SEM,        ";" },
     { T_COLON,      ":" },
     { T_COLON2,     "::" },
@@ -110,6 +113,7 @@ static const struct KindInfo table[] = {
     { T_ADIV,       "/=" },
     { T_AREM,       "%=" },
     { T_INIT,       "init" },
+    { T_ELEMENT,    "element" },
     // eof
     { T_EOF,        "EOF" },
 };
@@ -788,6 +792,16 @@ static void get_token(Lexer *l, struct Token *tok)
 
         if (ch == ']') {
             set(tok, T_RBRACK, pos);
+            return;
+        }
+
+        if (ch == '{') {
+            set(tok, T_LBRACE, pos);
+            return;
+        }
+
+        if (ch == '}') {
+            set(tok, T_RBRACE, pos);
             return;
         }
 

@@ -4,15 +4,19 @@
 //[opengl] (github.com/...)
 //[my_calc]
 
-//## Point
-//  - x int
-//  - q float
-//
+## Point
+  - x int
+  - y int
 
-//:: Color
-//  | R
-//  | G
-//  | B
+//## Circle
+//  - center Point
+//  - radius int
+//
+//# add
+//  * x int
+//  * y int
+//    * int
+//  return x + y
 
 //:: token
 //  | enum  | name
@@ -22,31 +26,47 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 //
-//:: state
-//  |     | name         | zip
-//  | --- | ---          | ---
-//  | CA  | "California" | 90923
-//  | AZ  | "Arizona"    |
-//  | TX  | "Texas"      |
-//  | NY  | "New Yourk"  |
-
 # main() int
-  - a = [99, 11, 22, 33 + 9]          // OK [4]int
-  //- a = [0.0, 1, 2, 3.0]      // ERROR
-  //- a [4]float = [0, 1, 2, 3] // ERROR
-  //- a [2]int = [0, 1, 2, 3]   // ERROR
-  //- a [5]int = [0, 1]         // OK [0, 2, 0, 0]
-  //- a []int = [0, 1, 2, 3]    // OK [4]int
+  //- i int
+  //- j = 42
+  //- f float
+  //- g = 3.14
+  //- a [4]int
+  //- b = [1, 2, 3, 4]
+  //- p Point
+  //- p = Point {x:99, y:11}
+  //- p = Point(x = 99, y = 11)
 
-  //for i in a
-  //  print(i * 2)
-  //for i in 8
-  //  print("Hello!", i)
+  // inline
+  - p = Point {x = 99, y = 11}
+  //p.y = 3
+  // block
+  //- p Point
+  //  x = 99
+  //  y = 11
 
-  //- a [4] int
-  //a[2] = 19
-  //- i = 0
-  //for i = 0; i < 4; i++
-  //  print(a[i])
-  //return 42
-  return a[2] + a[3]
+  //- p = Point
+  //  - x = 99
+  //  - y = 11
+
+  //- circle = Circle
+  //  - center = Point
+  //    - x = 123
+  //    - y = 989
+  //  - radius = 42
+
+  //- circle Circle
+  //  center = Point
+  //    x = 123
+  //    y = 989
+  //  radius = 42
+
+  //return Point
+  //  x = a * x + b * y
+  //  y = c * y - d * x
+
+  //- ret Point
+  //  x = a * x + b * y
+  //  y = c * y - d * x
+  //return ret
+  return 42 + p.x

@@ -43,11 +43,14 @@ enum KindTag {
     T_STRLIT,
     T_FUNCLIT,
     T_ARRAYLIT,
+    T_STRUCTLIT,
     // separator
     T_LPAREN,
     T_RPAREN,
     T_LBRACK,
     T_RBRACK,
+    T_LBRACE,
+    T_RBRACE,
     T_SEM,
     T_COLON,
     T_COLON2,
@@ -102,6 +105,7 @@ enum KindTag {
     T_ADIV,
     T_AREM,
     T_INIT,
+    T_ELEMENT,
     // eof
     T_EOF
 };

@@ -6,9 +6,10 @@
 
 struct Type;
 struct Symbol;
-struct Field;
-struct Func;
 struct Var;
+struct Func;
+struct Field;
+struct Struct;
 
 struct Expr {
     int kind;
@@ -54,6 +55,7 @@ struct Expr *NewFloatLitExpr(double d);
 struct Expr *NewStringLitExpr(const char *s);
 struct Expr *NewFuncLitExpr(struct Func *func);
 struct Expr *NewArrayLitExpr(struct Expr *elems, int len);
+struct Expr *NewStructLitExpr(struct Struct *strct, struct Expr *fields);
 struct Expr *NewConversionExpr(struct Expr *from, struct Type *to);
 struct Expr *NewIdentExpr(struct Symbol *sym);
 struct Expr *NewFieldExpr(struct Field *f);
@@ -63,6 +65,7 @@ struct Expr *NewCallExpr(struct Expr *callee, struct Pos p);
 struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int k);
 struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int k);
 struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int k);
+struct Expr *NewElementExpr(struct Expr *key, struct Expr *val);
 
 // Stmt
 struct Stmt *NewNopStmt(void);
