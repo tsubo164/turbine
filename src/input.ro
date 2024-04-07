@@ -38,7 +38,15 @@
   //- p = Point(x = 99, y = 11)
 
   // inline
-  - p = Point {x = 99, y = 11}
+  - x = 0
+
+  ---
+    - p = Point {x = 99, y = 11}
+
+  ---
+    - q Point
+    x = q.x
+
   //p.y = 3
   // block
   //- p Point
@@ -69,4 +77,4 @@
   //  x = a * x + b * y
   //  y = c * y - d * x
   //return ret
-  return 42 + p.x
+  return 42 + x

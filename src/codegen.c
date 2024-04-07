@@ -265,12 +265,24 @@ static void gen_init_array(Bytecode *code, const struct Expr *e)
     }
 }
 
+static void gen_clear_struct(Bytecode *code, const struct Struct *strct,
+        int addr, bool is_global)
+{
+    if (is_global)
+        ;
+    else
+        ClearLocal(code, addr, strct->size);
+}
+
 static void gen_init_struct(Bytecode *code, const struct Expr *e)
 {
     // lval
     int addr = 0;
     // an init expr always has identifier on the left
     EvalAddr(e->l, &addr);
+
+    // clear zero
+    gen_clear_struct(code, e->type->strct, addr, IsGlobal(e->l));
 
     // struct lit
     struct Expr *struct_lit = e->r;

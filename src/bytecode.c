@@ -10,6 +10,7 @@ enum OperandSize {
     OPERAND_NONE,
     OPERAND_BYTE,
     OPERAND_WORD,
+    OPERAND_WORD2,
     OPERAND_QUAD,
 };
 
@@ -31,6 +32,8 @@ static const struct OpcodeInfo opcode_table[] = {
     { OP_DECLOCAL,     "DECLOCAL",     OPERAND_BYTE },
     { OP_DECGLOBAL,    "DECGLOBAL",    OPERAND_WORD },
     { OP_ALLOC,        "ALLOC",        OPERAND_BYTE },
+    // clear
+    { OP_CLEAR_LOCAL,  "CLEAR_LOCAL",  OPERAND_WORD2 },
     // address
     { OP_LOADA,        "LOADA",        OPERAND_WORD },
     { OP_DEREF,        "DEREF",        OPERAND_NONE },
@@ -325,6 +328,16 @@ void Allocate(Bytecode *code, Byte count)
 
     push_byte(&code->bytes_, OP_ALLOC);
     push_byte(&code->bytes_, count);
+}
+
+void ClearLocal(Bytecode *code, uint16_t base, uint16_t count)
+{
+    if (count == 0)
+        return;
+
+    push_byte(&code->bytes_, OP_CLEAR_LOCAL);
+    push_word(&code->bytes_, base);
+    push_word(&code->bytes_, count);
 }
 
 void LoadAddress(Bytecode *code, Word id)
@@ -911,6 +924,12 @@ static Int print_op(const Bytecode *code, int op, int operand, Int address)
     case OPERAND_WORD:
         printf(" %c%d", prefix, ReadWord(code, addr));
         inc = sizeof(Word);
+        break;
+
+    case OPERAND_WORD2:
+        printf(" %c%d", prefix, ReadWord(code, addr));
+        printf(" %d", ReadWord(code, addr + sizeof(uint16_t)));
+        inc = 2 * sizeof(uint16_t);
         break;
 
     case OPERAND_QUAD:

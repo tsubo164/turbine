@@ -392,9 +392,11 @@
     AssertI(22, q.x)
     AssertI(50, q.y)
 
-    //- r Point
-    //AssertI(22, r.x)
-    //AssertI(50, r.y)
+  // struct default initialization
+  ---
+    - p Point
+    AssertI(0, p.x)
+    AssertI(0, p.y)
 
   //------------------------------
   print(test_count, "tests done.")

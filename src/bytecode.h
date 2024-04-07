@@ -28,6 +28,8 @@ enum Opcode {
     OP_DECLOCAL,
     OP_DECGLOBAL,
     OP_ALLOC,
+    // clear
+    OP_CLEAR_LOCAL,
     // address
     OP_LOADA,
     OP_DEREF,
@@ -166,6 +168,8 @@ void IncGlobal(Bytecode *code, Word id);
 void DecLocal(Bytecode *code, Byte id);
 void DecGlobal(Bytecode *code, Word id);
 void Allocate(Bytecode *code, Byte count);
+// clear
+void ClearLocal(Bytecode *code, uint16_t base, uint16_t count);
 
 // address
 void LoadAddress(Bytecode *code, Word id);

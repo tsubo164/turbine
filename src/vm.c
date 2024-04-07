@@ -363,6 +363,17 @@ static void run(VM *vm)
             }
             break;
 
+        case OP_CLEAR_LOCAL:
+            {
+                const uint64_t base = fetch_word(vm);
+                const uint64_t count = fetch_word(vm);
+                const struct Value zero = {0};
+
+                for (int i = 0; i < count; i++)
+                    set_local(vm, base + i, zero);
+            }
+            break;
+
         case OP_LOADA:
             {
                 const Int id = fetch_word(vm);
