@@ -47,6 +47,13 @@
     - q Point
     x = q.x
 
+  ---
+    - p = Point {
+      x = 37,
+      y = 79
+    }
+    x = p.y
+
   //p.y = 3
   // block
   //- p Point

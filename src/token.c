@@ -165,6 +165,7 @@ typedef struct Lexer {
     int sp;
     int unread_blockend;
     bool is_line_begin;
+    bool is_inside_brackets;
 } Lexer;
 
 static void error(const Lexer *l, const char *fmt, ...)
@@ -183,12 +184,14 @@ static void set_input(Lexer *l, const char *src)
     l->it = l->src;
     l->pos.x = 0;
     l->pos.y = 1;
-    l->unread_blockend = 0;
-    l->is_line_begin = true;
+    l->prevx = 0;
 
     l->indent_stack[0] = 0;
     l->sp = 0;
-    l->prevx = 0;
+    l->unread_blockend = 0;
+
+    l->is_line_begin = true;
+    l->is_inside_brackets = false;
 }
 
 static int curr(const Lexer *l)
@@ -776,31 +779,37 @@ static void get_token(Lexer *l, struct Token *tok)
         }
 
         if (ch == '(') {
+            l->is_inside_brackets = true;
             set(tok, T_LPAREN, pos);
             return;
         }
 
         if (ch == ')') {
+            l->is_inside_brackets = false;
             set(tok, T_RPAREN, pos);
             return;
         }
 
         if (ch == '[') {
+            l->is_inside_brackets = true;
             set(tok, T_LBRACK, pos);
             return;
         }
 
         if (ch == ']') {
+            l->is_inside_brackets = false;
             set(tok, T_RBRACK, pos);
             return;
         }
 
         if (ch == '{') {
+            l->is_inside_brackets = true;
             set(tok, T_LBRACE, pos);
             return;
         }
 
         if (ch == '}') {
+            l->is_inside_brackets = false;
             set(tok, T_RBRACE, pos);
             return;
         }
@@ -841,6 +850,9 @@ static void get_token(Lexer *l, struct Token *tok)
         }
 
         if (ch == '\n') {
+            if (l->is_inside_brackets)
+                continue;
+
             set(tok, T_NEWLINE, pos);
             l->is_line_begin = true;
             return;
@@ -865,7 +877,7 @@ static void get_token(Lexer *l, struct Token *tok)
 
 const struct Token *Tokenize(const char *src)
 {
-    Lexer l;
+    Lexer l = {0};
     set_input(&l, src);
 
     struct Token *head = CALLOC(struct Token);

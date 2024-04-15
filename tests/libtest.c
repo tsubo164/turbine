@@ -381,8 +381,6 @@ int main(int argc, char **argv)
 
         ASSERTL(42, Interpret(input, filename, &opt));
     }
-    // =========================================================================
-    // test cases above copied to test.ro
     {
         const char *input = 
             "# main() int\n"
@@ -805,7 +803,7 @@ int main(int argc, char **argv)
             "    j = 34\n"
             "  case 3\n"
             "    j = 77\n"
-            "  return  j\n"
+            "  return j\n"
             ;
 
         ASSERTL(34, Interpret(input, filename, &opt));
@@ -829,7 +827,7 @@ int main(int argc, char **argv)
             "    j = 77\n"
             "  default\n"
             "    j = 99\n"
-            "  return  j\n"
+            "  return j\n"
             ;
 
         ASSERTL(99, Interpret(input, filename, &opt));

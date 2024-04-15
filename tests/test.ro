@@ -33,6 +33,9 @@
 # add(x int, y int) int
   return x + y
 
+# sub(x int, y int) int
+  return x - y
+
 # upper(s string) string
   return s
 
@@ -43,6 +46,10 @@
       y = 23
       x = y
   return x + 3
+
+// nil return type
+# bar()
+  return
 
 ## Point
   - x int
@@ -60,6 +67,7 @@
 
 - gcount int
 - gvar int
+- g int = 39
     
 # set_gvar() int
   gvar = 119
@@ -262,6 +270,405 @@
       i = 99
     AssertI(42, i)
 
+  ---
+    - s0 string
+    - s1 string
+    - str string
+    - i = 0
+    s0 = "Hello, "
+    s1 = "World!"
+    str = s0 + s1
+    if str == "Hello, World!"
+      i = 42
+    or
+      i = 0
+    AssertI(42, i)
+
+  ---
+    - i int
+    if 42 != 42
+      i = 0
+    or
+      i = 11
+    AssertI(11, i)
+
+  ---
+    // '-' operator and order of eval args
+    - i = sub(12, 7)
+    AssertI(5, i)
+
+  ---
+    // '*' operator
+    - i int
+    - j int
+    i = 12
+    j = 3
+    AssertI(10, 46 - i * j)
+
+  ---
+    // '/' operator
+    - i int
+    - j int
+    i = 12
+    j = 3
+    AssertI(42, 46 - i / j)
+
+  ---
+    // '%' operator
+    - i int
+    - j int
+    i = 19
+    j = 7
+    AssertI(41, 46 - i % j)
+
+  ---
+    // '(' expr ')'
+    - i int
+    - j int
+    i = 19
+    j = 17
+    AssertI(42, 21 * (i - j))
+
+  ---
+    // "||" operator
+    - i int
+    - j int
+    i = 0
+    j = 7
+    AssertI(1, int((i || j) != 0))
+
+  ---
+    // "||" operator
+    - i int
+    - j int
+    i = 0
+    j = 0
+    AssertI(0, int((i || j) != 0))
+
+  ---
+    // "&&" operator
+    - i int
+    - j int
+    i = 0
+    j = 7
+    AssertI(0, int((i && j) != 0))
+
+  ---
+    // "&&" operator
+    - i int
+    - j int
+    i = 1
+    j = 7
+    AssertI(1, int((i && j) != 0))
+
+  ---
+    // "+" unary operator
+    - i int
+    i = 7
+    AssertI(7, +i)
+
+  ---
+    // "-" unary operator
+    - i int
+    i = 42
+    AssertI(-42, -i)
+
+  ---
+    // "-+" unary operator
+    - i int
+    i = 42
+    AssertI(-42, -+-+-+- -+-+ +-i)
+
+  ---
+    // "!" unary operator
+    - i int
+    i = 42
+    AssertI(1, int(int(!(42 != i)) != 0))
+
+  ---
+    // "!" unary operator
+    - i int
+    i = 42
+    AssertI(0, int((!i) != 0))
+
+  ---
+    // "<" operator
+    - i int
+    i = 42
+    AssertI(0, int(int(i < 5) != 0))
+
+  ---
+    // "<=" operator
+    - i int
+    i = 42
+    AssertI(1, int(int(i <= 42) != 0))
+
+  ---
+    // ">" operator
+    - i int
+    i = 42
+    AssertI(1, int(int(i > 5) != 0))
+
+  ---
+    // ">=" operator
+    - i int
+    i = 42
+    AssertI(1, int(int(i >= 42) != 0))
+
+  ---
+    // "++" operator
+    - i int
+    i = 42
+    i++
+    AssertI(43, i)
+
+  ---
+    // "--" operator
+    - i int
+    i = 42
+    i--
+    AssertI(41, i)
+
+  ---
+    // "&" operator
+    - i int
+    i = 0x3A9
+    AssertI(0xA9, i & 0xFF)
+
+  ---
+    // "|" operator
+    - i int
+    i = 0x3A9
+    AssertI(0xFFF, i | 0xFFF)
+
+  ---
+    // "~" operator
+    - i int
+    i = 0x8
+    AssertI(0x7, ~i & 0xF)
+
+  ---
+    // "^" operator
+    - i int
+    i = 0x78
+    AssertI(0x88, i ^ 0xF0)
+
+  ---
+    // "<<" operator
+    - i int
+    i = 0x8
+    AssertI(0x40, i << 3)
+
+  ---
+    // ">>" operator
+    - i int
+    i = 0x8F
+    AssertI(0x08, i >> 4)
+
+  ---
+    // "for" statment
+    - i int
+    - j int
+    j = 0
+    for i = 0; i < 10; i++
+        j = j + 2
+    AssertI(20, j)
+
+  ---
+    // "for" statment while style
+    - i int
+    i = 0
+    for i < 10
+        i++
+    AssertI(10, i)
+
+  ---
+    // "for" statment infinite loop
+    - i int
+    i = 0
+    for
+      i++
+      if i == 8
+        break
+    AssertI(8, i)
+
+  ---
+    // "break" statment
+    - i int
+    for i = 0; i < 10; i++
+      if i == 5
+        break
+    AssertI(5, i)
+
+  ---
+    // "continue" statment
+    - i int
+    - j int
+    j = 0
+    for i = 0; i < 10; i++
+      if i % 2 == 0
+        continue
+      j++
+    AssertI(5, j)
+
+  ---
+    // "switch" statment
+    - i int
+    - j int
+    i = 2
+    j = 0
+    switch i
+    case 0
+      j = 0
+    case 1
+      j = 23
+    case 2
+      j = 34
+    case 3
+      j = 77
+    AssertI(34, j)
+
+  ---
+    // "default" statment
+    - i int
+    - j int
+    i = 5
+    j = 0
+    switch i
+    case 0
+      j = 0
+    case 1
+      j = 23
+    case 2
+      j = 34
+    case 3
+      j = 77
+    default
+      j = 99
+    AssertI(99, j)
+
+  ---
+    // local var init
+    - i int = 42
+    AssertI(42, i)
+
+  ---
+    // global var init
+    AssertI(39, g)
+
+  ---
+    // local var type
+    - i = 41
+    AssertI(41, i)
+
+  ---
+    // local var type
+    - i = 41
+    - f = 3.1415
+    - g float = 3.1
+    if f == g + 0.0415
+      i = 9
+    AssertI(9, i)
+
+  ---
+    // "+=" operator
+    - i = 42
+    i += 4
+    AssertI(46, i)
+
+  ---
+    // "-=" operator
+    - i = 42
+    i -= 4
+    AssertI(38, i)
+
+  ---
+    // "*=" operator
+    - i = 42
+    i *= 4
+    AssertI(168, i)
+
+  ---
+    // "/=" operator
+    - i = 42
+    i /= 4
+    AssertI(10, i)
+
+  ---
+    // "%=" operator
+    - i = 42
+    i %= 4
+    AssertI(2, i)
+
+  ---
+    // bool type
+    - i = 42
+    - b = true
+    if b
+      i = 19
+    AssertI(19, i)
+
+  ---
+    // bool type
+    - i = 42
+    - b = true
+    - c = false
+    if b != !c
+      i = 19
+    AssertI(42, i)
+
+  ---
+    // nop statement
+    - i int
+    for i = 0; i < 7; i++
+      nop
+    AssertI(7, i)
+
+  ---
+    // block comment
+    - i = 42   // int
+    /*
+      this is a block comment
+      the first indent has to match.
+    /*
+        nested block comment.
+    */
+    this is another line in block comment.
+    */
+    AssertI(42, i)
+
+  ---
+    // char literal
+    - i = 'a'
+    AssertI(97, i)
+
+  ---
+    // char literal
+    - i = '\n'
+    AssertI(10, i)
+
+  ---
+    // slash at the end of string literal
+    - i int
+    - s = "Hello\\\\"
+    if s == "Hello\\\\"
+      i = 13
+    AssertI(13, i)
+
+  ---
+    // nil return type
+    - i = 11
+    bar()
+    AssertI(11, i)
+
+  ---
+    // scope statement
+    - i = 17
+    ---
+      - i int
+      i = 9
+    AssertI(17, i)
+
   // C++ test
   // ==========================================================================
 
@@ -391,6 +798,13 @@
     - q = Point { y = p.x - 49, x = p.y * 2 }
     AssertI(22, q.x)
     AssertI(50, q.y)
+
+    - r = Point {
+      x = q.x - 9,
+      y = q.y / 2
+    }
+    AssertI(13, r.x)
+    AssertI(25, r.y)
 
   // struct default initialization
   ---
