@@ -11,12 +11,6 @@
 //## Circle
 //  - center Point
 //  - radius int
-//
-//# add
-//  * x int
-//  * y int
-//    * int
-//  return x + y
 
 //:: token
 //  | enum  | name
@@ -27,48 +21,13 @@
 //  | T_BRK | "break"
 //
 # main() int
-  //- i int
-  //- j = 42
-  //- f float
-  //- g = 3.14
-  //- a [4]int
-  //- b = [1, 2, 3, 4]
-  //- p Point
-  //- p = Point {x:99, y:11}
-  //- p = Point(x = 99, y = 11)
-
-  // inline
   - x = 0
 
   ---
-    - p = Point {x = 99, y = 11}
-
-  ---
-    - q Point
+    - p = Point { x = 37, y = 79 }
+    - q = p
     x = q.x
-
-  ---
-    - p = Point {
-      x = 37,
-      y = 79
-    }
-    x = p.y
-
-  //p.y = 3
-  // block
-  //- p Point
-  //  x = 99
-  //  y = 11
-
-  //- p = Point
-  //  - x = 99
-  //  - y = 11
-
-  //- circle = Circle
-  //  - center = Point
-  //    - x = 123
-  //    - y = 989
-  //  - radius = 42
+    x = q.y
 
   //- circle Circle
   //  center = Point
@@ -80,8 +39,4 @@
   //  x = a * x + b * y
   //  y = c * y - d * x
 
-  //- ret Point
-  //  x = a * x + b * y
-  //  y = c * y - d * x
-  //return ret
-  return 42 + x
+  return 0 * 42 + x

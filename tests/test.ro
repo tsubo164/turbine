@@ -806,11 +806,22 @@
     AssertI(13, r.x)
     AssertI(25, r.y)
 
+    - s = Point { y = 49 }
+    AssertI(0, s.x)
+    AssertI(49, s.y)
+
   // struct default initialization
   ---
     - p Point
     AssertI(0, p.x)
     AssertI(0, p.y)
+
+  // struct initialization with another struct
+  ---
+    - p = Point { x = 31, y = 79 }
+    - q = p
+    AssertI(31, q.x)
+    AssertI(79, q.y)
 
   //------------------------------
   print(test_count, "tests done.")

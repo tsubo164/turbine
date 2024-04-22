@@ -30,6 +30,7 @@ enum Opcode {
     OP_ALLOC,
     // clear
     OP_CLEAR_LOCAL,
+    OP_COPY_LOCAL,
     // address
     OP_LOADA,
     OP_DEREF,
@@ -170,6 +171,7 @@ void DecGlobal(Bytecode *code, Word id);
 void Allocate(Bytecode *code, Byte count);
 // clear
 void ClearLocal(Bytecode *code, uint16_t base, uint16_t count);
+void CopyLocal(Bytecode *code, uint16_t src, uint16_t dst, uint16_t count);
 
 // address
 void LoadAddress(Bytecode *code, Word id);

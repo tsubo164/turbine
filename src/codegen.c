@@ -274,12 +274,43 @@ static void gen_clear_struct(Bytecode *code, const struct Struct *strct,
         ClearLocal(code, addr, strct->size);
 }
 
+static void gen_copy_struct(Bytecode *code,
+        const struct Expr *src, const struct Expr *dst)
+{
+    if (IsGlobal(src)) {
+        // TODO
+    }
+    else {
+        int src_addr = 0;
+        int dst_addr = 0;
+
+        EvalAddr(src, &src_addr);
+        EvalAddr(dst, &dst_addr);
+        // TODO support variable addresses
+        CopyLocal(code, src_addr, dst_addr, src->type->strct->size);
+    }
+}
+
 static void gen_init_struct(Bytecode *code, const struct Expr *e)
 {
     // lval
     int addr = 0;
     // an init expr always has identifier on the left
     EvalAddr(e->l, &addr);
+
+    if (e->r && e->r->kind == T_NILLIT) {
+        // no initializer
+        // clear zero
+        gen_clear_struct(code, e->type->strct, addr, IsGlobal(e->l));
+        return;
+    }
+
+    if (e->r && e->r->kind != T_STRUCTLIT) {
+        // initialized by another object
+        gen_copy_struct(code, e->r, e->l);
+        return;
+    }
+    // struct literal initializer
 
     // clear zero
     gen_clear_struct(code, e->type->strct, addr, IsGlobal(e->l));
