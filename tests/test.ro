@@ -56,7 +56,8 @@
   - y int
 
 - pt Point
-    
+- g_center = Point { y = 117 }
+
 // global pointer to function
 - addfp = add
 
@@ -822,6 +823,11 @@
     - q = p
     AssertI(31, q.x)
     AssertI(79, q.y)
+
+  // global struct initialization
+  ---
+    AssertI(0,   g_center.x)
+    AssertI(117, g_center.y)
 
   //------------------------------
   print(test_count, "tests done.")

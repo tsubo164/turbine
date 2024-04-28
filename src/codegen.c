@@ -269,7 +269,7 @@ static void gen_clear_struct(Bytecode *code, const struct Struct *strct,
         int addr, bool is_global)
 {
     if (is_global)
-        ;
+        ClearGlobal(code, addr, strct->size);
     else
         ClearLocal(code, addr, strct->size);
 }

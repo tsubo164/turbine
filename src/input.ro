@@ -8,6 +8,9 @@
   - x int
   - y int
 
+- foo int
+- g_center = Point { y = 111 }
+
 //## Circle
 //  - center Point
 //  - radius int
@@ -21,13 +24,13 @@
 //  | T_BRK | "break"
 //
 # main() int
-  - x = 0
+  //- x = 0
 
-  ---
-    - p = Point { x = 37, y = 79 }
-    - q = p
-    x = q.x
-    x = q.y
+  //---
+  //  - p = Point { x = 37, y = 79 }
+  //  - q = p
+  //  x = q.x
+  //  x = q.y
 
   //- circle Circle
   //  center = Point
@@ -39,4 +42,4 @@
   //  x = a * x + b * y
   //  y = c * y - d * x
 
-  return 0 * 42 + x
+  return g_center.x

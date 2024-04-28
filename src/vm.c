@@ -374,6 +374,17 @@ static void run(VM *vm)
             }
             break;
 
+        case OP_CLEAR_GLOBAL:
+            {
+                const uint64_t base = fetch_word(vm);
+                const uint64_t count = fetch_word(vm);
+                const struct Value zero = {0};
+
+                for (int i = 0; i < count; i++)
+                    set_global(vm, base + i, zero);
+            }
+            break;
+
         case OP_COPY_LOCAL:
             {
                 const uint64_t src = fetch_word(vm);
