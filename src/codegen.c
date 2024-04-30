@@ -278,7 +278,13 @@ static void gen_copy_struct(Bytecode *code,
         const struct Expr *src, const struct Expr *dst)
 {
     if (IsGlobal(src)) {
-        // TODO
+        int src_addr = 0;
+        int dst_addr = 0;
+
+        EvalAddr(src, &src_addr);
+        EvalAddr(dst, &dst_addr);
+        // TODO support variable addresses
+        CopyGlobal(code, src_addr, dst_addr, src->type->strct->size);
     }
     else {
         int src_addr = 0;

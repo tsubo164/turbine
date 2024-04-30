@@ -37,6 +37,7 @@ static const struct OpcodeInfo opcode_table[] = {
     { OP_CLEAR_LOCAL,  "CLEAR_LOCAL",  OPERAND_WORD2 },
     { OP_CLEAR_GLOBAL, "CLEAR_GLOBAL", OPERAND_WORD2 },
     { OP_COPY_LOCAL,   "COPY_LOCAL",   OPERAND_WORD3 },
+    { OP_COPY_GLOBAL,  "COPY_GLOBAL",  OPERAND_WORD3 },
     // address
     { OP_LOADA,        "LOADA",        OPERAND_WORD },
     { OP_DEREF,        "DEREF",        OPERAND_NONE },
@@ -359,6 +360,17 @@ void CopyLocal(Bytecode *code, uint16_t src, uint16_t dst, uint16_t count)
         return;
 
     push_byte(&code->bytes_, OP_COPY_LOCAL);
+    push_word(&code->bytes_, src);
+    push_word(&code->bytes_, dst);
+    push_word(&code->bytes_, count);
+}
+
+void CopyGlobal(Bytecode *code, uint16_t src, uint16_t dst, uint16_t count)
+{
+    if (count == 0)
+        return;
+
+    push_byte(&code->bytes_, OP_COPY_GLOBAL);
     push_word(&code->bytes_, src);
     push_word(&code->bytes_, dst);
     push_word(&code->bytes_, count);

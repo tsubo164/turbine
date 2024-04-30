@@ -398,6 +398,19 @@ static void run(VM *vm)
             }
             break;
 
+        case OP_COPY_GLOBAL:
+            {
+                const uint64_t src = fetch_word(vm);
+                const uint64_t dst = fetch_word(vm);
+                const uint64_t count = fetch_word(vm);
+
+                for (int i = 0; i < count; i++) {
+                    const struct Value val = get_global(vm, src + i);
+                    set_global(vm, dst + i, val);
+                }
+            }
+            break;
+
         case OP_LOADA:
             {
                 const Int id = fetch_word(vm);
