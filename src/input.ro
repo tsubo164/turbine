@@ -8,8 +8,9 @@
   - x int
   - y int
 
-- foo int
-- g_center = Point { y = 111 }
+//- @gvar
+//# get_y(p Point) int
+//  return p.y
 
 //## Circle
 //  - center Point
@@ -24,22 +25,14 @@
 //  | T_BRK | "break"
 //
 # main() int
-  //- x = 0
+  - p = Point { x = 37, y = 79 }
+  - q Point
+  //- @gvar
+  //- x int
 
-  //---
-  //  - p = Point { x = 37, y = 79 }
-  //  - q = p
-  //  x = q.x
-  //  x = q.y
+  q = p
 
-  //- circle Circle
-  //  center = Point
-  //    x = 123
-  //    y = 989
-  //  radius = 42
+  //x = get_y(p)
+  //return x
 
-  //return Point
-  //  x = a * x + b * y
-  //  y = c * y - d * x
-
-  return g_center.x
+  return q.y

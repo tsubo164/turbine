@@ -836,6 +836,20 @@
     AssertI(1178,   g_Q.x)
     AssertI(-238, g_Q.y)
 
+  // struct assignment
+  ---
+    - p = Point { x = -3, y = 1090 }
+    AssertI(-3, p.x)
+    AssertI(1090, p.y)
+
+    - q = Point { y = 613 }
+    AssertI(0, q.x)
+    AssertI(613, q.y)
+
+    q = p
+    AssertI(-3, q.x)
+    AssertI(1090, q.y)
+
   //------------------------------
   print(test_count, "tests done.")
 

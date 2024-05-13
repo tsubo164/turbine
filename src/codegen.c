@@ -184,8 +184,71 @@ static void gen_logand(Bytecode *code, const struct Expr *e)
     BackPatch(code, EXIT);
 }
 
+/*static*/ void gen_store(Bytecode *code, const struct Expr *l, int offset)
+{
+    // lval
+    int addr = 0;
+    const bool isconst = EvalAddr(l, &addr);
+
+    // store
+    if (isconst) {
+        if (IsGlobal(l))
+            StoreGlobal(code, addr + offset);
+        else
+            StoreLocal(code, addr + offset);
+    }
+    else {
+        gen_addr(code, l);
+        Store(code);
+    }
+}
+
+static void gen_clear_block(Bytecode *code, const struct Expr *dst)
+{
+    int dst_addr = 0;
+    EvalAddr(dst, &dst_addr);
+
+    if (IsGlobal(dst)) {
+        // TODO support variable addresses
+        ClearGlobal(code, dst_addr, SizeOf(dst->type));
+    }
+    else {
+        // TODO support variable addresses
+        ClearLocal(code, dst_addr, SizeOf(dst->type));
+    }
+}
+
+static void gen_copy_block(Bytecode *code,
+        const struct Expr *src, const struct Expr *dst)
+{
+    if (IsGlobal(src)) {
+        int src_addr = 0;
+        int dst_addr = 0;
+
+        EvalAddr(src, &src_addr);
+        EvalAddr(dst, &dst_addr);
+        // TODO support variable addresses
+        CopyGlobal(code, src_addr, dst_addr, SizeOf(src->type));
+    }
+    else {
+        int src_addr = 0;
+        int dst_addr = 0;
+
+        EvalAddr(src, &src_addr);
+        EvalAddr(dst, &dst_addr);
+        // TODO support variable addresses
+        CopyLocal(code, src_addr, dst_addr, SizeOf(src->type));
+    }
+}
+
+
 static void gen_assign(Bytecode *code, const struct Expr *e)
 {
+    if (IsStruct(e->type)) {
+        gen_copy_block(code, e->r, e->l);
+        return;
+    }
+
     // rval first
     if (e->kind == T_ASSN) {
         gen_expr(code, e->r);
@@ -265,38 +328,6 @@ static void gen_init_array(Bytecode *code, const struct Expr *e)
     }
 }
 
-static void gen_clear_struct(Bytecode *code, const struct Struct *strct,
-        int addr, bool is_global)
-{
-    if (is_global)
-        ClearGlobal(code, addr, strct->size);
-    else
-        ClearLocal(code, addr, strct->size);
-}
-
-static void gen_copy_struct(Bytecode *code,
-        const struct Expr *src, const struct Expr *dst)
-{
-    if (IsGlobal(src)) {
-        int src_addr = 0;
-        int dst_addr = 0;
-
-        EvalAddr(src, &src_addr);
-        EvalAddr(dst, &dst_addr);
-        // TODO support variable addresses
-        CopyGlobal(code, src_addr, dst_addr, src->type->strct->size);
-    }
-    else {
-        int src_addr = 0;
-        int dst_addr = 0;
-
-        EvalAddr(src, &src_addr);
-        EvalAddr(dst, &dst_addr);
-        // TODO support variable addresses
-        CopyLocal(code, src_addr, dst_addr, src->type->strct->size);
-    }
-}
-
 static void gen_init_struct(Bytecode *code, const struct Expr *e)
 {
     // lval
@@ -307,19 +338,19 @@ static void gen_init_struct(Bytecode *code, const struct Expr *e)
     if (e->r && e->r->kind == T_NILLIT) {
         // no initializer
         // clear zero
-        gen_clear_struct(code, e->type->strct, addr, IsGlobal(e->l));
+        gen_clear_block(code, e->l);
         return;
     }
 
     if (e->r && e->r->kind != T_STRUCTLIT) {
         // initialized by another object
-        gen_copy_struct(code, e->r, e->l);
+        gen_copy_block(code, e->r, e->l);
         return;
     }
     // struct literal initializer
 
     // clear zero
-    gen_clear_struct(code, e->type->strct, addr, IsGlobal(e->l));
+    gen_clear_block(code, e->l);
 
     // struct lit
     struct Expr *struct_lit = e->r;
