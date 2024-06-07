@@ -627,6 +627,13 @@ static struct Stmt *assign_stmt(Parser *p)
                     "builtin function can not be assigned: '%s'",
                     func->name);
         }
+        if (!IsMutable(lval)) {
+            const struct Var *var = FindRootObject(lval);
+            assert(var);
+            error(p, tok->pos,
+                    "parameter object can not be modified: '%s'",
+                    var->name);
+        }
         return NewAssignStmt(lval, rval, kind);
 
     case T_INC:

@@ -444,6 +444,11 @@ static void gen_expr(Bytecode *code, const struct Expr *e)
         return;
 
     case T_IDENT:
+        if (IsStruct(e->type)) {
+            gen_addr(code, e);
+            return;
+        }
+
         if (e->var->is_global)
             LoadGlobal(code, e->var->offset);
         else
@@ -645,6 +650,20 @@ static void gen_addr(Bytecode *code, const struct Expr *e)
     switch (e->kind) {
 
     case T_IDENT:
+        if (IsStruct(e->type)) {
+            if (e->var->is_param) {
+                LoadAddress(code, e->var->offset);
+                Dereference(code);
+            }
+            else if (e->var->is_global) {
+                LoadInt(code, e->var->offset + 1);
+            }
+            else {
+                LoadAddress(code, e->var->offset);
+            }
+            return;
+        }
+
         if (e->var->is_global)
             LoadByte(code, e->var->offset + 1);
         else

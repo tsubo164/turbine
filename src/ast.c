@@ -386,6 +386,34 @@ bool IsGlobal(const struct Expr *e)
     }
 }
 
+bool IsMutable(const struct Expr *e)
+{
+    switch (e->kind) {
+    case T_IDENT:
+        return e->var->is_param == false;
+
+    case T_SELECT:
+        return IsMutable(e->l);
+
+    default:
+        return true;
+    }
+}
+
+const struct Var *FindRootObject(const struct Expr *e)
+{
+    switch (e->kind) {
+    case T_IDENT:
+        return e->var;
+
+    case T_SELECT:
+        return FindRootObject(e->l);
+
+    default:
+        return NULL;
+    }
+}
+
 int Addr(const struct Expr *e)
 {
     switch (e->kind) {

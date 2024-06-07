@@ -9,8 +9,27 @@
   - y int
 
 //- @gvar
-//# get_y(p Point) int
-//  return p.y
+# get_point_y(p Point) int
+  //p.x = 12
+  return p.y
+
+//# inc_point_x(p *Point)
+//  //p.x++
+//  p.x = 2
+
+/*
+# foo(p Point) int
+  inc_point_x(&p) // error
+
+## Node
+  - kind int
+  - l *Node
+  - r *Node
+
+## Binop(kind int, L *Node, R *Node)
+  - node = new Node{kind = kind, l = L, r = R }
+  return node
+*/
 
 //## Circle
 //  - center Point
@@ -25,14 +44,29 @@
 //  | T_BRK | "break"
 //
 # main() int
-  - p = Point { x = 37, y = 79 }
-  - q Point
+  - pt = Point { x = 37, y = 79 }
+  //- q Point
   //- @gvar
-  //- x int
 
-  q = p
+  /*
+  //q = pt
+  - center = new Point { x = 1, y = 123 }
+  // &Point
+  inc_point_x(center)
+  get_point_y(*center)
 
-  //x = get_y(p)
-  //return x
+  //inc_point_x(&center)
+  //get_point_y(center)
 
-  return q.y
+  for i in 10
+    // ref type allocated 10 times
+    - center = Point { x = 1, y = 123 }
+  */
+  get_point_y(pt)
+  //inc_point_x(pt)
+  //print(pt.x)
+
+  //pt = math.Normalize(pt)
+
+  return get_point_y(pt)
+  //return q.y

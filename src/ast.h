@@ -85,6 +85,9 @@ struct Stmt *NewIncDecStmt(struct Expr *l, int kind);
 
 bool IsNull(const struct Expr *e);
 bool IsGlobal(const struct Expr *e);
+bool IsMutable(const struct Expr *e);
+
+const struct Var *FindRootObject(const struct Expr *e);
 
 int Addr(const struct Expr *e);
 bool EvalExpr(const struct Expr *e, int64_t *result);

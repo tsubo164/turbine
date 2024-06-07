@@ -41,11 +41,12 @@
 
 # foo(x int) int
   return 19
+  - xx int
   if x == 10
       - y int
       y = 23
-      x = y
-  return x + 3
+      xx = y
+  return xx + 3
 
 // nil return type
 # bar()
@@ -54,6 +55,9 @@
 ## Point
   - x int
   - y int
+
+# get_point_y(p Point) int
+  return p.y
 
 - pt Point
 - g_center = Point { y = 117 }
@@ -849,6 +853,13 @@
     q = p
     AssertI(-3, q.x)
     AssertI(1090, q.y)
+
+  // struct parameter
+  ---
+    - p = Point { x = 319, y = -123 }
+    AssertI(319, p.x)
+    AssertI(-123, p.y)
+    AssertI(-123, get_point_y(p))
 
   //------------------------------
   print(test_count, "tests done.")
