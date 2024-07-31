@@ -151,8 +151,11 @@ const char *TypeString(const struct Type *type)
         if (t->kind == TY_ARRAY) {
             sprintf(buf, "%s[%d]", interned, t->len);
         }
+        else if (t->kind == TY_PTR) {
+            sprintf(buf, "%s*", interned);
+        }
         else if (t->kind == TY_STRUCT) {
-            sprintf(buf, "%s %s", type_kind_string(t->kind), t->strct->name);
+            sprintf(buf, "%s%s", interned, t->strct->name);
         }
         else {
             sprintf(buf, "%s%s", interned, type_kind_string(t->kind));

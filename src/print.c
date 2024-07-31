@@ -257,3 +257,8 @@ void PrintScope(const struct Scope *sc)
 {
     print_scope(sc, 0);
 }
+
+void PrintExpr(const struct Expr *e)
+{
+    print_expr(e, 0);
+}

@@ -351,6 +351,11 @@ static struct Expr *primary_expr(Parser *p)
                 struct Field *f = FindField(expr->type->strct, tok_str(p));
                 expr = NewSelectExpr(expr, NewFieldExpr(f));
             }
+            else if (IsPtr(expr->type) && IsStruct(expr->type->underlying)) {
+                expect(p, T_IDENT);
+                struct Field *f = FindField(expr->type->underlying->strct, tok_str(p));
+                expr = NewSelectExpr(expr, NewFieldExpr(f));
+            }
             else if (IsTable(expr->type)) {
                 expect(p, T_IDENT);
                 struct MapEntry *ent = HashMapLookup(&expr->type->table->rows, tok_str(p));

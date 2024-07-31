@@ -59,6 +59,12 @@
 # get_point_y(p Point) int
   return p.y
 
+# set_point_x(p *Point, x int)
+  p.x = x
+
+# set_point_y(p *Point, y int)
+  p.y = y
+
 - pt Point
 - g_center = Point { y = 117 }
 - g_P = Point { y = -238, x = 1178 }
@@ -860,6 +866,17 @@
     AssertI(319, p.x)
     AssertI(-123, p.y)
     AssertI(-123, get_point_y(p))
+
+  // struct reference parameter
+  ---
+    - p = Point { x = 37, y = 79 }
+    AssertI(37, p.x)
+    AssertI(79, p.y)
+
+    set_point_x(&p, 19)
+    AssertI(19, p.x)
+    set_point_y(&p, 4299)
+    AssertI(4299, p.y)
 
   //------------------------------
   print(test_count, "tests done.")

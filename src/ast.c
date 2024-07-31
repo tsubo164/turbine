@@ -390,6 +390,8 @@ bool IsMutable(const struct Expr *e)
 {
     switch (e->kind) {
     case T_IDENT:
+        if (e->var->is_param == true && IsPtr(e->type))
+            return true;
         return e->var->is_param == false;
 
     case T_SELECT:

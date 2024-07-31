@@ -650,6 +650,11 @@ static void gen_addr(Bytecode *code, const struct Expr *e)
     switch (e->kind) {
 
     case T_IDENT:
+        if (IsPtr(e->type)) {
+            gen_expr(code, e);
+            return;
+        }
+
         if (IsStruct(e->type)) {
             if (e->var->is_param) {
                 LoadAddress(code, e->var->offset);
