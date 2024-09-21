@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#define NALLOC(n,type) ((type*) calloc((n),sizeof(type)))
+#define NALLOC(n,type) calloc((n),sizeof(type))
 #define CALLOC(type) NALLOC(1,type)
 #define REALLOC(ptr,n) realloc((ptr),(n)*sizeof(*(ptr)))
 

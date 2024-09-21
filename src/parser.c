@@ -1152,15 +1152,17 @@ static struct Type *type_spec(Parser *p)
     }
 
     if (consume(p, T_LBRACK)) {
-        struct Expr *e = expression(p);
-        if (!IsInt(e->type)) {
-            error(p, tok_pos(p),
-                    "array length expression must be integer type");
-        }
         int64_t len = 0;
-        if (!EvalExpr(e, &len)) {
-            error(p, tok_pos(p),
-                    "array length expression must be compile time constant");
+        if (peek(p) != T_RBRACK) {
+            struct Expr *e = expression(p);
+            if (!IsInt(e->type)) {
+                error(p, tok_pos(p),
+                        "array length expression must be integer type");
+            }
+            if (!EvalExpr(e, &len)) {
+                error(p, tok_pos(p),
+                        "array length expression must be compile time constant");
+            }
         }
         expect(p, T_RBRACK);
         return NewArrayType(len, type_spec(p));

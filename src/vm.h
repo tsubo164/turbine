@@ -3,12 +3,15 @@
 
 #include "bytecode.h"
 #include "gc.h"
+// TODO remove this
+#include "objarray.h"
 
 typedef struct Value {
     union {
         Int inum;
         Float fpnum;
         StringObj *str;
+        struct ObjArray *array;
     };
 } Value;
 

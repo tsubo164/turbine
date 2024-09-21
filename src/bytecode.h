@@ -96,6 +96,8 @@ enum Opcode {
     OP_ITOF,
     OP_FTOB,
     OP_FTOI,
+    // array
+    OP_ARRAYLOCAL,
     // debug
     OP_PUSH_CHECK_NUM,
     OP_POP_CHECK_NUM,
@@ -244,6 +246,8 @@ void IntToBool(Bytecode *code);
 void IntToFloat(Bytecode *code);
 void FloatToBool(Bytecode *code);
 void FloatToInt(Bytecode *code);
+// array
+void ArrayLocal(Bytecode *code, Byte id);
 //
 void PushCheckNum(Bytecode *code, int64_t num);
 void PopCheckNum(Bytecode *code, int64_t num);

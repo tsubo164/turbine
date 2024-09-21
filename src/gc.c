@@ -1,6 +1,9 @@
 #include "gc.h"
 #include "error.h"
 #include "mem.h"
+// TODO move this
+#include "objarray.h"
+
 #include <string.h>
 #include <stdio.h>
 
@@ -13,6 +16,13 @@ static void print_obj(const Obj *obj)
 
     case OBJ_STRING:
         printf("[StringObj] => %s\n", ((StringObj *) obj)->data);
+        break;
+
+    case OBJ_ARRAY:
+        {
+            const struct ObjArray *array = (struct ObjArray *) obj;
+            printf("[Array] => len: %lld, cap: %lld\n", array->len, array->cap);
+        }
         break;
 
     default:

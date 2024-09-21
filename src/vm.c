@@ -1,5 +1,7 @@
 #include "vm.h"
 #include "error.h"
+#include "objarray.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -956,6 +958,17 @@ static void run(VM *vm)
             }
             break;
 
+        case OP_ARRAYLOCAL:
+            {
+                const Int len = pop_int(vm);
+                Value val;
+                val.array = NewArray(&vm->gc_, len);
+
+                const Int id = fetch_byte(vm);
+                set_local(vm, id, val);
+            }
+            break;
+
         case OP_PUSH_CHECK_NUM:
             {
                 Value val;
@@ -1032,7 +1045,7 @@ void PrintStack(const VM *vm)
             printf("<-BP");
         printf("\n");
     }
-    printf("--------------\n");
+    printf("--------------\n\n");
 }
 
 void EnablePrintStack(VM *vm, bool enable)

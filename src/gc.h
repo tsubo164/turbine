@@ -6,6 +6,7 @@
 enum ObjKind {
     OBJ_NIL,
     OBJ_STRING,
+    OBJ_ARRAY,
 };
 
 typedef struct Obj {

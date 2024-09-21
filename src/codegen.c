@@ -299,6 +299,18 @@ static void gen_assign(Bytecode *code, const struct Expr *e)
 
 static void gen_init_array(Bytecode *code, const struct Expr *e)
 {
+    // TODO testing dynamic array
+    {
+        // lval
+        int addr = 0;
+        // an init expr always has identifier on the left
+        EvalAddr(e->l, &addr);
+
+        LoadInt(code, e->type->len);
+        ArrayLocal(code, addr);
+    }
+    // TODO =====================
+
     // lval
     int addr = 0;
     // an init expr always has identifier on the left
