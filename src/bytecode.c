@@ -102,7 +102,7 @@ static const struct OpcodeInfo opcode_table[] = {
     { OP_FTOB,         "FTOB",         OPERAND_NONE },
     { OP_FTOI,         "FTOI",         OPERAND_NONE },
     // array
-    { OP_ARRAYLOCAL,   "ARRAYLOCAL",   OPERAND_BYTE },
+    { OP_ARRAYLOCAL,   "ARRAYLOCAL",   OPERAND_NONE },
     // debug
     { OP_PUSH_CHECK_NUM,    "PUSH_CHECK_NUM",   OPERAND_QUAD },
     { OP_POP_CHECK_NUM,     "POP_CHECK_NUM",    OPERAND_QUAD },
@@ -705,7 +705,6 @@ void FloatToInt(Bytecode *code)
 void ArrayLocal(Bytecode *code, Byte id)
 {
     push_byte(&code->bytes_, OP_ARRAYLOCAL);
-    push_byte(&code->bytes_, id);
 }
 
 void PushCheckNum(Bytecode *code, int64_t num)

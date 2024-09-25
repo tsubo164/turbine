@@ -7,6 +7,26 @@
 #include <string.h>
 #include <stdio.h>
 
+void ValueVecReisze(struct ValueVec *v, int new_len)
+{
+    if (new_len >= v->cap) {
+        v->cap = v->cap < 8 ? 8 : v->cap;
+        while (v->cap < new_len)
+            v->cap *= 2;
+        v->data = realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->len = new_len;
+}
+
+void ValueVecPush(struct ValueVec *v, Value val)
+{
+    if (v->len >= v->cap) {
+        v->cap = v->cap < 8 ? 8 : v->cap * 2;
+        v->data = realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = val;
+}
+
 static void print_obj(const Obj *obj)
 {
     switch (obj->kind) {

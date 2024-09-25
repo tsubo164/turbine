@@ -6,21 +6,6 @@
 // TODO remove this
 #include "objarray.h"
 
-typedef struct Value {
-    union {
-        Int inum;
-        Float fpnum;
-        StringObj *str;
-        struct ObjArray *array;
-    };
-} Value;
-
-typedef struct ValueVec {
-    Value *data;
-    int cap;
-    int len;
-} ValueVec;
-
 typedef struct Call {
     int func_index;
     int argc;

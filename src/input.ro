@@ -43,6 +43,8 @@
 //  | T_BRK | "break"
 //
 # main() int
-  - a []int
+  - a [8]int
+
+  //a[2] = 87
 
   return 42

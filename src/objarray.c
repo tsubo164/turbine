@@ -18,3 +18,10 @@ struct ObjArray *NewArray(struct GC *gc, int64_t len)
 
     return array;
 }
+
+struct Value ArrayIndex(struct ObjArray *array, int64_t index)
+{
+    struct Value val = {0};
+
+    return val;
+}

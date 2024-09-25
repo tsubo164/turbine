@@ -963,9 +963,7 @@ static void run(VM *vm)
                 const Int len = pop_int(vm);
                 Value val;
                 val.array = NewArray(&vm->gc_, len);
-
-                const Int id = fetch_byte(vm);
-                set_local(vm, id, val);
+                push(vm, val);
             }
             break;
 

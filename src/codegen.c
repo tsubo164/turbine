@@ -308,6 +308,9 @@ static void gen_init_array(Bytecode *code, const struct Expr *e)
 
         LoadInt(code, e->type->len);
         ArrayLocal(code, addr);
+        StoreLocal(code, addr);
+
+        //return;
     }
     // TODO =====================
 
