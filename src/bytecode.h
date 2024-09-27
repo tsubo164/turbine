@@ -5,6 +5,10 @@
 #include <stdbool.h>
 #include "hashmap.h"
 
+// XXX TEST nees this?
+#include "gc.h"
+#define REGISTER_MACHINE 0
+
 typedef uint8_t  Byte;
 typedef uint16_t Word;
 typedef int64_t  Int;
@@ -104,6 +108,15 @@ enum Opcode {
     // exit
     OP_EXIT,
     OP_EOC,
+    // XXX TEST register machine
+    OP_NOP__,
+    OP_LOADBYTE__,
+    OP_CALL__,
+    OP_RETURN__,
+    OP_EXIT__,
+    OP_EOC__,
+    // XXX TEST register machine
+    OP_COUNT__,
 };
 
 struct OpcodeInfo {
@@ -113,6 +126,13 @@ struct OpcodeInfo {
 };
 
 const char *OpcodeString(Byte op);
+
+// XXX TEST register machine
+struct Int32Vec {
+    uint32_t *data;
+    int cap;
+    int len;
+};
 
 typedef struct ByteVec {
     Byte *data;
@@ -144,6 +164,10 @@ typedef struct FuncInfoVec {
 } FuncInfoVec;
 
 typedef struct Bytecode {
+    struct Int32Vec insts;
+    struct Value consts[128];
+    int const_count;
+
     ByteVec bytes_;
     PtrVec strings_;
     FuncInfoVec funcs_;
@@ -254,6 +278,15 @@ void PopCheckNum(Bytecode *code, int64_t num);
 //
 void Exit(Bytecode *code);
 void End(Bytecode *code);
+
+// XXX TEST register
+int PoolInt__(Bytecode *code, Int val);
+void CallFunction__(Bytecode *code, Word func_index, bool builtin);
+void Return__(Bytecode *code, Byte id);
+void Exit__(Bytecode *code);
+void End__(Bytecode *code);
+Int Size__(const Bytecode *code);
+// XXX TEST register
 
 // Backpatches
 void BeginIf(Bytecode *code);

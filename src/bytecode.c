@@ -13,6 +13,11 @@ enum OperandSize {
     OPERAND_WORD2,
     OPERAND_WORD3,
     OPERAND_QUAD,
+    // XXX TEST register machine
+    OPERAND____,
+    OPERAND_A__,
+    OPERAND_A_B,
+    OPERAND_AB_,
 };
 
 static const struct OpcodeInfo opcode_table[] = {
@@ -109,9 +114,17 @@ static const struct OpcodeInfo opcode_table[] = {
     // exit
     { OP_EXIT,         "EXIT",         OPERAND_NONE },
     { OP_EOC,          "EOC",          OPERAND_NONE },
+    // XXX TEST register machine
+    { OP_NOP__,        "NOP",          OPERAND____ },
+    { OP_LOADBYTE__,   "LOADBYTE",     OPERAND_A_B },
+    { OP_CALL__,       "CALL",         OPERAND_AB_ },
+    { OP_RETURN__,     "RETURN",       OPERAND_A__ },
+    { OP_EXIT__,       "EXIT",         OPERAND____ },
+    { OP_EOC__,        "EOC",          OPERAND____ },
 };
 
-static_assert(sizeof(opcode_table)/sizeof(opcode_table[0])==OP_EOC+1, "MISSING_OPCODE_ENTRY");
+// XXX TEST register machine
+static_assert(sizeof(opcode_table)/sizeof(opcode_table[0])==OP_COUNT__, "MISSING_OPCODE_ENTRY");
 
 const struct OpcodeInfo *LookupOpcodeInfo(Byte op)
 {
@@ -237,6 +250,33 @@ static void assert_range(const FuncInfoVec *v,  Word index)
                 "function index out of range: %d, function count: %d\n",
                 index, v->len);
     }
+}
+
+static void push_inst(struct Int32Vec *v, uint32_t data)
+{
+    if (v->len >= v->cap) {
+        v->cap = new_cap(v->cap, 128);
+        v->data = realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = data;
+}
+
+static void push_inst____(struct Bytecode *code, uint8_t op)
+{
+    const uint32_t inst = (op << 24);
+    push_inst(&code->insts, inst);
+}
+
+static void push_op_a(struct Bytecode *code, uint8_t op, uint8_t a)
+{
+    const uint32_t inst = (op << 24) | (a << 16);
+    push_inst(&code->insts, inst);
+}
+
+static void push_inst_ab(struct Bytecode *code, uint8_t op, uint16_t word)
+{
+    const uint32_t inst = (op << 24) | (word << 8);
+    push_inst(&code->insts, inst);
 }
 
 void LoadByte(Bytecode *code, Byte byte)
@@ -729,6 +769,56 @@ void End(Bytecode *code)
     push_byte(&code->bytes_, OP_EOC);
 }
 
+// XXX TEST register
+int PoolInt__(Bytecode *code, Int val)
+{
+    if (code->const_count == 127) {
+        return -1;
+    }
+    code->consts[code->const_count].inum = val;
+
+    int reg = code->const_count++;
+    return reg + 128;
+}
+
+void CallFunction__(Bytecode *code, Word func_index, bool builtin)
+{
+    if (builtin) {
+        /*
+        push_byte(&code->bytes_, OP_CALL_BUILTIN);
+        push_byte(&code->bytes_, func_index);
+        */
+    }
+    else {
+        /*
+        push_byte(&code->bytes_, OP_CALL__);
+        push_word(&code->bytes_, func_index);
+        push_byte(&code->bytes_, 0);
+        */
+        push_inst_ab(code, OP_CALL__, func_index);
+    }
+}
+
+void Return__(Bytecode *code, Byte id)
+{
+    push_op_a(code, OP_RETURN__, id);
+}
+
+void Exit__(Bytecode *code)
+{
+    push_inst____(code, OP_EXIT__);
+}
+
+void End__(Bytecode *code)
+{
+    push_inst____(code, OP_EOC__);
+}
+
+Int Size__(const Bytecode *code)
+{
+    return code->insts.len;
+}
+
 Int GetFunctionAddress(const Bytecode *code, Word func_index)
 {
     assert_range(&code->funcs_, func_index);
@@ -805,6 +895,15 @@ Byte Read(const Bytecode *code, Int addr)
                 "address out of range: %d", Size(code));
 
     return code->bytes_.data[addr];
+}
+
+uint32_t Read__(const Bytecode *code, Int addr)
+{
+    if (addr < 0 || addr >= Size__(code))
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", Size__(code));
+
+    return code->insts.data[addr];
 }
 
 Word ReadWord(const Bytecode *code, Int addr)
@@ -1008,8 +1107,15 @@ static Int print_op(const Bytecode *code, int op, int operand, Int address)
     return addr + inc;
 }
 
+// XXX TEST
+void PrintBytecode__(const Bytecode *code);
 void PrintBytecode(const Bytecode *code)
 {
+    if (REGISTER_MACHINE) {
+        PrintBytecode__(code);
+        return;
+    }
+
     // function info
     for (int i = 0; i < code->funcs_.len; i++) {
         const FuncInfo *info = &code->funcs_.data[i];
@@ -1028,4 +1134,131 @@ void PrintBytecode(const Bytecode *code)
         if (op == OP_EOC)
             break;
     }
+}
+
+// XXX TEST
+static Int print_op__(const Bytecode *code, int op, int operand, Int address, uint32_t inst);
+
+void PrintBytecode__(const Bytecode *code)
+{
+    if (code->const_count) {
+        printf("* constant pool:\n");
+        for (int i = 0; i < code->const_count; i++) {
+            printf("  [%3d] %lld\n", i, code->consts[i].inum);
+        }
+    }
+
+    // function info
+    for (int i = 0; i < code->funcs_.len; i++) {
+        const FuncInfo *info = &code->funcs_.data[i];
+        printf("* function id: %d @%lld\n", info->id, info->addr);
+    }
+
+    Int addr = 0;
+
+    while (addr < Size__(code)) {
+        printf("[%6lld] ", addr);
+
+        const uint32_t inst = Read__(code, addr++);
+        const int op = inst >> 24;
+        const struct OpcodeInfo *info = LookupOpcodeInfo(op);
+        //addr = print_op__(code, info->opcode, info->operand_size, addr);
+        print_op__(code, info->opcode, info->operand_size, addr, inst);
+
+        if (op == OP_EOC)
+            break;
+    }
+}
+
+static Int print_op__(const Bytecode *code, int op, int operand, Int address, uint32_t inst)
+{
+    const Int addr = address;
+    Int inc = 0;
+
+    const char *mnemonic = OpcodeString(op);
+
+    // padding spaces
+    if (operand != OPERAND_NONE)
+        printf("%-12s", mnemonic);
+    else
+        printf("%s", mnemonic);
+
+    char prefix;
+    if (op == OP_LOADLOCAL || op == OP_LOADGLOBAL ||
+        op == OP_STORELOCAL || op == OP_STOREGLOBAL)
+        prefix = '@';
+    else
+        prefix = '$';
+
+    // append operand
+    switch (operand) {
+
+    case OPERAND_A__:
+        {
+            int a = (inst >> 16) & 0xFF;
+            if (a >= 128)
+                printf(" C%d", a - 128);
+            else
+                printf(" R%d", a);
+        }
+        break;
+
+    case OPERAND_AB_:
+        {
+            int ab = (inst >> 8) & 0xFFFF;
+            printf(" $%d", ab);
+        }
+        break;
+
+    case OPERAND_BYTE:
+        printf(" %c%d", prefix, Read(code, addr));
+        inc = 1;
+        break;
+
+    case OPERAND_WORD:
+        printf(" %c%d", prefix, ReadWord(code, addr));
+        inc = sizeof(Word);
+        break;
+
+    case OPERAND_WORD2:
+        printf(" %c%d", prefix, ReadWord(code, addr));
+        printf(" %d", ReadWord(code, addr + sizeof(uint16_t)));
+        inc = 2 * sizeof(uint16_t);
+        break;
+
+    case OPERAND_WORD3:
+        printf(" %c%d", prefix, ReadWord(code, addr));
+        printf(" %d", ReadWord(code, addr + sizeof(uint16_t)));
+        printf(" %d", ReadWord(code, addr + 2 * sizeof(uint16_t)));
+        inc = 3 * sizeof(uint16_t);
+        break;
+
+    case OPERAND_QUAD:
+        printf(" %c%lld", prefix, ReadInt(code, addr));
+        inc = sizeof(Int);
+        break;
+        /*
+        */
+    }
+
+    // add extra info
+    /*
+    switch (op) {
+    case OP_LOADF:
+        printf(" = %f", ReadFloat(code, addr));
+        break;
+
+    case OP_LOADS:
+        printf(" = \"%s\"", GetConstString(code, ReadWord(code, addr)));
+        break;
+
+    case OP_CALL:
+        // TODO function id could be retrived if we have OP_CALL_STATIC
+        // to call functions that are defined statically
+        break;
+    }
+    */
+
+    printf("\n");
+    return addr + inc;
 }
