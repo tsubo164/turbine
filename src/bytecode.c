@@ -18,6 +18,7 @@ enum OperandSize {
     OPERAND_A__,
     OPERAND_A_B,
     OPERAND_AB_,
+    OPERAND_A_B_C,
 };
 
 static const struct OpcodeInfo opcode_table[] = {
@@ -116,8 +117,11 @@ static const struct OpcodeInfo opcode_table[] = {
     { OP_EOC,          "EOC",          OPERAND_NONE },
     // XXX TEST register machine
     { OP_NOP__,        "NOP",          OPERAND____ },
+    { OP_COPY__,       "COPY",         OPERAND_A_B },
     { OP_LOADBYTE__,   "LOADBYTE",     OPERAND_A_B },
+    { OP_ADDINT__,     "ADDINT",       OPERAND_A_B_C },
     { OP_CALL__,       "CALL",         OPERAND_AB_ },
+    { OP_ALLOCATE__,   "ALLOCATE",     OPERAND_A__ },
     { OP_RETURN__,     "RETURN",       OPERAND_A__ },
     { OP_EXIT__,       "EXIT",         OPERAND____ },
     { OP_EOC__,        "EOC",          OPERAND____ },
@@ -273,9 +277,21 @@ static void push_op_a(struct Bytecode *code, uint8_t op, uint8_t a)
     push_inst(&code->insts, inst);
 }
 
+static void push_inst_a_b(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b)
+{
+    const uint32_t inst = (op << 24) | (a << 16) | (b << 8);
+    push_inst(&code->insts, inst);
+}
+
 static void push_inst_ab(struct Bytecode *code, uint8_t op, uint16_t word)
 {
     const uint32_t inst = (op << 24) | (word << 8);
+    push_inst(&code->insts, inst);
+}
+
+static void push_inst_a_b_c(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b, uint8_t c)
+{
+    const uint32_t inst = (op << 24) | (a << 16) | (b << 8) | c;
     push_inst(&code->insts, inst);
 }
 
@@ -770,6 +786,14 @@ void End(Bytecode *code)
 }
 
 // XXX TEST register
+int NewRegister__(Bytecode *code)
+{
+    if (code->sp >= 127) {
+        return -1;
+    }
+    return ++code->sp;
+}
+
 int PoolInt__(Bytecode *code, Int val)
 {
     if (code->const_count == 127) {
@@ -779,6 +803,18 @@ int PoolInt__(Bytecode *code, Int val)
 
     int reg = code->const_count++;
     return reg + 128;
+}
+
+int Copy__(Bytecode *code, Byte dst, Byte src)
+{
+    push_inst_a_b(code, OP_COPY__, dst, src);
+    return dst;
+}
+
+int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1)
+{
+    push_inst_a_b_c(code, OP_ADDINT__, dst, src0, src1);
+    return dst;
 }
 
 void CallFunction__(Bytecode *code, Word func_index, bool builtin)
@@ -799,6 +835,17 @@ void CallFunction__(Bytecode *code, Word func_index, bool builtin)
     }
 }
 
+void Allocate__(Bytecode *code, Byte count)
+{
+    code->bp = count - 1;
+    code->sp = code->bp;
+
+    if (count == 0)
+        return;
+
+    push_op_a(code, OP_ALLOCATE__, count);
+}
+
 void Return__(Bytecode *code, Byte id)
 {
     push_op_a(code, OP_RETURN__, id);
@@ -817,6 +864,11 @@ void End__(Bytecode *code)
 Int Size__(const Bytecode *code)
 {
     return code->insts.len;
+}
+
+bool IsTempRegister(const struct Bytecode *code, Byte id)
+{
+    return id > code->bp && id < 128;
 }
 
 Int GetFunctionAddress(const Bytecode *code, Word func_index)
@@ -1162,7 +1214,6 @@ void PrintBytecode__(const Bytecode *code)
         const uint32_t inst = Read__(code, addr++);
         const int op = inst >> 24;
         const struct OpcodeInfo *info = LookupOpcodeInfo(op);
-        //addr = print_op__(code, info->opcode, info->operand_size, addr);
         print_op__(code, info->opcode, info->operand_size, addr, inst);
 
         if (op == OP_EOC)
@@ -1197,9 +1248,22 @@ static Int print_op__(const Bytecode *code, int op, int operand, Int address, ui
         {
             int a = (inst >> 16) & 0xFF;
             if (a >= 128)
-                printf(" C%d", a - 128);
+                printf(" C%d (%lld)", a - 128, code->consts[a - 128].inum);
             else
                 printf(" R%d", a);
+        }
+        break;
+
+    case OPERAND_A_B:
+        {
+            int a = (inst >> 16) & 0xFF;
+            printf(" R%d", a);
+
+            int b = (inst >> 8) & 0xFF;
+            if (b >= 128)
+                printf(" C%d (%lld)", b - 128, code->consts[b - 128].inum);
+            else
+                printf(" R%d", b);
         }
         break;
 
@@ -1207,6 +1271,25 @@ static Int print_op__(const Bytecode *code, int op, int operand, Int address, ui
         {
             int ab = (inst >> 8) & 0xFFFF;
             printf(" $%d", ab);
+        }
+        break;
+
+    case OPERAND_A_B_C:
+        {
+            int a = (inst >> 16) & 0xFF;
+            printf(" R%d", a);
+
+            int b = (inst >> 8) & 0xFF;
+            if (b >= 128)
+                printf(" C%d", b - 128);
+            else
+                printf(" R%d", b);
+
+            int c = inst & 0xFF;
+            if (c >= 128)
+                printf(" C%d", c - 128);
+            else
+                printf(" R%d", c);
         }
         break;
 

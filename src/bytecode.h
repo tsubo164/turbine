@@ -110,8 +110,11 @@ enum Opcode {
     OP_EOC,
     // XXX TEST register machine
     OP_NOP__,
+    OP_COPY__,
     OP_LOADBYTE__,
+    OP_ADDINT__,
     OP_CALL__,
+    OP_ALLOCATE__,
     OP_RETURN__,
     OP_EXIT__,
     OP_EOC__,
@@ -167,6 +170,8 @@ typedef struct Bytecode {
     struct Int32Vec insts;
     struct Value consts[128];
     int const_count;
+    int bp;
+    int sp;
 
     ByteVec bytes_;
     PtrVec strings_;
@@ -280,12 +285,17 @@ void Exit(Bytecode *code);
 void End(Bytecode *code);
 
 // XXX TEST register
+int NewRegister__(Bytecode *code);
 int PoolInt__(Bytecode *code, Int val);
+int Copy__(Bytecode *code, Byte dst, Byte src);
+int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
 void CallFunction__(Bytecode *code, Word func_index, bool builtin);
+void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
 void Exit__(Bytecode *code);
 void End__(Bytecode *code);
 Int Size__(const Bytecode *code);
+bool IsTempRegister(const struct Bytecode *code, Byte id);
 // XXX TEST register
 
 // Backpatches

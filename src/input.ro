@@ -45,5 +45,14 @@
 # main() int
   //- a [8]int
   //a[2] = 87
+  - a int
+  - b int
+  - c int
+  - d int
 
-  return 42
+  //a = a + x
+  //a = 1 + x + 42
+  a = 42 + b + c + d
+  //x = 2 + a + 3
+
+  return 12

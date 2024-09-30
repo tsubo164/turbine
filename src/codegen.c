@@ -53,6 +53,16 @@ void SetOptimize(bool enable)
         ops##String((code)); \
     } while (0)
 
+#define EMITS__(code, ty, op, ops, r0, r1, r2) \
+    do { \
+    if (IsInt((ty)) || IsBool((ty))) \
+        op##Int__((code), r0, r1, r2); \
+    else if (IsFloat((ty))) \
+        ;/*op##Float__((code));*/ \
+    else if (IsString((ty))) \
+        ;/*ops##String__((code));*/ \
+    } while (0)
+
 static void gen_expr(Bytecode *code, const struct Expr *e);
 static void gen_addr(Bytecode *code, const struct Expr *e);
 
@@ -1075,6 +1085,87 @@ void ResolveOffset(struct Module *mod)
 // XXX TEST compiling to register-based machine code
 static int gen_expr__(Bytecode *code, const struct Expr *e);
 
+static int gen_assign__(Bytecode *code, const struct Expr *e)
+{
+    const struct Expr *lval = e->l;
+    const struct Expr *rval = e->r;
+    int reg0 = -1;
+    int reg1 = -1;
+    int reg2 = -1;
+
+    if (rval->kind != T_ADD &&
+        rval->kind != T_SUB &&
+        rval->kind != T_MUL &&
+        rval->kind != T_DIV &&
+        rval->kind != T_REM) {
+        reg0 = gen_expr__(code, lval);
+        reg1 = gen_expr__(code, rval);
+        return Copy__(code, reg0, reg1);
+    }
+    else {
+        reg0 = gen_expr__(code, lval);
+        reg1 = gen_expr__(code, rval->l);
+        reg2 = gen_expr__(code, rval->r);
+        EMITS__(code, e->type, Add, Concat, reg0, reg1, reg2);
+        return reg0;
+    }
+
+    /*
+    if (IsStruct(e->type)) {
+        gen_copy_block(code, e->r, e->l);
+        return -1;
+    }
+
+    // rval first
+    if (e->kind == T_ASSN) {
+        gen_expr(code, e->r);
+    }
+    else {
+        gen_expr(code, e->l);
+        gen_expr(code, e->r);
+
+        switch (e->kind) {
+        case T_AADD:
+            EMITS(code, e->type, Add, Concat);
+            break;
+
+        case T_ASUB:
+            EMIT(code, e->type, Sub);
+            break;
+
+        case T_AMUL:
+            EMIT(code, e->type, Mul);
+            break;
+
+        case T_ADIV:
+            EMIT(code, e->type, Div);
+            break;
+
+        case T_AREM:
+            EMIT(code, e->type, Rem);
+            break;
+        }
+    }
+
+    // lval
+    int addr = 0;
+    const bool isconst = EvalAddr(e->l, &addr);
+
+    // store
+    if (isconst) {
+        if (IsGlobal(e->l))
+            StoreGlobal(code, addr);
+        else
+            StoreLocal(code, addr);
+    }
+    else {
+        gen_addr(code, e->l);
+        Store(code);
+    }
+    */
+    return -1;
+}
+
 static int gen_call__(Bytecode *code, const struct Expr *call)
 {
     const struct FuncType *func_type = call->l->type->func_type;
@@ -1140,7 +1231,9 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     if (!e)
         return -1;
 
-    int reg = 0;
+    int reg0 = -1;
+    int reg1 = -1;
+    int reg2 = -1;
 
     switch (e->kind) {
 
@@ -1155,11 +1248,11 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         */
 
     case T_INTLIT:
-        reg = PoolInt__(code, e->ival);
-        if (reg == -1) {
-            // reg = LoadInt(code, , e->ival)
+        reg0 = PoolInt__(code, e->ival);
+        if (reg0 == -1) {
+            // reg0 = LoadInt(code, , e->ival)
         }
-        return reg;
+        return reg0;
 
         /*
     case T_FLTLIT:
@@ -1189,8 +1282,16 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_expr(code, e->l);
         gen_convert(code, e->l->type->kind, e->type->kind);
         return;
+        */
 
     case T_IDENT:
+        if (e->var->is_global) {
+            //LoadGlobal(code, e->var->offset);
+        } else {
+            reg0 = e->var->offset;
+        }
+        return reg0;
+        /*
         if (IsStruct(e->type)) {
             gen_addr(code, e);
             return;
@@ -1201,7 +1302,9 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         else
             LoadLocal(code, e->var->offset);
         return;
+        */
 
+        /*
     case T_SELECT:
         gen_addr(code, e);
         Load(code);
@@ -1224,6 +1327,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     case T_LAND:
         gen_logand(code, e);
         return;
+        */
 
     // TODO binary op
     //if (optimize) {
@@ -1236,11 +1340,20 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     //    }
     //}
     case T_ADD:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMITS(code, e->type, Add, Concat);
-        return;
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
 
+        if (IsTempRegister(code, reg1))
+            reg0 = reg1;
+        else if (IsTempRegister(code, reg2))
+            reg0 = reg2;
+        else
+            reg0 = NewRegister__(code);
+
+        EMITS__(code, e->type, Add, Concat, reg0, reg1, reg2);
+        return reg0;
+
+        /*
     case T_SUB:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
@@ -1358,13 +1471,14 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_expr(code, e->l);
         Dereference(code);
         return;
+        */
 
     case T_ASSN:
     case T_AADD: case T_ASUB:
     case T_AMUL: case T_ADIV: case T_AREM:
-        gen_assign(code, e);
-        return;
+        return gen_assign__(code, e);
 
+        /*
     case T_INIT:
         if (IsArray(e->type))
             gen_init_array(code, e);
@@ -1548,12 +1662,13 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         // remove the result
         Pop(code);
         return;
+        */
 
+        // XXX need T_ASSNSTMT?
     case T_ASSN:
     case T_INIT:
-        gen_expr(code, s->expr);
+        gen_expr__(code, s->expr);
         return;
-        */
     }
 }
 
@@ -1563,7 +1678,7 @@ static void gen_func__(Bytecode *code, const struct Func *func, int func_id)
     RegisterFunction(code, func_id, func->params.len);
 
     // local vars
-    Allocate(code, func->scope->size);
+    Allocate__(code, func->scope->size);
 
     gen_stmt__(code, func->body);
 }
@@ -1595,7 +1710,7 @@ static void gen_module__(Bytecode *code, const struct Module *mod)
     }
 
     // global vars
-    Allocate(code, mod->scope->size);
+    Allocate__(code, mod->scope->size);
     gen_gvars(code, mod);
 
     // TODO maybe better to search "main" module and "main" func in there
