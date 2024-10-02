@@ -23,6 +23,8 @@ typedef struct VM {
     ValueVec stack_;
     const Bytecode *code_;
 
+    // XXX TEST
+    Int eoc; // end of code
     Int eoc_; // end of code
     Int ip_; // instruction pointer
     Int sp_; // stack pointer

@@ -1170,8 +1170,13 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
 {
     const struct FuncType *func_type = call->l->type->func_type;
 
-        /*
+    // for returned value
+    int reg0 = NewRegister__(code);
+    int saved_bp = code->bp;
+    int saved_sp = code->sp;
+
     if (func_type->is_variadic) {
+        /*
         int argc = 0;
         for (const struct Expr *arg = call->r; arg; arg = arg->next, argc++) {
             // arg value
@@ -1206,12 +1211,16 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
         }
         // arg count
         LoadByte(code, argc);
+        */
     }
     else {
-        for (const struct Expr *arg = call->r; arg; arg = arg->next)
-            gen_expr(code, arg);
+        for (const struct Expr *arg = call->r; arg; arg = arg->next) {
+            int tmp = gen_expr__(code, arg);
+            int reg = NewRegister__(code);
+            // TODO Re-use temp reg if possible
+            Copy__(code, reg, tmp);
+        }
     }
-        */
 
     int64_t func_id = 0;
     if (EvalExpr(call->l, &func_id)) {
@@ -1223,7 +1232,11 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
         CallFunctionPointer(code);
         */
     }
-    return -1;
+
+    code->bp = saved_bp;
+    code->sp = saved_sp;
+
+    return reg0;
 }
 
 static int gen_expr__(Bytecode *code, const struct Expr *e)
@@ -1675,7 +1688,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
 static void gen_func__(Bytecode *code, const struct Func *func, int func_id)
 {
     //BackPatchFuncAddr(code, func->fullname);
-    RegisterFunction(code, func_id, func->params.len);
+    RegisterFunction__(code, func_id, func->params.len);
 
     // local vars
     Allocate__(code, func->scope->size);

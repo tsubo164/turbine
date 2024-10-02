@@ -130,6 +130,18 @@ static const struct OpcodeInfo opcode_table[] = {
 // XXX TEST register machine
 static_assert(sizeof(opcode_table)/sizeof(opcode_table[0])==OP_COUNT__, "MISSING_OPCODE_ENTRY");
 
+struct OpcodeInfo__ {
+    const char *mnemonic;
+    int operand_size;
+};
+
+/*static*/ const struct OpcodeInfo__ opcode_table__[] = {
+    [OP_CALL__] = { "CALL",         OPERAND_AB_ },
+    [OP_EOC__]  = { "EOC",          OPERAND____ },
+};
+
+static_assert(sizeof(opcode_table__)/sizeof(opcode_table__[0])==OP_COUNT__, "MISSING_OPCODE_ENTRY");
+
 const struct OpcodeInfo *LookupOpcodeInfo(Byte op)
 {
     int N = sizeof(opcode_table)/sizeof(opcode_table[0]);
@@ -283,9 +295,9 @@ static void push_inst_a_b(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t 
     push_inst(&code->insts, inst);
 }
 
-static void push_inst_ab(struct Bytecode *code, uint8_t op, uint16_t word)
+static void push_inst_abb(struct Bytecode *code, uint8_t op, uint8_t a, uint16_t bb)
 {
-    const uint32_t inst = (op << 24) | (word << 8);
+    const uint32_t inst = ENCODE_ABB(op, a, bb);
     push_inst(&code->insts, inst);
 }
 
@@ -805,6 +817,21 @@ int PoolInt__(Bytecode *code, Int val)
     return reg + 128;
 }
 
+struct Value GetConstValue__(const Bytecode *code, Byte id)
+{
+    if (!IsConstValue__(id)) {
+        struct Value none = {0};
+        return none;
+    }
+
+    return code->consts[id - 128];
+}
+
+bool IsConstValue__(Byte id)
+{
+    return id >= 128;
+}
+
 int Copy__(Bytecode *code, Byte dst, Byte src)
 {
     push_inst_a_b(code, OP_COPY__, dst, src);
@@ -826,12 +853,7 @@ void CallFunction__(Bytecode *code, Word func_index, bool builtin)
         */
     }
     else {
-        /*
-        push_byte(&code->bytes_, OP_CALL__);
-        push_word(&code->bytes_, func_index);
-        push_byte(&code->bytes_, 0);
-        */
-        push_inst_ab(code, OP_CALL__, func_index);
+        push_inst_abb(code, OP_CALL__, 0, func_index);
     }
 }
 
@@ -861,14 +883,43 @@ void End__(Bytecode *code)
     push_inst____(code, OP_EOC__);
 }
 
+bool IsTempRegister(const struct Bytecode *code, Byte id)
+{
+    return id > code->bp && id < 128;
+}
+
+// Functions
+void RegisterFunction__(Bytecode *code, Word func_index, Byte argc)
+{
+    const Word next_index = code->funcs_.len;
+
+    if (func_index != next_index) {
+        InternalError(__FILE__, __LINE__,
+                "function func_index %d and next index %d should match\n",
+                func_index, next_index);
+    }
+
+    const Int next_addr = NextAddr__(code);
+    push_info(&code->funcs_, func_index, argc, next_addr);
+}
+
+uint32_t Read__(const Bytecode *code, Int addr)
+{
+    if (addr < 0 || addr >= Size__(code))
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", Size__(code));
+
+    return code->insts.data[addr];
+}
+
 Int Size__(const Bytecode *code)
 {
     return code->insts.len;
 }
 
-bool IsTempRegister(const struct Bytecode *code, Byte id)
+Int NextAddr__(const Bytecode *code)
 {
-    return id > code->bp && id < 128;
+    return Size__(code);
 }
 
 Int GetFunctionAddress(const Bytecode *code, Word func_index)
@@ -947,15 +998,6 @@ Byte Read(const Bytecode *code, Int addr)
                 "address out of range: %d", Size(code));
 
     return code->bytes_.data[addr];
-}
-
-uint32_t Read__(const Bytecode *code, Int addr)
-{
-    if (addr < 0 || addr >= Size__(code))
-        InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size__(code));
-
-    return code->insts.data[addr];
 }
 
 Word ReadWord(const Bytecode *code, Int addr)

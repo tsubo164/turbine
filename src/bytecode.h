@@ -136,6 +136,7 @@ struct Int32Vec {
     int cap;
     int len;
 };
+// XXX TEST register machine
 
 typedef struct ByteVec {
     Byte *data;
@@ -287,6 +288,9 @@ void End(Bytecode *code);
 // XXX TEST register
 int NewRegister__(Bytecode *code);
 int PoolInt__(Bytecode *code, Int val);
+struct Value GetConstValue__(const Bytecode *code, Byte id);
+bool IsConstValue__(Byte id);
+
 int Copy__(Bytecode *code, Byte dst, Byte src);
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
 void CallFunction__(Bytecode *code, Word func_index, bool builtin);
@@ -294,8 +298,30 @@ void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
 void Exit__(Bytecode *code);
 void End__(Bytecode *code);
-Int Size__(const Bytecode *code);
 bool IsTempRegister(const struct Bytecode *code, Byte id);
+
+// Functions
+void RegisterFunction__(Bytecode *code, Word func_index, Byte argc);
+
+struct Instruction {
+    int op;
+    Byte A, B, C;
+    Word BB;
+    Int iIMM;
+    Float fIMM;
+};
+void Decode__(uint32_t instcode, struct Instruction *inst);
+
+uint32_t Read__(const Bytecode *code, Int addr);
+Int Size__(const Bytecode *code);
+Int NextAddr__(const Bytecode *code);
+
+#define DECODE_OP(inst) (((inst) >> 24))
+#define DECODE_A(inst)  (((inst) >> 16) & 0xFF)
+#define DECODE_B(inst)  (((inst) >>  8) & 0xFF)
+#define DECODE_C(inst)  ((inst) & 0xFF)
+#define DECODE_BB(inst) ((inst) & 0xFFFF)
+#define ENCODE_ABB(op,a,bb) (((op) << 24) | ((a) << 16) | (bb))
 // XXX TEST register
 
 // Backpatches

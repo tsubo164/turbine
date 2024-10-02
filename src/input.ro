@@ -42,17 +42,23 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 //
+//# foo(x int, y int) int
+//  - p int
+//  - q int
+//  return x + y
+
 # main() int
   //- a [8]int
   //a[2] = 87
-  - a int
-  - b int
-  - c int
-  - d int
+  //- a int
+  //- b int
+  //- c int
+  //- d int
 
   //a = a + x
   //a = 1 + x + 42
-  a = 42 + b + c + d
+  //a = 42 + b + c + d
   //x = 2 + a + 3
+  //a = foo(7, 11)
 
-  return 12
+  return 42
