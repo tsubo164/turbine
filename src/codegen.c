@@ -1694,6 +1694,9 @@ static void gen_func__(Bytecode *code, const struct Func *func, int func_id)
     Allocate__(code, func->scope->size);
 
     gen_stmt__(code, func->body);
+
+    // Back patch used registers
+    SetMaxRegisterCount__(code, func_id);
 }
 
 static void gen_funcs__(Bytecode *code, const struct Module *mod)
@@ -1729,6 +1732,7 @@ static void gen_module__(Bytecode *code, const struct Module *mod)
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
     // call main
+    //Allocate__(code, 1);
     CallFunction__(code, mod->main_func->id, mod->main_func->is_builtin);
     Exit__(code);
 

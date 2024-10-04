@@ -119,7 +119,7 @@ enum Opcode {
     OP_EXIT__,
     OP_EOC__,
     // XXX TEST register machine
-    OP_COUNT__,
+    END_OF_OPCODE__,
 };
 
 struct OpcodeInfo {
@@ -158,6 +158,7 @@ typedef struct PtrVec {
 typedef struct FuncInfo {
     Word id;
     Byte argc;
+    Byte reg_count;
     Int addr;
 } FuncInfo;
 
@@ -173,6 +174,7 @@ typedef struct Bytecode {
     int const_count;
     int bp;
     int sp;
+    int maxsp;
 
     ByteVec bytes_;
     PtrVec strings_;
@@ -293,7 +295,7 @@ bool IsConstValue__(Byte id);
 
 int Copy__(Bytecode *code, Byte dst, Byte src);
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
-void CallFunction__(Bytecode *code, Word func_index, bool builtin);
+int CallFunction__(Bytecode *code, Word func_index, bool builtin);
 void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
 void Exit__(Bytecode *code);
@@ -302,6 +304,8 @@ bool IsTempRegister(const struct Bytecode *code, Byte id);
 
 // Functions
 void RegisterFunction__(Bytecode *code, Word func_index, Byte argc);
+void SetMaxRegisterCount__(struct Bytecode *code, Word func_index);
+int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index);
 
 struct Instruction {
     int op;
@@ -311,6 +315,8 @@ struct Instruction {
     Float fIMM;
 };
 void Decode__(uint32_t instcode, struct Instruction *inst);
+void PrintInstruction__(const struct Bytecode *code,
+        Int addr, const struct Instruction *inst);
 
 uint32_t Read__(const Bytecode *code, Int addr);
 Int Size__(const Bytecode *code);

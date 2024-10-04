@@ -1087,15 +1087,19 @@ static void run__(VM *vm)
 
     while (!is_eoc__(vm) && !brk) {
         const Int old_ip = vm->ip_;
-        const uint32_t inst = fetch__(vm);
-        const int op = DECODE_OP(inst);
+        const uint32_t instcode = fetch__(vm);
+        //const int op = DECODE_OP(instcode);
+
+        struct Instruction inst = {0};
+        Decode__(instcode, &inst);
 
         if (vm->print_stack_) {
-            printf("[%6lld] %s\n", old_ip, OpcodeString(op));
+            //printf("[%6lld] %s\n", old_ip, OpcodeString(op));
+            PrintInstruction__(vm->code_, old_ip, &inst);
             PrintStack(vm);
         }
 
-        switch (op) {
+        switch (inst.op) {
 
         /*
         case OP_LOADB:
@@ -1218,13 +1222,10 @@ static void run__(VM *vm)
             */
 
         case OP_ALLOCATE__:
-            printf("[%6lld] %s\n", old_ip, OpcodeString(op));
-            /*
             {
-                const Int size = fetch_byte(vm);
+                const Int size = DECODE_A(instcode);
                 set_sp(vm, vm->sp_ + size);
             }
-            */
             break;
 
             /*
@@ -1336,7 +1337,7 @@ static void run__(VM *vm)
             printf("[%6lld] %s\n", old_ip, OpcodeString(op));
             */
             {
-                const uint16_t func_index = DECODE_BB(inst);
+                const uint16_t func_index = DECODE_BB(instcode);
                 const int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
 
                 Call call = {0};
@@ -1347,6 +1348,10 @@ static void run__(VM *vm)
 
                 set_ip(vm, func_addr);
                 set_bp(vm, vm->sp_ - call.argc);
+
+                // Allocation
+                const int reg_count = GetMaxRegisterCount__(vm->code_, func_index);
+                set_sp(vm, vm->sp_ + reg_count);
             }
             break;
 
@@ -1455,7 +1460,7 @@ static void run__(VM *vm)
 
         case OP_RETURN__:
             {
-                const Byte reg_id = DECODE_A(inst);
+                const Byte reg_id = DECODE_A(instcode);
                 const struct Value ret_obj = get_register_value(vm, reg_id);
                 const Call call = pop_call(vm);
 
