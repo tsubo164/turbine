@@ -46,19 +46,24 @@
 //  - p int
 //  - q int
 //  return x + y
+# add(x int, y int) int
+  return x + y
 
 # main() int
   //- a [8]int
   //a[2] = 87
-  //- a int
+  - a int
   //- b int
   //- c int
   //- d int
+  a = 32
 
-  //a = a + x
+  a = a + 3
+  a = a + 11 + 93
+  a = add(7, 9)
   //a = 1 + x + 42
   //a = 42 + b + c + d
   //x = 2 + a + 3
   //a = foo(7, 11)
 
-  return 42
+  return a

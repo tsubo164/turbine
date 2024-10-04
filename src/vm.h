@@ -11,6 +11,8 @@ typedef struct Call {
     int argc;
     Int return_ip;
     Int return_bp;
+    Int return_sp;
+    int return_reg;
 } Call;
 
 typedef struct CallVec {

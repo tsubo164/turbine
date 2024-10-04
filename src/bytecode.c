@@ -137,6 +137,9 @@ struct OpcodeInfo__ {
 
 /*static*/ const struct OpcodeInfo__ opcode_table__[] = {
     [OP_NOP__]      = { "NOP",          OPERAND____ },
+    // Arithmetic
+    [OP_COPY__]     = { "COPY",         OPERAND_AB_ },
+    [OP_ADDINT__]   = { "ADDINT",       OPERAND_ABC },
     // Function call
     [OP_CALL__]     = { "CALL",         OPERAND_ABB },
     [OP_RETURN__]   = { "RETURN",       OPERAND_A__ },
@@ -828,6 +831,11 @@ int NewRegister__(Bytecode *code)
     return code->sp;
 }
 
+void ResetTempRegister(struct Bytecode *code)
+{
+    code->sp = code->bp;
+}
+
 int PoolInt__(Bytecode *code, Int val)
 {
     if (code->const_count == 127) {
@@ -866,9 +874,9 @@ int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1)
     return dst;
 }
 
-int CallFunction__(Bytecode *code, Word func_index, bool builtin)
+int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin)
 {
-    int reg0 = 0xFF;
+    int reg0 = ret_reg;
 
     if (builtin) {
         /*
@@ -877,7 +885,6 @@ int CallFunction__(Bytecode *code, Word func_index, bool builtin)
         */
     }
     else {
-        reg0 = NewRegister__(code);
         push_inst_abb(code, OP_CALL__, reg0, func_index);
     }
 
@@ -886,8 +893,8 @@ int CallFunction__(Bytecode *code, Word func_index, bool builtin)
 
 void Allocate__(Bytecode *code, Byte count)
 {
-    code->bp = count - 1;
-    code->sp = code->bp;
+    //code->bp = count - 1;
+    //code->sp = code->bp;
 
     if (count == 0)
         return;
@@ -940,7 +947,7 @@ void SetMaxRegisterCount__(Bytecode *code, Word func_index)
         InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
     }
 
-    code->funcs_.data[func_index].reg_count = code->maxsp;
+    code->funcs_.data[func_index].reg_count = code->maxsp + 1;
 }
 
 int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index)

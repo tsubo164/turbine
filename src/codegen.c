@@ -1224,7 +1224,7 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
 
     int64_t func_id = 0;
     if (EvalExpr(call->l, &func_id)) {
-        CallFunction__(code, func_id, func_type->is_builtin);
+        CallFunction__(code, reg0, func_id, func_type->is_builtin);
     }
     else {
         /*
@@ -1533,8 +1533,10 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         return;
 
     case T_BLOCK:
-        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
+        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next) {
             gen_stmt__(code, stmt);
+            ResetTempRegister(code);
+        }
         return;
 
         /*
@@ -1691,7 +1693,11 @@ static void gen_func__(Bytecode *code, const struct Func *func, int func_id)
     RegisterFunction__(code, func_id, func->params.len);
 
     // local vars
-    Allocate__(code, func->scope->size);
+    //Allocate__(code, func->scope->size);
+    int local_vars = func->scope->size;
+    code->bp = local_vars - 1;
+    code->sp = code->bp;
+    code->maxsp = code->bp;
 
     gen_stmt__(code, func->body);
 
@@ -1724,6 +1730,10 @@ static void gen_module__(Bytecode *code, const struct Module *mod)
     if (!mod->main_func) {
         fprintf(stderr, "error: 'main' function not found");
     }
+    // XXX ???
+    code->bp = -1;
+    code->sp = -1;
+    code->maxsp = -1;
 
     // global vars
     Allocate__(code, mod->scope->size);
@@ -1732,8 +1742,9 @@ static void gen_module__(Bytecode *code, const struct Module *mod)
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
     // call main
-    //Allocate__(code, 1);
-    CallFunction__(code, mod->main_func->id, mod->main_func->is_builtin);
+    Allocate__(code, 1);
+    int reg0 = NewRegister__(code);
+    CallFunction__(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
     Exit__(code);
 
     // global funcs

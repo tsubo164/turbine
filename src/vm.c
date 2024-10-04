@@ -1223,7 +1223,7 @@ static void run__(VM *vm)
 
         case OP_ALLOCATE__:
             {
-                const Int size = DECODE_A(instcode);
+                const Int size = inst.A;
                 set_sp(vm, vm->sp_ + size);
             }
             break;
@@ -1250,20 +1250,19 @@ static void run__(VM *vm)
                     set_global(vm, base + i, zero);
             }
             break;
+            */
 
-        case OP_COPY_LOCAL:
+        case OP_COPY__:
             {
-                const uint64_t src = fetch_word(vm);
-                const uint64_t dst = fetch_word(vm);
-                const uint64_t count = fetch_word(vm);
+                const uint8_t src = inst.B;
+                const uint8_t dst = inst.A;
 
-                for (int i = 0; i < count; i++) {
-                    const struct Value val = get_local(vm, src + i);
-                    set_local(vm, dst + i, val);
-                }
+                const struct Value val = get_register_value(vm, src);
+                set_local(vm, dst, val);
             }
             break;
 
+            /*
         case OP_COPY_GLOBAL:
             {
                 const uint64_t src = fetch_word(vm);
@@ -1333,17 +1332,17 @@ static void run__(VM *vm)
             */
 
         case OP_CALL__:
-            /*
-            printf("[%6lld] %s\n", old_ip, OpcodeString(op));
-            */
             {
-                const uint16_t func_index = DECODE_BB(instcode);
+                //const uint16_t func_index = DECODE_BB(instcode);
+                const uint16_t func_index = inst.BB;
                 const int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
 
                 Call call = {0};
                 call.argc = GetFunctionArgCount(vm->code_, func_index);
                 call.return_ip = vm->ip_;
                 call.return_bp = vm->bp_;
+                call.return_sp = vm->sp_;
+                call.return_reg = inst.A;
                 push_call(vm, &call);
 
                 set_ip(vm, func_addr);
@@ -1460,14 +1459,17 @@ static void run__(VM *vm)
 
         case OP_RETURN__:
             {
-                const Byte reg_id = DECODE_A(instcode);
-                const struct Value ret_obj = get_register_value(vm, reg_id);
+                const Byte reg_id = inst.A;
+                const struct Value ret_val = get_register_value(vm, reg_id);
                 const Call call = pop_call(vm);
+                const uint8_t ret_reg = call.return_reg;
 
                 set_ip(vm, call.return_ip);
-                set_sp(vm, vm->bp_);
+                //set_sp(vm, vm->bp_);
                 set_bp(vm, call.return_bp);
-                push(vm, ret_obj);
+                set_sp(vm, call.return_sp);
+                //push(vm, ret_val);
+                set_local(vm, ret_reg, ret_val);
             }
             break;
 
@@ -1488,15 +1490,24 @@ static void run__(VM *vm)
                     set_ip(vm, addr);
             }
             break;
+            */
 
-        case OP_ADD:
+        case OP_ADDINT__:
             {
-                const Int val1 = pop_int(vm);
-                const Int val0 = pop_int(vm);
-                push_int(vm, val0 + val1);
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                val0.inum = val1.inum + val2.inum;
+                set_local(vm, reg0, val0);
             }
             break;
 
+            /*
         case OP_ADDF:
             {
                 const Float val1 = pop_float(vm);

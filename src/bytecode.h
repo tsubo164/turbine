@@ -289,13 +289,15 @@ void End(Bytecode *code);
 
 // XXX TEST register
 int NewRegister__(Bytecode *code);
+void ResetTempRegister(struct Bytecode *code);
+
 int PoolInt__(Bytecode *code, Int val);
 struct Value GetConstValue__(const Bytecode *code, Byte id);
 bool IsConstValue__(Byte id);
 
 int Copy__(Bytecode *code, Byte dst, Byte src);
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
-int CallFunction__(Bytecode *code, Word func_index, bool builtin);
+int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
 void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
 void Exit__(Bytecode *code);
