@@ -115,18 +115,6 @@ static const struct OpcodeInfo opcode_table[] = {
     // exit
     { OP_EXIT,         "EXIT",         OPERAND_NONE },
     { OP_EOC,          "EOC",          OPERAND_NONE },
-    /*
-    // XXX TEST register machine
-    { OP_NOP__,        "NOP",          OPERAND____ },
-    { OP_COPY__,       "COPY",         OPERAND_AB_ },
-    { OP_LOADINT16__,  "LOADINT16",    OPERAND_ABB },
-    { OP_ADDINT__,     "ADDINT",       OPERAND_ABC },
-    { OP_CALL__,       "CALL",         OPERAND_ABB },
-    { OP_ALLOCATE__,   "ALLOCATE",     OPERAND_A__ },
-    { OP_RETURN__,     "RETURN",       OPERAND_A__ },
-    { OP_EXIT__,       "EXIT",         OPERAND____ },
-    { OP_EOC__,        "EOC",          OPERAND____ },
-    */
 };
 
 // XXX TEST register machine
@@ -146,6 +134,7 @@ struct OpcodeInfo__ {
     [OP_STORE__]     = { "STORE",        OPERAND_AB_ },
     // Arithmetic
     [OP_ADDINT__]    = { "ADDINT",       OPERAND_ABC },
+    [OP_INC__]       = { "INC",          OPERAND_A__ },
     // Function call
     [OP_CALL__]      = { "CALL",         OPERAND_ABB },
     [OP_RETURN__]    = { "RETURN",       OPERAND_A__ },
@@ -309,7 +298,7 @@ static void push_inst____(struct Bytecode *code, uint8_t op)
     push_inst(&code->insts, inst);
 }
 
-static void push_op_a(struct Bytecode *code, uint8_t op, uint8_t a)
+static void push_inst_a(struct Bytecode *code, uint8_t op, uint8_t a)
 {
     const uint32_t inst = (op << 24) | (a << 16);
     push_inst(&code->insts, inst);
@@ -824,22 +813,29 @@ void End(Bytecode *code)
 }
 
 // XXX TEST register
-int NewRegister__(Bytecode *code)
+void InitLocalVarRegister__(struct Bytecode *code, uint8_t lvar_count)
 {
-    if (code->sp >= 127) {
-        return -1;
-    }
-
-    code->sp++;
-    if (code->maxsp < code->sp)
-        code->maxsp = code->sp;
-
-    return code->sp;
+    code->base_reg = lvar_count - 1;
+    code->curr_reg = code->base_reg;
+    code->max_reg = code->base_reg;
 }
 
 void ResetTempRegister__(struct Bytecode *code)
 {
-    code->sp = code->bp;
+    code->curr_reg = code->base_reg;
+}
+
+int NextTempRegister__(Bytecode *code)
+{
+    if (code->curr_reg >= 127) {
+        return -1;
+    }
+
+    code->curr_reg++;
+    if (code->max_reg < code->curr_reg)
+        code->max_reg = code->curr_reg;
+
+    return code->curr_reg;
 }
 
 int PoolInt__(Bytecode *code, Int val)
@@ -904,6 +900,13 @@ int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1)
     return dst;
 }
 
+int Inc__(struct Bytecode *code, uint8_t id)
+{
+    push_inst_a(code, OP_INC__, id);
+    return id;
+}
+
+// Function call
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin)
 {
     int reg0 = ret_reg;
@@ -923,22 +926,15 @@ int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin)
 
 void Allocate__(Bytecode *code, Byte count)
 {
-    //code->bp = count - 1;
-    //code->sp = code->bp;
-
     if (count == 0)
         return;
 
-    push_op_a(code, OP_ALLOCATE__, count);
+    push_inst_a(code, OP_ALLOCATE__, count);
 }
 
 void Return__(Bytecode *code, Byte id)
 {
-    push_op_a(code, OP_RETURN__, id);
-
-    // Make register for returned value if necessary
-    //if (code->maxsp == 0)
-    //    NewRegister__(code);
+    push_inst_a(code, OP_RETURN__, id);
 }
 
 void Exit__(Bytecode *code)
@@ -953,7 +949,7 @@ void End__(Bytecode *code)
 
 bool IsTempRegister(const struct Bytecode *code, Byte id)
 {
-    return id > code->bp && id < 128;
+    return id > code->base_reg && id < 128;
 }
 
 // Functions
@@ -977,7 +973,7 @@ void SetMaxRegisterCount__(Bytecode *code, Word func_index)
         InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
     }
 
-    code->funcs_.data[func_index].reg_count = code->maxsp + 1;
+    code->funcs_.data[func_index].reg_count = code->max_reg + 1;
 }
 
 int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index)

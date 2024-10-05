@@ -117,6 +117,7 @@ enum Opcode {
     OP_STORE__,
     // Arithmetic
     OP_ADDINT__,
+    OP_INC__,
     // Function call
     OP_CALL__,
     OP_RETURN__,
@@ -179,9 +180,9 @@ typedef struct Bytecode {
     struct Int32Vec insts;
     struct Value consts[128];
     int const_count;
-    int bp;
-    int sp;
-    int maxsp;
+    int base_reg;
+    int curr_reg;
+    int max_reg;
 
     ByteVec bytes_;
     PtrVec strings_;
@@ -295,8 +296,9 @@ void Exit(Bytecode *code);
 void End(Bytecode *code);
 
 // XXX TEST register
-int NewRegister__(Bytecode *code);
+void InitLocalVarRegister__(struct Bytecode *code, uint8_t lvar_count);
 void ResetTempRegister__(struct Bytecode *code);
+int NextTempRegister__(Bytecode *code);
 
 int PoolInt__(Bytecode *code, Int val);
 struct Value GetConstValue__(const Bytecode *code, Byte id);
@@ -309,6 +311,7 @@ int Load__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Store__(struct Bytecode *code, uint8_t dst, uint8_t src);
 // Arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
+int Inc__(struct Bytecode *code, uint8_t id);
 // Function call
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
 void Allocate__(Bytecode *code, Byte count);

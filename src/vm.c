@@ -1088,13 +1088,11 @@ static void run__(VM *vm)
     while (!is_eoc__(vm) && !brk) {
         const Int old_ip = vm->ip_;
         const uint32_t instcode = fetch__(vm);
-        //const int op = DECODE_OP(instcode);
 
         struct Instruction inst = {0};
         Decode__(instcode, &inst);
 
         if (vm->print_stack_) {
-            //printf("[%6lld] %s\n", old_ip, OpcodeString(op));
             PrintInstruction__(vm->code_, old_ip, &inst);
             PrintStack(vm);
         }
@@ -1173,15 +1171,6 @@ static void run__(VM *vm)
                 const Value addr = pop(vm);
                 const Value val = vm->stack_.data[addr.inum];
                 push(vm, val);
-            }
-            break;
-
-        case OP_INCLOCAL:
-            {
-                const Int id = fetch_byte(vm);
-                Value val = get_local(vm, id);
-                val.inum++;
-                set_local(vm, id, val);
             }
             break;
 
@@ -1347,7 +1336,6 @@ static void run__(VM *vm)
 
         case OP_CALL__:
             {
-                //const uint16_t func_index = DECODE_BB(instcode);
                 const uint16_t func_index = inst.BB;
                 const int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
 
@@ -1518,6 +1506,15 @@ static void run__(VM *vm)
 
                 val0.inum = val1.inum + val2.inum;
                 set_local(vm, reg0, val0);
+            }
+            break;
+
+        case OP_INC__:
+            {
+                uint8_t reg = inst.A;
+                struct Value val = get_register_value(vm, reg);
+                val.inum++;
+                set_local(vm, reg, val);
             }
             break;
 

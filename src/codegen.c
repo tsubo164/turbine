@@ -1096,8 +1096,11 @@ static int gen_init__(Bytecode *code, const struct Expr *e)
         reg0 = gen_addr__(code, e->l);
         Store__(code, reg0, reg1);
     }
-    else
-        ;//StoreLocal(code, addr);
+    else {
+        // TODO handle case where lhs is not addressable
+        reg0 = gen_addr__(code, e->l);
+        Copy__(code, reg0, reg1);
+    }
 
         /*
     // store
@@ -1201,9 +1204,9 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
     const struct FuncType *func_type = call->l->type->func_type;
 
     // for returned value
-    int reg0 = NewRegister__(code);
-    int saved_bp = code->bp;
-    int saved_sp = code->sp;
+    int reg0 = NextTempRegister__(code);
+    int saved_base = code->base_reg;
+    int saved_curr = code->curr_reg;
 
     if (func_type->is_variadic) {
         /*
@@ -1246,7 +1249,7 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
     else {
         for (const struct Expr *arg = call->r; arg; arg = arg->next) {
             int tmp = gen_expr__(code, arg);
-            int reg = NewRegister__(code);
+            int reg = NextTempRegister__(code);
             // TODO Re-use temp reg if possible
             Copy__(code, reg, tmp);
         }
@@ -1263,8 +1266,8 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
         */
     }
 
-    code->bp = saved_bp;
-    code->sp = saved_sp;
+    code->base_reg = saved_base;
+    code->curr_reg = saved_curr;
 
     return reg0;
 }
@@ -1337,7 +1340,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             if (reg0 == -1) {
                 // reg0 = LoadInt(code, , e->ival)
             }
-            reg0 = NewRegister__(code);
+            reg0 = NextTempRegister__(code);
             reg0 = Load__(code, reg0, reg1);
         } else {
             reg0 = e->var->offset;
@@ -1400,7 +1403,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         else if (IsTempRegister(code, reg2))
             reg0 = reg2;
         else
-            reg0 = NewRegister__(code);
+            reg0 = NextTempRegister__(code);
 
         EMITS__(code, e->type, Add, Concat, reg0, reg1, reg2);
         return reg0;
@@ -1542,14 +1545,16 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_init__(code, e);
         return 0;
 
-        /*
     case T_INC:
         if (IsGlobal(e->l))
-            IncGlobal(code, Addr(e->l));
-        else
-            IncLocal(code, Addr(e->l));
-        return;
+            ;//IncGlobal(code, Addr(e->l));
+        else {
+            reg0 = gen_addr__(code, e->l);
+            Inc__(code, reg0);
+        }
+        return reg0;
 
+        /*
     case T_DEC:
         if (IsGlobal(e->l))
             DecGlobal(code, Addr(e->l));
@@ -1601,8 +1606,9 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
                 // reg0 = LoadInt(code, , e->ival)
             }
         }
-        else
-            ;//LoadAddress(code, e->var->offset);
+        else {
+            reg0 = e->var->offset;
+        }
         return reg0;
 
         /*
@@ -1824,16 +1830,14 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
 
 static void gen_func__(Bytecode *code, const struct Func *func, int func_id)
 {
-    //BackPatchFuncAddr(code, func->fullname);
+    // Register function
     RegisterFunction__(code, func_id, func->params.len);
 
-    // local vars
-    //Allocate__(code, func->scope->size);
-    int local_vars = func->scope->size;
-    code->bp = local_vars - 1;
-    code->sp = code->bp;
-    code->maxsp = code->bp;
+    // Local var registers
+    int lvar_count = func->scope->size;
+    InitLocalVarRegister__(code, lvar_count);
 
+    // Function body
     gen_stmt__(code, func->body);
 
     // Back patch used registers
@@ -1882,30 +1886,24 @@ static void gen_module__(Bytecode *code, const struct Module *mod)
     if (!mod->main_func) {
         fprintf(stderr, "error: 'main' function not found");
     }
-    // XXX ???
-    //code->bp = -1;
-    //code->sp = -1;
-    //code->maxsp = -1;
-    int gvar_count = mod->scope->size;
-    code->bp = gvar_count - 1;
-    code->sp = code->bp;
-    code->maxsp = code->bp;
 
+    int gvar_count = mod->scope->size;
     int retval_count = 1;
+
+    // Global var registers
+    InitLocalVarRegister__(code, gvar_count);
     Allocate__(code, gvar_count + retval_count);
 
-    // global vars
-    //Allocate__(code, mod->scope->size);
+    // Global vars
     gen_gvars__(code, mod);
 
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
-    // call main
-    //Allocate__(code, 1);
-    int reg0 = NewRegister__(code);
+    // Call main
+    int reg0 = NextTempRegister__(code);
     CallFunction__(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
     Exit__(code);
 
-    // global funcs
+    // Global funcs
     gen_funcs__(code, mod);
 }
