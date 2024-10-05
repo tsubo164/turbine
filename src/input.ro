@@ -46,6 +46,8 @@
 //  - p int
 //  - q int
 //  return x + y
+- g_count = 98
+
 # add(x int, y int) int
   return x + y
 
@@ -66,4 +68,5 @@
   //x = 2 + a + 3
   //a = foo(7, 11)
 
-  return a
+  return g_count// + 9
+  //return a

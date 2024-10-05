@@ -1176,14 +1176,6 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_STORE:
-            {
-                const Value addr = pop(vm);
-                const Value val = pop(vm);
-                vm->stack_.data[addr.inum] = val;
-            }
-            break;
-
         case OP_INCLOCAL:
             {
                 const Int id = fetch_byte(vm);
@@ -1254,11 +1246,33 @@ static void run__(VM *vm)
 
         case OP_COPY__:
             {
-                const uint8_t src = inst.B;
                 const uint8_t dst = inst.A;
-
+                const uint8_t src = inst.B;
                 const struct Value val = get_register_value(vm, src);
+
                 set_local(vm, dst, val);
+            }
+            break;
+
+        case OP_LOAD__:
+            {
+                const uint8_t dst = inst.A;
+                const uint8_t src = inst.B;
+                const struct Value srcaddr = get_register_value(vm, src);
+                const struct Value val = get_global(vm, srcaddr.inum);
+
+                set_local(vm, dst, val);
+            }
+            break;
+
+        case OP_STORE__:
+            {
+                const uint8_t dst = inst.A;
+                const uint8_t src = inst.B;
+                const struct Value val0 = get_register_value(vm, dst);
+                const struct Value val1 = get_register_value(vm, src);
+
+                set_global(vm, val0.inum, val1);
             }
             break;
 

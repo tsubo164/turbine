@@ -110,12 +110,19 @@ enum Opcode {
     OP_EOC,
     // XXX TEST register machine
     OP_NOP__,
+    // Load/store/move
     OP_COPY__,
-    OP_LOADBYTE__,
+    OP_LOADINT16__,
+    OP_LOAD__,
+    OP_STORE__,
+    // Arithmetic
     OP_ADDINT__,
+    // Function call
     OP_CALL__,
-    OP_ALLOCATE__,
     OP_RETURN__,
+    // Stack operation
+    OP_ALLOCATE__,
+    // Program control
     OP_EXIT__,
     OP_EOC__,
     // XXX TEST register machine
@@ -289,17 +296,24 @@ void End(Bytecode *code);
 
 // XXX TEST register
 int NewRegister__(Bytecode *code);
-void ResetTempRegister(struct Bytecode *code);
+void ResetTempRegister__(struct Bytecode *code);
 
 int PoolInt__(Bytecode *code, Int val);
 struct Value GetConstValue__(const Bytecode *code, Byte id);
 bool IsConstValue__(Byte id);
 
+// Load/store/move
 int Copy__(Bytecode *code, Byte dst, Byte src);
+int LoadInt__(Bytecode *code, Int integer);
+int Load__(struct Bytecode *code, uint8_t dst, uint8_t src);
+int Store__(struct Bytecode *code, uint8_t dst, uint8_t src);
+// Arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
+// Function call
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
 void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
+// Program control
 void Exit__(Bytecode *code);
 void End__(Bytecode *code);
 bool IsTempRegister(const struct Bytecode *code, Byte id);

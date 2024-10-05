@@ -115,20 +115,22 @@ static const struct OpcodeInfo opcode_table[] = {
     // exit
     { OP_EXIT,         "EXIT",         OPERAND_NONE },
     { OP_EOC,          "EOC",          OPERAND_NONE },
+    /*
     // XXX TEST register machine
     { OP_NOP__,        "NOP",          OPERAND____ },
     { OP_COPY__,       "COPY",         OPERAND_AB_ },
-    { OP_LOADBYTE__,   "LOADBYTE",     OPERAND_AB_ },
+    { OP_LOADINT16__,  "LOADINT16",    OPERAND_ABB },
     { OP_ADDINT__,     "ADDINT",       OPERAND_ABC },
     { OP_CALL__,       "CALL",         OPERAND_ABB },
     { OP_ALLOCATE__,   "ALLOCATE",     OPERAND_A__ },
     { OP_RETURN__,     "RETURN",       OPERAND_A__ },
     { OP_EXIT__,       "EXIT",         OPERAND____ },
     { OP_EOC__,        "EOC",          OPERAND____ },
+    */
 };
 
 // XXX TEST register machine
-static_assert(sizeof(opcode_table)/sizeof(opcode_table[0])==END_OF_OPCODE__, "MISSING_OPCODE_ENTRY");
+static_assert(sizeof(opcode_table)/sizeof(opcode_table[0])==OP_EOC + 1, "MISSING_OPCODE_ENTRY");
 
 struct OpcodeInfo__ {
     const char *mnemonic;
@@ -136,18 +138,22 @@ struct OpcodeInfo__ {
 };
 
 /*static*/ const struct OpcodeInfo__ opcode_table__[] = {
-    [OP_NOP__]      = { "NOP",          OPERAND____ },
+    [OP_NOP__]       = { "NOP",          OPERAND____ },
+    // Load/store/move
+    [OP_COPY__]      = { "COPY",         OPERAND_AB_ },
+    [OP_LOADINT16__] = { "LOADINT16",    OPERAND_ABB },
+    [OP_LOAD__]      = { "LOAD",         OPERAND_AB_ },
+    [OP_STORE__]     = { "STORE",        OPERAND_AB_ },
     // Arithmetic
-    [OP_COPY__]     = { "COPY",         OPERAND_AB_ },
-    [OP_ADDINT__]   = { "ADDINT",       OPERAND_ABC },
+    [OP_ADDINT__]    = { "ADDINT",       OPERAND_ABC },
     // Function call
-    [OP_CALL__]     = { "CALL",         OPERAND_ABB },
-    [OP_RETURN__]   = { "RETURN",       OPERAND_A__ },
+    [OP_CALL__]      = { "CALL",         OPERAND_ABB },
+    [OP_RETURN__]    = { "RETURN",       OPERAND_A__ },
     // Stack operation
-    [OP_ALLOCATE__] = { "ALLOCATE",     OPERAND_A__ },
+    [OP_ALLOCATE__]  = { "ALLOCATE",     OPERAND_A__ },
     // Program control
-    [OP_EXIT__]     = { "EXIT",         OPERAND____ },
-    [OP_EOC__]      = { "EOC",          OPERAND____ },
+    [OP_EXIT__]      = { "EXIT",         OPERAND____ },
+    [OP_EOC__]       = { "EOC",          OPERAND____ },
     [END_OF_OPCODE__] = { NULL },
 };
 
@@ -309,7 +315,7 @@ static void push_op_a(struct Bytecode *code, uint8_t op, uint8_t a)
     push_inst(&code->insts, inst);
 }
 
-static void push_inst_a_b(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b)
+static void push_inst_ab(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b)
 {
     const uint32_t inst = (op << 24) | (a << 16) | (b << 8);
     push_inst(&code->insts, inst);
@@ -321,7 +327,7 @@ static void push_inst_abb(struct Bytecode *code, uint8_t op, uint8_t a, uint16_t
     push_inst(&code->insts, inst);
 }
 
-static void push_inst_a_b_c(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b, uint8_t c)
+static void push_inst_abc(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b, uint8_t c)
 {
     const uint32_t inst = (op << 24) | (a << 16) | (b << 8) | c;
     push_inst(&code->insts, inst);
@@ -831,7 +837,7 @@ int NewRegister__(Bytecode *code)
     return code->sp;
 }
 
-void ResetTempRegister(struct Bytecode *code)
+void ResetTempRegister__(struct Bytecode *code)
 {
     code->sp = code->bp;
 }
@@ -862,15 +868,39 @@ bool IsConstValue__(Byte id)
     return id >= 128;
 }
 
+// Load/store/move
 int Copy__(Bytecode *code, Byte dst, Byte src)
 {
-    push_inst_a_b(code, OP_COPY__, dst, src);
+    push_inst_ab(code, OP_COPY__, dst, src);
     return dst;
 }
 
+int LoadInt__(Bytecode *code, Int integer)
+{
+    int reg0 = 0xff;
+
+    if (integer >= INT16_MIN && integer <= INT16_MAX) {
+    }
+
+    return reg0;
+}
+
+int Load__(struct Bytecode *code, uint8_t dst, uint8_t src)
+{
+    push_inst_ab(code, OP_LOAD__, dst, src);
+    return dst;
+}
+
+int Store__(struct Bytecode *code, uint8_t dst, uint8_t src)
+{
+    push_inst_ab(code, OP_STORE__, dst, src);
+    return dst;
+}
+
+// Arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1)
 {
-    push_inst_a_b_c(code, OP_ADDINT__, dst, src0, src1);
+    push_inst_abc(code, OP_ADDINT__, dst, src0, src1);
     return dst;
 }
 
@@ -1328,9 +1358,6 @@ void PrintBytecode(const Bytecode *code)
 }
 
 // XXX TEST
-//static Int print_op__(const Bytecode *code, int op, int operand, Int address, uint32_t inst);
-//static Int print_op__(const Bytecode *code, Int addr, const struct Instruction *inst);
-
 void PrintBytecode__(const Bytecode *code)
 {
     if (code->const_count) {
@@ -1401,7 +1428,10 @@ static Int print_op__(const Bytecode *code, Int addr, const struct Instruction *
     case OPERAND_AB_:
         {
             int A = inst->A;
-            printf(" R%d", A);
+            if (IsConstValue__(A))
+                printf(" C%d (%lld)", A - 128, code->consts[A - 128].inum);
+            else
+                printf(" R%d", A);
 
             int B = inst->B;
             if (IsConstValue__(B))

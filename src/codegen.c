@@ -1084,6 +1084,36 @@ void ResolveOffset(struct Module *mod)
 
 // XXX TEST compiling to register-based machine code
 static int gen_expr__(Bytecode *code, const struct Expr *e);
+static int gen_addr__(Bytecode *code, const struct Expr *e);
+
+static int gen_init__(Bytecode *code, const struct Expr *e)
+{
+    // rval
+    int reg0 = 0xff;
+    int reg1 = gen_expr__(code, e->r);
+
+    if (IsGlobal(e->l)) {
+        reg0 = gen_addr__(code, e->l);
+        Store__(code, reg0, reg1);
+    }
+    else
+        ;//StoreLocal(code, addr);
+
+        /*
+    // store
+    if (isconst) {
+        if (IsGlobal(e->l))
+            StoreGlobal(code, addr);
+        else
+            StoreLocal(code, addr);
+    }
+    else {
+        gen_addr(code, e->l);
+        Store(code);
+    }
+        */
+    return 0;
+}
 
 static int gen_assign__(Bytecode *code, const struct Expr *e)
 {
@@ -1261,6 +1291,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         */
 
     case T_INTLIT:
+        // TODO LoadInt could take care of this
         reg0 = PoolInt__(code, e->ival);
         if (reg0 == -1) {
             // reg0 = LoadInt(code, , e->ival)
@@ -1300,6 +1331,14 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     case T_IDENT:
         if (e->var->is_global) {
             //LoadGlobal(code, e->var->offset);
+            // TODO LoadInt could take care of this
+            //reg0 = LoadInt__(code, e->var->offset + 1);
+            reg1 = PoolInt__(code, e->var->offset);
+            if (reg0 == -1) {
+                // reg0 = LoadInt(code, , e->ival)
+            }
+            reg0 = NewRegister__(code);
+            reg0 = Load__(code, reg0, reg1);
         } else {
             reg0 = e->var->offset;
         }
@@ -1491,16 +1530,19 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     case T_AMUL: case T_ADIV: case T_AREM:
         return gen_assign__(code, e);
 
-        /*
     case T_INIT:
+        /*
         if (IsArray(e->type))
             gen_init_array(code, e);
         else if (IsStruct(e->type))
             gen_init_struct(code, e);
         else
             gen_init(code, e);
-        return;
+        */
+        gen_init__(code, e);
+        return 0;
 
+        /*
     case T_INC:
         if (IsGlobal(e->l))
             IncGlobal(code, Addr(e->l));
@@ -1520,6 +1562,99 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     return -1;
 }
 
+static int gen_addr__(Bytecode *code, const struct Expr *e)
+{
+    if (!e)
+        return -1;
+
+    int reg0 = -1;
+
+    switch (e->kind) {
+
+    case T_IDENT:
+        /*
+        if (IsPtr(e->type)) {
+            gen_expr(code, e);
+            return;
+        }
+
+        if (IsStruct(e->type)) {
+            if (e->var->is_param) {
+                LoadAddress(code, e->var->offset);
+                Dereference(code);
+            }
+            else if (e->var->is_global) {
+                LoadInt(code, e->var->offset + 1);
+            }
+            else {
+                LoadAddress(code, e->var->offset);
+            }
+            return;
+        }
+        */
+
+        if (e->var->is_global) {
+            // TODO LoadInt could take care of this
+            //reg0 = LoadInt__(code, e->var->offset + 1);
+            reg0 = PoolInt__(code, e->var->offset);
+            if (reg0 == -1) {
+                // reg0 = LoadInt(code, , e->ival)
+            }
+        }
+        else
+            ;//LoadAddress(code, e->var->offset);
+        return reg0;
+
+        /*
+    case T_FIELD:
+        LoadByte(code, e->field->offset);
+        return;
+
+    case T_SELECT:
+        //if (optimize) {
+        //    int base = 0;
+        //    int offset = 0;
+        //    if (inst->EvalAddr(base) && fld->EvalAddr(offset)) {
+        //        if (inst->IsGlobal())
+        //            code.LoadInt(base + offset + 1);
+        //        else
+        //            code.LoadAddress(base + offset);
+        //        return;
+        //    }
+        //}
+        gen_addr(code, e->l);
+        gen_addr(code, e->r);
+        AddInt(code);
+        return;
+
+    case T_INDEX:
+        //if (optimize) {
+        //    int base = 0;
+        //    long index = 0;
+        //    if (ary->EvalAddr(base) && idx->Eval(index)) {
+        //        if (ary->IsGlobal())
+        //            code.LoadInt(base + index + 1);
+        //        else
+        //            // index from next to base
+        //            code.LoadAddress(base + index + 1);
+        //        return;
+        //    }
+        //}
+        gen_addr(code, e->l);
+        gen_expr(code, e->r);
+        Index(code);
+        return;
+
+    case T_DRF:
+        // deref *i = ...
+        gen_expr(code, e->l);
+        return;
+        */
+
+    }
+
+    return reg0;
+}
 static void gen_stmt__(Bytecode *code, const struct Stmt *s)
 {
     if (!s)
@@ -1535,7 +1670,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
     case T_BLOCK:
         for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next) {
             gen_stmt__(code, stmt);
-            ResetTempRegister(code);
+            ResetTempRegister__(code);
         }
         return;
 
@@ -1725,24 +1860,48 @@ static void gen_funcs__(Bytecode *code, const struct Module *mod)
     }
 }
 
+static void gen_gvars__(Bytecode *code, const struct Module *mod)
+{
+    struct Scope *scope = mod->scope;
+
+    // imported modules first
+    for (int i = 0; i < scope->syms.len; i++) {
+        struct Symbol *sym = scope->syms.data[i];
+
+        if (sym->kind == SYM_MODULE)
+            gen_gvars__(code, sym->module);
+    }
+
+    // self module next
+    for (const struct Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
+        gen_stmt__(code, gvar);
+}
+
 static void gen_module__(Bytecode *code, const struct Module *mod)
 {
     if (!mod->main_func) {
         fprintf(stderr, "error: 'main' function not found");
     }
     // XXX ???
-    code->bp = -1;
-    code->sp = -1;
-    code->maxsp = -1;
+    //code->bp = -1;
+    //code->sp = -1;
+    //code->maxsp = -1;
+    int gvar_count = mod->scope->size;
+    code->bp = gvar_count - 1;
+    code->sp = code->bp;
+    code->maxsp = code->bp;
+
+    int retval_count = 1;
+    Allocate__(code, gvar_count + retval_count);
 
     // global vars
-    Allocate__(code, mod->scope->size);
-    gen_gvars(code, mod);
+    //Allocate__(code, mod->scope->size);
+    gen_gvars__(code, mod);
 
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
     // call main
-    Allocate__(code, 1);
+    //Allocate__(code, 1);
     int reg0 = NewRegister__(code);
     CallFunction__(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
     Exit__(code);
