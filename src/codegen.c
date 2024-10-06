@@ -1099,7 +1099,7 @@ static int gen_init__(Bytecode *code, const struct Expr *e)
     else {
         // TODO handle case where lhs is not addressable
         reg0 = gen_addr__(code, e->l);
-        Copy__(code, reg0, reg1);
+        Move__(code, reg0, reg1);
     }
 
         /*
@@ -1126,22 +1126,28 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
     int reg1 = -1;
     int reg2 = -1;
 
-    if (rval->kind != T_ADD &&
-        rval->kind != T_SUB &&
-        rval->kind != T_MUL &&
-        rval->kind != T_DIV &&
-        rval->kind != T_REM) {
-        reg0 = gen_expr__(code, lval);
-        reg1 = gen_expr__(code, rval);
-        return Copy__(code, reg0, reg1);
-    }
-    else {
+    switch (rval->kind) {
+    case T_ADD:
         reg0 = gen_expr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
         EMITS__(code, e->type, Add, Concat, reg0, reg1, reg2);
-        return reg0;
+        break;
+
+    case T_REM:
+        reg0 = gen_expr__(code, lval);
+        reg1 = gen_expr__(code, rval->l);
+        reg2 = gen_expr__(code, rval->r);
+        EMITS__(code, e->type, Rem, Concat, reg0, reg1, reg2);
+        break;
+
+    default:
+        reg0 = gen_expr__(code, lval);
+        reg1 = gen_expr__(code, rval);
+        reg0 = Move__(code, reg0, reg1);
+        break;
     }
+    return reg0;
 
     /*
     if (IsStruct(e->type)) {
@@ -1251,7 +1257,7 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
             int tmp = gen_expr__(code, arg);
             int reg = NextTempRegister__(code);
             // TODO Re-use temp reg if possible
-            Copy__(code, reg, tmp);
+            Move__(code, reg, tmp);
         }
     }
 
@@ -1426,13 +1432,23 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_expr(code, e->r);
         EMIT(code, e->type, Div);
         return;
+        */
 
     case T_REM:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMIT(code, e->type, Rem);
-        return;
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
 
+        if (IsTempRegister(code, reg1))
+            reg0 = reg1;
+        else if (IsTempRegister(code, reg2))
+            reg0 = reg2;
+        else
+            reg0 = NextTempRegister__(code);
+
+        EMITS__(code, e->type, Rem, Concat, reg0, reg1, reg2);
+        return reg0;
+
+        /*
     case T_EQ:
         gen_expr(code, e->l);
         gen_expr(code, e->r);

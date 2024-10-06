@@ -1233,7 +1233,7 @@ static void run__(VM *vm)
             break;
             */
 
-        case OP_COPY__:
+        case OP_MOVE__:
             {
                 const uint8_t dst = inst.A;
                 const uint8_t src = inst.B;
@@ -1494,6 +1494,17 @@ static void run__(VM *vm)
             break;
             */
 
+#define BINOP(op,field,zerocheck) \
+do { \
+    uint8_t reg0 = inst.A; \
+    uint8_t reg1 = inst.B; \
+    uint8_t reg2 = inst.C; \
+    struct Value val1 = get_register_value(vm, reg1); \
+    struct Value val2 = get_register_value(vm, reg2); \
+    struct Value val0; \
+    val0.field = val1.field op val2.field; \
+    set_local(vm, reg0, val0); \
+} while (0)
         case OP_ADDINT__:
             {
                 uint8_t reg0 = inst.A;
@@ -1505,6 +1516,22 @@ static void run__(VM *vm)
                 struct Value val0;
 
                 val0.inum = val1.inum + val2.inum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
+        case OP_REMINT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                // TODO check zero division
+                val0.inum = val1.inum % val2.inum;
                 set_local(vm, reg0, val0);
             }
             break;
@@ -1588,15 +1615,6 @@ static void run__(VM *vm)
                 const Float l = pop_float(vm);
                 // TODO check zero div
                 push_float(vm, l / r);
-            }
-            break;
-
-        case OP_REM:
-            {
-                const Int r = pop_int(vm);
-                const Int l = pop_int(vm);
-                // TODO check zero div
-                push_int(vm, l % r);
             }
             break;
 

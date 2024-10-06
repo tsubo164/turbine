@@ -111,12 +111,13 @@ enum Opcode {
     // XXX TEST register machine
     OP_NOP__,
     // Load/store/move
-    OP_COPY__,
+    OP_MOVE__,
     OP_LOADINT16__,
     OP_LOAD__,
     OP_STORE__,
     // Arithmetic
     OP_ADDINT__,
+    OP_REMINT__,
     OP_INC__,
     // Function call
     OP_CALL__,
@@ -305,12 +306,13 @@ struct Value GetConstValue__(const Bytecode *code, Byte id);
 bool IsConstValue__(Byte id);
 
 // Load/store/move
-int Copy__(Bytecode *code, Byte dst, Byte src);
+int Move__(Bytecode *code, Byte dst, Byte src);
 int LoadInt__(Bytecode *code, Int integer);
 int Load__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Store__(struct Bytecode *code, uint8_t dst, uint8_t src);
 // Arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
+int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int Inc__(struct Bytecode *code, uint8_t id);
 // Function call
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);

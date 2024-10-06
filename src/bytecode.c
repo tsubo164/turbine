@@ -125,24 +125,25 @@ struct OpcodeInfo__ {
     int operand;
 };
 
-/*static*/ const struct OpcodeInfo__ opcode_table__[] = {
-    [OP_NOP__]       = { "NOP",          OPERAND____ },
+static const struct OpcodeInfo__ opcode_table__[] = {
+    [OP_NOP__]        = { "nop",          OPERAND____ },
     // Load/store/move
-    [OP_COPY__]      = { "COPY",         OPERAND_AB_ },
-    [OP_LOADINT16__] = { "LOADINT16",    OPERAND_ABB },
-    [OP_LOAD__]      = { "LOAD",         OPERAND_AB_ },
-    [OP_STORE__]     = { "STORE",        OPERAND_AB_ },
+    [OP_MOVE__]       = { "move",         OPERAND_AB_ },
+    [OP_LOADINT16__]  = { "loadint16",    OPERAND_ABB },
+    [OP_LOAD__]       = { "load",         OPERAND_AB_ },
+    [OP_STORE__]      = { "store",        OPERAND_AB_ },
     // Arithmetic
-    [OP_ADDINT__]    = { "ADDINT",       OPERAND_ABC },
-    [OP_INC__]       = { "INC",          OPERAND_A__ },
+    [OP_ADDINT__]     = { "addint",       OPERAND_ABC },
+    [OP_REMINT__]     = { "remint",       OPERAND_ABC },
+    [OP_INC__]        = { "inc",          OPERAND_A__ },
     // Function call
-    [OP_CALL__]      = { "CALL",         OPERAND_ABB },
-    [OP_RETURN__]    = { "RETURN",       OPERAND_A__ },
+    [OP_CALL__]       = { "call",         OPERAND_ABB },
+    [OP_RETURN__]     = { "return",       OPERAND_A__ },
     // Stack operation
-    [OP_ALLOCATE__]  = { "ALLOCATE",     OPERAND_A__ },
+    [OP_ALLOCATE__]   = { "allocate",     OPERAND_A__ },
     // Program control
-    [OP_EXIT__]      = { "EXIT",         OPERAND____ },
-    [OP_EOC__]       = { "EOC",          OPERAND____ },
+    [OP_EXIT__]       = { "exit",         OPERAND____ },
+    [OP_EOC__]        = { "eoc",          OPERAND____ },
     [END_OF_OPCODE__] = { NULL },
 };
 
@@ -865,9 +866,9 @@ bool IsConstValue__(Byte id)
 }
 
 // Load/store/move
-int Copy__(Bytecode *code, Byte dst, Byte src)
+int Move__(Bytecode *code, Byte dst, Byte src)
 {
-    push_inst_ab(code, OP_COPY__, dst, src);
+    push_inst_ab(code, OP_MOVE__, dst, src);
     return dst;
 }
 
@@ -897,6 +898,12 @@ int Store__(struct Bytecode *code, uint8_t dst, uint8_t src)
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1)
 {
     push_inst_abc(code, OP_ADDINT__, dst, src0, src1);
+    return dst;
+}
+
+int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_REMINT__, dst, src0, src1);
     return dst;
 }
 
@@ -1386,6 +1393,23 @@ void PrintBytecode__(const Bytecode *code)
     }
 }
 
+static void print_operand__(const struct Bytecode *code, uint8_t operand, bool separator)
+{
+    if (IsConstValue__(operand))
+        printf("c%d (%lld)",
+                operand - 128, code->consts[operand - 128].inum);
+    else
+        printf("r%d", operand);
+
+    if (separator)
+        printf(", ");
+}
+
+static void print_operand16__(const struct Bytecode *code, uint8_t operand)
+{
+    printf("$%d", operand);
+}
+
 static Int print_op__(const Bytecode *code, Int addr, const struct Instruction *inst)
 {
     const struct OpcodeInfo__ *info = lookup_opcode_info__(inst->op);
@@ -1399,71 +1423,30 @@ static Int print_op__(const Bytecode *code, Int addr, const struct Instruction *
     else
         printf("%s", info->mnemonic);
 
-    /*
-    char prefix;
-    if (op == OP_LOADLOCAL || op == OP_LOADGLOBAL ||
-        op == OP_STORELOCAL || op == OP_STOREGLOBAL)
-        prefix = '@';
-    else
-        prefix = '$';
-    */
-
     // append operand
     switch (info->operand) {
 
     case OPERAND_A__:
-        {
-            int A = inst->A;
-            if (IsConstValue__(A))
-                printf(" C%d (%lld)", A - 128, code->consts[A - 128].inum);
-            else
-                printf(" R%d", A);
-        }
+        if (inst->op == OP_ALLOCATE__)
+            print_operand16__(code, inst->A);
+        else
+            print_operand__(code, inst->A, 0);
         break;
 
     case OPERAND_AB_:
-        {
-            int A = inst->A;
-            if (IsConstValue__(A))
-                printf(" C%d (%lld)", A - 128, code->consts[A - 128].inum);
-            else
-                printf(" R%d", A);
-
-            int B = inst->B;
-            if (IsConstValue__(B))
-                printf(" C%d (%lld)", B - 128, code->consts[B - 128].inum);
-            else
-                printf(" R%d", B);
-        }
+        print_operand__(code, inst->A, 1);
+        print_operand__(code, inst->B, 0);
         break;
 
     case OPERAND_ABB:
-        {
-            int A = inst->A;
-            printf(" R%d", A);
-
-            int BB = inst->BB;
-            printf(" $%d", BB);
-        }
+        print_operand__(code, inst->A, 1);
+        print_operand16__(code, inst->B);
         break;
 
     case OPERAND_ABC:
-        {
-            int A = inst->A;
-            printf(" R%d", A);
-
-            int B = inst->B;
-            if (IsConstValue__(B))
-                printf(" C%d (%lld)", B - 128, code->consts[B - 128].inum);
-            else
-                printf(" R%d", B);
-
-            int C = inst->C;
-            if (IsConstValue__(C))
-                printf(" C%d (%lld)", C - 128, code->consts[C - 128].inum);
-            else
-                printf(" R%d", C);
-        }
+        print_operand__(code, inst->A, 1);
+        print_operand__(code, inst->B, 1);
+        print_operand__(code, inst->C, 0);
         break;
     }
 
