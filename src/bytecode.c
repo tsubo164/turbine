@@ -135,6 +135,7 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     // Arithmetic
     [OP_ADDINT__]     = { "addint",       OPERAND_ABC },
     [OP_REMINT__]     = { "remint",       OPERAND_ABC },
+    [OP_LTINT__]      = { "ltint",        OPERAND_ABC },
     [OP_INC__]        = { "inc",          OPERAND_A__ },
     // Function call
     [OP_CALL__]       = { "call",         OPERAND_ABB },
@@ -904,6 +905,12 @@ int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1)
 int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_REMINT__, dst, src0, src1);
+    return dst;
+}
+
+int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_LTINT__, dst, src0, src1);
     return dst;
 }
 

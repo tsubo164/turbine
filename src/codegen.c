@@ -53,7 +53,15 @@ void SetOptimize(bool enable)
         ops##String((code)); \
     } while (0)
 
-#define EMITS__(code, ty, op, ops, r0, r1, r2) \
+#define BINOP__(code, ty, op, r0, r1, r2) \
+    do { \
+    if (IsInt((ty)) || IsBool((ty))) \
+        op##Int__((code), r0, r1, r2); \
+    else if (IsFloat((ty))) \
+        ;/*op##Float__((code));*/ \
+    } while (0)
+
+#define BINOP_S__(code, ty, op, ops, r0, r1, r2) \
     do { \
     if (IsInt((ty)) || IsBool((ty))) \
         op##Int__((code), r0, r1, r2); \
@@ -1118,6 +1126,23 @@ static int gen_init__(Bytecode *code, const struct Expr *e)
     return 0;
 }
 
+static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
+        int reg0, int reg1, int reg2)
+{
+    switch (kind) {
+    case T_ADD:
+    case T_AADD:
+        BINOP_S__(code, type, Add, Concat, reg0, reg1, reg2);
+        break;
+
+    case T_REM:
+    case T_AREM:
+        BINOP__(code, type, Rem, reg0, reg1, reg2);
+        break;
+    }
+    return reg0;
+}
+
 static int gen_assign__(Bytecode *code, const struct Expr *e)
 {
     const struct Expr *lval = e->l;
@@ -1128,21 +1153,28 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
 
     switch (rval->kind) {
     case T_ADD:
-        reg0 = gen_expr__(code, lval);
+        reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
-        EMITS__(code, e->type, Add, Concat, reg0, reg1, reg2);
+        BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
         break;
 
     case T_REM:
-        reg0 = gen_expr__(code, lval);
+        reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
-        EMITS__(code, e->type, Rem, Concat, reg0, reg1, reg2);
+        BINOP__(code, e->type, Rem, reg0, reg1, reg2);
+        break;
+
+    case T_LT:
+        reg0 = gen_addr__(code, lval);
+        reg1 = gen_expr__(code, rval->l);
+        reg2 = gen_expr__(code, rval->r);
+        BINOP__(code, e->type, Less, reg0, reg1, reg2);
         break;
 
     default:
-        reg0 = gen_expr__(code, lval);
+        reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval);
         reg0 = Move__(code, reg0, reg1);
         break;
@@ -1203,6 +1235,15 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
     }
     */
     return -1;
+}
+
+static int gen_binop_assign__(Bytecode *code, const struct Expr *e)
+{
+    int reg0 = reg0 = gen_addr__(code, e->l);
+    int reg1 = reg1 = gen_expr__(code, e->l);
+    int reg2 = reg2 = gen_expr__(code, e->r);
+
+    return gen_binop__(code, e->type, e->kind, reg0, reg1, reg2);
 }
 
 static int gen_call__(Bytecode *code, const struct Expr *call)
@@ -1411,7 +1452,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         else
             reg0 = NextTempRegister__(code);
 
-        EMITS__(code, e->type, Add, Concat, reg0, reg1, reg2);
+        BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
         return reg0;
 
         /*
@@ -1445,7 +1486,25 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         else
             reg0 = NextTempRegister__(code);
 
-        EMITS__(code, e->type, Rem, Concat, reg0, reg1, reg2);
+        BINOP__(code, e->type, Rem, reg0, reg1, reg2);
+        return reg0;
+
+    case T_LT:
+        //gen_expr(code, e->l);
+        //gen_expr(code, e->r);
+        //EMIT(code, e->l->type, Less);
+        //return;
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+
+        if (IsTempRegister(code, reg1))
+            reg0 = reg1;
+        else if (IsTempRegister(code, reg2))
+            reg0 = reg2;
+        else
+            reg0 = NextTempRegister__(code);
+
+        BINOP__(code, e->type, Less, reg0, reg1, reg2);
         return reg0;
 
         /*
@@ -1459,12 +1518,6 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMITS(code, e->l->type, NotEqual, NotEqual);
-        return;
-
-    case T_LT:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMIT(code, e->l->type, Less);
         return;
 
     case T_LTE:
@@ -1545,9 +1598,11 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         */
 
     case T_ASSN:
+        return gen_assign__(code, e);
+
     case T_AADD: case T_ASUB:
     case T_AMUL: case T_ADIV: case T_AREM:
-        return gen_assign__(code, e);
+        return gen_binop_assign__(code, e);
 
     case T_INIT:
         /*

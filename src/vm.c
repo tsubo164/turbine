@@ -1536,6 +1536,21 @@ do { \
             }
             break;
 
+        case OP_LTINT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                val0.inum = val1.inum < val2.inum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
         case OP_INC__:
             {
                 uint8_t reg = inst.A;
@@ -1677,14 +1692,6 @@ do { \
                 Value val;
                 val.inum = strcmp(val0.str->data, val1.str->data);
                 push(vm, val);
-            }
-            break;
-
-        case OP_LT:
-            {
-                const Int val1 = pop_int(vm);
-                const Int val0 = pop_int(vm);
-                push_int(vm, val0 < val1);
             }
             break;
 
