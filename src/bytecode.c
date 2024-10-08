@@ -127,22 +127,25 @@ struct OpcodeInfo__ {
 
 static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_NOP__]        = { "nop",          OPERAND____ },
-    // Load/store/move
+    // load/store/move
     [OP_MOVE__]       = { "move",         OPERAND_AB_ },
     [OP_LOADINT16__]  = { "loadint16",    OPERAND_ABB },
     [OP_LOAD__]       = { "load",         OPERAND_AB_ },
     [OP_STORE__]      = { "store",        OPERAND_AB_ },
-    // Arithmetic
+    // arithmetic
     [OP_ADDINT__]     = { "addint",       OPERAND_ABC },
     [OP_REMINT__]     = { "remint",       OPERAND_ABC },
     [OP_LTINT__]      = { "ltint",        OPERAND_ABC },
     [OP_INC__]        = { "inc",          OPERAND_A__ },
-    // Function call
+    // function call
     [OP_CALL__]       = { "call",         OPERAND_ABB },
     [OP_RETURN__]     = { "return",       OPERAND_A__ },
-    // Stack operation
+    // jump
+    [OP_JUMP__]       = { "jump",         OPERAND_ABB },
+    [OP_JUMPIFZERO__] = { "jumpifzero",   OPERAND_ABB },
+    // stack operation
     [OP_ALLOCATE__]   = { "allocate",     OPERAND_A__ },
-    // Program control
+    // program control
     [OP_EXIT__]       = { "exit",         OPERAND____ },
     [OP_EOC__]        = { "eoc",          OPERAND____ },
     [END_OF_OPCODE__] = { NULL },
@@ -951,6 +954,20 @@ void Return__(Bytecode *code, Byte id)
     push_inst_a(code, OP_RETURN__, id);
 }
 
+Int Jump__(struct Bytecode *code, Int addr)
+{
+    // TODO may need OPERAND_AA_?
+    push_inst_abb(code, OP_JUMP__, 0, addr);
+    return addr;
+}
+
+Int JumpIfZero__(struct Bytecode *code, uint8_t id, Int addr)
+{
+    Int operand_addr = NextAddr__(code);
+    push_inst_abb(code, OP_JUMPIFZERO__, id, addr);
+    return operand_addr;
+}
+
 void Exit__(Bytecode *code)
 {
     push_inst____(code, OP_EXIT__);
@@ -997,6 +1014,43 @@ int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index)
     }
 
     return code->funcs_.data[func_index].reg_count;
+}
+
+void BeginFor__(struct Bytecode *code)
+{
+    push(&code->breaks_, -1);
+    push(&code->continues_, -1);
+}
+
+void BackPatch__(struct Bytecode *code, Int operand_addr)
+{
+    const Int next_addr = NextAddr__(code);
+    uint32_t inst = Read__(code, operand_addr);
+
+    inst = (inst & 0xFFFF0000) | (next_addr & 0x0000FFFF);
+    Write__(code, operand_addr, inst);
+}
+
+void BackPatchBreaks__(struct Bytecode *code)
+{
+    while (!empty(&code->breaks_)) {
+        const Int addr = top(&code->breaks_);
+        pop(&code->breaks_);
+        if (addr == -1)
+            break;
+        BackPatch__(code, addr);
+    }
+}
+
+void BackPatchContinues__(struct Bytecode *code)
+{
+    while (!empty(&code->continues_)) {
+        const Int addr = top(&code->continues_);
+        pop(&code->continues_);
+        if (addr == -1)
+            break;
+        BackPatch__(code, addr);
+    }
 }
 
 void Decode__(uint32_t instcode, struct Instruction *inst)
@@ -1049,12 +1103,21 @@ uint32_t Read__(const Bytecode *code, Int addr)
     return code->insts.data[addr];
 }
 
+void Write__(const Bytecode *code, Int addr, uint32_t inst)
+{
+    if (addr < 0 || addr >= Size__(code))
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", Size__(code));
+
+    code->insts.data[addr] = inst;
+}
+
 Int Size__(const Bytecode *code)
 {
     return code->insts.len;
 }
 
-Int NextAddr__(const Bytecode *code)
+Int NextAddr__(const struct Bytecode *code)
 {
     return Size__(code);
 }
@@ -1447,7 +1510,7 @@ static Int print_op__(const Bytecode *code, Int addr, const struct Instruction *
 
     case OPERAND_ABB:
         print_operand__(code, inst->A, 1);
-        print_operand16__(code, inst->B);
+        print_operand16__(code, inst->BB);
         break;
 
     case OPERAND_ABC:

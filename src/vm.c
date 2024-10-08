@@ -1461,38 +1461,35 @@ static void run__(VM *vm)
 
         case OP_RETURN__:
             {
-                const Byte reg_id = inst.A;
-                const struct Value ret_val = get_register_value(vm, reg_id);
-                const Call call = pop_call(vm);
-                const uint8_t ret_reg = call.return_reg;
+                uint8_t reg_id = inst.A;
+                struct Value ret_val = get_register_value(vm, reg_id);
+                struct Call call = pop_call(vm);
+                uint8_t ret_reg = call.return_reg;
 
                 set_ip(vm, call.return_ip);
-                //set_sp(vm, vm->bp_);
                 set_bp(vm, call.return_bp);
                 set_sp(vm, call.return_sp);
-                //push(vm, ret_val);
                 set_local(vm, ret_reg, ret_val);
             }
             break;
 
-            /*
-        case OP_JMP:
+        case OP_JUMP__:
             {
-                const Int addr = fetch_word(vm);
+                uint16_t addr = inst.BB;
                 set_ip(vm, addr);
             }
             break;
 
-        case OP_JEQ:
+        case OP_JUMPIFZERO__:
             {
-                const Int addr = fetch_word(vm);
-                const Value cond = pop(vm);
+                uint8_t reg0 = inst.A;
+                uint16_t addr = inst.BB;
+                struct Value cond = get_register_value(vm, reg0);
 
                 if (cond.inum == 0)
                     set_ip(vm, addr);
             }
             break;
-            */
 
 #define BINOP(op,field,zerocheck) \
 do { \

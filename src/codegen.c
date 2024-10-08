@@ -1783,32 +1783,34 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         // exit
         BackPatchOrCloses(code);
         return;
+        */
 
     case T_FOR:
         {
             // init
             BeginFor(code);
-            gen_stmt(code, s->init);
+            gen_stmt__(code, s->init);
 
             // cond
-            const Int begin = NextAddr(code);
-            gen_expr(code, s->cond);
-            const Int exit = JumpIfZero(code, -1);
+            Int begin = NextAddr__(code);
+            int reg0 = gen_expr__(code, s->cond);
+            Int exit = JumpIfZero__(code, reg0, -1);
 
             // body
-            gen_stmt(code, s->body);
+            gen_stmt__(code, s->body);
 
             // post
-            BackPatchContinues(code);
-            gen_stmt(code, s->post);
-            Jump(code, begin);
+            BackPatchContinues__(code);
+            gen_stmt__(code, s->post);
+            Jump__(code, begin);
 
             // exit
-            BackPatch(code, exit);
-            BackPatchBreaks(code);
+            BackPatch__(code, exit);
+            BackPatchBreaks__(code);
         }
         return;
 
+        /*
     case T_BRK:
         {
             const Int addr = Jump(code, -1);

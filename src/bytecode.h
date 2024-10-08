@@ -110,22 +110,25 @@ enum Opcode {
     OP_EOC,
     // XXX TEST register machine
     OP_NOP__,
-    // Load/store/move
+    // load/store/move
     OP_MOVE__,
     OP_LOADINT16__,
     OP_LOAD__,
     OP_STORE__,
-    // Arithmetic
+    // arithmetic
     OP_ADDINT__,
     OP_REMINT__,
     OP_LTINT__,
     OP_INC__,
-    // Function call
+    // function call
     OP_CALL__,
     OP_RETURN__,
-    // Stack operation
+    // jump
+    OP_JUMP__,
+    OP_JUMPIFZERO__,
+    // stack operation
     OP_ALLOCATE__,
-    // Program control
+    // program control
     OP_EXIT__,
     OP_EOC__,
     // XXX TEST register machine
@@ -306,29 +309,39 @@ int PoolInt__(Bytecode *code, Int val);
 struct Value GetConstValue__(const Bytecode *code, Byte id);
 bool IsConstValue__(Byte id);
 
-// Load/store/move
+// load/store/move
 int Move__(Bytecode *code, Byte dst, Byte src);
 int LoadInt__(Bytecode *code, Int integer);
 int Load__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Store__(struct Bytecode *code, uint8_t dst, uint8_t src);
-// Arithmetic
+// arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
 int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int Inc__(struct Bytecode *code, uint8_t id);
-// Function call
+// function call
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
 void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
-// Program control
+// jump instructions return the address
+// where the destination address is stored.
+Int Jump__(struct Bytecode *code, Int addr);
+Int JumpIfZero__(struct Bytecode *code, uint8_t src, Int addr);
+// program control
 void Exit__(Bytecode *code);
 void End__(Bytecode *code);
 bool IsTempRegister(const struct Bytecode *code, Byte id);
 
-// Functions
+// functions
 void RegisterFunction__(Bytecode *code, Word func_index, Byte argc);
 void SetMaxRegisterCount__(struct Bytecode *code, Word func_index);
 int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index);
+
+// back-patches
+void BeginFor__(struct Bytecode *code);
+void BackPatch__(struct Bytecode *code, Int operand_addr);
+void BackPatchBreaks__(struct Bytecode *code);
+void BackPatchContinues__(struct Bytecode *code);
 
 struct Instruction {
     int op;
@@ -341,9 +354,11 @@ void Decode__(uint32_t instcode, struct Instruction *inst);
 void PrintInstruction__(const struct Bytecode *code,
         Int addr, const struct Instruction *inst);
 
+// read / write
 uint32_t Read__(const Bytecode *code, Int addr);
+void Write__(const Bytecode *code, Int addr, uint32_t inst);
 Int Size__(const Bytecode *code);
-Int NextAddr__(const Bytecode *code);
+Int NextAddr__(const struct Bytecode *code);
 
 #define DECODE_OP(inst) (((inst) >> 24))
 #define DECODE_A(inst)  (((inst) >> 16) & 0xFF)
