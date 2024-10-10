@@ -132,6 +132,10 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_LOADINT16__]  = { "loadint16",    OPERAND_ABB },
     [OP_LOAD__]       = { "load",         OPERAND_AB_ },
     [OP_STORE__]      = { "store",        OPERAND_AB_ },
+    [OP_LOADARRAY__]  = { "loadarray",    OPERAND_ABC },
+    [OP_STOREARRAY__] = { "storearray",   OPERAND_ABC },
+    // array/struct
+    [OP_NEWARRAY__]   = { "newarray",     OPERAND_AB_ },
     // arithmetic
     [OP_ADDINT__]     = { "addint",       OPERAND_ABC },
     [OP_REMINT__]     = { "remint",       OPERAND_ABC },
@@ -898,7 +902,26 @@ int Store__(struct Bytecode *code, uint8_t dst, uint8_t src)
     return dst;
 }
 
-// Arithmetic
+int LoadArray__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t idx)
+{
+    push_inst_abc(code, OP_LOADARRAY__, dst, src, idx);
+    return dst;
+}
+
+int StoreArray__(struct Bytecode *code, uint8_t dst, uint8_t idx, uint8_t src)
+{
+    push_inst_abc(code, OP_STOREARRAY__, dst, idx, src);
+    return dst;
+}
+
+// array/struct
+int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len)
+{
+    push_inst_ab(code, OP_NEWARRAY__, dst, len);
+    return dst;
+}
+
+// arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1)
 {
     push_inst_abc(code, OP_ADDINT__, dst, src0, src1);

@@ -1094,6 +1094,50 @@ void ResolveOffset(struct Module *mod)
 static int gen_expr__(Bytecode *code, const struct Expr *e);
 static int gen_addr__(Bytecode *code, const struct Expr *e);
 
+static int gen_init_array__(Bytecode *code, const struct Expr *e)
+{
+    // TODO testing dynamic array
+    {
+        // an init expr always has identifier on the left
+        int reg0 = gen_addr__(code, e->l);
+        int reg1 = gen_expr__(code, e->r);
+        NewArray__(code, reg0, reg1);
+
+        return reg0;
+    }
+    // TODO =====================
+
+    /*
+    // lval
+    int addr = 0;
+    // an init expr always has identifier on the left
+    EvalAddr(e->l, &addr);
+
+    // array len
+    LoadInt(code, e->type->len);
+    if (IsGlobal(e->l))
+        StoreGlobal(code, addr);
+    else
+        StoreLocal(code, addr);
+    addr++;
+
+    // array lit
+    struct Expr *array_lit = e->r;
+
+    for (struct Expr *expr = array_lit->l; expr; expr = expr->next) {
+        // rval
+        gen_expr(code, expr);
+
+        // store
+        if (IsGlobal(e->l))
+            StoreGlobal(code, addr);
+        else
+            StoreLocal(code, addr);
+        addr++;
+    }
+    */
+}
+
 static int gen_init__(Bytecode *code, const struct Expr *e)
 {
     // rval
@@ -1151,6 +1195,13 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
     int reg1 = -1;
     int reg2 = -1;
 
+    if (lval->kind == T_INDEX) {
+        reg0 = gen_addr__(code, lval->l);
+        reg1 = gen_expr__(code, lval->r);
+        reg2 = gen_expr__(code, rval);
+        StoreArray__(code, reg0, reg1, reg2);
+    }
+
     switch (rval->kind) {
     case T_ADD:
         reg0 = gen_addr__(code, lval);
@@ -1179,62 +1230,8 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         reg0 = Move__(code, reg0, reg1);
         break;
     }
+
     return reg0;
-
-    /*
-    if (IsStruct(e->type)) {
-        gen_copy_block(code, e->r, e->l);
-        return -1;
-    }
-
-    // rval first
-    if (e->kind == T_ASSN) {
-        gen_expr(code, e->r);
-    }
-    else {
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-
-        switch (e->kind) {
-        case T_AADD:
-            EMITS(code, e->type, Add, Concat);
-            break;
-
-        case T_ASUB:
-            EMIT(code, e->type, Sub);
-            break;
-
-        case T_AMUL:
-            EMIT(code, e->type, Mul);
-            break;
-
-        case T_ADIV:
-            EMIT(code, e->type, Div);
-            break;
-
-        case T_AREM:
-            EMIT(code, e->type, Rem);
-            break;
-        }
-    }
-
-    // lval
-    int addr = 0;
-    const bool isconst = EvalAddr(e->l, &addr);
-
-    // store
-    if (isconst) {
-        if (IsGlobal(e->l))
-            StoreGlobal(code, addr);
-        else
-            StoreLocal(code, addr);
-    }
-    else {
-        gen_addr(code, e->l);
-        Store(code);
-    }
-    */
-    return -1;
 }
 
 static int gen_binop_assign__(Bytecode *code, const struct Expr *e)
@@ -1411,12 +1408,14 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_addr(code, e);
         Load(code);
         return;
+        */
 
     case T_INDEX:
-        gen_addr(code, e);
-        Load(code);
-        return;
-        */
+        reg0 = NextTempRegister__(code);
+        reg1 = gen_addr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+        LoadArray__(code, reg0, reg1, reg2);
+        return reg0;
 
     case T_CALL:
         return gen_call__(code, e);
@@ -1605,15 +1604,12 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return gen_binop_assign__(code, e);
 
     case T_INIT:
-        /*
         if (IsArray(e->type))
-            gen_init_array(code, e);
+            gen_init_array__(code, e);
         else if (IsStruct(e->type))
-            gen_init_struct(code, e);
+            ;//gen_init_struct(code, e);
         else
-            gen_init(code, e);
-        */
-        gen_init__(code, e);
+            gen_init__(code, e);
         return 0;
 
     case T_INC:

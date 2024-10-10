@@ -970,7 +970,7 @@ static void run(VM *vm)
             {
                 const Int len = pop_int(vm);
                 Value val;
-                val.array = NewArray(&vm->gc_, len);
+                val.array_ = NewArray(&vm->gc_, len);
                 push(vm, val);
             }
             break;
@@ -1265,6 +1265,31 @@ static void run__(VM *vm)
             }
             break;
 
+        case OP_LOADARRAY__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+                struct Value src = get_register_value(vm, reg1);
+                struct Value idx = get_register_value(vm, reg2);
+
+                struct Value val = ArrayGet(src.array, idx.inum);
+                set_local(vm, reg0, val);
+            }
+            break;
+
+        case OP_STOREARRAY__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+                struct Value dst = get_register_value(vm, reg0);
+                struct Value idx = get_register_value(vm, reg1);
+                struct Value src = get_register_value(vm, reg2);
+
+                ArraySet(dst.array, idx.inum, src);
+            }
+            break;
             /*
         case OP_COPY_GLOBAL:
             {
@@ -1333,7 +1358,20 @@ static void run__(VM *vm)
             push_int(vm, TID_STR);
             break;
             */
+        // array/struct
+        case OP_NEWARRAY__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                struct Value len = get_register_value(vm, reg1);
+                struct Value val;
 
+                val.array = ArrayNew(&vm->gc_, len.inum);
+                set_local(vm, reg0, val);
+            }
+            break;
+
+        // function call
         case OP_CALL__:
             {
                 const uint16_t func_index = inst.BB;
@@ -1502,6 +1540,7 @@ do { \
     val0.field = val1.field op val2.field; \
     set_local(vm, reg0, val0); \
 } while (0)
+        // arithmetic
         case OP_ADDINT__:
             {
                 uint8_t reg0 = inst.A;
@@ -1875,15 +1914,6 @@ do { \
             {
                 const Float f = pop_float(vm);
                 push_int(vm, f);
-            }
-            break;
-
-        case OP_ARRAYLOCAL:
-            {
-                const Int len = pop_int(vm);
-                Value val;
-                val.array = NewArray(&vm->gc_, len);
-                push(vm, val);
             }
             break;
 

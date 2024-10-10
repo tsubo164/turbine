@@ -7,26 +7,6 @@
 #include <string.h>
 #include <stdio.h>
 
-void ValueVecReisze(struct ValueVec *v, int new_len)
-{
-    if (new_len >= v->cap) {
-        v->cap = v->cap < 8 ? 8 : v->cap;
-        while (v->cap < new_len)
-            v->cap *= 2;
-        v->data = realloc(v->data, v->cap * sizeof(*v->data));
-    }
-    v->len = new_len;
-}
-
-void ValueVecPush(struct ValueVec *v, Value val)
-{
-    if (v->len >= v->cap) {
-        v->cap = v->cap < 8 ? 8 : v->cap * 2;
-        v->data = realloc(v->data, v->cap * sizeof(*v->data));
-    }
-    v->data[v->len++] = val;
-}
-
 static void print_obj(const Obj *obj)
 {
     switch (obj->kind) {
@@ -38,10 +18,18 @@ static void print_obj(const Obj *obj)
         printf("[StringObj] => %s\n", ((StringObj *) obj)->data);
         break;
 
-    case OBJ_ARRAY:
+    case OBJ_ARRAY_:
         {
             const struct ObjArray *array = (struct ObjArray *) obj;
             printf("[Array] => len: %lld, cap: %lld\n", array->len, array->cap);
+        }
+        break;
+
+    case OBJ_ARRAY:
+        {
+            const struct GCArray *array = (struct GCArray *) obj;
+            printf("[Array] => len: %d, cap: %d\n",
+                    array->values.len, array->values.cap);
         }
         break;
 

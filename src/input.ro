@@ -46,10 +46,10 @@
 //  - p int
 //  - q int
 //  return x + y
-- g_count = 98
-
-# add(x int, y int) int
-  return x + y
+//- g_count = 98
+//
+//# add(x int, y int) int
+//  return x + y
 
 # main() int
   //- a [8]int
@@ -60,12 +60,13 @@
   //- c int
   //- d int
   //a = 32
-  - a = 42
-  - i = 0
-  //- b bool
+  //- a = 42
+  - a [8]int //= [11, 22]
 
-  for i = 0; i < 15; i++
-    a++
+  a[2] = 19
+  a[3] = 31
+
+  //a[2] = 9
   //a = a % 5
   //a = a + 3
   //a = a + 11 + 93
@@ -79,4 +80,5 @@
   //a = foo(7, 11)
 
   //return g_count// + 9
-  return a
+  //return 42
+  return a[2] + a[3]
