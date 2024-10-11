@@ -4,15 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "hashmap.h"
+#include "value.h"
 
-// XXX TEST nees this?
-#include "gc.h"
 #define REGISTER_MACHINE 0
-
-typedef uint8_t  Byte;
-typedef uint16_t Word;
-typedef int64_t  Int;
-typedef double   Float;
 
 enum Opcode {
     OP_NOP = 0,
@@ -148,7 +142,7 @@ struct OpcodeInfo {
 const char *OpcodeString(Byte op);
 
 // XXX TEST register machine
-struct Int32Vec {
+struct InstVec {
     uint32_t *data;
     int cap;
     int len;
@@ -186,7 +180,7 @@ typedef struct FuncInfoVec {
 } FuncInfoVec;
 
 typedef struct Bytecode {
-    struct Int32Vec insts;
+    struct InstVec insts;
     struct Value consts[128];
     int const_count;
     int base_reg;

@@ -1,6 +1,8 @@
 #include "bytecode.h"
 #include "error.h"
+#include "vec.h"
 #include "mem.h"
+
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -292,43 +294,43 @@ static void assert_range(const FuncInfoVec *v,  Word index)
     }
 }
 
-static void push_inst(struct Int32Vec *v, uint32_t data)
+// instruction vector
+DEFINE_VECTOR_FUNCTIONS(uint32_t, InstVec, 128)
+
+static void push_inst(struct Bytecode *code, uint32_t inst)
 {
-    if (v->len >= v->cap) {
-        v->cap = new_cap(v->cap, 128);
-        v->data = realloc(v->data, v->cap * sizeof(*v->data));
-    }
-    v->data[v->len++] = data;
+    // defined by DEFINE_VECTOR_FUNCTIONS
+    InstVecPush(&code->insts, inst);
 }
 
-static void push_inst____(struct Bytecode *code, uint8_t op)
+static void push_inst_op(struct Bytecode *code, uint8_t op)
 {
-    const uint32_t inst = (op << 24);
-    push_inst(&code->insts, inst);
+    uint32_t inst = (op << 24);
+    push_inst(code, inst);
 }
 
 static void push_inst_a(struct Bytecode *code, uint8_t op, uint8_t a)
 {
-    const uint32_t inst = (op << 24) | (a << 16);
-    push_inst(&code->insts, inst);
+    uint32_t inst = (op << 24) | (a << 16);
+    push_inst(code, inst);
 }
 
 static void push_inst_ab(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b)
 {
-    const uint32_t inst = (op << 24) | (a << 16) | (b << 8);
-    push_inst(&code->insts, inst);
-}
-
-static void push_inst_abb(struct Bytecode *code, uint8_t op, uint8_t a, uint16_t bb)
-{
-    const uint32_t inst = ENCODE_ABB(op, a, bb);
-    push_inst(&code->insts, inst);
+    uint32_t inst = (op << 24) | (a << 16) | (b << 8);
+    push_inst(code, inst);
 }
 
 static void push_inst_abc(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b, uint8_t c)
 {
-    const uint32_t inst = (op << 24) | (a << 16) | (b << 8) | c;
-    push_inst(&code->insts, inst);
+    uint32_t inst = (op << 24) | (a << 16) | (b << 8) | c;
+    push_inst(code, inst);
+}
+
+static void push_inst_abb(struct Bytecode *code, uint8_t op, uint8_t a, uint16_t bb)
+{
+    uint32_t inst = ENCODE_ABB(op, a, bb);
+    push_inst(code, inst);
 }
 
 void LoadByte(Bytecode *code, Byte byte)
@@ -993,12 +995,12 @@ Int JumpIfZero__(struct Bytecode *code, uint8_t id, Int addr)
 
 void Exit__(Bytecode *code)
 {
-    push_inst____(code, OP_EXIT__);
+    push_inst_op(code, OP_EXIT__);
 }
 
 void End__(Bytecode *code)
 {
-    push_inst____(code, OP_EOC__);
+    push_inst_op(code, OP_EOC__);
 }
 
 bool IsTempRegister(const struct Bytecode *code, Byte id)

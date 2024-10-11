@@ -1170,6 +1170,21 @@ static int gen_init__(Bytecode *code, const struct Expr *e)
     return 0;
 }
 
+static int gen_dst_register(Bytecode *code, int reg1, int reg2)
+{
+    int reg0 = -1;
+
+    // determine the destination register
+    if (IsTempRegister(code, reg1))
+        reg0 = reg1;
+    else if (IsTempRegister(code, reg2))
+        reg0 = reg2;
+    else
+        reg0 = NextTempRegister__(code);
+
+    return reg0;
+}
+
 static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
         int reg0, int reg1, int reg2)
 {
@@ -1200,28 +1215,35 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         reg1 = gen_expr__(code, lval->r);
         reg2 = gen_expr__(code, rval);
         StoreArray__(code, reg0, reg1, reg2);
+        return reg0;
     }
 
+    // check the rvalue expression to see if binop r0, r1, r2 can be applied
+    // e.g. a = b + c
+    //            ^ here
     switch (rval->kind) {
     case T_ADD:
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
-        BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
+        //BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
+        gen_binop__(code, e->type, rval->kind, reg0, reg1, reg2);
         break;
 
     case T_REM:
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
-        BINOP__(code, e->type, Rem, reg0, reg1, reg2);
+        //BINOP__(code, e->type, Rem, reg0, reg1, reg2);
+        gen_binop__(code, e->type, rval->kind, reg0, reg1, reg2);
         break;
 
     case T_LT:
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
-        BINOP__(code, e->type, Less, reg0, reg1, reg2);
+        //BINOP__(code, e->type, Less, reg0, reg1, reg2);
+        gen_binop__(code, e->type, rval->kind, reg0, reg1, reg2);
         break;
 
     default:
@@ -1236,11 +1258,28 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
 
 static int gen_binop_assign__(Bytecode *code, const struct Expr *e)
 {
-    int reg0 = reg0 = gen_addr__(code, e->l);
-    int reg1 = reg1 = gen_expr__(code, e->l);
-    int reg2 = reg2 = gen_expr__(code, e->r);
+    if (e->l->kind == T_INDEX) {
+        // lval
+        int reg0 = gen_addr__(code, e->l->l);
+        int reg1 = gen_expr__(code, e->l->r);
+        // rval
+        int tmp1 = gen_expr__(code, e->l);
+        int tmp2 = gen_expr__(code, e->r);
+        // binop
+        int reg2 = gen_dst_register(code, tmp1, tmp2);
+        gen_binop__(code, e->type, e->kind, reg2, tmp1, tmp2);
+        // store
+        StoreArray__(code, reg0, reg1, reg2);
+        return reg0;
+    }
+    else {
+        // primitives
+        int reg0 = reg0 = gen_addr__(code, e->l);
+        int reg1 = reg1 = gen_expr__(code, e->l);
+        int reg2 = reg2 = gen_expr__(code, e->r);
 
-    return gen_binop__(code, e->type, e->kind, reg0, reg1, reg2);
+        return gen_binop__(code, e->type, e->kind, reg0, reg1, reg2);
+    }
 }
 
 static int gen_call__(Bytecode *code, const struct Expr *call)
@@ -1489,10 +1528,6 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return reg0;
 
     case T_LT:
-        //gen_expr(code, e->l);
-        //gen_expr(code, e->r);
-        //EMIT(code, e->l->type, Less);
-        //return;
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
 

@@ -37,7 +37,7 @@ int IntStackPop(IntStack *s);
 */
 
 // vector and stack functions
-#define DEFINE_VECTOR_FUNCTIONS(type, name, min_size) \
+#define DEFINE_VECTOR_FUNCTIONS(type, name, mincap) \
 void name##Init(struct name *v) \
 { \
     v->data = NULL; \
@@ -54,7 +54,7 @@ void name##Resize(struct name *v, int new_len) \
         v->len = new_len; \
         return; \
     } \
-    int new_cap = v->cap < (min_size) ? (min_size) : v->cap; \
+    int new_cap = v->cap < (mincap) ? (mincap) : v->cap; \
     while (new_cap < new_len) \
     new_cap *= 2; \
     type *new_data = (type*) realloc(v->data, sizeof(*v->data) * new_cap); \
