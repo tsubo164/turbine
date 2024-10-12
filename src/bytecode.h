@@ -6,7 +6,7 @@
 #include "hashmap.h"
 #include "value.h"
 
-#define REGISTER_MACHINE 0
+#define REGISTER_MACHINE 1
 
 enum Opcode {
     OP_NOP = 0,
@@ -116,8 +116,12 @@ enum Opcode {
     // arithmetic
     OP_ADDINT__,
     OP_REMINT__,
+    OP_EQINT__,
     OP_LTINT__,
     OP_INC__,
+    // string
+    OP_CATSTRING__,
+    OP_EQSTRING__,
     // function call
     OP_CALL__,
     OP_RETURN__,
@@ -182,6 +186,7 @@ typedef struct FuncInfoVec {
 typedef struct Bytecode {
     struct InstVec insts;
     struct Value consts[128];
+    int const_types[128];
     int const_count;
     int base_reg;
     int curr_reg;
@@ -304,6 +309,7 @@ void ResetTempRegister__(struct Bytecode *code);
 int NextTempRegister__(Bytecode *code);
 
 int PoolInt__(Bytecode *code, Int val);
+int PoolString__(struct Bytecode *code, const char *str);
 struct Value GetConstValue__(const Bytecode *code, Byte id);
 bool IsConstValue__(Byte id);
 
@@ -319,8 +325,12 @@ int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len);
 // arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
 int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int EqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int Inc__(struct Bytecode *code, uint8_t id);
+// string
+int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 // function call
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
 void Allocate__(Bytecode *code, Byte count);

@@ -85,7 +85,7 @@ static void print_expr(const struct Expr *e, int depth)
         printf(" %g", e->fval);
         break;
     case 's':
-        printf(" %s", e->sval);
+        printf(" \"%s\"", e->sval);
         break;
     case 'y':
         printf(" \"%s\"", e->sym->name);

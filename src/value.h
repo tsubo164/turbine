@@ -13,6 +13,15 @@ struct StringObj;
 struct ObjArray;
 struct GCArray;
 
+// Value type
+enum ValueType {
+    VAL_NIL = 0,
+    VAL_BOOL,
+    VAL_INT,
+    VAL_FLOAT,
+    VAL_STRING,
+};
+
 // Value
 typedef struct Value {
     union {

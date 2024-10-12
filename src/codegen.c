@@ -56,7 +56,7 @@ void SetOptimize(bool enable)
 #define BINOP__(code, ty, op, r0, r1, r2) \
     do { \
     if (IsInt((ty)) || IsBool((ty))) \
-        op##Int__((code), r0, r1, r2); \
+        op##Int__((code), (r0), (r1), (r2)); \
     else if (IsFloat((ty))) \
         ;/*op##Float__((code));*/ \
     } while (0)
@@ -64,11 +64,11 @@ void SetOptimize(bool enable)
 #define BINOP_S__(code, ty, op, ops, r0, r1, r2) \
     do { \
     if (IsInt((ty)) || IsBool((ty))) \
-        op##Int__((code), r0, r1, r2); \
+        op##Int__((code), (r0), (r1), (r2)); \
     else if (IsFloat((ty))) \
         ;/*op##Float__((code));*/ \
     else if (IsString((ty))) \
-        ;/*ops##String__((code));*/ \
+        ops##String__((code), (r0), (r1), (r2)); \
     } while (0)
 
 static void gen_expr(Bytecode *code, const struct Expr *e);
@@ -1388,10 +1388,11 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     case T_FLTLIT:
         LoadFloat(code, e->fval);
         return;
+        */
 
     case T_STRLIT:
         {
-            const char *s;
+            const char *s = NULL;
 
             // TODO could remove e->converted
             if (!e->converted)
@@ -1399,11 +1400,11 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             else
                 s = e->converted;
 
-            const Word id = RegisterConstString(code, s);
-            LoadString(code, id);
+            reg0 = PoolString__(code, s);
         }
-        return;
+        return reg0;
 
+        /*
     case T_FUNCLIT:
         LoadInt(code, e->func->id);
         return;
@@ -1527,6 +1528,24 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         BINOP__(code, e->type, Rem, reg0, reg1, reg2);
         return reg0;
 
+    case T_EQ:
+        //gen_expr(code, e->l);
+        //gen_expr(code, e->r);
+        //EMITS(code, e->l->type, Equal, Equal);
+        //return;
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+
+        if (IsTempRegister(code, reg1))
+            reg0 = reg1;
+        else if (IsTempRegister(code, reg2))
+            reg0 = reg2;
+        else
+            reg0 = NextTempRegister__(code);
+
+        BINOP_S__(code, e->type, Equal, Equal, reg0, reg1, reg2);
+        return reg0;
+
     case T_LT:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
@@ -1542,12 +1561,6 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return reg0;
 
         /*
-    case T_EQ:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMITS(code, e->l->type, Equal, Equal);
-        return;
-
     case T_NEQ:
         gen_expr(code, e->l);
         gen_expr(code, e->r);

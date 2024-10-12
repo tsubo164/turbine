@@ -50,6 +50,22 @@ StringObj *NewString(GC *gc, const char *s)
     return str;
 }
 
+struct StringObj *GCStringNew(const char *s)
+{
+    struct StringObj *str = CALLOC(StringObj);
+    str->data = strdup(s);
+
+    return str;
+}
+
+void GCStringFree(struct StringObj *str)
+{
+    if (!str)
+        return;
+    free(str->data);
+    free(str);
+}
+
 void PrintObjects(const GC *gc)
 {
     for (Obj *obj = gc->root; obj; obj = obj->next) {

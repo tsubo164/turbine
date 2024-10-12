@@ -19,7 +19,8 @@ typedef struct Obj {
 
 typedef struct StringObj {
     Obj obj;
-    const char *data;
+    char *data;
+    int len;
 } StringObj;
 
 typedef struct GC {
@@ -27,6 +28,10 @@ typedef struct GC {
 } GC;
 
 StringObj *NewString(GC *gc, const char *s);
+
+struct StringObj *GCStringNew(const char *s);
+void GCStringFree(struct StringObj *str);
+
 void PrintObjects(const GC *gc);
 
 #endif // _H

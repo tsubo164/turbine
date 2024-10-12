@@ -56,7 +56,7 @@ void name##Resize(struct name *v, int new_len) \
     } \
     int new_cap = v->cap < (mincap) ? (mincap) : v->cap; \
     while (new_cap < new_len) \
-    new_cap *= 2; \
+        new_cap *= 2; \
     type *new_data = (type*) realloc(v->data, sizeof(*v->data) * new_cap); \
     if (!new_data) { \
         return; \
@@ -86,10 +86,5 @@ type name##Pop(struct name *v) \
 { \
     return v->data[--v->len]; \
 }
-
-// simple macros
-#define VECINIT(v) do { (v).data = NULL; (v).cap = 0; (v).len = 0; } while(0)
-#define VECFREE(v) do { free(v).data; (v).data = NULL; (v).cap = 0; (v).len = 0; } while(0)
-#define VECISEMPTY(v) ((v).len == 0)
 
 #endif // _H

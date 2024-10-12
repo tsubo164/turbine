@@ -2,6 +2,8 @@
 #include "error.h"
 #include "vec.h"
 #include "mem.h"
+// TODO can remove this?
+#include "gc.h"
 
 #include <assert.h>
 #include <string.h>
@@ -141,8 +143,12 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     // arithmetic
     [OP_ADDINT__]     = { "addint",       OPERAND_ABC },
     [OP_REMINT__]     = { "remint",       OPERAND_ABC },
+    [OP_EQINT__]      = { "eqint",        OPERAND_ABC },
     [OP_LTINT__]      = { "ltint",        OPERAND_ABC },
     [OP_INC__]        = { "inc",          OPERAND_A__ },
+    // string
+    [OP_CATSTRING__]  = { "catstring",    OPERAND_ABC },
+    [OP_EQSTRING__]   = { "eqstring",     OPERAND_ABC },
     // function call
     [OP_CALL__]       = { "call",         OPERAND_ABB },
     [OP_RETURN__]     = { "return",       OPERAND_A__ },
@@ -213,7 +219,7 @@ bool empty(const AddrStack *s)
 
 static int new_cap(int cur_cap, int min_cap)
 {
-    return cur_cap < min_cap ? min_cap : cur_cap * 2;
+    return cur_cap < min_cap ? min_cap : 2 * cur_cap;
 }
 
 static void push_byte(ByteVec *v, Byte data)
@@ -295,11 +301,18 @@ static void assert_range(const FuncInfoVec *v,  Word index)
 }
 
 // instruction vector
-DEFINE_VECTOR_FUNCTIONS(uint32_t, InstVec, 128)
+#define MIN_CAP 8
+void InstVecPush(struct InstVec *v, uint32_t val)
+{
+    if (v->len == v->cap) {
+        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
+        v->data = realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = val;
+}
 
 static void push_inst(struct Bytecode *code, uint32_t inst)
 {
-    // defined by DEFINE_VECTOR_FUNCTIONS
     InstVecPush(&code->insts, inst);
 }
 
@@ -855,9 +868,22 @@ int PoolInt__(Bytecode *code, Int val)
         return -1;
     }
     code->consts[code->const_count].inum = val;
+    code->const_types[code->const_count] = VAL_INT;
 
     int reg = code->const_count++;
     return reg + 128;
+}
+
+int PoolString__(struct Bytecode *code, const char *str)
+{
+    if (code->const_count == 127) {
+        return -1;
+    }
+    int index = code->const_count++;
+    code->consts[index].str = GCStringNew(str);
+    code->const_types[index] = VAL_STRING;
+
+    return index + 128;
 }
 
 struct Value GetConstValue__(const Bytecode *code, Byte id)
@@ -936,6 +962,12 @@ int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
     return dst;
 }
 
+int EqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_EQINT__, dst, src0, src1);
+    return dst;
+}
+
 int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_LTINT__, dst, src0, src1);
@@ -946,6 +978,19 @@ int Inc__(struct Bytecode *code, uint8_t id)
 {
     push_inst_a(code, OP_INC__, id);
     return id;
+}
+
+// string
+int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_CATSTRING__, dst, src0, src1);
+    return dst;
+}
+
+int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_EQSTRING__, dst, src0, src1);
+    return dst;
 }
 
 // Function call
@@ -1490,11 +1535,26 @@ void PrintBytecode__(const Bytecode *code)
 
 static void print_operand__(const struct Bytecode *code, uint8_t operand, bool separator)
 {
-    if (IsConstValue__(operand))
-        printf("c%d (%lld)",
-                operand - 128, code->consts[operand - 128].inum);
-    else
+    if (IsConstValue__(operand)) {
+        int index = operand - 128;
+        int type = code->const_types[index];
+        struct Value val = code->consts[index];
+
+        // TODO make PrintValue() or ValueToString()
+        switch (type) {
+        case VAL_INT:
+            printf("c%d (%lld)", index, val.inum);
+            break;
+        case VAL_STRING:
+            printf("c%d (\"%s\")", index, val.str->data);
+            break;
+        default:
+            break;
+        }
+    }
+    else {
         printf("r%d", operand);
+    }
 
     if (separator)
         printf(", ");
