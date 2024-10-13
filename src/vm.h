@@ -22,7 +22,7 @@ typedef struct CallVec {
 } CallVec;
 
 typedef struct VM {
-    ValueVec stack_;
+    struct ValueVec stack_;
     const Bytecode *code_;
 
     // XXX TEST

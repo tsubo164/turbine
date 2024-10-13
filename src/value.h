@@ -34,11 +34,11 @@ typedef struct Value {
 } Value;
 
 // Vecor of value
-typedef struct ValueVec {
+struct ValueVec {
     struct Value *data;
     int cap;
     int len;
-} ValueVec;
+};
 
 void ValueVecInit(struct ValueVec *v);
 bool ValueVecIsEmpty(const struct ValueVec *v);

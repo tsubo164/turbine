@@ -43,5 +43,7 @@ void ValueVecPush(struct ValueVec *v, struct Value val)
 void ValueVecFree(struct ValueVec *v)
 {
     free(v->data);
-    ValueVecInit(v);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
 }

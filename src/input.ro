@@ -63,9 +63,12 @@
   //- a = 42
   //- a [8]int //= [11, 22]
   //- s string
-  - s = "Hello"
   - a = 3
-  if s == ""
+
+  if a == 2
+    a = 24
+  or
+    a = 42
     a = 19
 
   //a[2] = 19
@@ -86,4 +89,4 @@
   //a = foo(7, 11)
 
   //return g_count// + 9
-  return 42
+  return a

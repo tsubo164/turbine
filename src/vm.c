@@ -21,7 +21,7 @@ static int new_cap(int cur_cap, int min_cap)
     return cur_cap < min_cap ? min_cap : cur_cap * 2;
 }
 
-static void resize_stack(ValueVec *v, int new_len)
+static void resize_stack(struct ValueVec *v, int new_len)
 {
     if (new_len >= v->cap) {
         v->cap = v->cap < 256 ? 256 : v->cap;
@@ -33,7 +33,7 @@ static void resize_stack(ValueVec *v, int new_len)
     v->len = new_len;
 }
 
-static void push_value(ValueVec *v, Value val)
+static void push_value(struct ValueVec *v, Value val)
 {
     if (v->len >= v->cap) {
         v->cap = new_cap(v->cap, 256);
@@ -518,7 +518,7 @@ static void run(VM *vm)
                     // FIXME hard coded variadic
                     const int argc = pop_int(vm);
                     Value dummy = {0};
-                    ValueVec args = {0};
+                    struct ValueVec args = {0};
                     push_value(&args, dummy);
                     int sp = 0;
 
@@ -1572,6 +1572,21 @@ do { \
             }
             break;
 
+        case OP_EQINT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                val0.inum = val1.inum == val2.inum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
         case OP_LTINT__:
             {
                 uint8_t reg0 = inst.A;
@@ -1675,14 +1690,6 @@ do { \
                 const Float l = pop_float(vm);
                 // TODO check zero div
                 push_float(vm, fmod(l, r));
-            }
-            break;
-
-        case OP_EQ:
-            {
-                const Int val1 = pop_int(vm);
-                const Int val0 = pop_int(vm);
-                push_int(vm, val0 == val1);
             }
             break;
 

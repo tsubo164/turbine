@@ -5,8 +5,9 @@
 #include <stdbool.h>
 #include "hashmap.h"
 #include "value.h"
+#include "vec.h"
 
-#define REGISTER_MACHINE 1
+#define REGISTER_MACHINE 0
 
 enum Opcode {
     OP_NOP = 0,
@@ -159,11 +160,6 @@ typedef struct ByteVec {
     int len;
 } ByteVec;
 
-typedef struct AddrStack {
-    Int *data;
-    int sp;
-} AddrStack;
-
 typedef struct PtrVec {
     char **data;
     int cap;
@@ -199,10 +195,10 @@ typedef struct Bytecode {
     struct HashMap funcnames;
 
     // back patches
-    AddrStack ors_;
-    AddrStack breaks_;
-    AddrStack continues_;
-    AddrStack casecloses_;
+    struct IntStack ors_;
+    struct IntStack breaks_;
+    struct IntStack continues_;
+    struct IntStack casecloses_;
 } Bytecode;
 
 // emit opcode and operand
@@ -335,6 +331,9 @@ int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
 void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
+// branch
+void BeginIf__(struct Bytecode *code);
+void PushElseEnd__(struct Bytecode *code, Int addr);
 // jump instructions return the address
 // where the destination address is stored.
 Int Jump__(struct Bytecode *code, Int addr);
@@ -348,11 +347,11 @@ bool IsTempRegister(const struct Bytecode *code, Byte id);
 void RegisterFunction__(Bytecode *code, Word func_index, Byte argc);
 void SetMaxRegisterCount__(struct Bytecode *code, Word func_index);
 int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index);
-
 // back-patches
 void BeginFor__(struct Bytecode *code);
 void BackPatch__(struct Bytecode *code, Int operand_addr);
 void BackPatchBreaks__(struct Bytecode *code);
+void BackPatchElseEnds__(struct Bytecode *code);
 void BackPatchContinues__(struct Bytecode *code);
 
 struct Instruction {

@@ -191,32 +191,6 @@ const char *OpcodeString(Byte op)
     return info->mnemonic;
 }
 
-void push(AddrStack *s, Int addr)
-{
-    if (!s->data)
-        s->data = NALLOC(256, Int);
-    s->data[++s->sp] = addr;
-}
-
-Int pop(AddrStack *s)
-{
-    if (!s->data)
-        return 0;
-    return s->data[s->sp--];
-}
-
-Int top(const AddrStack *s)
-{
-    if (!s->data)
-        return 0;
-    return s->data[s->sp];
-}
-
-bool empty(const AddrStack *s)
-{
-    return s->sp == 0;
-}
-
 static int new_cap(int cur_cap, int min_cap)
 {
     return cur_cap < min_cap ? min_cap : 2 * cur_cap;
@@ -302,7 +276,7 @@ static void assert_range(const FuncInfoVec *v,  Word index)
 
 // instruction vector
 #define MIN_CAP 8
-void InstVecPush(struct InstVec *v, uint32_t val)
+void PushInstVec(struct InstVec *v, uint32_t val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
@@ -313,7 +287,7 @@ void InstVecPush(struct InstVec *v, uint32_t val)
 
 static void push_inst(struct Bytecode *code, uint32_t inst)
 {
-    InstVecPush(&code->insts, inst);
+    PushInstVec(&code->insts, inst);
 }
 
 static void push_inst_op(struct Bytecode *code, uint8_t op)
@@ -1024,11 +998,24 @@ void Return__(Bytecode *code, Byte id)
     push_inst_a(code, OP_RETURN__, id);
 }
 
+// branch
+void BeginIf__(struct Bytecode *code)
+{
+    PushInt(&code->ors_, -1);
+}
+
+void PushElseEnd__(struct Bytecode *code, Int addr)
+{
+    PushInt(&code->ors_, addr);
+}
+
+// jump instructions return the address
+// where the destination address is stored.
 Int Jump__(struct Bytecode *code, Int addr)
 {
-    // TODO may need OPERAND_AA_?
+    Int operand_addr = NextAddr__(code);
     push_inst_abb(code, OP_JUMP__, 0, addr);
-    return addr;
+    return operand_addr;
 }
 
 Int JumpIfZero__(struct Bytecode *code, uint8_t id, Int addr)
@@ -1088,13 +1075,13 @@ int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index)
 
 void BeginFor__(struct Bytecode *code)
 {
-    push(&code->breaks_, -1);
-    push(&code->continues_, -1);
+    PushInt(&code->breaks_, -1);
+    PushInt(&code->continues_, -1);
 }
 
 void BackPatch__(struct Bytecode *code, Int operand_addr)
 {
-    const Int next_addr = NextAddr__(code);
+    Int next_addr = NextAddr__(code);
     uint32_t inst = Read__(code, operand_addr);
 
     inst = (inst & 0xFFFF0000) | (next_addr & 0x0000FFFF);
@@ -1103,9 +1090,18 @@ void BackPatch__(struct Bytecode *code, Int operand_addr)
 
 void BackPatchBreaks__(struct Bytecode *code)
 {
-    while (!empty(&code->breaks_)) {
-        const Int addr = top(&code->breaks_);
-        pop(&code->breaks_);
+    while (!IsEmptyInt(&code->breaks_)) {
+        Int addr = PopInt(&code->breaks_);
+        if (addr == -1)
+            break;
+        BackPatch__(code, addr);
+    }
+}
+
+void BackPatchElseEnds__(struct Bytecode *code)
+{
+    while (!IsEmptyInt(&code->ors_)) {
+        Int addr = PopInt(&code->ors_);
         if (addr == -1)
             break;
         BackPatch__(code, addr);
@@ -1114,9 +1110,8 @@ void BackPatchBreaks__(struct Bytecode *code)
 
 void BackPatchContinues__(struct Bytecode *code)
 {
-    while (!empty(&code->continues_)) {
-        const Int addr = top(&code->continues_);
-        pop(&code->continues_);
+    while (!IsEmptyInt(&code->continues_)) {
+        Int addr = PopInt(&code->continues_);
         if (addr == -1)
             break;
         BackPatch__(code, addr);
@@ -1125,7 +1120,7 @@ void BackPatchContinues__(struct Bytecode *code)
 
 void Decode__(uint32_t instcode, struct Instruction *inst)
 {
-    const Byte op = DECODE_OP(instcode);
+    Byte op = DECODE_OP(instcode);
     const struct OpcodeInfo__ *info = lookup_opcode_info__(op);
 
     inst->op = op;
@@ -1315,38 +1310,38 @@ Int Size(const Bytecode *code)
 
 void BeginIf(Bytecode *code)
 {
-    push(&code->ors_, -1);
+    PushInt(&code->ors_, -1);
 }
 
 void BeginFor(Bytecode *code)
 {
-    push(&code->breaks_, -1);
-    push(&code->continues_, -1);
+    PushInt(&code->breaks_, -1);
+    PushInt(&code->continues_, -1);
 }
 
 void BeginSwitch(Bytecode *code)
 {
-    push(&code->casecloses_, -1);
+    PushInt(&code->casecloses_, -1);
 }
 
 void PushOrClose(Bytecode *code, Int addr)
 {
-    push(&code->ors_, addr);
+    PushInt(&code->ors_, addr);
 }
 
 void PushBreak(Bytecode *code, Int addr)
 {
-    push(&code->breaks_, addr);
+    PushInt(&code->breaks_, addr);
 }
 
 void PushContinue(Bytecode *code, Int addr)
 {
-    push(&code->continues_, addr);
+    PushInt(&code->continues_, addr);
 }
 
 void PushCaseClose(Bytecode *code, Int addr)
 {
-    push(&code->casecloses_, addr);
+    PushInt(&code->casecloses_, addr);
 }
 
 void BackPatch(Bytecode *code, Int operand_addr)
@@ -1357,9 +1352,8 @@ void BackPatch(Bytecode *code, Int operand_addr)
 
 void BackPatchOrCloses(Bytecode *code)
 {
-    while (!empty(&code->ors_)) {
-        const Int addr = top(&code->ors_);
-        pop(&code->ors_);
+    while (!IsEmptyInt(&code->ors_)) {
+        Int addr = PopInt(&code->ors_);
         if (addr == -1)
             break;
         BackPatch(code, addr);
@@ -1368,9 +1362,8 @@ void BackPatchOrCloses(Bytecode *code)
 
 void BackPatchBreaks(Bytecode *code)
 {
-    while (!empty(&code->breaks_)) {
-        const Int addr = top(&code->breaks_);
-        pop(&code->breaks_);
+    while (!IsEmptyInt(&code->breaks_)) {
+        Int addr = PopInt(&code->breaks_);
         if (addr == -1)
             break;
         BackPatch(code, addr);
@@ -1379,9 +1372,8 @@ void BackPatchBreaks(Bytecode *code)
 
 void BackPatchContinues(Bytecode *code)
 {
-    while (!empty(&code->continues_)) {
-        const Int addr = top(&code->continues_);
-        pop(&code->continues_);
+    while (!IsEmptyInt(&code->continues_)) {
+        Int addr = PopInt(&code->continues_);
         if (addr == -1)
             break;
         BackPatch(code, addr);
@@ -1390,9 +1382,8 @@ void BackPatchContinues(Bytecode *code)
 
 void BackPatchCaseCloses(Bytecode *code)
 {
-    while (!empty(&code->casecloses_)) {
-        const Int addr = top(&code->casecloses_);
-        pop(&code->casecloses_);
+    while (!IsEmptyInt(&code->casecloses_)) {
+        Int addr = PopInt(&code->casecloses_);
         if (addr == -1)
             break;
         BackPatch(code, addr);

@@ -11,6 +11,7 @@ void VecPush(struct Vec *v, void *data);
 void VecFree(struct Vec *v);
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 /*
 // Struct definition and its function declaratios of dynamic array and stack
@@ -86,5 +87,16 @@ type name##Pop(struct name *v) \
 { \
     return v->data[--v->len]; \
 }
+
+// integer stack
+struct IntStack {
+    int64_t *data;
+    int cap;
+    int len;
+};
+
+void PushInt(struct IntStack *v, int64_t val);
+int64_t PopInt(struct IntStack *v); // No sp checking
+bool IsEmptyInt(const struct IntStack *v);
 
 #endif // _H

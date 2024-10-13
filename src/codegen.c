@@ -1795,39 +1795,37 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         }
         return;
 
-        /*
+    case T_IF:
+        BeginIf__(code);
+
+        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
+            gen_stmt__(code, stmt);
+
+        // exit
+        BackPatchElseEnds__(code);
+        return;
+
     case T_ELS:
         {
             Int next = 0;
 
             if (s->cond) {
                 // cond
-                gen_expr(code, s->cond);
-                next = JumpIfZero(code, -1);
+                int reg0 = gen_expr__(code, s->cond);
+                next = JumpIfZero__(code, reg0, -1);
             }
 
             // true
-            gen_stmt(code, s->body);
+            gen_stmt__(code, s->body);
 
             if (s->cond) {
                 // close
-                const Int addr = Jump(code, -1);
-                PushOrClose(code, addr);
-                BackPatch(code, next);
+                Int addr = Jump__(code, -1);
+                PushElseEnd__(code, addr);
+                BackPatch__(code, next);
             }
         }
         return;
-
-    case T_IF:
-        BeginIf(code);
-
-        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
-            gen_stmt(code, stmt);
-
-        // exit
-        BackPatchOrCloses(code);
-        return;
-        */
 
     case T_FOR:
         {
