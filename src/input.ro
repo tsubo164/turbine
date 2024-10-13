@@ -42,14 +42,13 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 //
-//# foo(x int, y int) int
-//  - p int
-//  - q int
-//  return x + y
-//- g_count = 98
-//
-//# add(x int, y int) int
-//  return x + y
+# foo(x int, y int) int
+  - p int
+  - q int
+  return x + y
+
+# add(x int, y int) int
+  return x + y
 
 # main() int
   //- a [8]int
@@ -60,16 +59,10 @@
   //- c int
   //- d int
   //a = 32
-  //- a = 42
+  - a = 42
+  - b = 7
   //- a [8]int //= [11, 22]
   //- s string
-  - a = 3
-
-  if a == 2
-    a = 24
-  or
-    a = 42
-    a = 19
 
   //a[2] = 19
   //a[3] = 31
@@ -86,7 +79,12 @@
   //a = 1 + x + 42
   //a = 42 + b + c + d
   //x = 2 + a + 3
-  //a = foo(7, 11)
+  /*
+  a = foo(7, 11)
+  a = add(29, 3)
+  a = foo(7, add(29, 3))
+  */
+  a = add(29, a + b)
 
   //return g_count// + 9
   return a

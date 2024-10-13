@@ -818,12 +818,12 @@ void InitLocalVarRegister__(struct Bytecode *code, uint8_t lvar_count)
     code->max_reg = code->base_reg;
 }
 
-void ResetTempRegister__(struct Bytecode *code)
+void ResetCurrentRegister__(struct Bytecode *code)
 {
     code->curr_reg = code->base_reg;
 }
 
-int NextTempRegister__(Bytecode *code)
+int NewRegister__(struct Bytecode *code)
 {
     if (code->curr_reg >= 127) {
         return -1;
@@ -834,6 +834,23 @@ int NextTempRegister__(Bytecode *code)
         code->max_reg = code->curr_reg;
 
     return code->curr_reg;
+}
+
+int GetCurrentRegister__(const struct Bytecode *code)
+{
+    return code->curr_reg;
+}
+
+int GetNextRegister__(struct Bytecode *code, int reg)
+{
+    int next = -1;
+
+    if (reg == code->max_reg)
+        next = NewRegister__(code);
+    else
+        next = reg + 1;
+
+    return next;
 }
 
 int PoolInt__(Bytecode *code, Int val)
@@ -878,6 +895,8 @@ bool IsConstValue__(Byte id)
 // Load/store/move
 int Move__(Bytecode *code, Byte dst, Byte src)
 {
+    if (dst == src)
+        return dst;
     push_inst_ab(code, OP_MOVE__, dst, src);
     return dst;
 }

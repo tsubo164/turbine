@@ -1180,7 +1180,7 @@ static int gen_dst_register(Bytecode *code, int reg1, int reg2)
     else if (IsTempRegister(code, reg2))
         reg0 = reg2;
     else
-        reg0 = NextTempRegister__(code);
+        reg0 = NewRegister__(code);
 
     return reg0;
 }
@@ -1287,7 +1287,7 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
     const struct FuncType *func_type = call->l->type->func_type;
 
     // for returned value
-    int reg0 = NextTempRegister__(code);
+    int reg0 = NewRegister__(code);
     int saved_base = code->base_reg;
     int saved_curr = code->curr_reg;
 
@@ -1331,10 +1331,10 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
     }
     else {
         for (const struct Expr *arg = call->r; arg; arg = arg->next) {
-            int tmp = gen_expr__(code, arg);
-            int reg = NextTempRegister__(code);
-            // TODO Re-use temp reg if possible
-            Move__(code, reg, tmp);
+            int cur = GetCurrentRegister__(code);
+            int src = gen_expr__(code, arg);
+            int dst = GetNextRegister__(code, cur);
+            Move__(code, dst, src);
         }
     }
 
@@ -1424,7 +1424,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             if (reg0 == -1) {
                 // reg0 = LoadInt(code, , e->ival)
             }
-            reg0 = NextTempRegister__(code);
+            reg0 = NewRegister__(code);
             reg0 = Load__(code, reg0, reg1);
         } else {
             reg0 = e->var->offset;
@@ -1451,7 +1451,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         */
 
     case T_INDEX:
-        reg0 = NextTempRegister__(code);
+        reg0 = NewRegister__(code);
         reg1 = gen_addr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         LoadArray__(code, reg0, reg1, reg2);
@@ -1489,7 +1489,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         else if (IsTempRegister(code, reg2))
             reg0 = reg2;
         else
-            reg0 = NextTempRegister__(code);
+            reg0 = NewRegister__(code);
 
         BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
         return reg0;
@@ -1523,7 +1523,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         else if (IsTempRegister(code, reg2))
             reg0 = reg2;
         else
-            reg0 = NextTempRegister__(code);
+            reg0 = NewRegister__(code);
 
         BINOP__(code, e->type, Rem, reg0, reg1, reg2);
         return reg0;
@@ -1541,7 +1541,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         else if (IsTempRegister(code, reg2))
             reg0 = reg2;
         else
-            reg0 = NextTempRegister__(code);
+            reg0 = NewRegister__(code);
 
         BINOP_S__(code, e->type, Equal, Equal, reg0, reg1, reg2);
         return reg0;
@@ -1555,7 +1555,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         else if (IsTempRegister(code, reg2))
             reg0 = reg2;
         else
-            reg0 = NextTempRegister__(code);
+            reg0 = NewRegister__(code);
 
         BINOP__(code, e->type, Less, reg0, reg1, reg2);
         return reg0;
@@ -1791,7 +1791,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
     case T_BLOCK:
         for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next) {
             gen_stmt__(code, stmt);
-            ResetTempRegister__(code);
+            ResetCurrentRegister__(code);
         }
         return;
 
@@ -2015,7 +2015,7 @@ static void gen_module__(Bytecode *code, const struct Module *mod)
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
     // Call main
-    int reg0 = NextTempRegister__(code);
+    int reg0 = NewRegister__(code);
     CallFunction__(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
     Exit__(code);
 

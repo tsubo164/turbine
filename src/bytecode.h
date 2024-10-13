@@ -300,9 +300,12 @@ void Exit(Bytecode *code);
 void End(Bytecode *code);
 
 // XXX TEST register
+// TODO remove Temp?
 void InitLocalVarRegister__(struct Bytecode *code, uint8_t lvar_count);
-void ResetTempRegister__(struct Bytecode *code);
-int NextTempRegister__(Bytecode *code);
+void ResetCurrentRegister__(struct Bytecode *code);
+int NewRegister__(struct Bytecode *code);
+int GetCurrentRegister__(const struct Bytecode *code);
+int GetNextRegister__(struct Bytecode *code, int reg);
 
 int PoolInt__(Bytecode *code, Int val);
 int PoolString__(struct Bytecode *code, const char *str);
