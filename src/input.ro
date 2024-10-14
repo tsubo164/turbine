@@ -50,6 +50,9 @@
 # add(x int, y int) int
   return x + y
 
+# bar() int
+  return 99
+
 # main() int
   //- a [8]int
   //a[2] = 87
@@ -83,8 +86,11 @@
   a = foo(7, 11)
   a = add(29, 3)
   a = foo(7, add(29, 3))
-  */
   a = add(29, a + b)
+  */
+
+  a = add(a, b)
+  //a = bar()
 
   //return g_count// + 9
   return a

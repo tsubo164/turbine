@@ -1374,8 +1374,8 @@ static void run__(VM *vm)
         // function call
         case OP_CALL__:
             {
-                const uint16_t func_index = inst.BB;
-                const int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
+                uint16_t func_index = inst.BB;
+                int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
 
                 Call call = {0};
                 call.argc = GetFunctionArgCount(vm->code_, func_index);
@@ -1386,11 +1386,12 @@ static void run__(VM *vm)
                 push_call(vm, &call);
 
                 set_ip(vm, func_addr);
-                set_bp(vm, vm->sp_ - call.argc);
+                // TODO make reg_to_addr()
+                set_bp(vm, vm->bp_ + 1 + call.return_reg - 1);
 
-                // Allocation
-                const int reg_count = GetMaxRegisterCount__(vm->code_, func_index);
-                set_sp(vm, vm->sp_ + reg_count);
+                // Register allocation (parameters + local variables)
+                int max_reg_count = GetMaxRegisterCount__(vm->code_, func_index);
+                set_sp(vm, vm->bp_ + max_reg_count);
             }
             break;
 

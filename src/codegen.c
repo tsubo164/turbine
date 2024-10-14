@@ -1286,11 +1286,6 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
 {
     const struct FuncType *func_type = call->l->type->func_type;
 
-    // for returned value
-    int reg0 = NewRegister__(code);
-    int saved_base = code->base_reg;
-    int saved_curr = code->curr_reg;
-
     if (func_type->is_variadic) {
         /*
         int argc = 0;
@@ -1338,9 +1333,14 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
         }
     }
 
+    // Get the returned value register right next to current
+    //int retval_reg = NewRegister__(code);
+    int curr_reg = code->curr_reg;
+    int retval_reg = GetNextRegister__(code, curr_reg);
+
     int64_t func_id = 0;
     if (EvalExpr(call->l, &func_id)) {
-        CallFunction__(code, reg0, func_id, func_type->is_builtin);
+        CallFunction__(code, retval_reg, func_id, func_type->is_builtin);
     }
     else {
         /*
@@ -1349,10 +1349,10 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
         */
     }
 
-    code->base_reg = saved_base;
-    code->curr_reg = saved_curr;
+    // update current register pointer
+    code->curr_reg = retval_reg;
 
-    return reg0;
+    return retval_reg;
 }
 
 static int gen_expr__(Bytecode *code, const struct Expr *e)
@@ -1948,9 +1948,11 @@ static void gen_func__(Bytecode *code, const struct Func *func, int func_id)
     // Register function
     RegisterFunction__(code, func_id, func->params.len);
 
+    // TODO solve param count and reg count at a time
     // Local var registers
+    int param_count = func->params.len;
     int lvar_count = func->scope->size;
-    InitLocalVarRegister__(code, lvar_count);
+    InitLocalVarRegister__(code, lvar_count + param_count);
 
     // Function body
     gen_stmt__(code, func->body);
