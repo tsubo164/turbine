@@ -337,6 +337,10 @@ void Return__(Bytecode *code, Byte id);
 // branch
 void BeginIf__(struct Bytecode *code);
 void PushElseEnd__(struct Bytecode *code, Int addr);
+void PushBreak__(struct Bytecode *code, Int addr);
+void PushContinue__(struct Bytecode *code, Int addr);
+// TODO testing new naming convention
+void code_push_continue(struct Bytecode *code, Int addr);
 // jump instructions return the address
 // where the destination address is stored.
 Int Jump__(struct Bytecode *code, Int addr);

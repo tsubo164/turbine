@@ -1028,6 +1028,21 @@ void PushElseEnd__(struct Bytecode *code, Int addr)
     PushInt(&code->ors_, addr);
 }
 
+void PushBreak__(struct Bytecode *code, Int addr)
+{
+    PushInt(&code->breaks_, addr);
+}
+
+void PushContinue__(struct Bytecode *code, Int addr)
+{
+    PushInt(&code->continues_, addr);
+}
+
+void code_push_continue(struct Bytecode *code, Int addr)
+{
+    PushInt(&code->continues_, addr);
+}
+
 // jump instructions return the address
 // where the destination address is stored.
 Int Jump__(struct Bytecode *code, Int addr)

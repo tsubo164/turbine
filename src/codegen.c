@@ -1286,6 +1286,10 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
 {
     const struct FuncType *func_type = call->l->type->func_type;
 
+    // Save the current register right before evaluating args
+    //int retval_reg = NewRegister__(code);
+    int curr_reg = code->curr_reg;
+
     if (func_type->is_variadic) {
         /*
         int argc = 0;
@@ -1334,8 +1338,6 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
     }
 
     // Get the returned value register right next to current
-    //int retval_reg = NewRegister__(code);
-    int curr_reg = code->curr_reg;
     int retval_reg = GetNextRegister__(code, curr_reg);
 
     int64_t func_id = 0;
@@ -1852,21 +1854,23 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         }
         return;
 
-        /*
     case T_BRK:
         {
-            const Int addr = Jump(code, -1);
-            PushBreak(code, addr);
+            Int addr = Jump__(code, -1);
+            PushBreak__(code, addr);
         }
         return;
 
     case T_CNT:
         {
-            const Int addr = Jump(code, -1);
-            PushContinue(code, addr);
+            Int addr = Jump__(code, -1);
+            //PushContinue__(code, addr);
+            // TODO testing new naming convention
+            code_push_continue(code, addr);
         }
         return;
 
+        /*
     case T_CASE:
         {
             Int exit = 0;
