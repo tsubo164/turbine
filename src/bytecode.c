@@ -130,37 +130,38 @@ struct OpcodeInfo__ {
 };
 
 static const struct OpcodeInfo__ opcode_table__[] = {
-    [OP_NOP__]        = { "nop",          OPERAND____ },
+    [OP_NOP__]           = { "nop",         OPERAND____ },
     // load/store/move
-    [OP_MOVE__]       = { "move",         OPERAND_AB_ },
-    [OP_LOADINT16__]  = { "loadint16",    OPERAND_ABB },
-    [OP_LOAD__]       = { "load",         OPERAND_AB_ },
-    [OP_STORE__]      = { "store",        OPERAND_AB_ },
-    [OP_LOADARRAY__]  = { "loadarray",    OPERAND_ABC },
-    [OP_STOREARRAY__] = { "storearray",   OPERAND_ABC },
+    [OP_MOVE__]          = { "move",        OPERAND_AB_ },
+    [OP_LOADINT16__]     = { "loadint16",   OPERAND_ABB },
+    [OP_LOAD__]          = { "load",        OPERAND_AB_ },
+    [OP_STORE__]         = { "store",       OPERAND_AB_ },
+    [OP_LOADARRAY__]     = { "loadarray",   OPERAND_ABC },
+    [OP_STOREARRAY__]    = { "storearray",  OPERAND_ABC },
     // array/struct
-    [OP_NEWARRAY__]   = { "newarray",     OPERAND_AB_ },
+    [OP_NEWARRAY__]      = { "newarray",    OPERAND_AB_ },
     // arithmetic
-    [OP_ADDINT__]     = { "addint",       OPERAND_ABC },
-    [OP_REMINT__]     = { "remint",       OPERAND_ABC },
-    [OP_EQINT__]      = { "eqint",        OPERAND_ABC },
-    [OP_LTINT__]      = { "ltint",        OPERAND_ABC },
-    [OP_INC__]        = { "inc",          OPERAND_A__ },
+    [OP_ADDINT__]        = { "addint",      OPERAND_ABC },
+    [OP_REMINT__]        = { "remint",      OPERAND_ABC },
+    [OP_EQINT__]         = { "eqint",       OPERAND_ABC },
+    [OP_LTINT__]         = { "ltint",       OPERAND_ABC },
+    [OP_INC__]           = { "inc",         OPERAND_A__ },
     // string
-    [OP_CATSTRING__]  = { "catstring",    OPERAND_ABC },
-    [OP_EQSTRING__]   = { "eqstring",     OPERAND_ABC },
+    [OP_CATSTRING__]     = { "catstring",   OPERAND_ABC },
+    [OP_EQSTRING__]      = { "eqstring",    OPERAND_ABC },
     // function call
-    [OP_CALL__]       = { "call",         OPERAND_ABB },
-    [OP_RETURN__]     = { "return",       OPERAND_A__ },
+    [OP_CALL__]          = { "call",        OPERAND_ABB },
+    [OP_RETURN__]        = { "return",      OPERAND_A__ },
     // jump
-    [OP_JUMP__]       = { "jump",         OPERAND_ABB },
-    [OP_JUMPIFZERO__] = { "jumpifzero",   OPERAND_ABB },
+    [OP_JUMP__]          = { "jump",        OPERAND_ABB },
+    [OP_JUMPIFZERO__]    = { "jumpifzero",  OPERAND_ABB },
+    [OP_JUMPIFNOTZ__]    = { "jumpifnotz",  OPERAND_ABB },
     // stack operation
-    [OP_ALLOCATE__]   = { "allocate",     OPERAND_A__ },
+    [OP_ALLOCATE__]      = { "allocate",    OPERAND_A__ },
     // program control
-    [OP_EXIT__]       = { "exit",         OPERAND____ },
-    [OP_EOC__]        = { "eoc",          OPERAND____ },
-    [END_OF_OPCODE__] = { NULL },
+    [OP_EXIT__]          = { "exit",        OPERAND____ },
+    [OP_EOC__]           = { "eoc",         OPERAND____ },
+    [END_OF_OPCODE__]    = { NULL },
 };
 
 static_assert(sizeof(opcode_table__)/sizeof(opcode_table__[0])==END_OF_OPCODE__+1, "MISSING_OPCODE_ENTRY");
@@ -841,6 +842,12 @@ int GetCurrentRegister__(const struct Bytecode *code)
     return code->curr_reg;
 }
 
+int SetCurrentRegister__(struct Bytecode *code, int curr)
+{
+    code->curr_reg = curr;
+    return curr;
+}
+
 int GetNextRegister__(struct Bytecode *code, int reg)
 {
     int next = -1;
@@ -1023,6 +1030,11 @@ void BeginIf__(struct Bytecode *code)
     PushInt(&code->ors_, -1);
 }
 
+void code_begin_switch(struct Bytecode *code)
+{
+    PushInt(&code->casecloses_, -1);
+}
+
 void PushElseEnd__(struct Bytecode *code, Int addr)
 {
     PushInt(&code->ors_, addr);
@@ -1036,6 +1048,11 @@ void PushBreak__(struct Bytecode *code, Int addr)
 void PushContinue__(struct Bytecode *code, Int addr)
 {
     PushInt(&code->continues_, addr);
+}
+
+void PushCaseEnd__(struct Bytecode *code, Int addr)
+{
+    PushInt(&code->casecloses_, addr);
 }
 
 void code_push_continue(struct Bytecode *code, Int addr)
@@ -1056,6 +1073,13 @@ Int JumpIfZero__(struct Bytecode *code, uint8_t id, Int addr)
 {
     Int operand_addr = NextAddr__(code);
     push_inst_abb(code, OP_JUMPIFZERO__, id, addr);
+    return operand_addr;
+}
+
+Int JumpIfNotZero__(struct Bytecode *code, uint8_t id, Int addr)
+{
+    Int operand_addr = NextAddr__(code);
+    push_inst_abb(code, OP_JUMPIFNOTZ__, id, addr);
     return operand_addr;
 }
 
@@ -1146,6 +1170,16 @@ void BackPatchContinues__(struct Bytecode *code)
 {
     while (!IsEmptyInt(&code->continues_)) {
         Int addr = PopInt(&code->continues_);
+        if (addr == -1)
+            break;
+        BackPatch__(code, addr);
+    }
+}
+
+void code_backpatch_case_ends(Bytecode *code)
+{
+    while (!IsEmptyInt(&code->casecloses_)) {
+        Int addr = PopInt(&code->casecloses_);
         if (addr == -1)
             break;
         BackPatch__(code, addr);

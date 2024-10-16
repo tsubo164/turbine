@@ -1530,6 +1530,17 @@ static void run__(VM *vm)
             }
             break;
 
+        case OP_JUMPIFNOTZ__:
+            {
+                uint8_t reg0 = inst.A;
+                uint16_t addr = inst.BB;
+                struct Value cond = get_register_value(vm, reg0);
+
+                if (cond.inum != 0)
+                    set_ip(vm, addr);
+            }
+            break;
+
 #define BINOP(op,field,zerocheck) \
 do { \
     uint8_t reg0 = inst.A; \

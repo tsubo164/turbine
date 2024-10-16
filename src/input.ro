@@ -62,7 +62,7 @@
   //- c int
   //- d int
   //a = 32
-  - a = 42
+  - a = 42 + 3
   - b = 7
   //- a [8]int //= [11, 22]
   //- s string
@@ -91,14 +91,25 @@
   a = foo(7, add(29, 3))
   */
 
-  for
-    if a == 50
-      break
-    if a < 45
-      a++
-      continue
-    a++
-    b++
+  //for
+  //  if a == 50
+  //    break
+  //  if a < 45
+  //    a++
+  //    continue
+  //  a++
+  //  b++
+
+  switch (a)
+  case 41, 45, 42
+    switch (b)
+    case 8
+      b = 1
+    case 7
+      b = 3
+    //b = 8
+  default
+    b = a
 
   //return g_count// + 9
   return b

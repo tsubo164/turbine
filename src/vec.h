@@ -99,4 +99,25 @@ void PushInt(struct IntStack *v, int64_t val);
 int64_t PopInt(struct IntStack *v); // No sp checking
 bool IsEmptyInt(const struct IntStack *v);
 
+// Vector of int
+struct data_intvec {
+    int64_t *data;
+    int cap;
+    int len;
+};
+
+void data_intvec_init(struct data_intvec *v);
+bool data_intvec_is_empty(const struct data_intvec *v);
+void data_intvec_resize(struct data_intvec *v, int new_len);
+void data_intvec_push(struct data_intvec *v, int64_t val);
+void data_intvec_free(struct data_intvec *v);
+
+#if TEST
+void DATA_IntVecInit(DATA_IntVec *v);
+bool DATA_IntVecIs_empty(const DATA_IntVec *v);
+void DATA_IntVecResize(DATA_IntVec *v, int new_len);
+void DATA_IntVecPush(DATA_IntVec *v, int64_t val);
+void DATA_IntVecFree(DATA_IntVec *v);
+#endif
+
 #endif // _H

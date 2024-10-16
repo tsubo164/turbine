@@ -1783,8 +1783,6 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
     if (!s)
         return;
 
-    int reg0 = 0;
-
     switch (s->kind) {
 
     case T_NOP:
@@ -1870,65 +1868,84 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         }
         return;
 
-        /*
+
+    case T_SWT:
+        {
+            // init
+            code_begin_switch(code);
+            int curr = GetCurrentRegister__(code);
+            int reg0 = GetNextRegister__(code, curr);
+            int reg1 = gen_expr__(code, s->cond);
+            reg0 = Move__(code, reg0, reg1);
+
+            // cases
+            for (struct Stmt *cas = s->children; cas; cas = cas->next) {
+                // set current where expr is stored
+                SetCurrentRegister__(code, reg0);
+                gen_stmt__(code, cas);
+            }
+
+            // quit
+            code_backpatch_case_ends(code);
+#if TEST
+            CODE_BackPatchCaseEnds(code);
+#endif
+
+            // remove cond val
+            SetCurrentRegister__(code, curr);
+        }
+        return;
+
     case T_CASE:
         {
-            Int exit = 0;
+            // cond
+            int reg1 = GetCurrentRegister__(code);
 
-            IntVec trues = {0};
+            // backpatch address for each expression
+            struct data_intvec trues = {0};
+            data_intvec_init(&trues);
+
             // eval conds
             for (struct Expr *cond = s->cond; cond; cond = cond->next) {
-                Int tru = 0;
-                Int fls = 0;
-                DuplicateTop(code);
-                gen_expr(code, cond);
-                EqualInt(code);
-                fls = JumpIfZero(code, -1);
-                tru = Jump(code, -1);
-                BackPatch(code, fls);
-                push_int(&trues, tru);
+                // cond test
+                int reg2 = gen_expr__(code, cond);
+                int reg0 = GetNextRegister__(code, reg1);
+                EqualInt__(code, reg0, reg1, reg2);
+
+                // jump if true otherwise fallthrough
+                Int tru = JumpIfNotZero__(code, reg0, -1);
+                data_intvec_push(&trues, tru);
             }
             // all conds false -> close case
-            exit = Jump(code, -1);
+            Int exit = Jump__(code, -1);
             // one of cond true -> go to body
             for (int i = 0; i < trues.len; i++)
-                BackPatch(code, trues.data[i]);
-            free(trues.data);
+                BackPatch__(code, trues.data[i]);
+            data_intvec_free(&trues);
+#if TEST
+            DATA_IntVecFree(&trues);
+#endif
 
             // body
-            gen_stmt(code, s->body);
+            gen_stmt__(code, s->body);
 
-            // close
-            const Int addr = Jump(code, -1);
-            PushCaseClose(code, addr);
-            BackPatch(code, exit);
+            // end
+            Int addr = Jump__(code, -1);
+            PushCaseEnd__(code, addr);
+            BackPatch__(code, exit);
         }
         return;
 
     case T_DFLT:
         // body
-        gen_stmt(code, s->body);
+        gen_stmt__(code, s->body);
         return;
-
-    case T_SWT:
-        // init
-        BeginSwitch(code);
-        gen_expr(code, s->cond);
-
-        // cases
-        for (struct Stmt *cas = s->children; cas; cas = cas->next)
-            gen_stmt(code, cas);
-
-        // quit
-        BackPatchCaseCloses(code);
-        // remove cond val
-        Pop(code);
-        return;
-        */
 
     case T_RET:
-        reg0 = gen_expr__(code, s->expr);
-        Return__(code, reg0);
+        {
+            int reg0 = gen_expr__(code, s->expr);
+            Return__(code, reg0);
+        }
         return;
 
         /*
