@@ -130,8 +130,15 @@ enum Opcode {
     OP_JUMP__,
     OP_JUMPIFZERO__,
     OP_JUMPIFNOTZ__,
-    // stack operation
+    // stack operation TODO move to right place
     OP_ALLOCATE__,
+    // conversion
+    OP_BOOLTOINT__,
+    OP_BOOLTOFLOAT__,
+    OP_INTTOBOOL__,
+    OP_INTTOFLOAT__,
+    OP_FLOATTOBOOL__,
+    OP_FLOATTOINT__,
     // program control
     OP_EXIT__,
     OP_EOC__,
@@ -308,6 +315,7 @@ int NewRegister__(struct Bytecode *code);
 int GetCurrentRegister__(const struct Bytecode *code);
 int SetCurrentRegister__(struct Bytecode *code, int curr);
 int GetNextRegister__(struct Bytecode *code, int reg);
+bool IsTempRegister(const struct Bytecode *code, Byte id);
 
 int PoolInt__(Bytecode *code, Int val);
 int PoolString__(struct Bytecode *code, const char *str);
@@ -350,10 +358,16 @@ void code_push_continue(struct Bytecode *code, Int addr);
 Int Jump__(struct Bytecode *code, Int addr);
 Int JumpIfZero__(struct Bytecode *code, uint8_t src, Int addr);
 Int JumpIfNotZero__(struct Bytecode *code, uint8_t src, Int addr);
+// conversion
+int BoolToInt__(struct Bytecode *code, uint8_t dst, uint8_t src);
+//void BoolToFloat__(struct Bytecode *code, uint8_t dst, uint8_t src);
+//void IntToBool__(struct Bytecode *code, uint8_t dst, uint8_t src);
+//void IntToFloat__(struct Bytecode *code, uint8_t dst, uint8_t src);
+//void FloatToBool__(struct Bytecode *code, uint8_t dst, uint8_t src);
+//void FloatToInt__(struct Bytecode *code, uint8_t dst, uint8_t src);
 // program control
 void Exit__(Bytecode *code);
 void End__(Bytecode *code);
-bool IsTempRegister(const struct Bytecode *code, Byte id);
 
 // functions
 void RegisterFunction__(Bytecode *code, Word func_index, Byte argc);

@@ -1094,6 +1094,51 @@ void ResolveOffset(struct Module *mod)
 static int gen_expr__(Bytecode *code, const struct Expr *e);
 static int gen_addr__(Bytecode *code, const struct Expr *e);
 
+static int gen_convert__(Bytecode *code, int reg0, int reg1, enum TY from, enum TY to)
+{
+    int reg = -1;
+
+    switch (from) {
+    case TY_BOOL:
+        switch (to) {
+        case TY_BOOL:  break;
+        case TY_INT:   reg = BoolToInt__(code, reg0, reg1); break;
+        /*
+        case TY_FLOAT: BoolToFloat(code); break;
+        */
+        default: break;
+        }
+        break;
+
+                       /*
+    case TY_INT:
+        switch (to) {
+        case TY_BOOL:  reg = IntToBool__(code, reg0, reg1); break;
+        case TY_INT:   break;
+        case TY_FLOAT: IntToFloat(code); break;
+        default: break;
+        }
+        break;
+                       */
+
+        /*
+    case TY_FLOAT:
+        switch (to) {
+        case TY_BOOL:  FloatToBool(code); break;
+        case TY_INT:   FloatToInt(code); break;
+        case TY_FLOAT: break;
+        default: break;
+        }
+        break;
+        */
+
+    default:
+        break;
+    }
+
+    return reg;
+}
+
 static int gen_init_array__(Bytecode *code, const struct Expr *e)
 {
     // TODO testing dynamic array
@@ -1170,6 +1215,7 @@ static int gen_init__(Bytecode *code, const struct Expr *e)
     return 0;
 }
 
+// TODO move to bytecode.c
 static int gen_dst_register(Bytecode *code, int reg1, int reg2)
 {
     int reg0 = -1;
@@ -1179,6 +1225,20 @@ static int gen_dst_register(Bytecode *code, int reg1, int reg2)
         reg0 = reg1;
     else if (IsTempRegister(code, reg2))
         reg0 = reg2;
+    else
+        reg0 = NewRegister__(code);
+
+    return reg0;
+}
+
+// TODO move to bytecode.c
+static int gen_dst_register2(struct Bytecode *code, int reg1)
+{
+    int reg0 = -1;
+
+    // determine the destination register
+    if (IsTempRegister(code, reg1))
+        reg0 = reg1;
     else
         reg0 = NewRegister__(code);
 
@@ -1410,12 +1470,13 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     case T_FUNCLIT:
         LoadInt(code, e->func->id);
         return;
+        */
 
     case T_CONV:
-        gen_expr(code, e->l);
-        gen_convert(code, e->l->type->kind, e->type->kind);
-        return;
-        */
+        reg1 = gen_expr__(code, e->l);
+        reg0 = gen_dst_register2(code, reg1);
+        reg0 = gen_convert__(code, reg0, reg1, e->l->type->kind, e->type->kind);
+        return reg0;
 
     case T_IDENT:
         if (e->var->is_global) {

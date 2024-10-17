@@ -1893,14 +1893,21 @@ do { \
                 push(vm, v);
             }
             break;
+            */
 
-        case OP_BTOI:
+        case OP_BOOLTOINT__:
             {
-                const Int i = pop_int(vm);
-                push_int(vm, i != 0);
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                struct Value val0;
+                struct Value val1 = get_register_value(vm, reg1);
+
+                val0.inum = val1.inum != 0;
+                set_local(vm, reg0, val0);
             }
             break;
 
+            /*
         case OP_BTOF:
             {
                 const Int i = pop_int(vm);

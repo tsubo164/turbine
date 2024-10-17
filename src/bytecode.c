@@ -158,6 +158,13 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_JUMPIFNOTZ__]    = { "jumpifnotz",  OPERAND_ABB },
     // stack operation
     [OP_ALLOCATE__]      = { "allocate",    OPERAND_A__ },
+    // conversion
+    [OP_BOOLTOINT__]     = { "booltoint",   OPERAND_AB_ },
+    [OP_BOOLTOFLOAT__]   = { "booltofloat", OPERAND_AB_ },
+    [OP_INTTOBOOL__]     = { "inttobool",   OPERAND_AB_ },
+    [OP_INTTOFLOAT__]    = { "inttofloat",  OPERAND_AB_ },
+    [OP_FLOATTOBOOL__]   = { "floattobool", OPERAND_AB_ },
+    [OP_FLOATTOINT__]    = { "floattoint",  OPERAND_AB_ },
     // program control
     [OP_EXIT__]          = { "exit",        OPERAND____ },
     [OP_EOC__]           = { "eoc",         OPERAND____ },
@@ -860,6 +867,11 @@ int GetNextRegister__(struct Bytecode *code, int reg)
     return next;
 }
 
+bool IsTempRegister(const struct Bytecode *code, Byte id)
+{
+    return id > code->base_reg && id < 128;
+}
+
 int PoolInt__(Bytecode *code, Int val)
 {
     if (code->const_count == 127) {
@@ -1083,6 +1095,41 @@ Int JumpIfNotZero__(struct Bytecode *code, uint8_t id, Int addr)
     return operand_addr;
 }
 
+// conversion
+int BoolToInt__(struct Bytecode *code, uint8_t dst, uint8_t src)
+{
+    push_inst_ab(code, OP_BOOLTOINT__, dst, src);
+    return dst;
+}
+
+/*
+void BoolToFloat__(struct Bytecode *code)
+{
+    push_byte(&code->bytes_, OP_BTOF);
+}
+
+void IntToBool__(struct Bytecode *code)
+{
+    push_byte(&code->bytes_, OP_ITOB);
+}
+
+void IntToFloat__(struct Bytecode *code)
+{
+    push_byte(&code->bytes_, OP_ITOF);
+}
+
+void FloatToBool__(struct Bytecode *code)
+{
+    push_byte(&code->bytes_, OP_FTOB);
+}
+
+void FloatToInt__(struct Bytecode *code)
+{
+    push_byte(&code->bytes_, OP_FTOI);
+}
+*/
+
+// program control
 void Exit__(Bytecode *code)
 {
     push_inst_op(code, OP_EXIT__);
@@ -1091,11 +1138,6 @@ void Exit__(Bytecode *code)
 void End__(Bytecode *code)
 {
     push_inst_op(code, OP_EOC__);
-}
-
-bool IsTempRegister(const struct Bytecode *code, Byte id)
-{
-    return id > code->base_reg && id < 128;
 }
 
 // Functions
@@ -1595,6 +1637,7 @@ void PrintBytecode__(const Bytecode *code)
 static void print_operand__(const struct Bytecode *code, uint8_t operand, bool separator)
 {
     if (IsConstValue__(operand)) {
+        // TODO check index range or use GetConstValue__()
         int index = operand - 128;
         int type = code->const_types[index];
         struct Value val = code->consts[index];
@@ -1608,6 +1651,7 @@ static void print_operand__(const struct Bytecode *code, uint8_t operand, bool s
             printf("c%d (\"%s\")", index, val.str->data);
             break;
         default:
+            UNREACHABLE;
             break;
         }
     }
