@@ -41,17 +41,11 @@
 //  | T_FOR | "for"
 //  | T_ELS | "or"
 //  | T_BRK | "break"
-//
-//# foo(x int, y int) int
-//  - p int
-//  - q int
-//  return x + y
-//
-//# add(x int, y int) int
-//  return x + y
-//
-//# bar() int
-//  return 99
+
+- gvar int
+# seven() int
+    gvar = 119
+    return 7
 
 # main() int
   //- a [8]int
@@ -112,7 +106,5 @@
   //  //b = 8
   //default
   //  b = a
-
-  //return g_count// + 9
-  //return b
-  return int(42 == 42)
+  seven()
+  return gvar

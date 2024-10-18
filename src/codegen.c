@@ -1183,6 +1183,24 @@ static int gen_init_array__(Bytecode *code, const struct Expr *e)
     */
 }
 
+static int gen_store__(Bytecode *code, const struct Expr *lval, const struct Expr *rval)
+{
+    int reg0 = 0xff;
+    int reg1 = gen_expr__(code, rval);
+
+    if (IsGlobal(lval)) {
+        reg0 = gen_addr__(code, lval);
+        Store__(code, reg0, reg1);
+    }
+    else {
+        // TODO handle case where lhs is not addressable
+        reg0 = gen_addr__(code, lval);
+        Move__(code, reg0, reg1);
+    }
+
+    return reg0;
+}
+
 static int gen_init__(Bytecode *code, const struct Expr *e)
 {
     // rval
@@ -1278,6 +1296,9 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         return reg0;
     }
 
+    // TODO if rval is global then skip binop anyway.
+    // Binop is one of `move` instruction (store value into register)
+
     // check the rvalue expression to see if binop r0, r1, r2 can be applied
     // e.g. a = b + c
     //            ^ here
@@ -1307,9 +1328,7 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         break;
 
     default:
-        reg0 = gen_addr__(code, lval);
-        reg1 = gen_expr__(code, rval);
-        reg0 = Move__(code, reg0, reg1);
+        gen_store__(code, lval, rval);
         break;
     }
 
@@ -2009,13 +2028,11 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         }
         return;
 
-        /*
     case T_EXPR:
-        gen_expr(code, s->expr);
+        gen_expr__(code, s->expr);
         // remove the result
-        Pop(code);
+        //Pop(code);
         return;
-        */
 
         // XXX need T_ASSNSTMT?
     case T_ASSN:

@@ -1639,6 +1639,10 @@ static void print_operand__(const struct Bytecode *code, uint8_t operand, bool s
     if (IsConstValue__(operand)) {
         // TODO check index range or use GetConstValue__()
         int index = operand - 128;
+        if (index >= code->const_count) {
+            printf("c%d (--)", index);
+            return;
+        }
         int type = code->const_types[index];
         struct Value val = code->consts[index];
 
@@ -1651,7 +1655,7 @@ static void print_operand__(const struct Bytecode *code, uint8_t operand, bool s
             printf("c%d (\"%s\")", index, val.str->data);
             break;
         default:
-            UNREACHABLE;
+            //UNREACHABLE;
             break;
         }
     }
