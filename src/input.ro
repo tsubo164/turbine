@@ -4,35 +4,6 @@
 //[opengl] (github.com/...)
 //[my_calc]
 
-## Point
-  - x int
-  - y int
-
-- pt Point
-//- a [8]int
-
-//- @gvar
-//# get_point_y(p Point) int
-//  //p.x = 12
-//  return p.y
-
-//# inc_point_x(p *Point)
-//  //p.x++
-//  p.x = 42 * 2
-//  //- foo = p.x
-
-//# foo(p Point) int
-//  inc_point_x(&p) // error
-//
-//## Node
-//  - kind int
-//  - l *Node
-//  - r *Node
-//
-//## Binop(kind int, L *Node, R *Node)
-//  - node = new Node{kind = kind, l = L, r = R }
-//  return node
-
 //## Circle
 //  - center Point
 //  - radius int
@@ -45,87 +16,11 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
-
-//- g_count = 13
-//- gvar = 13
-
-//# seven() int
-//  gvar = 119
-//  return 7
-
 # main() int
-  //- a [8]int
-  //a[2] = 87
-
-  //- a int
-  //- b int
-  //- c int
-  //- d int
-  //a = 32
-
-  //- a = 42 + 3
-  //- b = 7
-
-  //- a [8]int //= [11, 22]
-  //- s string
-
-  //a[2] = 19
-  //a[3] = 31
-  //a[3] += 10
-
-  //a[2] = 9
-  //a = a % 5
-  //a = a + 3
-  //a = a + 11 + 93
-  //a = add(7, 9)
-  //b = 7 < 4
-  //a += 111
-
-  //a = 1 + x + 42
-  //a = 42 + b + c + d
-  //x = 2 + a + 3
-  /*
-  a = foo(7, 11)
-  a = add(29, 3)
-  a = add(a, b)
-  a = bar()
-  a = add(2, a + b)
-  a = foo(7, add(29, 3))
-  */
-
-  //for
-  //  if a == 50
-  //    break
-  //  if a < 45
-  //    a++
-  //    continue
-  //  a++
-  //  b++
-
-  //switch (a)
-  //case 41, 45, 42
-  //  switch (b)
-  //  case 8
-  //    b = 1
-  //  case 7
-  //    b = 3
-  //  //b = 8
-  //default
-  //  b = a
-
-  - a int
-  pt.x = 2
-  pt.y = 3
-  a = pt.y
-  //return pt.y
-  //g_count = 9
-  return pt.x + pt.y
-  //seven()
-  //- a = 23
-  //return a
-  //return gvar
-  //return g_count
-  //a[2] = 119
-  //return a[2]
-  //return pt.x
-  //return 42
+  - f float
+  f = 3.14
+  if f == 3.14
+    return 1
+  or
+    return 7
+  return 42

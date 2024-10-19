@@ -1639,6 +1639,34 @@ do { \
             }
             break;
 
+#define DO_BINOP__(r0, r1, op, r2) \
+do { \
+    uint8_t reg0 = inst.A; \
+    uint8_t reg1 = inst.B; \
+    uint8_t reg2 = inst.C; \
+    struct Value val1 = get_register_value(vm, reg1); \
+    struct Value val2 = get_register_value(vm, reg2); \
+    struct Value val0; \
+    val0.r0 = val1.r1 op val2.r2; \
+    set_local(vm, reg0, val0); \
+} while (0)
+        case OP_EQFLOAT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                // The result of op is int (bool)
+                val0.inum = val1.fpnum == val2.fpnum;
+                set_local(vm, reg0, val0);
+            }
+            //DO_BINOP__(inum, fpnum, ==, fpnum);
+            break;
+
         case OP_LTINT__:
             {
                 uint8_t reg0 = inst.A;
@@ -1742,15 +1770,6 @@ do { \
                 const Float l = pop_float(vm);
                 // TODO check zero div
                 push_float(vm, fmod(l, r));
-            }
-            break;
-
-        case OP_EQF:
-            {
-                const Float val1 = pop_float(vm);
-                const Float val0 = pop_float(vm);
-                // TODO do fpnum comp
-                push_int(vm, val0 == val1);
             }
             break;
 
@@ -2012,6 +2031,7 @@ do { \
             break;
 
         default:
+            fprintf(stderr, "Unimplemented instruction: %d\n", inst.op);
             UNREACHABLE;
             break;
         }

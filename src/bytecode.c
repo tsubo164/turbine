@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 enum OperandSize {
     OPERAND_NONE,
@@ -145,9 +146,13 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_NEWSTRUCT__]     = { "newstruct",   OPERAND_AB_ },
     // arithmetic
     [OP_ADDINT__]        = { "addint",      OPERAND_ABC },
+    [OP_ADDFLOAT__]      = { "addfloat",    OPERAND_ABC },
     [OP_REMINT__]        = { "remint",      OPERAND_ABC },
+    [OP_REMFLOAT__]      = { "remfloat",    OPERAND_ABC },
     [OP_EQINT__]         = { "eqint",       OPERAND_ABC },
+    [OP_EQFLOAT__]       = { "eqfloat",     OPERAND_ABC },
     [OP_LTINT__]         = { "ltint",       OPERAND_ABC },
+    [OP_LTFLOAT__]       = { "ltfloat",     OPERAND_ABC },
     [OP_INC__]           = { "inc",         OPERAND_A__ },
     // string
     [OP_CATSTRING__]     = { "catstring",   OPERAND_ABC },
@@ -875,13 +880,29 @@ bool IsTempRegister(const struct Bytecode *code, Byte id)
     return id > code->base_reg && id < 128;
 }
 
-int PoolInt__(Bytecode *code, Int val)
+int PoolInt__(struct Bytecode *code, Int val)
 {
     if (code->const_count == 127) {
         return -1;
     }
     code->consts[code->const_count].inum = val;
     code->const_types[code->const_count] = VAL_INT;
+
+    int reg = code->const_count++;
+    return reg + 128;
+}
+
+int PoolFloat__(struct Bytecode *code, value_float_t val)
+{
+    int new_idx = code->const_count;
+
+    if (new_idx == 127) {
+        // full
+        return -1;
+    }
+
+    code->consts[new_idx].fpnum = val;
+    code->const_types[new_idx] = VAL_FLOAT;
 
     int reg = code->const_count++;
     return reg + 128;
@@ -983,9 +1004,15 @@ int NewStruct__(struct Bytecode *code, uint8_t dst, uint8_t len)
 }
 
 // arithmetic
-int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1)
+int AddInt__(struct Bytecode *code, Byte dst, Byte src0, Byte src1)
 {
     push_inst_abc(code, OP_ADDINT__, dst, src0, src1);
+    return dst;
+}
+
+int AddFloat__(struct Bytecode *code, Byte dst, Byte src0, Byte src1)
+{
+    push_inst_abc(code, OP_ADDFLOAT__, dst, src0, src1);
     return dst;
 }
 
@@ -995,15 +1022,33 @@ int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
     return dst;
 }
 
+int RemFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_REMFLOAT__, dst, src0, src1);
+    return dst;
+}
+
 int EqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_EQINT__, dst, src0, src1);
     return dst;
 }
 
+int EqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_EQFLOAT__, dst, src0, src1);
+    return dst;
+}
+
 int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_LTINT__, dst, src0, src1);
+    return dst;
+}
+
+int LessFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_LTFLOAT__, dst, src0, src1);
     return dst;
 }
 
@@ -1623,12 +1668,42 @@ void PrintBytecode(const Bytecode *code)
 }
 
 // XXX TEST
+void print_value(struct Value val, int type)
+{
+    switch (type) {
+
+    case VAL_INT:
+        printf("%lld", val.inum);
+        break;
+
+    case VAL_FLOAT:
+        if (fmod(val.fpnum, 1.) == 0.0)
+            printf("%g.0", val.fpnum);
+        else
+            printf("%g", val.fpnum);
+        break;
+
+    case VAL_STRING:
+        printf("\"%s\"", val.str->data);
+        break;
+
+    default:
+        UNREACHABLE;
+        break;
+    }
+}
+
 void PrintBytecode__(const Bytecode *code)
 {
     if (code->const_count) {
         printf("* constant pool:\n");
         for (int i = 0; i < code->const_count; i++) {
-            printf("  [%3d] %lld\n", i, code->consts[i].inum);
+            struct Value val = code->consts[i];
+            int type = code->const_types[i];
+
+            printf("  [%3d] ", i);
+            print_value(val, type);
+            printf("\n");
         }
     }
 
@@ -1664,21 +1739,12 @@ static void print_operand__(const struct Bytecode *code, uint8_t operand, bool s
             printf("c%d (--)", index);
             return;
         }
-        int type = code->const_types[index];
         struct Value val = code->consts[index];
+        int type = code->const_types[index];
 
-        // TODO make PrintValue() or ValueToString()
-        switch (type) {
-        case VAL_INT:
-            printf("c%d (%lld)", index, val.inum);
-            break;
-        case VAL_STRING:
-            printf("c%d (\"%s\")", index, val.str->data);
-            break;
-        default:
-            //UNREACHABLE;
-            break;
-        }
+        printf("c%d (", index);
+        print_value(val, type);
+        printf(")");
     }
     else {
         printf("r%d", operand);

@@ -108,6 +108,7 @@ enum Opcode {
     // load/store/move
     OP_MOVE__,
     OP_LOADINT16__,
+    OP_LOADFLOAT__,
     OP_LOAD__,
     OP_STORE__,
     OP_LOADARRAY__,
@@ -119,9 +120,13 @@ enum Opcode {
     OP_NEWSTRUCT__,
     // arithmetic
     OP_ADDINT__,
+    OP_ADDFLOAT__,
     OP_REMINT__,
+    OP_REMFLOAT__,
     OP_EQINT__,
+    OP_EQFLOAT__,
     OP_LTINT__,
+    OP_LTFLOAT__,
     OP_INC__,
     // string
     OP_CATSTRING__,
@@ -320,7 +325,8 @@ int SetCurrentRegister__(struct Bytecode *code, int curr);
 int GetNextRegister__(struct Bytecode *code, int reg);
 bool IsTempRegister(const struct Bytecode *code, Byte id);
 
-int PoolInt__(Bytecode *code, Int val);
+int PoolInt__(struct Bytecode *code, Int val);
+int PoolFloat__(struct Bytecode *code, value_float_t val);
 int PoolString__(struct Bytecode *code, const char *str);
 struct Value GetConstValue__(const Bytecode *code, Byte id);
 bool IsConstValue__(Byte id);
@@ -341,9 +347,13 @@ int NewStruct__(struct Bytecode *code, uint8_t dst, uint8_t len);
 
 // arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
+int AddFloat__(Bytecode *code, Byte dst, Byte src0, Byte src1);
 int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int RemFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int EqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int EqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int LessFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int Inc__(struct Bytecode *code, uint8_t id);
 // string
 int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);

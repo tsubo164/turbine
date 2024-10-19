@@ -58,7 +58,7 @@ void SetOptimize(bool enable)
     if (IsInt((ty)) || IsBool((ty))) \
         op##Int__((code), (r0), (r1), (r2)); \
     else if (IsFloat((ty))) \
-        ;/*op##Float__((code));*/ \
+        op##Float__((code), (r0), (r1), (r2)); \
     } while (0)
 
 #define BINOP_S__(code, ty, op, ops, r0, r1, r2) \
@@ -66,7 +66,7 @@ void SetOptimize(bool enable)
     if (IsInt((ty)) || IsBool((ty))) \
         op##Int__((code), (r0), (r1), (r2)); \
     else if (IsFloat((ty))) \
-        ;/*op##Float__((code));*/ \
+        op##Float__((code), (r0), (r1), (r2)); \
     else if (IsString((ty))) \
         ops##String__((code), (r0), (r1), (r2)); \
     } while (0)
@@ -1260,7 +1260,7 @@ static int gen_store__(Bytecode *code, const struct Expr *lval, const struct Exp
 static int gen_init__(Bytecode *code, const struct Expr *e)
 {
     // rval
-    int reg0 = 0xff;
+    int reg0 = -1;
     int reg1 = gen_expr__(code, e->r);
 
     if (IsGlobal(e->l)) {
@@ -1331,6 +1331,10 @@ static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
     case T_REM:
     case T_AREM:
         BINOP__(code, type, Rem, reg0, reg1, reg2);
+        break;
+
+    case T_EQ:
+        BINOP_S__(code, type, Equal, Equal, reg0, reg1, reg2);
         break;
     }
     return reg0;
@@ -1531,11 +1535,13 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         }
         return reg0;
 
-        /*
     case T_FLTLIT:
-        LoadFloat(code, e->fval);
-        return;
-        */
+        // TODO LoadFloat could take care of this
+        reg0 = PoolFloat__(code, e->fval);
+        if (reg0 == -1) {
+            // reg0 = LoadInt(code, , e->ival)
+        }
+        return reg0;
 
     case T_STRLIT:
         {
@@ -1695,21 +1701,13 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return reg0;
 
     case T_EQ:
-        //gen_expr(code, e->l);
-        //gen_expr(code, e->r);
-        //EMITS(code, e->l->type, Equal, Equal);
-        //return;
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
+        reg0 = gen_dst_register(code, reg1, reg2);
 
-        if (IsTempRegister(code, reg1))
-            reg0 = reg1;
-        else if (IsTempRegister(code, reg2))
-            reg0 = reg2;
-        else
-            reg0 = NewRegister__(code);
-
-        BINOP_S__(code, e->type, Equal, Equal, reg0, reg1, reg2);
+        // e->type is always result type bool. e->l->type for operand type.
+        //BINOP_S__(code, e->l->type, Equal, Equal, reg0, reg1, reg2);
+        gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
     case T_LT:
