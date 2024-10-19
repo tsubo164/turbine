@@ -137,6 +137,8 @@ struct Struct *DefineStruct(struct Scope *sc, const char *name);
 struct Struct *FindStruct(const struct Scope *sc, const char *name);
 struct Field *AddField(struct Struct *strct, const char *name, const struct Type *type);
 struct Field *FindField(const struct Struct *strct, const char *name);
+// XXX TEST
+int parser_struct_get_field_count(const struct Struct *s);
 
 // Table
 struct Table *DefineTable(struct Scope *sc, const char *name);

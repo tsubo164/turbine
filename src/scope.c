@@ -249,6 +249,11 @@ struct Field *FindField(const struct Struct *strct, const char *name)
     return NULL;
 }
 
+int parser_struct_get_field_count(const struct Struct *s)
+{
+    return s->fields.len;
+}
+
 // Table
 struct Table *DefineTable(struct Scope *sc, const char *name)
 {

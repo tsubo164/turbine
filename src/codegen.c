@@ -1183,6 +1183,62 @@ static int gen_init_array__(Bytecode *code, const struct Expr *e)
     */
 }
 
+static int gen_init_struct__(Bytecode *code, const struct Expr *e)
+{
+    {
+        // an init expr always has identifier on the left
+        int reg0 = gen_addr__(code, e->l);
+        if (!IsStruct(e->type)) {
+            // TODO internal error
+        }
+        int reg1 = parser_struct_get_field_count(e->type->strct);
+        NewStruct__(code, reg0, reg1);
+
+        return reg0;
+    }
+    /*
+    // lval
+    int addr = 0;
+    // an init expr always has identifier on the left
+    EvalAddr(e->l, &addr);
+
+    if (e->r && e->r->kind == T_NILLIT) {
+        // no initializer
+        // clear zero
+        gen_clear_block(code, e->l);
+        return;
+    }
+
+    if (e->r && e->r->kind != T_STRUCTLIT) {
+        // initialized by another object
+        gen_copy_block(code, e->r, e->l);
+        return;
+    }
+    // struct literal initializer
+
+    // clear zero
+    gen_clear_block(code, e->l);
+
+    // struct lit
+    struct Expr *struct_lit = e->r;
+
+    for (struct Expr *elem = struct_lit->l; elem; elem = elem->next) {
+        // rval
+        gen_expr(code, elem->r);
+
+        // lval
+        int offset = 0;
+        EvalAddr(elem->l, &offset);
+
+        // store
+        if (IsGlobal(e->l))
+            StoreGlobal(code, addr + offset);
+        else
+            StoreLocal(code, addr + offset);
+    }
+    */
+}
+
 static int gen_store__(Bytecode *code, const struct Expr *lval, const struct Expr *rval)
 {
     int reg0 = 0xff;
@@ -1293,6 +1349,16 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         reg1 = gen_expr__(code, lval->r);
         reg2 = gen_expr__(code, rval);
         StoreArray__(code, reg0, reg1, reg2);
+        return reg0;
+    }
+    else if (lval->kind == T_SELECT) {
+        // eval struct value
+        reg0 = gen_expr__(code, lval->l);
+        // get field offset
+        reg1 = gen_addr__(code, lval->r);
+        // eval rval
+        reg2 = gen_expr__(code, rval);
+        StoreStruct__(code, reg0, reg1, reg2);
         return reg0;
     }
 
@@ -1499,19 +1565,33 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
 
     case T_IDENT:
         if (e->var->is_global) {
-            //LoadGlobal(code, e->var->offset);
             // TODO LoadInt could take care of this
-            //reg0 = LoadInt__(code, e->var->offset + 1);
+            //      reg0 = LoadInt__(code, e->var->offset);
             reg1 = PoolInt__(code, e->var->offset);
             if (reg0 == -1) {
                 // reg0 = LoadInt(code, , e->ival)
             }
             reg0 = NewRegister__(code);
+            // TODO rename it to LoadGlobal()
             reg0 = Load__(code, reg0, reg1);
         } else {
             reg0 = e->var->offset;
         }
         return reg0;
+#if TEST
+        if (e->var->is_global) {
+            // TODO LoadInt could take care of this
+            //reg0 = LoadInt__(code, e->var->offset + 1);
+            reg0 = PoolInt__(code, e->var->offset);
+            if (reg0 == -1) {
+                // reg0 = LoadInt(code, , e->ival)
+            }
+        }
+        else {
+            reg0 = e->var->offset;
+        }
+        return reg0;
+#endif
         /*
         if (IsStruct(e->type)) {
             gen_addr(code, e);
@@ -1525,12 +1605,16 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return;
         */
 
-        /*
     case T_SELECT:
-        gen_addr(code, e);
-        Load(code);
-        return;
-        */
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+        reg0 = gen_dst_register(code, reg0, reg1);
+        LoadStruct__(code, reg0, reg1, reg2);
+        return reg0;
+
+    case T_FIELD:
+        return e->field->offset;
+
 
     case T_INDEX:
         reg0 = NewRegister__(code);
@@ -1737,7 +1821,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         if (IsArray(e->type))
             gen_init_array__(code, e);
         else if (IsStruct(e->type))
-            ;//gen_init_struct(code, e);
+            gen_init_struct__(code, e);
         else
             gen_init__(code, e);
         return 0;
@@ -1797,7 +1881,7 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
 
         if (e->var->is_global) {
             // TODO LoadInt could take care of this
-            //reg0 = LoadInt__(code, e->var->offset + 1);
+            //      reg0 = LoadInt__(code, e->var->offset);
             reg0 = PoolInt__(code, e->var->offset);
             if (reg0 == -1) {
                 // reg0 = LoadInt(code, , e->ival)
@@ -1808,11 +1892,12 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
         }
         return reg0;
 
-        /*
     case T_FIELD:
-        LoadByte(code, e->field->offset);
-        return;
+        //LoadByte(code, e->field->offset);
+        reg0 = e->field->offset;
+        return reg0;
 
+        /*
     case T_SELECT:
         //if (optimize) {
         //    int base = 0;

@@ -112,8 +112,11 @@ enum Opcode {
     OP_STORE__,
     OP_LOADARRAY__,
     OP_STOREARRAY__,
+    OP_LOADSTRUCT__,
+    OP_STORESTRUCT__,
     // array/struct
     OP_NEWARRAY__,
+    OP_NEWSTRUCT__,
     // arithmetic
     OP_ADDINT__,
     OP_REMINT__,
@@ -329,8 +332,13 @@ int Load__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Store__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int LoadArray__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t idx);
 int StoreArray__(struct Bytecode *code, uint8_t dst, uint8_t idx, uint8_t src);
+int LoadStruct__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t field_idx);
+int StoreStruct__(struct Bytecode *code, uint8_t dst, uint8_t field_idx, uint8_t src);
+
 // array/struct
 int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len);
+int NewStruct__(struct Bytecode *code, uint8_t dst, uint8_t len);
+
 // arithmetic
 int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
 int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);

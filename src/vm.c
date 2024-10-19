@@ -1290,6 +1290,30 @@ static void run__(VM *vm)
                 ArraySet(dst.array, idx.inum, src);
             }
             break;
+
+        case OP_LOADSTRUCT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t field_idx = inst.C;
+                struct Value src = get_register_value(vm, reg1);
+                struct Value val = runtime_struct_get(src.strct, field_idx);
+
+                set_local(vm, reg0, val);
+            }
+            break;
+
+        case OP_STORESTRUCT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t field_idx = inst.B;
+                uint8_t reg2 = inst.C;
+                struct Value dst = get_register_value(vm, reg0);
+                struct Value src = get_register_value(vm, reg2);
+
+                runtime_struct_set(dst.strct, field_idx, src);
+            }
+            break;
             /*
         case OP_COPY_GLOBAL:
             {
@@ -1358,6 +1382,7 @@ static void run__(VM *vm)
             push_int(vm, TID_STR);
             break;
             */
+
         // array/struct
         case OP_NEWARRAY__:
             {
@@ -1368,6 +1393,21 @@ static void run__(VM *vm)
 
                 val.array = ArrayNew(&vm->gc_, len.inum);
                 set_local(vm, reg0, val);
+            }
+            break;
+
+        case OP_NEWSTRUCT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t len  = inst.B;
+                struct Value dst = get_register_value(vm, reg0);
+                struct Value val;
+
+                struct runtime_struct *s = runtime_struct_new(len);
+                runtime_append_gc_object(&vm->gc_, (struct Obj*) s);
+
+                val.strct = s;
+                set_local(vm, dst.inum, val);
             }
             break;
 

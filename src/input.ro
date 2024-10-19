@@ -4,9 +4,12 @@
 //[opengl] (github.com/...)
 //[my_calc]
 
-//## Point
-//  - x int
-//  - y int
+## Point
+  - x int
+  - y int
+
+- pt Point
+//- a [8]int
 
 //- @gvar
 //# get_point_y(p Point) int
@@ -42,10 +45,13 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
-- gvar int
-# seven() int
-    gvar = 119
-    return 7
+
+//- g_count = 13
+//- gvar = 13
+
+//# seven() int
+//  gvar = 119
+//  return 7
 
 # main() int
   //- a [8]int
@@ -106,5 +112,20 @@
   //  //b = 8
   //default
   //  b = a
-  seven()
-  return gvar
+
+  - a int
+  pt.x = 2
+  pt.y = 3
+  a = pt.y
+  //return pt.y
+  //g_count = 9
+  return pt.x + pt.y
+  //seven()
+  //- a = 23
+  //return a
+  //return gvar
+  //return g_count
+  //a[2] = 119
+  //return a[2]
+  //return pt.x
+  //return 42

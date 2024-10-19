@@ -333,6 +333,8 @@ int main(int argc, char **argv)
 
         ASSERTL(5, Interpret(input, filename, &opt));
     }
+    //==========================================================================
+    //printf("=============================================================\n");
     {
         const char *input = 
             "# main() int\n"

@@ -3,6 +3,7 @@
 #include "mem.h"
 // TODO move this
 #include "objarray.h"
+#include "runtime_struct.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -30,6 +31,13 @@ static void print_obj(const Obj *obj)
             const struct GCArray *array = (struct GCArray *) obj;
             printf("[Array] => len: %d, cap: %d\n",
                     array->values.len, array->values.cap);
+        }
+        break;
+
+    case OBJ_STRUCT:
+        {
+            const struct runtime_struct *s = (struct runtime_struct *) obj;
+            printf("[Struct] => len: %d, cap: %d\n", s->values.len, s->values.cap);
         }
         break;
 
@@ -64,6 +72,12 @@ void GCStringFree(struct StringObj *str)
         return;
     free(str->data);
     free(str);
+}
+
+void runtime_append_gc_object(struct GC *gc, struct Obj *obj)
+{
+    obj->next = gc->root;
+    gc->root = obj;
 }
 
 void PrintObjects(const GC *gc)

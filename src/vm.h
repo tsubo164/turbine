@@ -5,6 +5,7 @@
 #include "gc.h"
 // TODO remove this
 #include "objarray.h"
+#include "runtime_struct.h"
 
 typedef struct Call {
     int func_index;

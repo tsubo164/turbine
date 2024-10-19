@@ -9,9 +9,13 @@ typedef uint16_t Word;
 typedef int64_t  Int;
 typedef double   Float;
 
+typedef int64_t  value_int_t;
+typedef double   value_float_t;
+
 struct StringObj;
 struct ObjArray;
 struct GCArray;
+struct runtime_struct;
 
 // Value type
 enum ValueType {
@@ -30,6 +34,7 @@ typedef struct Value {
         struct StringObj *str;
         struct ObjArray *array_; // OLD
         struct GCArray *array;
+        struct runtime_struct *strct;
     };
 } Value;
 

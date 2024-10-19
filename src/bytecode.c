@@ -138,8 +138,11 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_STORE__]         = { "store",       OPERAND_AB_ },
     [OP_LOADARRAY__]     = { "loadarray",   OPERAND_ABC },
     [OP_STOREARRAY__]    = { "storearray",  OPERAND_ABC },
+    [OP_LOADSTRUCT__]    = { "loadstruct",  OPERAND_ABC },
+    [OP_STORESTRUCT__]   = { "storestruct", OPERAND_ABC },
     // array/struct
     [OP_NEWARRAY__]      = { "newarray",    OPERAND_AB_ },
+    [OP_NEWSTRUCT__]     = { "newstruct",   OPERAND_AB_ },
     // arithmetic
     [OP_ADDINT__]        = { "addint",      OPERAND_ABC },
     [OP_REMINT__]        = { "remint",      OPERAND_ABC },
@@ -954,10 +957,28 @@ int StoreArray__(struct Bytecode *code, uint8_t dst, uint8_t idx, uint8_t src)
     return dst;
 }
 
+int LoadStruct__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t field_idx)
+{
+    push_inst_abc(code, OP_LOADSTRUCT__, dst, src, field_idx);
+    return dst;
+}
+
+int StoreStruct__(struct Bytecode *code, uint8_t dst, uint8_t field_idx, uint8_t src)
+{
+    push_inst_abc(code, OP_STORESTRUCT__, dst, field_idx, src);
+    return dst;
+}
+
 // array/struct
 int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len)
 {
     push_inst_ab(code, OP_NEWARRAY__, dst, len);
+    return dst;
+}
+
+int NewStruct__(struct Bytecode *code, uint8_t dst, uint8_t len)
+{
+    push_inst_ab(code, OP_NEWSTRUCT__, dst, len);
     return dst;
 }
 
