@@ -369,8 +369,6 @@ int main(int argc, char **argv)
 
         ASSERTL(1, Interpret(input, filename, &opt));
     }
-    //==========================================================================
-    //printf("=============================================================\n");
     {
         const char *input = 
             "# main() int\n"
@@ -401,6 +399,8 @@ int main(int argc, char **argv)
 
         ASSERTL(42, Interpret(input, filename, &opt));
     }
+    //==========================================================================
+    //printf("=============================================================\n");
     {
         const char *input = 
             "# main() int\n"

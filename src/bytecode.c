@@ -882,11 +882,20 @@ bool IsTempRegister(const struct Bytecode *code, Byte id)
 
 int PoolInt__(struct Bytecode *code, Int val)
 {
-    if (code->const_count == 127) {
+    int new_idx = code->const_count;
+
+    if (new_idx == 127) {
         return -1;
     }
-    code->consts[code->const_count].inum = val;
-    code->const_types[code->const_count] = VAL_INT;
+
+    // find
+    for (int i = 0; i < code->const_count; i++) {
+        if (val == code->consts[i].inum)
+            return i + 128;
+    }
+
+    code->consts[new_idx].inum = val;
+    code->const_types[new_idx] = VAL_INT;
 
     int reg = code->const_count++;
     return reg + 128;
@@ -901,6 +910,12 @@ int PoolFloat__(struct Bytecode *code, value_float_t val)
         return -1;
     }
 
+    // find
+    for (int i = 0; i < code->const_count; i++) {
+        if (val == code->consts[i].fpnum)
+            return i + 128;
+    }
+
     code->consts[new_idx].fpnum = val;
     code->const_types[new_idx] = VAL_FLOAT;
 
@@ -910,14 +925,18 @@ int PoolFloat__(struct Bytecode *code, value_float_t val)
 
 int PoolString__(struct Bytecode *code, const char *str)
 {
-    if (code->const_count == 127) {
+    int new_idx = code->const_count;
+
+    if (new_idx == 127) {
+        // full
         return -1;
     }
-    int index = code->const_count++;
-    code->consts[index].str = GCStringNew(str);
-    code->const_types[index] = VAL_STRING;
 
-    return index + 128;
+    code->consts[new_idx].str = GCStringNew(str);
+    code->const_types[new_idx] = VAL_STRING;
+
+    int reg = code->const_count++;
+    return reg + 128;
 }
 
 struct Value GetConstValue__(const Bytecode *code, Byte id)

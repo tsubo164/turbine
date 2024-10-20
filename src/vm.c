@@ -1608,6 +1608,21 @@ do { \
             }
             break;
 
+        case OP_ADDFLOAT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                val0.fpnum = val1.fpnum + val2.fpnum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
         case OP_REMINT__:
             {
                 uint8_t reg0 = inst.A;
@@ -1692,14 +1707,6 @@ do { \
             break;
 
             /*
-        case OP_ADDF:
-            {
-                const Float val1 = pop_float(vm);
-                const Float val0 = pop_float(vm);
-                push_float(vm, val0 + val1);
-            }
-            break;
-
         case OP_CATS:
             {
                 const Value val1 = pop(vm);
