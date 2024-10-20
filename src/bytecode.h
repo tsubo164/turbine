@@ -125,12 +125,15 @@ enum Opcode {
     OP_REMFLOAT__,
     OP_EQINT__,
     OP_EQFLOAT__,
+    OP_NEQINT__,
+    OP_NEQFLOAT__,
     OP_LTINT__,
     OP_LTFLOAT__,
     OP_INC__,
     // string
     OP_CATSTRING__,
     OP_EQSTRING__,
+    OP_NEQSTRING__,
     // function call
     OP_CALL__,
     OP_RETURN__,
@@ -352,12 +355,15 @@ int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int RemFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int EqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int EqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int NotEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int NotEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int LessFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int Inc__(struct Bytecode *code, uint8_t id);
 // string
 int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int NotEqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 // function call
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
 void Allocate__(Bytecode *code, Byte count);

@@ -1336,6 +1336,10 @@ static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
     case T_EQ:
         BINOP_S__(code, type, Equal, Equal, reg0, reg1, reg2);
         break;
+
+    case T_NEQ:
+        BINOP_S__(code, type, NotEqual, NotEqual, reg0, reg1, reg2);
+        break;
     }
     return reg0;
 }
@@ -1710,6 +1714,16 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
+    case T_NEQ:
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+        reg0 = gen_dst_register(code, reg1, reg2);
+
+        // e->type is always result type bool. e->l->type for operand type.
+        //BINOP_S__(code, e->l->type, Equal, Equal, reg0, reg1, reg2);
+        gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
+        return reg0;
+
     case T_LT:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
@@ -1725,12 +1739,6 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return reg0;
 
         /*
-    case T_NEQ:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMITS(code, e->l->type, NotEqual, NotEqual);
-        return;
-
     case T_LTE:
         gen_expr(code, e->l);
         gen_expr(code, e->r);

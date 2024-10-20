@@ -1672,7 +1672,7 @@ do { \
             }
             break;
 
-#define DO_BINOP__(r0, r1, op, r2) \
+#define DO_BINOP__(r0, r1, op, r2, zerocheck) \
 do { \
     uint8_t reg0 = inst.A; \
     uint8_t reg1 = inst.B; \
@@ -1680,6 +1680,9 @@ do { \
     struct Value val1 = get_register_value(vm, reg1); \
     struct Value val2 = get_register_value(vm, reg2); \
     struct Value val0; \
+    if ((zerocheck)) {\
+        /* runtime error */ \
+    } \
     val0.r0 = val1.r1 op val2.r2; \
     set_local(vm, reg0, val0); \
 } while (0)
@@ -1697,7 +1700,7 @@ do { \
                 val0.inum = val1.fpnum == val2.fpnum;
                 set_local(vm, reg0, val0);
             }
-            //DO_BINOP__(inum, fpnum, ==, fpnum);
+            //DO_BINOP__(inum, fpnum, ==, fpnum, 0);
             break;
 
         case OP_EQSTRING__:
@@ -1712,6 +1715,22 @@ do { \
 
                 // The result of op is int (bool)
                 val0.inum = runtime_string_compare(val1.str, val2.str) == 0;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
+        case OP_NEQINT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                // The result of op is int (bool)
+                val0.inum = val1.inum != val2.inum;
                 set_local(vm, reg0, val0);
             }
             break;
@@ -1797,14 +1816,6 @@ do { \
                 const Float l = pop_float(vm);
                 // TODO check zero div
                 push_float(vm, fmod(l, r));
-            }
-            break;
-
-        case OP_NEQ:
-            {
-                const Int val1 = pop_int(vm);
-                const Int val0 = pop_int(vm);
-                push_int(vm, val0 != val1);
             }
             break;
 

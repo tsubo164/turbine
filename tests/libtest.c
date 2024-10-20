@@ -412,8 +412,6 @@ int main(int argc, char **argv)
 
         ASSERTL(11, Interpret(input, filename, &opt));
     }
-    //==========================================================================
-    //printf("=============================================================\n");
     {
         // '-' operator and order of eval args
         const char *input = 
@@ -425,6 +423,8 @@ int main(int argc, char **argv)
 
         ASSERTL(5, Interpret(input, filename, &opt));
     }
+    //==========================================================================
+    //printf("=============================================================\n");
     {
         // '*' operator
         const char *input = 

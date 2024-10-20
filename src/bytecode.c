@@ -151,12 +151,15 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_REMFLOAT__]      = { "remfloat",    OPERAND_ABC },
     [OP_EQINT__]         = { "eqint",       OPERAND_ABC },
     [OP_EQFLOAT__]       = { "eqfloat",     OPERAND_ABC },
+    [OP_NEQINT__]        = { "neqint",      OPERAND_ABC },
+    [OP_NEQFLOAT__]      = { "neqfloat",    OPERAND_ABC },
     [OP_LTINT__]         = { "ltint",       OPERAND_ABC },
     [OP_LTFLOAT__]       = { "ltfloat",     OPERAND_ABC },
     [OP_INC__]           = { "inc",         OPERAND_A__ },
     // string
     [OP_CATSTRING__]     = { "catstring",   OPERAND_ABC },
     [OP_EQSTRING__]      = { "eqstring",    OPERAND_ABC },
+    [OP_NEQSTRING__]     = { "neqstring",   OPERAND_ABC },
     // function call
     [OP_CALL__]          = { "call",        OPERAND_ABB },
     [OP_RETURN__]        = { "return",      OPERAND_A__ },
@@ -1065,6 +1068,18 @@ int EqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
     return dst;
 }
 
+int NotEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_NEQINT__, dst, src0, src1);
+    return dst;
+}
+
+int NotEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_NEQFLOAT__, dst, src0, src1);
+    return dst;
+}
+
 int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_LTINT__, dst, src0, src1);
@@ -1093,6 +1108,12 @@ int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src
 int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_EQSTRING__, dst, src0, src1);
+    return dst;
+}
+
+int NotEqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_NEQSTRING__, dst, src0, src1);
     return dst;
 }
 
