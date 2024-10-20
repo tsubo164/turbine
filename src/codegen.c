@@ -1328,6 +1328,21 @@ static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
         BINOP_S__(code, type, Add, Concat, reg0, reg1, reg2);
         break;
 
+    case T_SUB:
+    case T_ASUB:
+        BINOP__(code, type, Sub, reg0, reg1, reg2);
+        break;
+
+    case T_MUL:
+    case T_AMUL:
+        BINOP__(code, type, Mul, reg0, reg1, reg2);
+        break;
+
+    case T_DIV:
+    case T_ADIV:
+        BINOP__(code, type, Div, reg0, reg1, reg2);
+        break;
+
     case T_REM:
     case T_AREM:
         BINOP__(code, type, Rem, reg0, reg1, reg2);
@@ -1670,25 +1685,26 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
         return reg0;
 
-        /*
     case T_SUB:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMIT(code, e->type, Sub);
-        return;
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+        reg0 = gen_dst_register(code, reg1, reg2);
+        gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
+        return reg0;
 
     case T_MUL:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMIT(code, e->type, Mul);
-        return;
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+        reg0 = gen_dst_register(code, reg1, reg2);
+        gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
+        return reg0;
 
     case T_DIV:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMIT(code, e->type, Div);
-        return;
-        */
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+        reg0 = gen_dst_register(code, reg1, reg2);
+        gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
+        return reg0;
 
     case T_REM:
         reg1 = gen_expr__(code, e->l);

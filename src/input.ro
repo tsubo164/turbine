@@ -16,10 +16,7 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
+# sub(x int, y int) int
+  return x - y
 # main() int
-  - i int
-  if 41 != 42
-    i = 9
-  or
-    i = 11
-  return i
+  return sub(12, 7)

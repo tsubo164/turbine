@@ -121,6 +121,12 @@ enum Opcode {
     // arithmetic
     OP_ADDINT__,
     OP_ADDFLOAT__,
+    OP_SUBINT__,
+    OP_SUBFLOAT__,
+    OP_MULINT__,
+    OP_MULFLOAT__,
+    OP_DIVINT__,
+    OP_DIVFLOAT__,
     OP_REMINT__,
     OP_REMFLOAT__,
     OP_EQINT__,
@@ -349,8 +355,14 @@ int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len);
 int NewStruct__(struct Bytecode *code, uint8_t dst, uint8_t len);
 
 // arithmetic
-int AddInt__(Bytecode *code, Byte dst, Byte src0, Byte src1);
-int AddFloat__(Bytecode *code, Byte dst, Byte src0, Byte src1);
+int AddInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int AddFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int SubInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int SubFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int MulInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int MulFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int DivInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int DivFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int RemFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int EqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);

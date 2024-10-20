@@ -1623,7 +1623,7 @@ do { \
             }
             break;
 
-        case OP_CATSTRING__:
+        case OP_SUBINT__:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -1633,10 +1633,84 @@ do { \
                 struct Value val2 = get_register_value(vm, reg2);
                 struct Value val0;
 
-                struct StringObj *s = runtime_string_concat(val1.str, val2.str);
-                runtime_append_gc_object(&vm->gc_, (struct Obj*) s);
+                val0.inum = val1.inum - val2.inum;
+                set_local(vm, reg0, val0);
+            }
+            break;
 
-                val0.str = s;
+        case OP_SUBFLOAT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                val0.fpnum = val1.fpnum - val2.fpnum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
+        case OP_MULINT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                val0.inum = val1.inum * val2.inum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
+        case OP_MULFLOAT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                val0.fpnum = val1.fpnum * val2.fpnum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
+        case OP_DIVINT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                // TODO check zero division
+                val0.inum = val1.inum / val2.inum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
+        case OP_DIVFLOAT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                // TODO check zero division
+                val0.fpnum = val1.fpnum / val2.fpnum;
                 set_local(vm, reg0, val0);
             }
             break;
@@ -1653,6 +1727,41 @@ do { \
 
                 // TODO check zero division
                 val0.inum = val1.inum % val2.inum;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
+        case OP_REMFLOAT__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                // TODO check zero division
+                val0.fpnum = fmod(val1.fpnum, val2.fpnum);
+                set_local(vm, reg0, val0);
+            }
+            break;
+
+            // TODO move this
+        case OP_CATSTRING__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                struct StringObj *s = runtime_string_concat(val1.str, val2.str);
+                runtime_append_gc_object(&vm->gc_, (struct Obj*) s);
+
+                val0.str = s;
                 set_local(vm, reg0, val0);
             }
             break;
@@ -1760,65 +1869,6 @@ do { \
             break;
 
             /*
-        case OP_SUB:
-            {
-                const Int val1 = pop_int(vm);
-                const Int val0 = pop_int(vm);
-                push_int(vm, val0 - val1);
-            }
-            break;
-
-        case OP_SUBF:
-            {
-                const Float val1 = pop_float(vm);
-                const Float val0 = pop_float(vm);
-                push_float(vm, val0 - val1);
-            }
-            break;
-
-        case OP_MUL:
-            {
-                const Int r = pop_int(vm);
-                const Int l = pop_int(vm);
-                push_int(vm, l * r);
-            }
-            break;
-
-        case OP_MULF:
-            {
-                const Float val1 = pop_float(vm);
-                const Float val0 = pop_float(vm);
-                push_float(vm, val0 * val1);
-            }
-            break;
-
-        case OP_DIV:
-            {
-                const Int r = pop_int(vm);
-                const Int l = pop_int(vm);
-                // TODO check zero div
-                push_int(vm, l / r);
-            }
-            break;
-
-        case OP_DIVF:
-            {
-                const Float r = pop_float(vm);
-                const Float l = pop_float(vm);
-                // TODO check zero div
-                push_float(vm, l / r);
-            }
-            break;
-
-        case OP_REMF:
-            {
-                const Float r = pop_float(vm);
-                const Float l = pop_float(vm);
-                // TODO check zero div
-                push_float(vm, fmod(l, r));
-            }
-            break;
-
         case OP_NEQF:
             {
                 const Float val1 = pop_float(vm);

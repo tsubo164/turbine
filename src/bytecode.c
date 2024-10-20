@@ -147,6 +147,12 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     // arithmetic
     [OP_ADDINT__]        = { "addint",      OPERAND_ABC },
     [OP_ADDFLOAT__]      = { "addfloat",    OPERAND_ABC },
+    [OP_SUBINT__]        = { "subint",      OPERAND_ABC },
+    [OP_SUBFLOAT__]      = { "subfloat",    OPERAND_ABC },
+    [OP_MULINT__]        = { "mulint",      OPERAND_ABC },
+    [OP_MULFLOAT__]      = { "mulfloat",    OPERAND_ABC },
+    [OP_DIVINT__]        = { "divint",      OPERAND_ABC },
+    [OP_DIVFLOAT__]      = { "divfloat",    OPERAND_ABC },
     [OP_REMINT__]        = { "remint",      OPERAND_ABC },
     [OP_REMFLOAT__]      = { "remfloat",    OPERAND_ABC },
     [OP_EQINT__]         = { "eqint",       OPERAND_ABC },
@@ -1032,15 +1038,51 @@ int NewStruct__(struct Bytecode *code, uint8_t dst, uint8_t len)
 }
 
 // arithmetic
-int AddInt__(struct Bytecode *code, Byte dst, Byte src0, Byte src1)
+int AddInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_ADDINT__, dst, src0, src1);
     return dst;
 }
 
-int AddFloat__(struct Bytecode *code, Byte dst, Byte src0, Byte src1)
+int AddFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_ADDFLOAT__, dst, src0, src1);
+    return dst;
+}
+
+int SubInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_SUBINT__, dst, src0, src1);
+    return dst;
+}
+
+int SubFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_SUBFLOAT__, dst, src0, src1);
+    return dst;
+}
+
+int MulInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_MULINT__, dst, src0, src1);
+    return dst;
+}
+
+int MulFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_MULFLOAT__, dst, src0, src1);
+    return dst;
+}
+
+int DivInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_DIVINT__, dst, src0, src1);
+    return dst;
+}
+
+int DivFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_DIVFLOAT__, dst, src0, src1);
     return dst;
 }
 
