@@ -17,10 +17,13 @@
 //  | T_BRK | "break"
 
 # main() int
-  - f float
-  f = 3.14
-  if f == 3.14
-    return 1
+  - s0 string
+  - s1 string
+  - str string
+  s0 = "Hello, "
+  s1 = "World!"
+  str = s0 + s1
+  if str == "Hello, World!"
+    return 42
   or
-    return 7
-  return 42
+    return 0

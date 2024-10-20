@@ -1623,6 +1623,24 @@ do { \
             }
             break;
 
+        case OP_CATSTRING__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                struct StringObj *s = runtime_string_concat(val1.str, val2.str);
+                runtime_append_gc_object(&vm->gc_, (struct Obj*) s);
+
+                val0.str = s;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
         case OP_REMINT__:
             {
                 uint8_t reg0 = inst.A;
@@ -1682,6 +1700,22 @@ do { \
             //DO_BINOP__(inum, fpnum, ==, fpnum);
             break;
 
+        case OP_EQSTRING__:
+            {
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                uint8_t reg2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val0;
+
+                // The result of op is int (bool)
+                val0.inum = runtime_string_compare(val1.str, val2.str) == 0;
+                set_local(vm, reg0, val0);
+            }
+            break;
+
         case OP_LTINT__:
             {
                 uint8_t reg0 = inst.A;
@@ -1707,20 +1741,6 @@ do { \
             break;
 
             /*
-        case OP_CATS:
-            {
-                const Value val1 = pop(vm);
-                const Value val0 = pop(vm);
-                Value val;
-                //FIXME
-                char buf[1024] = {'\0'};
-                snprintf(buf, 1024, "%s%s", val0.str->data, val1.str->data);
-                val.str = NewString(&vm->gc_, buf);
-                //val.str = NewString(&vm->gc_, val0.str->str + val1.str->str);
-                push(vm, val);
-            }
-            break;
-
         case OP_SUB:
             {
                 const Int val1 = pop_int(vm);
@@ -1777,16 +1797,6 @@ do { \
                 const Float l = pop_float(vm);
                 // TODO check zero div
                 push_float(vm, fmod(l, r));
-            }
-            break;
-
-        case OP_EQS:
-            {
-                const Value val1 = pop(vm);
-                const Value val0 = pop(vm);
-                Value val;
-                val.inum = !strcmp(val0.str->data, val1.str->data);
-                push(vm, val);
             }
             break;
 

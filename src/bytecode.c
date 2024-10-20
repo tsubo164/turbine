@@ -932,6 +932,12 @@ int PoolString__(struct Bytecode *code, const char *str)
         return -1;
     }
 
+    // find
+    for (int i = 0; i < code->const_count; i++) {
+        if (runtime_string_compare_cstr(code->consts[i].str, str) == 0)
+            return i + 128;
+    }
+
     code->consts[new_idx].str = GCStringNew(str);
     code->const_types[new_idx] = VAL_STRING;
 
