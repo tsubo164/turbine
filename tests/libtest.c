@@ -488,8 +488,6 @@ int main(int argc, char **argv)
 
         ASSERTL(1, Interpret(input, filename, &opt) != 0);
     }
-    //==========================================================================
-    //printf("=============================================================\n");
     {
         // "||" operator
         const char *input = 
@@ -540,6 +538,8 @@ int main(int argc, char **argv)
 
         ASSERTL(7, Interpret(input, filename, &opt));
     }
+    //==========================================================================
+    //printf("=============================================================\n");
     {
         // "-" unary operator
         const char *input = 

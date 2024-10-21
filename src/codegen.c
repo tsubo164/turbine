@@ -1355,6 +1355,23 @@ static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
     case T_NEQ:
         BINOP_S__(code, type, NotEqual, NotEqual, reg0, reg1, reg2);
         break;
+
+    case T_LT:
+        BINOP__(code, type, Less, reg0, reg1, reg2);
+        break;
+
+    case T_LTE:
+        BINOP__(code, type, LessEqual, reg0, reg1, reg2);
+        break;
+
+    case T_GT:
+        BINOP__(code, type, Greater, reg0, reg1, reg2);
+        break;
+
+    case T_GTE:
+        BINOP__(code, type, GreaterEqual, reg0, reg1, reg2);
+        break;
+
     }
     return reg0;
 }
@@ -1651,15 +1668,42 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     case T_CALL:
         return gen_call__(code, e);
 
-        /*
     case T_LOR:
-        gen_logor(code, e);
-        return;
+        {
+            // eval
+            reg1 = gen_expr__(code, e->l);
+            Int els = JumpIfZero__(code, reg1, -1);
+
+            // true
+            reg0 = gen_dst_register2(code, reg1);
+            Move__(code, reg0, reg1);
+            Int exit = Jump__(code, -1);
+
+            // false
+            BackPatch__(code, els);
+            reg0 = gen_expr__(code, e->r);
+            BackPatch__(code, exit);
+        }
+        return reg0;
 
     case T_LAND:
-        gen_logand(code, e);
-        return;
-        */
+        {
+            // eval
+            reg1 = gen_expr__(code, e->l);
+            Int els = JumpIfZero__(code, reg1, -1);
+
+            // true
+            reg2 = gen_expr__(code, e->r);
+            reg0 = gen_dst_register(code, reg1, reg2);
+            Move__(code, reg0, reg2);
+            Int exit = Jump__(code, -1);
+
+            // false
+            BackPatch__(code, els);
+            Move__(code, reg0, reg1);
+            BackPatch__(code, exit);
+        }
+        return reg0;
 
     // TODO binary op
     //if (optimize) {
@@ -1741,50 +1785,33 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return reg0;
 
     case T_LT:
+    case T_LTE:
+    case T_GT:
+    case T_GTE:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
-
-        if (IsTempRegister(code, reg1))
-            reg0 = reg1;
-        else if (IsTempRegister(code, reg2))
-            reg0 = reg2;
-        else
-            reg0 = NewRegister__(code);
-
-        BINOP__(code, e->type, Less, reg0, reg1, reg2);
+        reg0 = gen_dst_register(code, reg1, reg2);
+        // e->type is always result type bool. e->l->type for operand type.
+        gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
         /*
-    case T_LTE:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMIT(code, e->l->type, LessEqual);
-        return;
-
-    case T_GT:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMIT(code, e->l->type, Greater);
-        return;
-
-    case T_GTE:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        EMIT(code, e->l->type, GreaterEqual);
-        return;
-
     case T_AND:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        And(code);
-        return;
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+        reg0 = gen_dst_register(code, reg1, reg2);
+        //LogicalAnd__(code, reg0, reg1, reg2);
+        break;
 
     case T_OR:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        Or(code);
-        return;
+        reg1 = gen_expr__(code, e->l);
+        reg2 = gen_expr__(code, e->r);
+        reg0 = gen_dst_register(code, reg1, reg2);
+        //LogicalOr__(code, reg0, reg1, reg2);
+        break;
+        */
 
+        /*
     case T_XOR:
         gen_expr(code, e->l);
         gen_expr(code, e->r);

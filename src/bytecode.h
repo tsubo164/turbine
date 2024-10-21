@@ -135,6 +135,14 @@ enum Opcode {
     OP_NEQFLOAT__,
     OP_LTINT__,
     OP_LTFLOAT__,
+    OP_LTEINT__,
+    OP_LTEFLOAT__,
+    OP_GTINT__,
+    OP_GTFLOAT__,
+    OP_GTEINT__,
+    OP_GTEFLOAT__,
+    OP_AND__,
+    OP_OR__,
     OP_INC__,
     // string
     OP_CATSTRING__,
@@ -371,6 +379,14 @@ int NotEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1
 int NotEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int LessFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int LessEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int LessEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int GreaterInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int GreaterFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int GreaterEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int GreaterEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int And__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int Or__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int Inc__(struct Bytecode *code, uint8_t id);
 // string
 int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);

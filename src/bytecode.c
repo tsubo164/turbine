@@ -161,6 +161,14 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_NEQFLOAT__]      = { "neqfloat",    OPERAND_ABC },
     [OP_LTINT__]         = { "ltint",       OPERAND_ABC },
     [OP_LTFLOAT__]       = { "ltfloat",     OPERAND_ABC },
+    [OP_LTEINT__]        = { "lteint",      OPERAND_ABC },
+    [OP_LTEFLOAT__]      = { "ltefloat",    OPERAND_ABC },
+    [OP_GTINT__]         = { "gtint",       OPERAND_ABC },
+    [OP_GTFLOAT__]       = { "gtfloat",     OPERAND_ABC },
+    [OP_GTEINT__]        = { "gteint",      OPERAND_ABC },
+    [OP_GTEFLOAT__]      = { "gtefloat",    OPERAND_ABC },
+    [OP_AND__]           = { "and",         OPERAND_ABC },
+    [OP_OR__]            = { "or",          OPERAND_ABC },
     [OP_INC__]           = { "inc",         OPERAND_A__ },
     // string
     [OP_CATSTRING__]     = { "catstring",   OPERAND_ABC },
@@ -1131,6 +1139,54 @@ int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 int LessFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_LTFLOAT__, dst, src0, src1);
+    return dst;
+}
+
+int LessEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_LTEINT__, dst, src0, src1);
+    return dst;
+}
+
+int LessEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_LTEFLOAT__, dst, src0, src1);
+    return dst;
+}
+
+int GreaterInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_GTINT__, dst, src0, src1);
+    return dst;
+}
+
+int GreaterFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_GTFLOAT__, dst, src0, src1);
+    return dst;
+}
+
+int GreaterEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_GTEINT__, dst, src0, src1);
+    return dst;
+}
+
+int GreaterEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_GTEFLOAT__, dst, src0, src1);
+    return dst;
+}
+
+int And__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_AND__, dst, src0, src1);
+    return dst;
+}
+
+int Or__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_OR__, dst, src0, src1);
     return dst;
 }
 
