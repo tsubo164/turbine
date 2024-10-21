@@ -16,7 +16,7 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
-# sub(x int, y int) int
-  return x - y
 # main() int
-  return sub(12, 7)
+    - i int
+    i = 7
+    return -i

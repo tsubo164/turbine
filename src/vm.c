@@ -2054,21 +2054,29 @@ do { \
                 push_int(vm, l >> r);
             }
             break;
+            */
 
-        case OP_NEG:
+        case OP_NEGINT__:
             {
-                const Int i = pop_int(vm);
-                push_int(vm, -1 * i);
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                struct Value val1 = get_register_value(vm, reg1);
+                val1.inum *= -1;
+                set_local(vm, reg0, val1);
             }
             break;
 
-        case OP_NEGF:
+        case OP_NEGFLOAT__:
             {
-                const Float f = pop_float(vm);
-                push_float(vm, -1 * f);
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                struct Value val1 = get_register_value(vm, reg1);
+                val1.fpnum *= -1.;
+                set_local(vm, reg0, val1);
             }
             break;
 
+            /*
         case OP_SETZ:
             {
                 const Int i = pop_int(vm);

@@ -169,6 +169,8 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_GTEFLOAT__]      = { "gtefloat",    OPERAND_ABC },
     [OP_AND__]           = { "and",         OPERAND_ABC },
     [OP_OR__]            = { "or",          OPERAND_ABC },
+    [OP_NEGINT__]        = { "negint",      OPERAND_AB_ },
+    [OP_NEGFLOAT__]      = { "negfloat",    OPERAND_AB_ },
     [OP_INC__]           = { "inc",         OPERAND_A__ },
     // string
     [OP_CATSTRING__]     = { "catstring",   OPERAND_ABC },
@@ -1187,6 +1189,18 @@ int And__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 int Or__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_OR__, dst, src0, src1);
+    return dst;
+}
+
+int NegateInt__(struct Bytecode *code, uint8_t dst, uint8_t src)
+{
+    push_inst_ab(code, OP_NEGINT__, dst, src);
+    return dst;
+}
+
+int NegateFloat__(struct Bytecode *code, uint8_t dst, uint8_t src)
+{
+    push_inst_ab(code, OP_NEGFLOAT__, dst, src);
     return dst;
 }
 

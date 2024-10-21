@@ -1833,16 +1833,28 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     case T_ADR:
         LoadAddress(code, Addr(e->l));
         return;
+        */
 
     case T_POS:
-        gen_expr(code, e->l);
-        return;
+        {
+            int reg0 = gen_expr__(code, e->l);
+            return reg0;
+        }
 
     case T_NEG:
-        gen_expr(code, e->l);
-        EMIT(code, e->type, Negate);
-        return;
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg0 = gen_dst_register2(code, reg1);
 
+            if (IsInt(e->type))
+                reg0 = NegateInt__(code, reg0, reg1);
+            else if (IsFloat(e->type))
+                reg0 = NegateFloat__(code, reg0, reg1);
+
+            return reg0;
+        }
+
+        /*
     case T_LNOT:
         gen_expr(code, e->l);
         SetIfZero(code);

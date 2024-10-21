@@ -143,6 +143,8 @@ enum Opcode {
     OP_GTEFLOAT__,
     OP_AND__,
     OP_OR__,
+    OP_NEGINT__,
+    OP_NEGFLOAT__,
     OP_INC__,
     // string
     OP_CATSTRING__,
@@ -349,7 +351,7 @@ struct Value GetConstValue__(const Bytecode *code, Byte id);
 bool IsConstValue__(Byte id);
 
 // load/store/move
-int Move__(Bytecode *code, Byte dst, Byte src);
+int Move__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int LoadInt__(Bytecode *code, Int integer);
 int Load__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Store__(struct Bytecode *code, uint8_t dst, uint8_t src);
@@ -387,6 +389,8 @@ int GreaterEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t 
 int GreaterEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int And__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int Or__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int NegateInt__(struct Bytecode *code, uint8_t dst, uint8_t src);
+int NegateFloat__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Inc__(struct Bytecode *code, uint8_t id);
 // string
 int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
