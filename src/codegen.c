@@ -1854,12 +1854,15 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-        /*
     case T_LNOT:
-        gen_expr(code, e->l);
-        SetIfZero(code);
-        return;
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg0 = gen_dst_register2(code, reg1);
+            reg0 = SetIfZero__(code, reg0, reg1);
+            return reg0;
+        }
 
+        /*
     case T_NOT:
         gen_expr(code, e->l);
         Not(code);

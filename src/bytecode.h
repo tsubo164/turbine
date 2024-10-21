@@ -145,6 +145,8 @@ enum Opcode {
     OP_OR__,
     OP_NEGINT__,
     OP_NEGFLOAT__,
+    OP_SETIFZERO__,
+    OP_SETIFNOTZ__,
     OP_INC__,
     // string
     OP_CATSTRING__,
@@ -391,6 +393,8 @@ int And__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int Or__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int NegateInt__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int NegateFloat__(struct Bytecode *code, uint8_t dst, uint8_t src);
+int SetIfZero__(struct Bytecode *code, uint8_t dst, uint8_t src);
+int SetIfNotZero__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Inc__(struct Bytecode *code, uint8_t id);
 // string
 int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
