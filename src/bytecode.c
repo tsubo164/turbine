@@ -167,13 +167,16 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_GTFLOAT__]       = { "gtfloat",     OPERAND_ABC },
     [OP_GTEINT__]        = { "gteint",      OPERAND_ABC },
     [OP_GTEFLOAT__]      = { "gtefloat",    OPERAND_ABC },
-    [OP_AND__]           = { "and",         OPERAND_ABC },
-    [OP_OR__]            = { "or",          OPERAND_ABC },
+    [OP_BITWISEAND__]    = { "bitwiseand",  OPERAND_ABC },
+    [OP_BITWISEOR__]     = { "bitwiseor",   OPERAND_ABC },
+    [OP_BITWISEXOR__]    = { "bitwisexor",  OPERAND_ABC },
+    [OP_BITWISENOT__]    = { "bitwisenot",  OPERAND_AB_ },
     [OP_NEGINT__]        = { "negint",      OPERAND_AB_ },
     [OP_NEGFLOAT__]      = { "negfloat",    OPERAND_AB_ },
     [OP_SETIFZERO__]     = { "setifzero",   OPERAND_AB_ },
     [OP_SETIFNOTZ__]     = { "setifnotz",   OPERAND_AB_ },
     [OP_INC__]           = { "inc",         OPERAND_A__ },
+    [OP_DEC__]           = { "dec",         OPERAND_A__ },
     // string
     [OP_CATSTRING__]     = { "catstring",   OPERAND_ABC },
     [OP_EQSTRING__]      = { "eqstring",    OPERAND_ABC },
@@ -1182,15 +1185,27 @@ int GreaterEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_
     return dst;
 }
 
-int And__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int BitwiseAnd__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
-    push_inst_abc(code, OP_AND__, dst, src0, src1);
+    push_inst_abc(code, OP_BITWISEAND__, dst, src0, src1);
     return dst;
 }
 
-int Or__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int BitwiseOr__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
-    push_inst_abc(code, OP_OR__, dst, src0, src1);
+    push_inst_abc(code, OP_BITWISEOR__, dst, src0, src1);
+    return dst;
+}
+
+int BitwiseXor__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_BITWISEXOR__, dst, src0, src1);
+    return dst;
+}
+
+int BitwiseNot__(struct Bytecode *code, uint8_t dst, uint8_t src)
+{
+    push_inst_ab(code, OP_BITWISENOT__, dst, src);
     return dst;
 }
 
@@ -1218,10 +1233,16 @@ int SetIfNotZero__(struct Bytecode *code, uint8_t dst, uint8_t src)
     return dst;
 }
 
-int Inc__(struct Bytecode *code, uint8_t id)
+int Inc__(struct Bytecode *code, uint8_t src)
 {
-    push_inst_a(code, OP_INC__, id);
-    return id;
+    push_inst_a(code, OP_INC__, src);
+    return src;
+}
+
+int Dec__(struct Bytecode *code, uint8_t src)
+{
+    push_inst_a(code, OP_DEC__, src);
+    return src;
 }
 
 // string

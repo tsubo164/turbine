@@ -141,13 +141,16 @@ enum Opcode {
     OP_GTFLOAT__,
     OP_GTEINT__,
     OP_GTEFLOAT__,
-    OP_AND__,
-    OP_OR__,
+    OP_BITWISEAND__,
+    OP_BITWISEOR__,
+    OP_BITWISEXOR__,
+    OP_BITWISENOT__,
     OP_NEGINT__,
     OP_NEGFLOAT__,
     OP_SETIFZERO__,
     OP_SETIFNOTZ__,
     OP_INC__,
+    OP_DEC__,
     // string
     OP_CATSTRING__,
     OP_EQSTRING__,
@@ -389,13 +392,16 @@ int GreaterInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 int GreaterFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int GreaterEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int GreaterEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
-int And__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
-int Or__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int BitwiseAnd__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int BitwiseOr__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int BitwiseXor__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int BitwiseNot__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int NegateInt__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int NegateFloat__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int SetIfZero__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int SetIfNotZero__(struct Bytecode *code, uint8_t dst, uint8_t src);
-int Inc__(struct Bytecode *code, uint8_t id);
+int Inc__(struct Bytecode *code, uint8_t src);
+int Dec__(struct Bytecode *code, uint8_t src);
 // string
 int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);

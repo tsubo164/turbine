@@ -18,5 +18,5 @@
 
 # main() int
     - i int
-    i = 7
-    return -i
+    i = 0x8
+    return ~i & 0xF

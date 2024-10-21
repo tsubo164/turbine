@@ -1795,29 +1795,42 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
-        /*
     case T_AND:
-        reg1 = gen_expr__(code, e->l);
-        reg2 = gen_expr__(code, e->r);
-        reg0 = gen_dst_register(code, reg1, reg2);
-        //LogicalAnd__(code, reg0, reg1, reg2);
-        break;
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg2 = gen_expr__(code, e->r);
+            int reg0 = gen_dst_register(code, reg1, reg2);
+            reg0 = BitwiseAnd__(code, reg0, reg1, reg2);
+            return reg0;
+        }
 
     case T_OR:
-        reg1 = gen_expr__(code, e->l);
-        reg2 = gen_expr__(code, e->r);
-        reg0 = gen_dst_register(code, reg1, reg2);
-        //LogicalOr__(code, reg0, reg1, reg2);
-        break;
-        */
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg2 = gen_expr__(code, e->r);
+            int reg0 = gen_dst_register(code, reg1, reg2);
+            reg0 = BitwiseOr__(code, reg0, reg1, reg2);
+            return reg0;
+        }
+
+    case T_XOR:
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg2 = gen_expr__(code, e->r);
+            int reg0 = gen_dst_register(code, reg1, reg2);
+            reg0 = BitwiseXor__(code, reg0, reg1, reg2);
+            return reg0;
+        }
+
+    case T_NOT:
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg0 = gen_dst_register2(code, reg1);
+            reg0 = BitwiseNot__(code, reg0, reg1);
+            return reg0;
+        }
 
         /*
-    case T_XOR:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        Xor(code);
-        return;
-
     case T_SHL:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
@@ -1863,11 +1876,6 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         }
 
         /*
-    case T_NOT:
-        gen_expr(code, e->l);
-        Not(code);
-        return;
-
     case T_DRF:
         gen_expr(code, e->l);
         Dereference(code);
@@ -1891,22 +1899,30 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return 0;
 
     case T_INC:
-        if (IsGlobal(e->l))
-            ;//IncGlobal(code, Addr(e->l));
-        else {
-            reg0 = gen_addr__(code, e->l);
-            Inc__(code, reg0);
+        {
+            int reg0 = -1;
+            if (IsGlobal(e->l)) {
+                ;//IncGlobal(code, Addr(e->l));
+            }
+            else {
+                reg0 = gen_addr__(code, e->l);
+                Inc__(code, reg0);
+            }
+            return reg0;
         }
-        return reg0;
 
-        /*
     case T_DEC:
-        if (IsGlobal(e->l))
-            DecGlobal(code, Addr(e->l));
-        else
-            DecLocal(code, Addr(e->l));
-        return;
-        */
+        {
+            int reg0 = -1;
+            if (IsGlobal(e->l)) {
+                ;//DecGlobal(code, Addr(e->l));
+            }
+            else {
+                reg0 = gen_addr__(code, e->l);
+                Dec__(code, reg0);
+            }
+            return reg0;
+        }
     }
 
     return -1;

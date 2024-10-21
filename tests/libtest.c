@@ -650,8 +650,6 @@ int main(int argc, char **argv)
 
         ASSERTL(41, Interpret(input, filename, &opt));
     }
-    //==========================================================================
-    //printf("=============================================================\n");
     {
         // "&" operator
         const char *input = 
@@ -707,6 +705,8 @@ int main(int argc, char **argv)
 
         ASSERTL(0x40, Interpret(input, filename, &opt));
     }
+    //==========================================================================
+    //printf("=============================================================\n");
     {
         // ">>" operator
         const char *input = 

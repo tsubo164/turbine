@@ -1174,24 +1174,6 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_INCGLOBAL:
-            {
-                const Int id = fetch_word(vm);
-                Value val = get_global(vm, id);
-                val.inum++;
-                set_global(vm, id, val);
-            }
-            break;
-
-        case OP_DECLOCAL:
-            {
-                const Int id = fetch_byte(vm);
-                Value val = get_local(vm, id);
-                val.inum--;
-                set_local(vm, id, val);
-            }
-            break;
-
         case OP_DECGLOBAL:
             {
                 const Int id = fetch_word(vm);
@@ -1797,248 +1779,279 @@ do { \
 } while (0)
         case OP_EQFLOAT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
                 val0.inum = val1.fpnum == val2.fpnum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             //DO_BINOP__(inum, fpnum, ==, fpnum, 0);
             break;
 
         case OP_EQSTRING__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
                 val0.inum = runtime_string_compare(val1.str, val2.str) == 0;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_NEQINT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
                 val0.inum = val1.inum != val2.inum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_NEQFLOAT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
                 val0.inum = val1.fpnum != val2.fpnum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_NEQSTRING__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
                 val0.inum = runtime_string_compare(val1.str, val2.str) != 0;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_LTINT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum < val2.inum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_LTFLOAT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.fpnum < val2.fpnum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_LTEINT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum <= val2.inum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_LTEFLOAT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.fpnum <= val2.fpnum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_GTINT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum > val2.inum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_GTFLOAT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.fpnum > val2.fpnum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_GTEINT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum >= val2.inum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
         case OP_GTEFLOAT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                uint8_t reg2 = inst.C;
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.fpnum >= val2.fpnum;
-                set_local(vm, reg0, val0);
+                set_local(vm, dst, val0);
             }
             break;
 
-            /*
-        case OP_AND__:
+        case OP_BITWISEAND__:
             {
-                const Int r = pop_int(vm);
-                const Int l = pop_int(vm);
-                push_int(vm, l & r);
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
+                struct Value val0;
+
+                val0.inum = val1.inum & val2.inum;
+                set_local(vm, dst, val0);
             }
             break;
 
-        case OP_OR__:
+        case OP_BITWISEOR__:
             {
-                const Int r = pop_int(vm);
-                const Int l = pop_int(vm);
-                push_int(vm, l | r);
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
+                struct Value val0;
+
+                val0.inum = val1.inum | val2.inum;
+                set_local(vm, dst, val0);
             }
             break;
-            */
+
+        case OP_BITWISEXOR__:
+            {
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
+                struct Value val0;
+
+                val0.inum = val1.inum ^ val2.inum;
+                set_local(vm, dst, val0);
+            }
+            break;
+
+        case OP_BITWISENOT__:
+            {
+                uint8_t dst = inst.A;
+                uint8_t src = inst.B;
+                struct Value val = get_register_value(vm, src);
+                val.inum = ~val.inum;
+                set_local(vm, dst, val);
+            }
+            break;
 
         case OP_INC__:
             {
-                uint8_t reg = inst.A;
-                struct Value val = get_register_value(vm, reg);
-                val.inum++;
-                set_local(vm, reg, val);
+                uint8_t src = inst.A;
+                struct Value val0 = get_register_value(vm, src);
+                val0.inum++;
+                set_local(vm, src, val0);
+            }
+            break;
+
+        case OP_DEC__:
+            {
+                uint8_t src = inst.A;
+                struct Value val0 = get_register_value(vm, src);
+                val0.inum--;
+                set_local(vm, src, val0);
             }
             break;
 
             /*
-        case OP_XOR:
-            {
-                const Int r = pop_int(vm);
-                const Int l = pop_int(vm);
-                push_int(vm, l ^ r);
-            }
-            break;
-
-        case OP_NOT:
-            {
-                const Int i = pop_int(vm);
-                push_int(vm, ~i);
-            }
-            break;
-
         case OP_SHL:
             {
                 const Int r = pop_int(vm);
