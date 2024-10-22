@@ -171,6 +171,8 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_BITWISEOR__]     = { "bitwiseor",   OPERAND_ABC },
     [OP_BITWISEXOR__]    = { "bitwisexor",  OPERAND_ABC },
     [OP_BITWISENOT__]    = { "bitwisenot",  OPERAND_AB_ },
+    [OP_SHL__]           = { "shl",         OPERAND_ABC },
+    [OP_SHR__]           = { "shr",         OPERAND_ABC },
     [OP_NEGINT__]        = { "negint",      OPERAND_AB_ },
     [OP_NEGFLOAT__]      = { "negfloat",    OPERAND_AB_ },
     [OP_SETIFZERO__]     = { "setifzero",   OPERAND_AB_ },
@@ -1206,6 +1208,18 @@ int BitwiseXor__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 int BitwiseNot__(struct Bytecode *code, uint8_t dst, uint8_t src)
 {
     push_inst_ab(code, OP_BITWISENOT__, dst, src);
+    return dst;
+}
+
+int ShiftLeft__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_SHL__, dst, src0, src1);
+    return dst;
+}
+
+int ShiftRight__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+{
+    push_inst_abc(code, OP_SHR__, dst, src0, src1);
     return dst;
 }
 

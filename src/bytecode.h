@@ -145,6 +145,8 @@ enum Opcode {
     OP_BITWISEOR__,
     OP_BITWISEXOR__,
     OP_BITWISENOT__,
+    OP_SHL__,
+    OP_SHR__,
     OP_NEGINT__,
     OP_NEGFLOAT__,
     OP_SETIFZERO__,
@@ -396,6 +398,8 @@ int BitwiseAnd__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 int BitwiseOr__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int BitwiseXor__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int BitwiseNot__(struct Bytecode *code, uint8_t dst, uint8_t src);
+int ShiftLeft__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
+int ShiftRight__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int NegateInt__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int NegateFloat__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int SetIfZero__(struct Bytecode *code, uint8_t dst, uint8_t src);

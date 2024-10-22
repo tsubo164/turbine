@@ -2033,6 +2033,36 @@ do { \
             }
             break;
 
+        case OP_SHL__:
+            {
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
+                struct Value val0;
+
+                val0.inum = val1.inum << val2.inum;
+                set_local(vm, dst, val0);
+            }
+            break;
+
+        case OP_SHR__:
+            {
+                uint8_t dst = inst.A;
+                uint8_t src1 = inst.B;
+                uint8_t src2 = inst.C;
+
+                struct Value val1 = get_register_value(vm, src1);
+                struct Value val2 = get_register_value(vm, src2);
+                struct Value val0;
+
+                val0.inum = val1.inum >> val2.inum;
+                set_local(vm, dst, val0);
+            }
+            break;
+
         case OP_INC__:
             {
                 uint8_t src = inst.A;
@@ -2050,24 +2080,6 @@ do { \
                 set_local(vm, src, val0);
             }
             break;
-
-            /*
-        case OP_SHL:
-            {
-                const Int r = pop_int(vm);
-                const Int l = pop_int(vm);
-                push_int(vm, l << r);
-            }
-            break;
-
-        case OP_SHR:
-            {
-                const Int r = pop_int(vm);
-                const Int l = pop_int(vm);
-                push_int(vm, l >> r);
-            }
-            break;
-            */
 
         case OP_NEGINT__:
             {

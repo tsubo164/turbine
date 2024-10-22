@@ -1830,19 +1830,25 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-        /*
     case T_SHL:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        ShiftLeft(code);
-        return;
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg2 = gen_expr__(code, e->r);
+            int reg0 = gen_dst_register(code, reg1, reg2);
+            reg0 = ShiftLeft__(code, reg0, reg1, reg2);
+            return reg0;
+        }
 
     case T_SHR:
-        gen_expr(code, e->l);
-        gen_expr(code, e->r);
-        ShiftRight(code);
-        return;
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg2 = gen_expr__(code, e->r);
+            int reg0 = gen_dst_register(code, reg1, reg2);
+            reg0 = ShiftRight__(code, reg0, reg1, reg2);
+            return reg0;
+        }
 
+        /*
     case T_ADR:
         LoadAddress(code, Addr(e->l));
         return;
