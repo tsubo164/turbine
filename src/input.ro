@@ -2,7 +2,7 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-//[my_calc]
+[my_calc]
 
 //## Circle
 //  - center Point
@@ -16,16 +16,9 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
-//# main() int
-//    - i int
-//    i = 19
-//    return i
-
-- gvar int
-# seven() int
-    gvar = 119
-    return 7
-
 # main() int
-    seven()
-    return gvar
+  //- a = my_calc.F
+  ---
+    - s string
+    - a = 33
+  return 11

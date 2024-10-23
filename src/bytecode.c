@@ -947,6 +947,9 @@ int PoolInt__(struct Bytecode *code, Int val)
 
     // find
     for (int i = 0; i < code->const_count; i++) {
+        if (code->const_types[i] != VAL_INT)
+            continue;
+
         if (val == code->consts[i].inum)
             return i + CONST_INDEX_BEGIN;
     }
@@ -967,6 +970,9 @@ int PoolFloat__(struct Bytecode *code, value_float_t val)
 
     // find
     for (int i = 0; i < code->const_count; i++) {
+        if (code->const_types[i] != VAL_FLOAT)
+            continue;
+
         if (val == code->consts[i].fpnum)
             return i + CONST_INDEX_BEGIN;
     }
@@ -987,6 +993,9 @@ int PoolString__(struct Bytecode *code, const char *str)
 
     // find
     for (int i = 0; i < code->const_count; i++) {
+        if (code->const_types[i] != VAL_STRING)
+            continue;
+
         if (runtime_string_compare_cstr(code->consts[i].str, str) == 0)
             return i + CONST_INDEX_BEGIN;
     }
