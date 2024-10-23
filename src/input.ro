@@ -2,7 +2,7 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-[my_calc]
+//[my_calc]
 
 //## Circle
 //  - center Point
@@ -16,9 +16,29 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
+- test_count = 0
+// asserts int
+# AssertI(expected int, actual int, $caller_line)
+  test_count++
+
+  if expected != actual
+    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+    exit(1)
+
 # main() int
-  //- a = my_calc.F
+  //exit(13)
+  /*
   ---
-    - s string
-    - a = 33
-  return 11
+    - s0 string
+    - s1 string
+    - str string
+    - i = 0
+    s0 = "Hello, "
+    s1 = "World!"
+    str = s0 + s1
+    if str == "Hello, World!"
+      i = 42
+    or
+      i = 0
+  */
+  return 9

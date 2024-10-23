@@ -1237,6 +1237,19 @@ static void run__(VM *vm)
             }
             break;
 
+        case OP_LOADFLOAT__:
+            {
+                uint8_t dst = inst.A;
+                int64_t lo = fetch__(vm);
+                int64_t hi = fetch__(vm);
+                int64_t inum = (hi << 32) | lo;
+                struct Value val;
+
+                val.fpnum = *((Float *)&inum);
+                set_local(vm, dst, val);
+            }
+            break;
+
         case OP_LOAD__:
             {
                 const uint8_t dst = inst.A;
@@ -1447,12 +1460,14 @@ static void run__(VM *vm)
                 set_bp(vm, vm->sp_ - call.argc);
             }
             break;
+            */
 
-        case OP_CALL_BUILTIN:
+        case OP_CALLBUILTIN__:
             {
-                const Byte func_index = fetch_byte(vm);
+                int func_index = inst.BB;
 
                 if (func_index == 0) {
+                    /*
                     // builtin "print" function
                     // FIXME hard coded variadic
                     const int argc = pop_int(vm);
@@ -1520,17 +1535,18 @@ static void run__(VM *vm)
                     // ret val
                     Value ret = {0};
                     push(vm, ret);
+                    */
                 }
                 else if (func_index == 1) {
-                    // builtin "exit" function
-                    Value ret_code = pop(vm);
-                    // ret val
-                    push(vm, ret_code);
+                    uint8_t src = inst.A;
+                    struct Value ret_code = get_register_value(vm, src);
+                    // TODO push?
+                    //set_global(vm, vm->sp_, ret_code);
+                    vm->stack_.data[vm->sp_] = ret_code;
                     brk = true;
                 }
             }
             break;
-            */
 
         case OP_RETURN__:
             {
@@ -2225,7 +2241,8 @@ do { \
             break;
 
         default:
-            fprintf(stderr, "Unimplemented instruction: %d\n", inst.op);
+            fprintf(stderr, "** Unimplemented instruction: %d\n", inst.op);
+            PrintInstruction__(vm->code_, old_ip, &inst);
             UNREACHABLE;
             break;
         }

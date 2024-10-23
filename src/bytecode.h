@@ -159,6 +159,7 @@ enum Opcode {
     OP_NEQSTRING__,
     // function call
     OP_CALL__,
+    OP_CALLBUILTIN__,
     OP_RETURN__,
     // jump
     OP_JUMP__,

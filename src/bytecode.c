@@ -191,6 +191,7 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_NEQSTRING__]     = { "neqstring",   OPERAND_ABC },
     // function call
     [OP_CALL__]          = { "call",        OPERAND_ABB },
+    [OP_CALLBUILTIN__]   = { "callbuiltin", OPERAND_ABB },
     [OP_RETURN__]        = { "return",      OPERAND_A__ },
     // jump
     [OP_JUMP__]          = { "jump",        OPERAND_ABB },
@@ -1337,10 +1338,7 @@ int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin)
     int reg0 = ret_reg;
 
     if (builtin) {
-        /*
-        push_byte(&code->bytes_, OP_CALL_BUILTIN);
-        push_byte(&code->bytes_, func_index);
-        */
+        push_inst_abb(code, OP_CALLBUILTIN__, reg0, func_index);
     }
     else {
         push_inst_abb(code, OP_CALL__, reg0, func_index);
