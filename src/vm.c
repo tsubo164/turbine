@@ -1225,6 +1225,18 @@ static void run__(VM *vm)
             }
             break;
 
+        case OP_LOADINT__:
+            {
+                uint8_t dst = inst.A;
+                int64_t lo = fetch__(vm);
+                int64_t hi = fetch__(vm);
+                struct Value val;
+
+                val.inum = (hi << 32) | lo;
+                set_local(vm, dst, val);
+            }
+            break;
+
         case OP_LOAD__:
             {
                 const uint8_t dst = inst.A;

@@ -11,6 +11,10 @@
 #include <stdio.h>
 #include <math.h>
 
+#define MAX_LOCALVAR_COUNT 128
+#define MAX_CONST_COUNT (256 - MAX_LOCALVAR_COUNT)
+#define CONST_INDEX_BEGIN MAX_LOCALVAR_COUNT
+
 enum OperandSize {
     OPERAND_NONE,
     OPERAND_BYTE,
@@ -128,13 +132,15 @@ static_assert(sizeof(opcode_table)/sizeof(opcode_table[0])==OP_EOC + 1, "MISSING
 struct OpcodeInfo__ {
     const char *mnemonic;
     int operand;
+    bool extend;
 };
 
 static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_NOP__]           = { "nop",         OPERAND____ },
     // load/store/move
     [OP_MOVE__]          = { "move",        OPERAND_AB_ },
-    [OP_LOADINT16__]     = { "loadint16",   OPERAND_ABB },
+    [OP_LOADINT__]       = { "loadint",     OPERAND_A__, true },
+    [OP_LOADFLOAT__]     = { "loadfloat",   OPERAND_A__, true },
     [OP_LOAD__]          = { "load",        OPERAND_AB_ },
     [OP_STORE__]         = { "store",       OPERAND_AB_ },
     [OP_LOADARRAY__]     = { "loadarray",   OPERAND_ABC },
@@ -360,6 +366,23 @@ static void push_inst_abb(struct Bytecode *code, uint8_t op, uint8_t a, uint16_t
 {
     uint32_t inst = ENCODE_ABB(op, a, bb);
     push_inst(code, inst);
+}
+
+static void push_immediate_int(struct Bytecode *code, int64_t val)
+{
+    uint32_t lo = val & 0xFFFFFF;
+    uint32_t hi = val >> 32;
+    push_inst(code, lo);
+    push_inst(code, hi);
+}
+
+static void push_immediate_float(struct Bytecode *code, double val)
+{
+    int64_t *vp = (int64_t*) &val;
+    uint32_t lo = *vp & 0xFFFFFF;
+    uint32_t hi = *vp >> 32;
+    push_inst(code, lo);
+    push_inst(code, hi);
 }
 
 void LoadByte(Bytecode *code, Byte byte)
@@ -853,6 +876,16 @@ void End(Bytecode *code)
 }
 
 // XXX TEST register
+static bool is_localreg_full(const struct Bytecode *code)
+{
+    return code->curr_reg == MAX_LOCALVAR_COUNT - 1;
+}
+
+static bool is_constpool_full(const struct Bytecode *code)
+{
+    return code->const_count == MAX_CONST_COUNT;
+}
+
 void InitLocalVarRegister__(struct Bytecode *code, uint8_t lvar_count)
 {
     code->base_reg = lvar_count - 1;
@@ -867,7 +900,7 @@ void ResetCurrentRegister__(struct Bytecode *code)
 
 int NewRegister__(struct Bytecode *code)
 {
-    if (code->curr_reg >= 127) {
+    if (is_localreg_full(code)) {
         return -1;
     }
 
@@ -901,74 +934,69 @@ int GetNextRegister__(struct Bytecode *code, int reg)
     return next;
 }
 
-bool IsTempRegister(const struct Bytecode *code, Byte id)
+bool IsTempRegister(const struct Bytecode *code, int id)
 {
-    return id > code->base_reg && id < 128;
+    return id > code->base_reg && id < CONST_INDEX_BEGIN;
 }
 
 int PoolInt__(struct Bytecode *code, Int val)
 {
-    int new_idx = code->const_count;
-
-    if (new_idx == 127) {
+    if (is_constpool_full(code)) {
         return -1;
     }
 
     // find
     for (int i = 0; i < code->const_count; i++) {
         if (val == code->consts[i].inum)
-            return i + 128;
+            return i + CONST_INDEX_BEGIN;
     }
 
+    int new_idx = code->const_count;
     code->consts[new_idx].inum = val;
     code->const_types[new_idx] = VAL_INT;
 
     int reg = code->const_count++;
-    return reg + 128;
+    return reg + CONST_INDEX_BEGIN;
 }
 
 int PoolFloat__(struct Bytecode *code, value_float_t val)
 {
-    int new_idx = code->const_count;
-
-    if (new_idx == 127) {
-        // full
+    if (is_constpool_full(code)) {
         return -1;
     }
 
     // find
     for (int i = 0; i < code->const_count; i++) {
         if (val == code->consts[i].fpnum)
-            return i + 128;
+            return i + CONST_INDEX_BEGIN;
     }
 
+    int new_idx = code->const_count;
     code->consts[new_idx].fpnum = val;
     code->const_types[new_idx] = VAL_FLOAT;
 
     int reg = code->const_count++;
-    return reg + 128;
+    return reg + CONST_INDEX_BEGIN;
 }
 
 int PoolString__(struct Bytecode *code, const char *str)
 {
-    int new_idx = code->const_count;
-
-    if (new_idx == 127) {
-        // full
+    if (is_constpool_full(code)) {
         return -1;
     }
 
     // find
     for (int i = 0; i < code->const_count; i++) {
         if (runtime_string_compare_cstr(code->consts[i].str, str) == 0)
-            return i + 128;
+            return i + CONST_INDEX_BEGIN;
     }
 
+    int new_idx = code->const_count;
     code->consts[new_idx].str = GCStringNew(str);
     code->const_types[new_idx] = VAL_STRING;
 
     int reg = code->const_count++;
-    return reg + 128;
+    return reg + CONST_INDEX_BEGIN;
 }
 
 struct Value GetConstValue__(const Bytecode *code, Byte id)
@@ -978,12 +1006,12 @@ struct Value GetConstValue__(const Bytecode *code, Byte id)
         return none;
     }
 
-    return code->consts[id - 128];
+    return code->consts[id - CONST_INDEX_BEGIN];
 }
 
-bool IsConstValue__(Byte id)
+bool IsConstValue__(int id)
 {
-    return id >= 128;
+    return id >= CONST_INDEX_BEGIN;
 }
 
 // Load/store/move
@@ -995,12 +1023,28 @@ int Move__(Bytecode *code, Byte dst, Byte src)
     return dst;
 }
 
-int LoadInt__(Bytecode *code, Int integer)
+int LoadInt__(struct Bytecode *code, int64_t val)
 {
-    int reg0 = 0xff;
+    if (!is_constpool_full(code))
+        return PoolInt__(code, val);
 
-    if (integer >= INT16_MIN && integer <= INT16_MAX) {
-    }
+    int reg0 = NewRegister__(code);
+
+    push_inst_a(code, OP_LOADINT__, reg0);
+    push_immediate_int(code, val);
+
+    return reg0;
+}
+
+int LoadFloat__(struct Bytecode *code, double val)
+{
+    if (!is_constpool_full(code))
+        return PoolFloat__(code, val);
+
+    int reg0 = NewRegister__(code);
+
+    push_inst_a(code, OP_LOADFLOAT__, reg0);
+    push_immediate_float(code, val);
 
     return reg0;
 }
@@ -1934,6 +1978,10 @@ void PrintBytecode__(const Bytecode *code)
 
         addr++;
 
+        // TODO come up with better way
+        const struct OpcodeInfo__ *info = lookup_opcode_info__(inst.op);
+        if (info->extend)
+            addr += 2;
     }
 }
 
@@ -1941,7 +1989,7 @@ static void print_operand__(const struct Bytecode *code, uint8_t operand, bool s
 {
     if (IsConstValue__(operand)) {
         // TODO check index range or use GetConstValue__()
-        int index = operand - 128;
+        int index = operand - CONST_INDEX_BEGIN;
         if (index >= code->const_count) {
             printf("c%d (--)", index);
             return;
@@ -2006,23 +2054,12 @@ static Int print_op__(const Bytecode *code, Int addr, const struct Instruction *
         break;
     }
 
-    // add extra info
-    /*
-    switch (op) {
-    case OP_LOADF:
-        printf(" = %f", ReadFloat(code, addr));
-        break;
-
-    case OP_LOADS:
-        printf(" = \"%s\"", GetConstString(code, ReadWord(code, addr)));
-        break;
-
-    case OP_CALL:
-        // TODO function id could be retrived if we have OP_CALL_STATIC
-        // to call functions that are defined statically
-        break;
+    if (info->extend) {
+        int64_t lo = Read__(code, addr + 1);
+        int64_t hi = Read__(code, addr + 2);
+        int64_t immediate = (hi << 32) | lo;
+        printf(" $%lld", immediate);
     }
-    */
 
     printf("\n");
     return addr;

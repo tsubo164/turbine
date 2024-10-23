@@ -16,7 +16,16 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
+//# main() int
+//    - i int
+//    i = 19
+//    return i
+
+- gvar int
+# seven() int
+    gvar = 119
+    return 7
+
 # main() int
-    - i int
-    i = 0x8
-    return ~i & 0xF
+    seven()
+    return gvar

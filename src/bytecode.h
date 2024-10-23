@@ -107,7 +107,7 @@ enum Opcode {
     OP_NOP__,
     // load/store/move
     OP_MOVE__,
-    OP_LOADINT16__,
+    OP_LOADINT__,
     OP_LOADFLOAT__,
     OP_LOAD__,
     OP_STORE__,
@@ -349,17 +349,18 @@ int NewRegister__(struct Bytecode *code);
 int GetCurrentRegister__(const struct Bytecode *code);
 int SetCurrentRegister__(struct Bytecode *code, int curr);
 int GetNextRegister__(struct Bytecode *code, int reg);
-bool IsTempRegister(const struct Bytecode *code, Byte id);
+bool IsTempRegister(const struct Bytecode *code, int id);
 
 int PoolInt__(struct Bytecode *code, Int val);
 int PoolFloat__(struct Bytecode *code, value_float_t val);
 int PoolString__(struct Bytecode *code, const char *str);
 struct Value GetConstValue__(const Bytecode *code, Byte id);
-bool IsConstValue__(Byte id);
+bool IsConstValue__(int id);
 
 // load/store/move
 int Move__(struct Bytecode *code, uint8_t dst, uint8_t src);
-int LoadInt__(Bytecode *code, Int integer);
+int LoadInt__(struct Bytecode *code, int64_t val);
+int LoadFloat__(struct Bytecode *code, double val);
 int Load__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Store__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int LoadArray__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t idx);

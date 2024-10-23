@@ -1557,27 +1557,20 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     case T_NILLIT:
         LoadByte(code, 0);
         return;
-
-    case T_BOLLIT:
-        LoadByte(code, e->ival);
-        return;
         */
 
+    case T_BOLLIT:
     case T_INTLIT:
-        // TODO LoadInt could take care of this
-        reg0 = PoolInt__(code, e->ival);
-        if (reg0 == -1) {
-            // reg0 = LoadInt(code, , e->ival)
+        {
+            int reg0 = LoadInt__(code, e->ival);
+            return reg0;
         }
-        return reg0;
 
     case T_FLTLIT:
-        // TODO LoadFloat could take care of this
-        reg0 = PoolFloat__(code, e->fval);
-        if (reg0 == -1) {
-            // reg0 = LoadInt(code, , e->ival)
+        {
+            int reg0 = LoadFloat__(code, e->fval);
+            return reg0;
         }
-        return reg0;
 
     case T_STRLIT:
         {
@@ -1607,45 +1600,17 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
 
     case T_IDENT:
         if (e->var->is_global) {
-            // TODO LoadInt could take care of this
-            //      reg0 = LoadInt__(code, e->var->offset);
-            reg1 = PoolInt__(code, e->var->offset);
-            if (reg0 == -1) {
-                // reg0 = LoadInt(code, , e->ival)
-            }
-            reg0 = NewRegister__(code);
+            int reg1 = LoadInt__(code, e->var->offset);
+            int reg0 = NewRegister__(code);
+
             // TODO rename it to LoadGlobal()
             reg0 = Load__(code, reg0, reg1);
-        } else {
-            reg0 = e->var->offset;
-        }
-        return reg0;
-#if TEST
-        if (e->var->is_global) {
-            // TODO LoadInt could take care of this
-            //reg0 = LoadInt__(code, e->var->offset + 1);
-            reg0 = PoolInt__(code, e->var->offset);
-            if (reg0 == -1) {
-                // reg0 = LoadInt(code, , e->ival)
-            }
+            return reg0;
         }
         else {
-            reg0 = e->var->offset;
+            int reg0 = e->var->offset;
+            return reg0;
         }
-        return reg0;
-#endif
-        /*
-        if (IsStruct(e->type)) {
-            gen_addr(code, e);
-            return;
-        }
-
-        if (e->var->is_global)
-            LoadGlobal(code, e->var->offset);
-        else
-            LoadLocal(code, e->var->offset);
-        return;
-        */
 
     case T_SELECT:
         reg1 = gen_expr__(code, e->l);
@@ -1705,16 +1670,6 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         }
         return reg0;
 
-    // TODO binary op
-    //if (optimize) {
-    //    long val = 0;
-    //    bool ok;
-    //    ok = Eval(val);
-    //    if (ok) {
-    //        code.LoadInt(val);
-    //        return;
-    //    }
-    //}
     case T_ADD:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
@@ -1964,19 +1919,14 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
             return;
         }
         */
-
         if (e->var->is_global) {
-            // TODO LoadInt could take care of this
-            //      reg0 = LoadInt__(code, e->var->offset);
-            reg0 = PoolInt__(code, e->var->offset);
-            if (reg0 == -1) {
-                // reg0 = LoadInt(code, , e->ival)
-            }
+            int reg0 = LoadInt__(code, e->var->offset);
+            return reg0;
         }
         else {
-            reg0 = e->var->offset;
+            int reg0 = e->var->offset;
+            return reg0;
         }
-        return reg0;
 
     case T_FIELD:
         //LoadByte(code, e->field->offset);

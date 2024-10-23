@@ -945,8 +945,6 @@ int main(int argc, char **argv)
 
         ASSERTL(19, Interpret(input, filename, &opt));
     }
-    //==========================================================================
-    //printf("=============================================================\n");
     {
         // bool type
         const char *input = 
