@@ -1473,31 +1473,44 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
 
     // Save the current register right before evaluating args
     //int retval_reg = NewRegister__(code);
-    int curr_reg = code->curr_reg;
+    int curr_reg = GetCurrentRegister__(code);
 
     if (func_type->is_variadic) {
-        /*
+
+        // arg count
         int argc = 0;
+        int argc_dst = GetNextRegister__(code, curr_reg);
+
         for (const struct Expr *arg = call->r; arg; arg = arg->next, argc++) {
             // arg value
-            gen_expr(code, arg);
+            int head_reg = GetCurrentRegister__(code);
+            int arg_src = gen_expr__(code, arg);
+            int arg_dst = GetNextRegister__(code, head_reg);
+            Move__(code, arg_dst, arg_src);
+
+            int type_dst = GetNextRegister__(code, arg_dst);
 
             switch (arg->type->kind) {
             case TY_NIL:
-                LoadTypeNil(code);
+                //LoadTypeNil(code);
                 break;
+
             case TY_BOOL:
-                LoadTypeBool(code);
+                //LoadTypeBool(code);
                 break;
+
             case TY_INT:
-                LoadTypeInt(code);
+                LoadTypeInt__(code, type_dst);
                 break;
+
             case TY_FLOAT:
-                LoadTypeFloat(code);
+                //LoadTypeFloat(code);
                 break;
+
             case TY_STRING:
-                LoadTypeString(code);
+                //LoadTypeString(code);
                 break;
+
             case TY_FUNC:
             case TY_STRUCT:
             case TY_TABLE:
@@ -1505,13 +1518,14 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
             case TY_PTR:
             case TY_ARRAY:
             case TY_ANY:
-                LoadTypeNil(code);
+                //LoadTypeNil(code);
                 break;
             }
         }
+
         // arg count
-        LoadByte(code, argc);
-        */
+        int argc_src = LoadInt__(code, argc);
+        Move__(code, argc_dst, argc_src);
     }
     else {
         for (const struct Expr *arg = call->r; arg; arg = arg->next) {

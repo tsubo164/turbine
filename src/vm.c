@@ -218,7 +218,7 @@ static Value get_global(const VM *vm, int id)
     return vm->stack_.data[1 + id];
 }
 
-static void set_local(VM *vm, int id, Value val)
+static void set_local(VM *vm, int id, struct Value val)
 {
     vm->stack_.data[vm->bp_ + 1 + id] = val;
 }
@@ -1376,11 +1376,18 @@ static void run__(VM *vm)
         case OP_LOADTYPEB:
             push_int(vm, TID_BOL);
             break;
+            */
 
-        case OP_LOADTYPEI:
-            push_int(vm, TID_INT);
+        case OP_LOADTYPEINT__:
+            {
+                int dst = inst.A;
+                struct Value val;
+                val.inum = TID_INT;
+                set_local(vm, dst, val);
+            }
             break;
 
+            /*
         case OP_LOADTYPEF:
             push_int(vm, TID_FLT);
             break;
@@ -1464,35 +1471,32 @@ static void run__(VM *vm)
 
         case OP_CALLBUILTIN__:
             {
+                int ret_reg = inst.A;
                 int func_index = inst.BB;
 
                 if (func_index == 0) {
-                    /*
                     // builtin "print" function
                     // FIXME hard coded variadic
-                    const int argc = pop_int(vm);
-                    Value dummy = {0};
-                    ValueVec args = {0};
-                    push_value(&args, dummy);
-                    int sp = 0;
 
-                    // pop args
-                    for (int i = 0; i < argc; i++) {
-                        const Value type = pop(vm);
-                        const Value val = pop(vm);
-                        push_value(&args, val);
-                        sp++;
-                        push_value(&args, type);
-                        sp++;
-                    }
+                    int old_bp = vm->bp_;
+                    int old_sp = vm->sp_;
 
-                    while (sp > 0) {
-                        const Value type = args.data[sp--];
-                        const Value val = args.data[sp--];
+                    set_bp(vm, vm->bp_ + 1 + ret_reg - 1);
+                    int max_reg_count = 0;
+                    set_sp(vm, vm->bp_ + max_reg_count);
 
-                        const Int id = type.inum;
+                    struct Value arg_count = get_register_value(vm, 0);
+                    int argc = arg_count.inum;
+                    int arg_reg = ret_reg + 1;
 
-                        switch (id) {
+
+                    for (int i = 0; i < argc; i ++) {
+
+                        struct Value val = get_register_value(vm, arg_reg++);
+                        struct Value type = get_register_value(vm, arg_reg++);
+
+                        switch (type.inum) {
+
                         case TID_NIL:
                             break;
 
@@ -1517,28 +1521,27 @@ static void run__(VM *vm)
                         }
 
                         // peek next arg
-                        if (sp > 0) {
-                            const Value next_type = args.data[sp];
-                            if (next_type.inum == TID_NIL) {
-                                // remove nil and skip separator
-                                sp--;
-                                sp--;
+                        if (i < argc - 1) {
+                            struct Value next_type = get_register_value(vm, arg_reg + 1);
+                            if (next_type.inum == TID_NIL)
                                 continue;
-                            }
                         }
 
-                        if (sp == 0)
+                        if (i == argc - 1)
                             printf("\n");
                         else
                             printf(" ");
                     }
+
+                    set_bp(vm, old_bp);
+                    set_sp(vm, old_sp);
+
                     // ret val
-                    Value ret = {0};
-                    push(vm, ret);
-                    */
+                    Value ret_val = {0};
+                    set_local(vm, ret_reg, ret_val);
                 }
                 else if (func_index == 1) {
-                    uint8_t src = inst.A;
+                    int src = inst.A;
                     struct Value ret_code = get_register_value(vm, src);
                     // TODO push?
                     //set_global(vm, vm->sp_, ret_code);

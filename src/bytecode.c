@@ -147,6 +147,7 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_STOREARRAY__]    = { "storearray",  OPERAND_ABC },
     [OP_LOADSTRUCT__]    = { "loadstruct",  OPERAND_ABC },
     [OP_STORESTRUCT__]   = { "storestruct", OPERAND_ABC },
+    [OP_LOADTYPEINT__]   = { "loadtypeint", OPERAND_A__ },
     // array/struct
     [OP_NEWARRAY__]      = { "newarray",    OPERAND_AB_ },
     [OP_NEWSTRUCT__]     = { "newstruct",   OPERAND_AB_ },
@@ -1092,6 +1093,12 @@ int LoadStruct__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t field_
 int StoreStruct__(struct Bytecode *code, uint8_t dst, uint8_t field_idx, uint8_t src)
 {
     push_inst_abc(code, OP_STORESTRUCT__, dst, field_idx, src);
+    return dst;
+}
+
+int LoadTypeInt__(struct Bytecode *code, int dst)
+{
+    push_inst_a(code, OP_LOADTYPEINT__, dst);
     return dst;
 }
 

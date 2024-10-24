@@ -16,6 +16,8 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
+/*
+*/
 - test_count = 0
 // asserts int
 # AssertI(expected int, actual int, $caller_line)
@@ -27,6 +29,7 @@
 
 # main() int
   //exit(13)
+  print(42, 12)
   /*
   ---
     - s0 string
@@ -41,4 +44,5 @@
     or
       i = 0
   */
+  AssertI(2, 3)
   return 9
