@@ -115,7 +115,11 @@ enum Opcode {
     OP_STOREARRAY__,
     OP_LOADSTRUCT__,
     OP_STORESTRUCT__,
+    OP_LOADTYPENIL__,
+    OP_LOADTYPEBOOL__,
     OP_LOADTYPEINT__,
+    OP_LOADTYPEFLOAT__,
+    OP_LOADTYPESTRING__,
     // array/struct
     OP_NEWARRAY__,
     OP_NEWSTRUCT__,
@@ -369,7 +373,11 @@ int LoadArray__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t idx);
 int StoreArray__(struct Bytecode *code, uint8_t dst, uint8_t idx, uint8_t src);
 int LoadStruct__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t field_idx);
 int StoreStruct__(struct Bytecode *code, uint8_t dst, uint8_t field_idx, uint8_t src);
+int LoadTypeNil__(struct Bytecode *code, int dst);
+int LoadTypeBool__(struct Bytecode *code, int dst);
 int LoadTypeInt__(struct Bytecode *code, int dst);
+int LoadTypeFloat__(struct Bytecode *code, int dst);
+int LoadTypeString__(struct Bytecode *code, int dst);
 
 // array/struct
 int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len);

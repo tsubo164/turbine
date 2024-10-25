@@ -1492,11 +1492,11 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
 
             switch (arg->type->kind) {
             case TY_NIL:
-                //LoadTypeNil(code);
+                LoadTypeNil__(code, type_dst);
                 break;
 
             case TY_BOOL:
-                //LoadTypeBool(code);
+                LoadTypeBool__(code, type_dst);
                 break;
 
             case TY_INT:
@@ -1504,11 +1504,11 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
                 break;
 
             case TY_FLOAT:
-                //LoadTypeFloat(code);
+                LoadTypeFloat__(code, type_dst);
                 break;
 
             case TY_STRING:
-                //LoadTypeString(code);
+                LoadTypeString__(code, type_dst);
                 break;
 
             case TY_FUNC:
@@ -1518,7 +1518,7 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
             case TY_PTR:
             case TY_ARRAY:
             case TY_ANY:
-                //LoadTypeNil(code);
+                LoadTypeNil__(code, type_dst);
                 break;
             }
         }

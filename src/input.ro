@@ -18,14 +18,14 @@
 
 /*
 */
-- test_count = 0
-// asserts int
-# AssertI(expected int, actual int, $caller_line)
-  test_count++
-
-  if expected != actual
-    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
-    exit(1)
+//- test_count = 0
+//// asserts int
+//# AssertI(expected int, actual int, $caller_line)
+//  test_count++
+//
+//  if expected != actual
+//    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+//    exit(1)
 
 # main() int
   //exit(13)
@@ -44,5 +44,8 @@
     or
       i = 0
   */
-  AssertI(2, 3)
+  //AssertI(2, 3)
+  - expected = 111
+  - actual = 222
+  print("error:", nil, 48, nil, ": expected:", expected, "actual:", actual)
   return 9

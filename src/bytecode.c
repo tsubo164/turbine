@@ -136,81 +136,85 @@ struct OpcodeInfo__ {
 };
 
 static const struct OpcodeInfo__ opcode_table__[] = {
-    [OP_NOP__]           = { "nop",         OPERAND____ },
+    [OP_NOP__]            = { "nop",      OPERAND____ },
     // load/store/move
-    [OP_MOVE__]          = { "move",        OPERAND_AB_ },
-    [OP_LOADINT__]       = { "loadint",     OPERAND_A__, true },
-    [OP_LOADFLOAT__]     = { "loadfloat",   OPERAND_A__, true },
-    [OP_LOAD__]          = { "load",        OPERAND_AB_ },
-    [OP_STORE__]         = { "store",       OPERAND_AB_ },
-    [OP_LOADARRAY__]     = { "loadarray",   OPERAND_ABC },
-    [OP_STOREARRAY__]    = { "storearray",  OPERAND_ABC },
-    [OP_LOADSTRUCT__]    = { "loadstruct",  OPERAND_ABC },
-    [OP_STORESTRUCT__]   = { "storestruct", OPERAND_ABC },
-    [OP_LOADTYPEINT__]   = { "loadtypeint", OPERAND_A__ },
+    [OP_MOVE__]           = { "move",        OPERAND_AB_ },
+    [OP_LOADINT__]        = { "loadint",     OPERAND_A__, true },
+    [OP_LOADFLOAT__]      = { "loadfloat",   OPERAND_A__, true },
+    [OP_LOAD__]           = { "load",        OPERAND_AB_ },
+    [OP_STORE__]          = { "store",       OPERAND_AB_ },
+    [OP_LOADARRAY__]      = { "loadarray",   OPERAND_ABC },
+    [OP_STOREARRAY__]     = { "storearray",  OPERAND_ABC },
+    [OP_LOADSTRUCT__]     = { "loadstruct",  OPERAND_ABC },
+    [OP_STORESTRUCT__]    = { "storestruct", OPERAND_ABC },
+    [OP_LOADTYPENIL__]    = { "loadtypen",   OPERAND_A__ },
+    [OP_LOADTYPEBOOL__]   = { "loadtypeb",   OPERAND_A__ },
+    [OP_LOADTYPEINT__]    = { "loadtypei",   OPERAND_A__ },
+    [OP_LOADTYPEFLOAT__]  = { "loadtypef",   OPERAND_A__ },
+    [OP_LOADTYPESTRING__] = { "loadtypes",   OPERAND_A__ },
     // array/struct
-    [OP_NEWARRAY__]      = { "newarray",    OPERAND_AB_ },
-    [OP_NEWSTRUCT__]     = { "newstruct",   OPERAND_AB_ },
+    [OP_NEWARRAY__]       = { "newarray",    OPERAND_AB_ },
+    [OP_NEWSTRUCT__]      = { "newstruct",   OPERAND_AB_ },
     // arithmetic
-    [OP_ADDINT__]        = { "addint",      OPERAND_ABC },
-    [OP_ADDFLOAT__]      = { "addfloat",    OPERAND_ABC },
-    [OP_SUBINT__]        = { "subint",      OPERAND_ABC },
-    [OP_SUBFLOAT__]      = { "subfloat",    OPERAND_ABC },
-    [OP_MULINT__]        = { "mulint",      OPERAND_ABC },
-    [OP_MULFLOAT__]      = { "mulfloat",    OPERAND_ABC },
-    [OP_DIVINT__]        = { "divint",      OPERAND_ABC },
-    [OP_DIVFLOAT__]      = { "divfloat",    OPERAND_ABC },
-    [OP_REMINT__]        = { "remint",      OPERAND_ABC },
-    [OP_REMFLOAT__]      = { "remfloat",    OPERAND_ABC },
-    [OP_EQINT__]         = { "eqint",       OPERAND_ABC },
-    [OP_EQFLOAT__]       = { "eqfloat",     OPERAND_ABC },
-    [OP_NEQINT__]        = { "neqint",      OPERAND_ABC },
-    [OP_NEQFLOAT__]      = { "neqfloat",    OPERAND_ABC },
-    [OP_LTINT__]         = { "ltint",       OPERAND_ABC },
-    [OP_LTFLOAT__]       = { "ltfloat",     OPERAND_ABC },
-    [OP_LTEINT__]        = { "lteint",      OPERAND_ABC },
-    [OP_LTEFLOAT__]      = { "ltefloat",    OPERAND_ABC },
-    [OP_GTINT__]         = { "gtint",       OPERAND_ABC },
-    [OP_GTFLOAT__]       = { "gtfloat",     OPERAND_ABC },
-    [OP_GTEINT__]        = { "gteint",      OPERAND_ABC },
-    [OP_GTEFLOAT__]      = { "gtefloat",    OPERAND_ABC },
-    [OP_BITWISEAND__]    = { "bitwiseand",  OPERAND_ABC },
-    [OP_BITWISEOR__]     = { "bitwiseor",   OPERAND_ABC },
-    [OP_BITWISEXOR__]    = { "bitwisexor",  OPERAND_ABC },
-    [OP_BITWISENOT__]    = { "bitwisenot",  OPERAND_AB_ },
-    [OP_SHL__]           = { "shl",         OPERAND_ABC },
-    [OP_SHR__]           = { "shr",         OPERAND_ABC },
-    [OP_NEGINT__]        = { "negint",      OPERAND_AB_ },
-    [OP_NEGFLOAT__]      = { "negfloat",    OPERAND_AB_ },
-    [OP_SETIFZERO__]     = { "setifzero",   OPERAND_AB_ },
-    [OP_SETIFNOTZ__]     = { "setifnotz",   OPERAND_AB_ },
-    [OP_INC__]           = { "inc",         OPERAND_A__ },
-    [OP_DEC__]           = { "dec",         OPERAND_A__ },
+    [OP_ADDINT__]         = { "addint",      OPERAND_ABC },
+    [OP_ADDFLOAT__]       = { "addfloat",    OPERAND_ABC },
+    [OP_SUBINT__]         = { "subint",      OPERAND_ABC },
+    [OP_SUBFLOAT__]       = { "subfloat",    OPERAND_ABC },
+    [OP_MULINT__]         = { "mulint",      OPERAND_ABC },
+    [OP_MULFLOAT__]       = { "mulfloat",    OPERAND_ABC },
+    [OP_DIVINT__]         = { "divint",      OPERAND_ABC },
+    [OP_DIVFLOAT__]       = { "divfloat",    OPERAND_ABC },
+    [OP_REMINT__]         = { "remint",      OPERAND_ABC },
+    [OP_REMFLOAT__]       = { "remfloat",    OPERAND_ABC },
+    [OP_EQINT__]          = { "eqint",       OPERAND_ABC },
+    [OP_EQFLOAT__]        = { "eqfloat",     OPERAND_ABC },
+    [OP_NEQINT__]         = { "neqint",      OPERAND_ABC },
+    [OP_NEQFLOAT__]       = { "neqfloat",    OPERAND_ABC },
+    [OP_LTINT__]          = { "ltint",       OPERAND_ABC },
+    [OP_LTFLOAT__]        = { "ltfloat",     OPERAND_ABC },
+    [OP_LTEINT__]         = { "lteint",      OPERAND_ABC },
+    [OP_LTEFLOAT__]       = { "ltefloat",    OPERAND_ABC },
+    [OP_GTINT__]          = { "gtint",       OPERAND_ABC },
+    [OP_GTFLOAT__]        = { "gtfloat",     OPERAND_ABC },
+    [OP_GTEINT__]         = { "gteint",      OPERAND_ABC },
+    [OP_GTEFLOAT__]       = { "gtefloat",    OPERAND_ABC },
+    [OP_BITWISEAND__]     = { "bitwiseand",  OPERAND_ABC },
+    [OP_BITWISEOR__]      = { "bitwiseor",   OPERAND_ABC },
+    [OP_BITWISEXOR__]     = { "bitwisexor",  OPERAND_ABC },
+    [OP_BITWISENOT__]     = { "bitwisenot",  OPERAND_AB_ },
+    [OP_SHL__]            = { "shl",         OPERAND_ABC },
+    [OP_SHR__]            = { "shr",         OPERAND_ABC },
+    [OP_NEGINT__]         = { "negint",      OPERAND_AB_ },
+    [OP_NEGFLOAT__]       = { "negfloat",    OPERAND_AB_ },
+    [OP_SETIFZERO__]      = { "setifzero",   OPERAND_AB_ },
+    [OP_SETIFNOTZ__]      = { "setifnotz",   OPERAND_AB_ },
+    [OP_INC__]            = { "inc",         OPERAND_A__ },
+    [OP_DEC__]            = { "dec",         OPERAND_A__ },
     // string
-    [OP_CATSTRING__]     = { "catstring",   OPERAND_ABC },
-    [OP_EQSTRING__]      = { "eqstring",    OPERAND_ABC },
-    [OP_NEQSTRING__]     = { "neqstring",   OPERAND_ABC },
+    [OP_CATSTRING__]      = { "catstring",   OPERAND_ABC },
+    [OP_EQSTRING__]       = { "eqstring",    OPERAND_ABC },
+    [OP_NEQSTRING__]      = { "neqstring",   OPERAND_ABC },
     // function call
-    [OP_CALL__]          = { "call",        OPERAND_ABB },
-    [OP_CALLBUILTIN__]   = { "callbuiltin", OPERAND_ABB },
-    [OP_RETURN__]        = { "return",      OPERAND_A__ },
+    [OP_CALL__]           = { "call",        OPERAND_ABB },
+    [OP_CALLBUILTIN__]    = { "callbuiltin", OPERAND_ABB },
+    [OP_RETURN__]         = { "return",      OPERAND_A__ },
     // jump
-    [OP_JUMP__]          = { "jump",        OPERAND_ABB },
-    [OP_JUMPIFZERO__]    = { "jumpifzero",  OPERAND_ABB },
-    [OP_JUMPIFNOTZ__]    = { "jumpifnotz",  OPERAND_ABB },
+    [OP_JUMP__]           = { "jump",        OPERAND_ABB },
+    [OP_JUMPIFZERO__]     = { "jumpifzero",  OPERAND_ABB },
+    [OP_JUMPIFNOTZ__]     = { "jumpifnotz",  OPERAND_ABB },
     // stack operation
-    [OP_ALLOCATE__]      = { "allocate",    OPERAND_A__ },
+    [OP_ALLOCATE__]       = { "allocate",    OPERAND_A__ },
     // conversion
-    [OP_BOOLTOINT__]     = { "booltoint",   OPERAND_AB_ },
-    [OP_BOOLTOFLOAT__]   = { "booltofloat", OPERAND_AB_ },
-    [OP_INTTOBOOL__]     = { "inttobool",   OPERAND_AB_ },
-    [OP_INTTOFLOAT__]    = { "inttofloat",  OPERAND_AB_ },
-    [OP_FLOATTOBOOL__]   = { "floattobool", OPERAND_AB_ },
-    [OP_FLOATTOINT__]    = { "floattoint",  OPERAND_AB_ },
+    [OP_BOOLTOINT__]      = { "booltoint",   OPERAND_AB_ },
+    [OP_BOOLTOFLOAT__]    = { "booltofloat", OPERAND_AB_ },
+    [OP_INTTOBOOL__]      = { "inttobool",   OPERAND_AB_ },
+    [OP_INTTOFLOAT__]     = { "inttofloat",  OPERAND_AB_ },
+    [OP_FLOATTOBOOL__]    = { "floattobool", OPERAND_AB_ },
+    [OP_FLOATTOINT__]     = { "floattoint",  OPERAND_AB_ },
     // program control
-    [OP_EXIT__]          = { "exit",        OPERAND____ },
-    [OP_EOC__]           = { "eoc",         OPERAND____ },
-    [END_OF_OPCODE__]    = { NULL },
+    [OP_EXIT__]           = { "exit",        OPERAND____ },
+    [OP_EOC__]            = { "eoc",         OPERAND____ },
+    [END_OF_OPCODE__]     = { NULL },
 };
 
 static_assert(sizeof(opcode_table__)/sizeof(opcode_table__[0])==END_OF_OPCODE__+1, "MISSING_OPCODE_ENTRY");
@@ -928,10 +932,13 @@ int GetNextRegister__(struct Bytecode *code, int reg)
 {
     int next = -1;
 
-    if (reg == code->max_reg)
+    if (reg == code->max_reg) {
         next = NewRegister__(code);
-    else
+    }
+    else {
         next = reg + 1;
+        code->curr_reg = next;
+    }
 
     return next;
 }
@@ -1096,9 +1103,33 @@ int StoreStruct__(struct Bytecode *code, uint8_t dst, uint8_t field_idx, uint8_t
     return dst;
 }
 
+int LoadTypeNil__(struct Bytecode *code, int dst)
+{
+    push_inst_a(code, OP_LOADTYPENIL__, dst);
+    return dst;
+}
+
+int LoadTypeBool__(struct Bytecode *code, int dst)
+{
+    push_inst_a(code, OP_LOADTYPEBOOL__, dst);
+    return dst;
+}
+
 int LoadTypeInt__(struct Bytecode *code, int dst)
 {
     push_inst_a(code, OP_LOADTYPEINT__, dst);
+    return dst;
+}
+
+int LoadTypeFloat__(struct Bytecode *code, int dst)
+{
+    push_inst_a(code, OP_LOADTYPEFLOAT__, dst);
+    return dst;
+}
+
+int LoadTypeString__(struct Bytecode *code, int dst)
+{
+    push_inst_a(code, OP_LOADTYPESTRING__, dst);
     return dst;
 }
 

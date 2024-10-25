@@ -1368,15 +1368,25 @@ static void run__(VM *vm)
                 push_int(vm, indexed);
             }
             break;
-
-        case OP_LOADTYPEN:
-            push_int(vm, TID_NIL);
-            break;
-
-        case OP_LOADTYPEB:
-            push_int(vm, TID_BOL);
-            break;
             */
+
+        case OP_LOADTYPENIL__:
+            {
+                int dst = inst.A;
+                struct Value val;
+                val.inum = TID_NIL;
+                set_local(vm, dst, val);
+            }
+            break;
+
+        case OP_LOADTYPEBOOL__:
+            {
+                int dst = inst.A;
+                struct Value val;
+                val.inum = TID_BOL;
+                set_local(vm, dst, val);
+            }
+            break;
 
         case OP_LOADTYPEINT__:
             {
@@ -1387,15 +1397,23 @@ static void run__(VM *vm)
             }
             break;
 
-            /*
-        case OP_LOADTYPEF:
-            push_int(vm, TID_FLT);
+        case OP_LOADTYPEFLOAT__:
+            {
+                int dst = inst.A;
+                struct Value val;
+                val.inum = TID_FLT;
+                set_local(vm, dst, val);
+            }
             break;
 
-        case OP_LOADTYPES:
-            push_int(vm, TID_STR);
+        case OP_LOADTYPESTRING__:
+            {
+                int dst = inst.A;
+                struct Value val;
+                val.inum = TID_STR;
+                set_local(vm, dst, val);
+            }
             break;
-            */
 
         // array/struct
         case OP_NEWARRAY__:
@@ -1487,8 +1505,7 @@ static void run__(VM *vm)
 
                     struct Value arg_count = get_register_value(vm, 0);
                     int argc = arg_count.inum;
-                    int arg_reg = ret_reg + 1;
-
+                    int arg_reg = 1;
 
                     for (int i = 0; i < argc; i ++) {
 
