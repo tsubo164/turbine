@@ -1515,7 +1515,7 @@ static void run__(VM *vm)
                         switch (type.inum) {
 
                         case TID_NIL:
-                            break;
+                            continue;
 
                         case TID_BOL:
                             if (val.inum == 0)
@@ -1538,16 +1538,18 @@ static void run__(VM *vm)
                         }
 
                         // peek next arg
+                        bool skip_separator = false;
                         if (i < argc - 1) {
                             struct Value next_type = get_register_value(vm, arg_reg + 1);
                             if (next_type.inum == TID_NIL)
-                                continue;
+                                skip_separator = true;
                         }
 
-                        if (i == argc - 1)
-                            printf("\n");
-                        else
-                            printf(" ");
+                        if (skip_separator)
+                            continue;
+
+                        int separator = (i == argc - 1) ? '\n' : ' ';
+                        printf("%c", separator);
                     }
 
                     set_bp(vm, old_bp);

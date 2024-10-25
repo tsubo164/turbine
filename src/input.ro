@@ -18,8 +18,8 @@
 
 /*
 */
-//- test_count = 0
-//// asserts int
+- test_count = 0
+// asserts int
 //# AssertI(expected int, actual int, $caller_line)
 //  test_count++
 //
@@ -28,24 +28,7 @@
 //    exit(1)
 
 # main() int
-  //exit(13)
-  print(42, 12)
-  /*
-  ---
-    - s0 string
-    - s1 string
-    - str string
-    - i = 0
-    s0 = "Hello, "
-    s1 = "World!"
-    str = s0 + s1
-    if str == "Hello, World!"
-      i = 42
-    or
-      i = 0
-  */
-  //AssertI(2, 3)
-  - expected = 111
-  - actual = 222
-  print("error:", nil, 48, nil, ": expected:", expected, "actual:", actual)
-  return 9
+  //AssertI(2, 13)
+  test_count = 12
+  test_count++
+  return test_count

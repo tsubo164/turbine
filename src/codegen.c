@@ -1257,6 +1257,23 @@ static int gen_store__(Bytecode *code, const struct Expr *lval, const struct Exp
     return reg0;
 }
 
+static int gen_store2__(Bytecode *code, const struct Expr *lval, int src_reg)
+{
+    int dst_reg = -1;
+
+    if (IsGlobal(lval)) {
+        dst_reg = gen_addr__(code, lval);
+        Store__(code, dst_reg, src_reg);
+    }
+    else {
+        // TODO handle case where lhs is not addressable
+        dst_reg = gen_addr__(code, lval);
+        Move__(code, dst_reg, src_reg);
+    }
+
+    return dst_reg;
+}
+
 static int gen_init__(Bytecode *code, const struct Expr *e)
 {
     // rval
@@ -1567,11 +1584,11 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
 
     switch (e->kind) {
 
-        /*
     case T_NILLIT:
-        LoadByte(code, 0);
-        return;
-        */
+        {
+            int reg0 = LoadInt__(code, 0);
+            return reg0;
+        }
 
     case T_BOLLIT:
     case T_INTLIT:
@@ -1874,29 +1891,37 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         return 0;
 
     case T_INC:
-        {
-            int reg0 = -1;
-            if (IsGlobal(e->l)) {
-                ;//IncGlobal(code, Addr(e->l));
-            }
-            else {
-                reg0 = gen_addr__(code, e->l);
-                Inc__(code, reg0);
-            }
-            return reg0;
+        if (IsGlobal(e->l)) {
+            int src = gen_expr__(code, e->l);
+            int dst = gen_dst_register2(code, src);
+            Move__(code, dst, src);
+            Inc__(code, dst);
+
+            gen_store2__(code, e->l, dst);
+            return dst;
+        }
+        else {
+            int src = gen_addr__(code, e->l);
+            Inc__(code, src);
+            return src;
         }
 
     case T_DEC:
         {
-            int reg0 = -1;
             if (IsGlobal(e->l)) {
-                ;//DecGlobal(code, Addr(e->l));
+                int src = gen_expr__(code, e->l);
+                int dst = gen_dst_register2(code, src);
+                Move__(code, dst, src);
+                Dec__(code, dst);
+
+                gen_store2__(code, e->l, dst);
+                return dst;
             }
             else {
-                reg0 = gen_addr__(code, e->l);
-                Dec__(code, reg0);
+                int src = gen_addr__(code, e->l);
+                Dec__(code, src);
+                return src;
             }
-            return reg0;
         }
     }
 
@@ -2045,7 +2070,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
     case T_FOR:
         {
             // init
-            BeginFor(code);
+            BeginFor__(code);
             gen_stmt__(code, s->init);
 
             // cond
