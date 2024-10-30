@@ -1613,9 +1613,9 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             else
                 s = e->converted;
 
-            reg0 = PoolString__(code, s);
+            reg0 = LoadString__(code, s);
+            return reg0;
         }
-        return reg0;
 
         /*
     case T_FUNCLIT:

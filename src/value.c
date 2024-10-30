@@ -40,6 +40,15 @@ void ValueVecPush(struct ValueVec *v, struct Value val)
     v->data[v->len++] = val;
 }
 
+struct Value ValueVecGet(const struct ValueVec *v, int index)
+{
+    if (index < 0 || index >= v->len) {
+        struct Value val = {0};
+        return val;
+    }
+    return v->data[index];
+}
+
 void ValueVecFree(struct ValueVec *v)
 {
     free(v->data);

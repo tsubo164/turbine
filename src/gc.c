@@ -108,6 +108,13 @@ struct StringObj *runtime_string_concat(const struct StringObj *a, const struct 
     return new_string(new_data, new_len);
 }
 
+const char *runtime_string_get_cstr(const struct StringObj *s)
+{
+    if (!s)
+        return NULL;
+    return s->data;
+}
+
 void runtime_append_gc_object(struct GC *gc, struct Obj *obj)
 {
     obj->next = gc->root;

@@ -35,6 +35,7 @@ void GCStringFree(struct StringObj *str);
 int runtime_string_compare_cstr(const struct StringObj *str, const char *cstr);
 int runtime_string_compare(const struct StringObj *a, const struct StringObj *b);
 struct StringObj *runtime_string_concat(const struct StringObj *a, const struct StringObj *b);
+const char *runtime_string_get_cstr(const struct StringObj *s);
 
 void runtime_append_gc_object(struct GC *gc, struct Obj *obj);
 

@@ -16,19 +16,11 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
-/*
-*/
-- test_count = 0
-// asserts int
-//# AssertI(expected int, actual int, $caller_line)
-//  test_count++
-//
-//  if expected != actual
-//    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
-//    exit(1)
-
 # main() int
-  //AssertI(2, 13)
-  test_count = 12
-  test_count++
-  return test_count
+  - a = 42
+  - b = 242301
+  - c = 0x1234567890
+  - f = 3.14
+  - s = "Hello!"
+  print(a, b, c, f, s)
+  return a

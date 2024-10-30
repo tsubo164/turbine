@@ -49,6 +49,7 @@ void ValueVecInit(struct ValueVec *v);
 bool ValueVecIsEmpty(const struct ValueVec *v);
 void ValueVecResize(struct ValueVec *v, int new_len);
 void ValueVecPush(struct ValueVec *v, struct Value val);
+struct Value ValueVecGet(const struct ValueVec *v, int index);
 void ValueVecFree(struct ValueVec *v);
 
 #endif // _H

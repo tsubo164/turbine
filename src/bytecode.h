@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
+#include "code_constant_pool.h"
 #include "hashmap.h"
 #include "value.h"
 #include "vec.h"
@@ -236,6 +238,9 @@ typedef struct Bytecode {
     int curr_reg;
     int max_reg;
 
+    struct IntStack immediate_ints;
+    struct code_constant_pool const_pool;
+
     ByteVec bytes_;
     PtrVec strings_;
     FuncInfoVec funcs_;
@@ -357,16 +362,15 @@ int SetCurrentRegister__(struct Bytecode *code, int curr);
 int GetNextRegister__(struct Bytecode *code, int reg);
 bool IsTempRegister(const struct Bytecode *code, int id);
 
-int PoolInt__(struct Bytecode *code, Int val);
-int PoolFloat__(struct Bytecode *code, value_float_t val);
-int PoolString__(struct Bytecode *code, const char *str);
-struct Value GetConstValue__(const Bytecode *code, Byte id);
 bool IsConstValue__(int id);
+bool IsImmediateValue__(int id);
+struct Value ReadImmediateValue__(const struct Bytecode *code, Int addr, int id, int *imm_size);
 
 // load/store/move
 int Move__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int LoadInt__(struct Bytecode *code, int64_t val);
 int LoadFloat__(struct Bytecode *code, double val);
+int LoadString__(struct Bytecode *code, const char *cstr);
 int Load__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Store__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int LoadArray__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t idx);
@@ -472,7 +476,7 @@ struct Instruction {
 };
 void Decode__(uint32_t instcode, struct Instruction *inst);
 void PrintInstruction__(const struct Bytecode *code,
-        Int addr, const struct Instruction *inst);
+        Int addr, const struct Instruction *inst, int *imm_size);
 
 // read / write
 uint32_t Read__(const Bytecode *code, Int addr);

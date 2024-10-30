@@ -200,14 +200,6 @@ static Call pop_call(VM *vm)
     return vm->callstack_.data[vm->call_sp_--];
 }
 
-static Value get_register_value(const VM *vm, int id)
-{
-    if (IsConstValue__(id))
-        return GetConstValue__(vm->code_, id);
-    else
-        return vm->stack_.data[vm->bp_ + 1 + id];
-}
-
 static Value get_local(const VM *vm, int id)
 {
     return vm->stack_.data[vm->bp_ + 1 + id];
@@ -226,6 +218,22 @@ static void set_local(VM *vm, int id, struct Value val)
 static void set_global(VM *vm, int id, Value val)
 {
     vm->stack_.data[1 + id] = val;
+}
+
+static Value fetch_register_value(struct VM *vm, int id)
+{
+    if (IsImmediateValue__(id)) {
+        struct Value imm = {0};
+        int imm_size = 0;
+
+        imm = ReadImmediateValue__(vm->code_, vm->ip_, id, &imm_size);
+        vm->ip_ += imm_size;
+
+        return imm;
+    }
+    else {
+        return get_local(vm, id);
+    }
 }
 
 static bool is_eoc(const VM *vm)
@@ -1093,7 +1101,8 @@ static void run__(VM *vm)
         Decode__(instcode, &inst);
 
         if (vm->print_stack_) {
-            PrintInstruction__(vm->code_, old_ip, &inst);
+            int imm_size = 0;
+            PrintInstruction__(vm->code_, old_ip, &inst, &imm_size);
             PrintStack(vm);
         }
 
@@ -1219,7 +1228,7 @@ static void run__(VM *vm)
             {
                 const uint8_t dst = inst.A;
                 const uint8_t src = inst.B;
-                const struct Value val = get_register_value(vm, src);
+                const struct Value val = fetch_register_value(vm, src);
 
                 set_local(vm, dst, val);
             }
@@ -1254,7 +1263,7 @@ static void run__(VM *vm)
             {
                 const uint8_t dst = inst.A;
                 const uint8_t src = inst.B;
-                const struct Value srcaddr = get_register_value(vm, src);
+                const struct Value srcaddr = fetch_register_value(vm, src);
                 const struct Value val = get_global(vm, srcaddr.inum);
 
                 set_local(vm, dst, val);
@@ -1265,8 +1274,8 @@ static void run__(VM *vm)
             {
                 const uint8_t dst = inst.A;
                 const uint8_t src = inst.B;
-                const struct Value val0 = get_register_value(vm, dst);
-                const struct Value val1 = get_register_value(vm, src);
+                const struct Value val0 = fetch_register_value(vm, dst);
+                const struct Value val1 = fetch_register_value(vm, src);
 
                 set_global(vm, val0.inum, val1);
             }
@@ -1277,8 +1286,8 @@ static void run__(VM *vm)
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
-                struct Value src = get_register_value(vm, reg1);
-                struct Value idx = get_register_value(vm, reg2);
+                struct Value src = fetch_register_value(vm, reg1);
+                struct Value idx = fetch_register_value(vm, reg2);
 
                 struct Value val = ArrayGet(src.array, idx.inum);
                 set_local(vm, reg0, val);
@@ -1290,9 +1299,9 @@ static void run__(VM *vm)
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
-                struct Value dst = get_register_value(vm, reg0);
-                struct Value idx = get_register_value(vm, reg1);
-                struct Value src = get_register_value(vm, reg2);
+                struct Value dst = fetch_register_value(vm, reg0);
+                struct Value idx = fetch_register_value(vm, reg1);
+                struct Value src = fetch_register_value(vm, reg2);
 
                 ArraySet(dst.array, idx.inum, src);
             }
@@ -1303,7 +1312,7 @@ static void run__(VM *vm)
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
                 uint8_t field_idx = inst.C;
-                struct Value src = get_register_value(vm, reg1);
+                struct Value src = fetch_register_value(vm, reg1);
                 struct Value val = runtime_struct_get(src.strct, field_idx);
 
                 set_local(vm, reg0, val);
@@ -1315,8 +1324,8 @@ static void run__(VM *vm)
                 uint8_t reg0 = inst.A;
                 uint8_t field_idx = inst.B;
                 uint8_t reg2 = inst.C;
-                struct Value dst = get_register_value(vm, reg0);
-                struct Value src = get_register_value(vm, reg2);
+                struct Value dst = fetch_register_value(vm, reg0);
+                struct Value src = fetch_register_value(vm, reg2);
 
                 runtime_struct_set(dst.strct, field_idx, src);
             }
@@ -1420,7 +1429,7 @@ static void run__(VM *vm)
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
-                struct Value len = get_register_value(vm, reg1);
+                struct Value len = fetch_register_value(vm, reg1);
                 struct Value val;
 
                 val.array = ArrayNew(&vm->gc_, len.inum);
@@ -1432,7 +1441,7 @@ static void run__(VM *vm)
             {
                 uint8_t reg0 = inst.A;
                 uint8_t len  = inst.B;
-                struct Value dst = get_register_value(vm, reg0);
+                struct Value dst = fetch_register_value(vm, reg0);
                 struct Value val;
 
                 struct runtime_struct *s = runtime_struct_new(len);
@@ -1503,14 +1512,14 @@ static void run__(VM *vm)
                     int max_reg_count = 0;
                     set_sp(vm, vm->bp_ + max_reg_count);
 
-                    struct Value arg_count = get_register_value(vm, 0);
+                    struct Value arg_count = fetch_register_value(vm, 0);
                     int argc = arg_count.inum;
                     int arg_reg = 1;
 
                     for (int i = 0; i < argc; i ++) {
 
-                        struct Value val = get_register_value(vm, arg_reg++);
-                        struct Value type = get_register_value(vm, arg_reg++);
+                        struct Value val = fetch_register_value(vm, arg_reg++);
+                        struct Value type = fetch_register_value(vm, arg_reg++);
 
                         switch (type.inum) {
 
@@ -1540,7 +1549,7 @@ static void run__(VM *vm)
                         // peek next arg
                         bool skip_separator = false;
                         if (i < argc - 1) {
-                            struct Value next_type = get_register_value(vm, arg_reg + 1);
+                            struct Value next_type = fetch_register_value(vm, arg_reg + 1);
                             if (next_type.inum == TID_NIL)
                                 skip_separator = true;
                         }
@@ -1561,7 +1570,7 @@ static void run__(VM *vm)
                 }
                 else if (func_index == 1) {
                     int src = inst.A;
-                    struct Value ret_code = get_register_value(vm, src);
+                    struct Value ret_code = fetch_register_value(vm, src);
                     // TODO push?
                     //set_global(vm, vm->sp_, ret_code);
                     vm->stack_.data[vm->sp_] = ret_code;
@@ -1573,7 +1582,7 @@ static void run__(VM *vm)
         case OP_RETURN__:
             {
                 uint8_t reg_id = inst.A;
-                struct Value ret_val = get_register_value(vm, reg_id);
+                struct Value ret_val = fetch_register_value(vm, reg_id);
                 struct Call call = pop_call(vm);
                 uint8_t ret_reg = call.return_reg;
 
@@ -1595,7 +1604,7 @@ static void run__(VM *vm)
             {
                 uint8_t reg0 = inst.A;
                 uint16_t addr = inst.BB;
-                struct Value cond = get_register_value(vm, reg0);
+                struct Value cond = fetch_register_value(vm, reg0);
 
                 if (cond.inum == 0)
                     set_ip(vm, addr);
@@ -1606,7 +1615,7 @@ static void run__(VM *vm)
             {
                 uint8_t reg0 = inst.A;
                 uint16_t addr = inst.BB;
-                struct Value cond = get_register_value(vm, reg0);
+                struct Value cond = fetch_register_value(vm, reg0);
 
                 if (cond.inum != 0)
                     set_ip(vm, addr);
@@ -1618,8 +1627,8 @@ do { \
     uint8_t reg0 = inst.A; \
     uint8_t reg1 = inst.B; \
     uint8_t reg2 = inst.C; \
-    struct Value val1 = get_register_value(vm, reg1); \
-    struct Value val2 = get_register_value(vm, reg2); \
+    struct Value val1 = fetch_register_value(vm, reg1); \
+    struct Value val2 = fetch_register_value(vm, reg2); \
     struct Value val0; \
     val0.field = val1.field op val2.field; \
     set_local(vm, reg0, val0); \
@@ -1631,8 +1640,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 val0.inum = val1.inum + val2.inum;
@@ -1646,8 +1655,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 val0.fpnum = val1.fpnum + val2.fpnum;
@@ -1661,8 +1670,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 val0.inum = val1.inum - val2.inum;
@@ -1676,8 +1685,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 val0.fpnum = val1.fpnum - val2.fpnum;
@@ -1691,8 +1700,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 val0.inum = val1.inum * val2.inum;
@@ -1706,8 +1715,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 val0.fpnum = val1.fpnum * val2.fpnum;
@@ -1721,8 +1730,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 // TODO check zero division
@@ -1737,8 +1746,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 // TODO check zero division
@@ -1753,8 +1762,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 // TODO check zero division
@@ -1769,8 +1778,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 // TODO check zero division
@@ -1786,8 +1795,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 struct StringObj *s = runtime_string_concat(val1.str, val2.str);
@@ -1804,8 +1813,8 @@ do { \
                 uint8_t reg1 = inst.B;
                 uint8_t reg2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, reg1);
-                struct Value val2 = get_register_value(vm, reg2);
+                struct Value val1 = fetch_register_value(vm, reg1);
+                struct Value val2 = fetch_register_value(vm, reg2);
                 struct Value val0;
 
                 val0.inum = val1.inum == val2.inum;
@@ -1818,8 +1827,8 @@ do { \
     uint8_t reg0 = inst.A; \
     uint8_t reg1 = inst.B; \
     uint8_t reg2 = inst.C; \
-    struct Value val1 = get_register_value(vm, reg1); \
-    struct Value val2 = get_register_value(vm, reg2); \
+    struct Value val1 = fetch_register_value(vm, reg1); \
+    struct Value val2 = fetch_register_value(vm, reg2); \
     struct Value val0; \
     if ((zerocheck)) {\
         /* runtime error */ \
@@ -1833,8 +1842,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
@@ -1850,8 +1859,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
@@ -1866,8 +1875,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
@@ -1882,8 +1891,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
@@ -1898,8 +1907,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 // The result of op is int (bool)
@@ -1914,8 +1923,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum < val2.inum;
@@ -1929,8 +1938,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.fpnum < val2.fpnum;
@@ -1944,8 +1953,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum <= val2.inum;
@@ -1959,8 +1968,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.fpnum <= val2.fpnum;
@@ -1974,8 +1983,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum > val2.inum;
@@ -1989,8 +1998,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.fpnum > val2.fpnum;
@@ -2004,8 +2013,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum >= val2.inum;
@@ -2019,8 +2028,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.fpnum >= val2.fpnum;
@@ -2034,8 +2043,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum & val2.inum;
@@ -2049,8 +2058,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum | val2.inum;
@@ -2064,8 +2073,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum ^ val2.inum;
@@ -2077,7 +2086,7 @@ do { \
             {
                 uint8_t dst = inst.A;
                 uint8_t src = inst.B;
-                struct Value val = get_register_value(vm, src);
+                struct Value val = fetch_register_value(vm, src);
                 val.inum = ~val.inum;
                 set_local(vm, dst, val);
             }
@@ -2089,8 +2098,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum << val2.inum;
@@ -2104,8 +2113,8 @@ do { \
                 uint8_t src1 = inst.B;
                 uint8_t src2 = inst.C;
 
-                struct Value val1 = get_register_value(vm, src1);
-                struct Value val2 = get_register_value(vm, src2);
+                struct Value val1 = fetch_register_value(vm, src1);
+                struct Value val2 = fetch_register_value(vm, src2);
                 struct Value val0;
 
                 val0.inum = val1.inum >> val2.inum;
@@ -2116,7 +2125,7 @@ do { \
         case OP_INC__:
             {
                 uint8_t src = inst.A;
-                struct Value val0 = get_register_value(vm, src);
+                struct Value val0 = fetch_register_value(vm, src);
                 val0.inum++;
                 set_local(vm, src, val0);
             }
@@ -2125,7 +2134,7 @@ do { \
         case OP_DEC__:
             {
                 uint8_t src = inst.A;
-                struct Value val0 = get_register_value(vm, src);
+                struct Value val0 = fetch_register_value(vm, src);
                 val0.inum--;
                 set_local(vm, src, val0);
             }
@@ -2135,7 +2144,7 @@ do { \
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
-                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val1 = fetch_register_value(vm, reg1);
                 val1.inum *= -1;
                 set_local(vm, reg0, val1);
             }
@@ -2145,7 +2154,7 @@ do { \
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
-                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val1 = fetch_register_value(vm, reg1);
                 val1.fpnum *= -1.;
                 set_local(vm, reg0, val1);
             }
@@ -2155,7 +2164,7 @@ do { \
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
-                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val1 = fetch_register_value(vm, reg1);
                 val1.inum = val1.inum == 0;
                 set_local(vm, reg0, val1);
             }
@@ -2165,7 +2174,7 @@ do { \
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
-                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val1 = fetch_register_value(vm, reg1);
                 val1.inum = val1.inum == 0;
                 set_local(vm, reg0, val1);
             }
@@ -2191,7 +2200,7 @@ do { \
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
                 struct Value val0;
-                struct Value val1 = get_register_value(vm, reg1);
+                struct Value val1 = fetch_register_value(vm, reg1);
 
                 val0.inum = val1.inum != 0;
                 set_local(vm, reg0, val0);
@@ -2263,9 +2272,11 @@ do { \
             break;
 
         default:
-            fprintf(stderr, "** Unimplemented instruction: %d\n", inst.op);
-            PrintInstruction__(vm->code_, old_ip, &inst);
-            UNREACHABLE;
+            {
+                fprintf(stderr, "** Unimplemented instruction: %d\n", inst.op);
+                PrintInstruction__(vm->code_, old_ip, &inst, NULL);
+                UNREACHABLE;
+            }
             break;
         }
     }
