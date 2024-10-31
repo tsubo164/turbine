@@ -2043,15 +2043,33 @@ void print_value(struct Value val, int type)
 
 void PrintBytecode__(const Bytecode *code)
 {
-    if (code->const_count) {
-        printf("* constant pool:\n");
-        for (int i = 0; i < code->const_count; i++) {
-            struct Value val = code->consts[i];
-            int type = code->const_types[i];
+    if (code_constant_pool_get_int_count(&code->const_pool) > 0) {
+        printf("* constant int:\n");
+        int count = code_constant_pool_get_int_count(&code->const_pool);
 
-            printf("  [%3d] ", i);
-            print_value(val, type);
-            printf("\n");
+        for (int i = 0; i < count; i++) {
+            struct Value val = code_constant_pool_get_int(&code->const_pool, i);
+            printf("[%6d] %lld\n", i, val.inum);
+        }
+    }
+
+    if (code_constant_pool_get_float_count(&code->const_pool) > 0) {
+        printf("* constant float:\n");
+        int count = code_constant_pool_get_float_count(&code->const_pool);
+
+        for (int i = 0; i < count; i++) {
+            struct Value val = code_constant_pool_get_float(&code->const_pool, i);
+            printf("[%6d] %g\n", i, val.fpnum);
+        }
+    }
+
+    if (code_constant_pool_get_string_count(&code->const_pool) > 0) {
+        printf("* constant string:\n");
+        int count = code_constant_pool_get_string_count(&code->const_pool);
+
+        for (int i = 0; i < count; i++) {
+            struct Value val = code_constant_pool_get_string(&code->const_pool, i);
+            printf("[%6d] \"%s\"\n", i, runtime_string_get_cstr(val.str));
         }
     }
 

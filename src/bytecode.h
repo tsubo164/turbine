@@ -235,9 +235,6 @@ typedef struct FuncInfoVec {
 
 typedef struct Bytecode {
     struct InstVec insts;
-    struct Value consts[128];
-    int const_types[128];
-    int const_count;
     int base_reg;
     int curr_reg;
     int max_reg;
@@ -366,7 +363,6 @@ int SetCurrentRegister__(struct Bytecode *code, int curr);
 int GetNextRegister__(struct Bytecode *code, int reg);
 bool IsTempRegister(const struct Bytecode *code, int id);
 
-bool IsConstValue__(int id);
 bool IsImmediateValue__(int id);
 struct Value ReadImmediateValue__(const struct Bytecode *code, Int addr, int id, int *imm_size);
 

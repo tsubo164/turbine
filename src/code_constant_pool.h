@@ -20,4 +20,8 @@ struct Value code_constant_pool_get_int(const struct code_constant_pool *v, int 
 struct Value code_constant_pool_get_float(const struct code_constant_pool *v, int id);
 struct Value code_constant_pool_get_string(const struct code_constant_pool *v, int id);
 
+int code_constant_pool_get_int_count(const struct code_constant_pool *v);
+int code_constant_pool_get_float_count(const struct code_constant_pool *v);
+int code_constant_pool_get_string_count(const struct code_constant_pool *v);
+
 #endif /* _H */

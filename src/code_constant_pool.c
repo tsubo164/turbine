@@ -75,3 +75,18 @@ struct Value code_constant_pool_get_string(const struct code_constant_pool *v, i
 {
     return ValueVecGet(&v->strings, id);
 }
+
+int code_constant_pool_get_int_count(const struct code_constant_pool *v)
+{
+    return v->ints.len;
+}
+
+int code_constant_pool_get_float_count(const struct code_constant_pool *v)
+{
+    return v->floats.len;
+}
+
+int code_constant_pool_get_string_count(const struct code_constant_pool *v)
+{
+    return v->strings.len;
+}
