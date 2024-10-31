@@ -122,6 +122,10 @@ enum Opcode {
     OP_LOADTYPEINT__,
     OP_LOADTYPEFLOAT__,
     OP_LOADTYPESTRING__,
+/* TODO remove address operations */
+    OP_LOADADDR__,
+    OP_DEREF__,
+/* ------------------------------ */
     // array/struct
     OP_NEWARRAY__,
     OP_NEWSTRUCT__,
@@ -382,6 +386,11 @@ int LoadTypeBool__(struct Bytecode *code, int dst);
 int LoadTypeInt__(struct Bytecode *code, int dst);
 int LoadTypeFloat__(struct Bytecode *code, int dst);
 int LoadTypeString__(struct Bytecode *code, int dst);
+
+/* TODO remove address operations */
+int LoadAddress__(struct Bytecode *code, int dst, int src);
+int Dereference__(struct Bytecode *code, int dst, int src);
+/* ------------------------------ */
 
 // array/struct
 int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len);

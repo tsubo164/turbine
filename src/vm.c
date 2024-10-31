@@ -1343,22 +1343,31 @@ static void run__(VM *vm)
                 }
             }
             break;
+            */
 
-        case OP_LOADA:
+        case OP_LOADADDR__:
             {
-                const Int id = fetch_word(vm);
-                push_int(vm, vm->bp_ + 1 + id);
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                struct Value addr;
+
+                addr.inum = vm->bp_ + 1 + reg1;
+                set_local(vm, reg0, addr);
             }
             break;
 
-        case OP_DEREF:
+        case OP_DEREF__:
             {
-                const Int addr  = pop_int(vm);
-                const Value val = vm->stack_.data[addr];
-                push(vm, val);
+                uint8_t reg0 = inst.A;
+                uint8_t reg1 = inst.B;
+                struct Value addr = fetch_register_value(vm, reg1);
+                struct Value val = vm->stack_.data[addr.inum];
+
+                set_local(vm, reg0, val);
             }
             break;
 
+            /*
         case OP_INDEX:
             {
                 const long index = pop_int(vm);

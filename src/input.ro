@@ -16,11 +16,22 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
+## Point
+  - x int
+  - y int
+
+# get_point_y(p Point) int
+  return p.y
+
+# set_point_x(p *Point, x int)
+  p.x = x
+
+//# set_point_y(p *Point, y int)
+//  p.y = y
+
 # main() int
-  - a = 42
-  - b = 242301
-  - c = 0x1234567890
-  - f = 3.14
-  - s = "Hello!"
-  print(a, b, c, f, s)
-  return a
+  return 42
+  //- i int = 42
+  //- p *int
+  //p = &i
+  //return *p

@@ -157,6 +157,10 @@ static const struct OpcodeInfo__ opcode_table__[] = {
     [OP_LOADTYPEINT__]    = { "loadtypei",   OPERAND_A__ },
     [OP_LOADTYPEFLOAT__]  = { "loadtypef",   OPERAND_A__ },
     [OP_LOADTYPESTRING__] = { "loadtypes",   OPERAND_A__ },
+/* TODO remove address operations */
+    [OP_LOADADDR__]       = { "loadaddr",    OPERAND_AB_ },
+    [OP_DEREF__]          = { "deref",       OPERAND_AB_ },
+/* ------------------------------ */
     // array/struct
     [OP_NEWARRAY__]       = { "newarray",    OPERAND_AB_ },
     [OP_NEWSTRUCT__]      = { "newstruct",   OPERAND_AB_ },
@@ -1166,6 +1170,20 @@ int LoadTypeString__(struct Bytecode *code, int dst)
     push_inst_a(code, OP_LOADTYPESTRING__, dst);
     return dst;
 }
+
+/* TODO remove address operations */
+int LoadAddress__(struct Bytecode *code, int dst, int src)
+{
+    push_inst_ab(code, OP_LOADADDR__, dst, src);
+    return dst;
+}
+
+int Dereference__(struct Bytecode *code, int dst, int src)
+{
+    push_inst_ab(code, OP_DEREF__, dst, src);
+    return dst;
+}
+/* ------------------------------ */
 
 // array/struct
 int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len)

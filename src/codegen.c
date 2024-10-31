@@ -1834,11 +1834,13 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-        /*
     case T_ADR:
-        LoadAddress(code, Addr(e->l));
-        return;
-        */
+        {
+            int reg1 = gen_addr__(code, e->l);
+            int reg0 = gen_dst_register2(code, reg1);
+            LoadAddress__(code, reg0, reg1);
+            return reg0;
+        }
 
     case T_POS:
         {
@@ -1867,12 +1869,13 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-        /*
     case T_DRF:
-        gen_expr(code, e->l);
-        Dereference(code);
-        return;
-        */
+        {
+            int reg1 = gen_expr__(code, e->l);
+            int reg0 = gen_dst_register2(code, reg1);
+            Dereference__(code, reg0, reg1);
+            return reg0;
+        }
 
     case T_ASSN:
         return gen_assign__(code, e);
