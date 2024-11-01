@@ -2179,7 +2179,7 @@ static Int print_op__(const Bytecode *code, Int addr, const struct Instruction *
         break;
 
     case OPERAND_ABB:
-        print_operand__(code, addr, inst->A, 0, NULL);
+        print_operand__(code, addr, inst->A, 1, NULL);
         print_operand16__(code, inst->BB);
         break;
 

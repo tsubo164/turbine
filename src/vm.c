@@ -1085,6 +1085,11 @@ void PrintStack(const VM *vm)
 {
     printf("    ------\n");
     for (Int i = vm->sp_; i >= 0; i--) {
+        if (i <= vm->sp_ && i > 0)
+            printf("[%6lld] ", index_to_addr(i));
+        else if (i == 0)
+            printf("[%6s] ", "*");
+
         if (i == vm->sp_)
             printf("SP->");
         else
@@ -1101,9 +1106,6 @@ void PrintStack(const VM *vm)
 
         if (i == vm->bp_)
             printf("<-BP");
-
-        if (i <= vm->sp_ && i > 0)
-            printf(" [%lld]", index_to_addr(i));
 
         printf("\n");
     }
@@ -1478,13 +1480,13 @@ static void run__(VM *vm)
         // array/struct
         case OP_NEWARRAY__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
+                int dst = inst.A;
+                int reg1 = inst.B;
                 struct Value len = fetch_register_value(vm, reg1);
                 struct Value val;
 
                 val.array = ArrayNew(&vm->gc_, len.inum);
-                set_local(vm, reg0, val);
+                set_local(vm, dst, val);
             }
             break;
 

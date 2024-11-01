@@ -1139,12 +1139,24 @@ static int gen_convert__(Bytecode *code, int reg0, int reg1, enum TY from, enum 
     return reg;
 }
 
+// TODO remove forward decls
+static int gen_dst_register(Bytecode *code, int reg1, int reg2);
+static int gen_dst_register2(struct Bytecode *code, int reg1);
+static int gen_store2__(Bytecode *code, const struct Expr *lval, int src_reg);
 static int gen_init_array__(Bytecode *code, const struct Expr *e)
 {
     // TODO testing dynamic array
-    {
+    if (IsGlobal(e->l)) {
+        int addr = gen_addr__(code, e->l);
+        int len = gen_expr__(code, e->r);
+        int dst = gen_dst_register(code, addr, len);
+        NewArray__(code, dst, len);
+        Store__(code, addr, dst);
+        return addr;
+    }
+    else {
         // an init expr always has identifier on the left
-        int reg0 = gen_addr__(code, e->l);
+        int reg0 = gen_expr__(code, e->l);
         int reg1 = gen_expr__(code, e->r);
         NewArray__(code, reg0, reg1);
 
@@ -1402,9 +1414,9 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
     int reg2 = -1;
 
     if (lval->kind == T_INDEX) {
-        reg0 = gen_addr__(code, lval->l);
-        reg1 = gen_expr__(code, lval->r);
-        reg2 = gen_expr__(code, rval);
+        int reg0 = gen_expr__(code, lval->l);
+        int reg1 = gen_expr__(code, lval->r);
+        int reg2 = gen_expr__(code, rval);
         StoreArray__(code, reg0, reg1, reg2);
         return reg0;
     }
@@ -1670,11 +1682,13 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
 
 
     case T_INDEX:
-        reg0 = NewRegister__(code);
-        reg1 = gen_addr__(code, e->l);
-        reg2 = gen_expr__(code, e->r);
-        LoadArray__(code, reg0, reg1, reg2);
-        return reg0;
+        {
+            int src = gen_expr__(code, e->l);
+            int idx = gen_expr__(code, e->r);
+            int dst = gen_dst_register(code, src, idx);
+            LoadArray__(code, dst, src, idx);
+            return dst;
+        }
 
     case T_CALL:
         return gen_call__(code, e);
@@ -2045,14 +2059,12 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
     switch (s->kind) {
 
     case T_NOP:
-        return;
+        break;
 
     case T_BLOCK:
-        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next) {
+        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt__(code, stmt);
-            ResetCurrentRegister__(code);
-        }
-        return;
+        break;
 
     case T_IF:
         BeginIf__(code);
@@ -2062,7 +2074,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
 
         // exit
         BackPatchElseEnds__(code);
-        return;
+        break;
 
     case T_ELS:
         {
@@ -2084,7 +2096,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
                 BackPatch__(code, next);
             }
         }
-        return;
+        break;
 
     case T_FOR:
         {
@@ -2109,14 +2121,14 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
             BackPatch__(code, exit);
             BackPatchBreaks__(code);
         }
-        return;
+        break;
 
     case T_BRK:
         {
             Int addr = Jump__(code, -1);
             PushBreak__(code, addr);
         }
-        return;
+        break;
 
     case T_CNT:
         {
@@ -2125,7 +2137,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
             // TODO testing new naming convention
             code_push_continue(code, addr);
         }
-        return;
+        break;
 
 
     case T_SWT:
@@ -2153,7 +2165,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
             // remove cond val
             SetCurrentRegister__(code, curr);
         }
-        return;
+        break;
 
     case T_CASE:
         {
@@ -2193,32 +2205,34 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
             PushCaseEnd__(code, addr);
             BackPatch__(code, exit);
         }
-        return;
+        break;
 
     case T_DFLT:
         // body
         gen_stmt__(code, s->body);
-        return;
+        break;
 
     case T_RET:
         {
             int reg0 = gen_expr__(code, s->expr);
             Return__(code, reg0);
         }
-        return;
+        break;
 
     case T_EXPR:
         gen_expr__(code, s->expr);
         // remove the result
         //Pop(code);
-        return;
+        break;
 
         // XXX need T_ASSNSTMT?
     case T_ASSN:
     case T_INIT:
         gen_expr__(code, s->expr);
-        return;
+        break;
     }
+
+    ResetCurrentRegister__(code);
 }
 
 static void gen_func__(Bytecode *code, const struct Func *func, int func_id)

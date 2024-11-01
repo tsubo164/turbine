@@ -737,7 +737,6 @@
     twice(&i)
     AssertI(26, i)
 
-  //print("======================================================================")
   // array variable
   ---
     - a [8]int
@@ -777,6 +776,7 @@
     AssertF(3.1415, my_calc.PI)
     my_calc.PI = 1.23
     AssertF(1.23, my_calc.PI)
+    //print("======================================================================")
     AssertI(42, my_calc.add(31, 11))
 
   // for zero times loop
