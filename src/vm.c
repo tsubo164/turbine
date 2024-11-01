@@ -200,24 +200,59 @@ static Call pop_call(VM *vm)
     return vm->callstack_.data[vm->call_sp_--];
 }
 
-static Value get_local(const VM *vm, int id)
+#define SPOFFSET 1
+static int64_t index_to_addr(int64_t index)
 {
-    return vm->stack_.data[vm->bp_ + 1 + id];
+    return index - SPOFFSET;
 }
 
-static Value get_global(const VM *vm, int id)
+static int64_t addr_to_index(int64_t addr)
 {
-    return vm->stack_.data[1 + id];
+    return addr + SPOFFSET;
+}
+
+static int id_to_addr(const struct VM *vm, int id)
+{
+    return index_to_addr(vm->bp_) + 1 + id;
+}
+
+static int addr_to_id(const struct VM *vm, int addr)
+{
+    return addr - (index_to_addr(vm->bp_) + 1);
+}
+
+static Value read_stack(const VM *vm, int64_t addr)
+{
+    int64_t index = addr_to_index(addr);
+    return vm->stack_.data[index];
+}
+
+static void write_stack(VM *vm, int64_t addr, struct Value val)
+{
+    int64_t index = addr_to_index(addr);
+    vm->stack_.data[index] = val;
+}
+
+static Value get_local(const VM *vm, int id)
+{
+    int64_t addr = id_to_addr(vm, id);
+    return read_stack(vm, addr);
 }
 
 static void set_local(VM *vm, int id, struct Value val)
 {
-    vm->stack_.data[vm->bp_ + 1 + id] = val;
+    int64_t addr = id_to_addr(vm, id);
+    write_stack(vm, addr, val);
 }
 
-static void set_global(VM *vm, int id, Value val)
+static Value get_global(const VM *vm, int addr)
 {
-    vm->stack_.data[1 + id] = val;
+    return read_stack(vm, addr);
+}
+
+static void set_global(VM *vm, int addr, Value val)
+{
+    write_stack(vm, addr, val);
 }
 
 static Value fetch_register_value(struct VM *vm, int id)
@@ -1049,8 +1084,7 @@ Int StackTopInt(const VM *vm)
 void PrintStack(const VM *vm)
 {
     printf("    ------\n");
-    for (Int i = vm->sp_; i >= 0; i--)
-    {
+    for (Int i = vm->sp_; i >= 0; i--) {
         if (i == vm->sp_)
             printf("SP->");
         else
@@ -1059,10 +1093,18 @@ void PrintStack(const VM *vm)
         printf("|%4llu|", vm->stack_.data[i].inum);
 
         if (i <= vm->sp_ && i > vm->bp_)
-            printf(" [%lld]", i - vm->bp_ - 1);
+        {
+            int64_t addr = index_to_addr(i);
+            int64_t id = addr_to_id(vm, addr);
+            printf(" [%lld]", id);
+        }
 
         if (i == vm->bp_)
             printf("<-BP");
+
+        if (i <= vm->sp_ && i > 0)
+            printf(" [%lld]", index_to_addr(i));
+
         printf("\n");
     }
     printf("--------------\n\n");
@@ -1261,10 +1303,10 @@ static void run__(VM *vm)
 
         case OP_LOAD__:
             {
-                const uint8_t dst = inst.A;
-                const uint8_t src = inst.B;
-                const struct Value srcaddr = fetch_register_value(vm, src);
-                const struct Value val = get_global(vm, srcaddr.inum);
+                int dst = inst.A;
+                int src = inst.B;
+                struct Value srcaddr = fetch_register_value(vm, src);
+                struct Value val = get_global(vm, srcaddr.inum);
 
                 set_local(vm, dst, val);
             }
@@ -1272,10 +1314,10 @@ static void run__(VM *vm)
 
         case OP_STORE__:
             {
-                const uint8_t dst = inst.A;
-                const uint8_t src = inst.B;
-                const struct Value val0 = fetch_register_value(vm, dst);
-                const struct Value val1 = fetch_register_value(vm, src);
+                int dst = inst.A;
+                int src = inst.B;
+                struct Value val0 = fetch_register_value(vm, dst);
+                struct Value val1 = fetch_register_value(vm, src);
 
                 set_global(vm, val0.inum, val1);
             }
@@ -1347,21 +1389,21 @@ static void run__(VM *vm)
 
         case OP_LOADADDR__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
+                int reg0 = inst.A;
+                int reg1 = inst.B;
                 struct Value addr;
 
-                addr.inum = vm->bp_ + 1 + reg1;
+                addr.inum = id_to_addr(vm, reg1);
                 set_local(vm, reg0, addr);
             }
             break;
 
         case OP_DEREF__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
+                int reg0 = inst.A;
+                int reg1 = inst.B;
                 struct Value addr = fetch_register_value(vm, reg1);
-                struct Value val = vm->stack_.data[addr.inum];
+                struct Value val = get_global(vm, addr.inum);
 
                 set_local(vm, reg0, val);
             }

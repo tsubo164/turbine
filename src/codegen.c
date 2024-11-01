@@ -1418,6 +1418,13 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         StoreStruct__(code, reg0, reg1, reg2);
         return reg0;
     }
+    else if (lval->kind == T_DRF) {
+        // TODO remove
+        reg0 = gen_addr__(code, lval);
+        reg1 = gen_expr__(code, rval);
+        Store__(code, reg0, reg1);
+        return reg0;
+    }
 
     // TODO if rval is global then skip binop anyway.
     // Binop is one of `move` instruction (store value into register)
@@ -1431,6 +1438,14 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
         //BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
+        gen_binop__(code, e->type, rval->kind, reg0, reg1, reg2);
+        break;
+
+    case T_MUL:
+        reg0 = gen_addr__(code, lval);
+        reg1 = gen_expr__(code, rval->l);
+        reg2 = gen_expr__(code, rval->r);
+        //BINOP__(code, e->type, Mul, reg0, reg1, reg2);
         gen_binop__(code, e->type, rval->kind, reg0, reg1, reg2);
         break;
 
@@ -2010,12 +2025,13 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
         gen_expr(code, e->r);
         Index(code);
         return;
+        */
 
     case T_DRF:
-        // deref *i = ...
-        gen_expr(code, e->l);
-        return;
-        */
+        {
+            int reg0 = gen_expr__(code, e->l);
+            return reg0;
+        }
 
     }
 
