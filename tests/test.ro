@@ -776,7 +776,6 @@
     AssertF(3.1415, my_calc.PI)
     my_calc.PI = 1.23
     AssertF(1.23, my_calc.PI)
-    //print("======================================================================")
     AssertI(42, my_calc.add(31, 11))
 
   // for zero times loop
@@ -803,6 +802,7 @@
     - a = [99, 11, 22, 33 + 9]
     AssertI(64, a[2] + a[3])
 
+  //print("======================================================================")
   // struct initialization
   ---
     - p = Point { x = 99, y = 11 }

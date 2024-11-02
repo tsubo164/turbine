@@ -170,6 +170,7 @@ enum Opcode {
     OP_NEQSTRING__,
     // function call
     OP_CALL__,
+    OP_CALLPOINTER__,
     OP_CALLBUILTIN__,
     OP_RETURN__,
     // jump
@@ -433,6 +434,7 @@ int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1
 int NotEqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 // function call
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
+int CallFunctionPointer__(struct Bytecode *code, int ret, int src);
 void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
 // branch

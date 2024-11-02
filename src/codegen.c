@@ -1581,20 +1581,21 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
     }
 
     // Get the returned value register right next to current
-    int retval_reg = GetNextRegister__(code, curr_reg);
+    int retval_reg = 0;
 
     int64_t func_id = 0;
     if (EvalExpr(call->l, &func_id)) {
+        retval_reg = GetNextRegister__(code, curr_reg);
         CallFunction__(code, retval_reg, func_id, func_type->is_builtin);
     }
     else {
-        /*
-        gen_expr(code, call->l);
-        CallFunctionPointer(code);
-        */
+        int src = gen_expr__(code, call->l);
+        retval_reg = GetNextRegister__(code, curr_reg);
+        CallFunctionPointer__(code, retval_reg, src);
     }
 
     // update current register pointer
+    /* TODO may be removed. GetNextRegister__() does this */
     code->curr_reg = retval_reg;
 
     return retval_reg;
@@ -1644,11 +1645,11 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-        /*
     case T_FUNCLIT:
-        LoadInt(code, e->func->id);
-        return;
-        */
+        {
+            int reg0 = LoadInt__(code, e->func->id);
+            return reg0;
+        }
 
     case T_CONV:
         reg1 = gen_expr__(code, e->l);
@@ -2262,7 +2263,7 @@ static void gen_funcs__(Bytecode *code, const struct Module *mod)
         struct Symbol *sym = scope->syms.data[i];
 
         if (sym->kind == SYM_MODULE)
-            gen_funcs(code, sym->module);
+            gen_funcs__(code, sym->module);
     }
 
     // self module next

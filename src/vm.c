@@ -1529,25 +1529,31 @@ static void run__(VM *vm)
             }
             break;
 
-            /*
-        case OP_CALL_POINTER:
+        case OP_CALLPOINTER__:
             {
-                const Value val = pop(vm);
-                const uint16_t func_index = val.inum;
-                const int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
+                int ret = inst.A;
+                int src = inst.B;
+                struct Value src_val = fetch_register_value(vm, src);
+                int func_index = src_val.inum;
+                int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
 
-                // TODO make function for common part
                 Call call = {0};
                 call.argc = GetFunctionArgCount(vm->code_, func_index);
                 call.return_ip = vm->ip_;
                 call.return_bp = vm->bp_;
+                call.return_sp = vm->sp_;
+                call.return_reg = ret;
                 push_call(vm, &call);
 
                 set_ip(vm, func_addr);
-                set_bp(vm, vm->sp_ - call.argc);
+                // TODO make reg_to_addr()
+                set_bp(vm, vm->bp_ + 1 + call.return_reg - 1);
+
+                // Register allocation (parameters + local variables)
+                int max_reg_count = GetMaxRegisterCount__(vm->code_, func_index);
+                set_sp(vm, vm->bp_ + max_reg_count);
             }
             break;
-            */
 
         case OP_CALLBUILTIN__:
             {
