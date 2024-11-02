@@ -1145,6 +1145,8 @@ static int gen_dst_register2(struct Bytecode *code, int reg1);
 static int gen_store2__(Bytecode *code, const struct Expr *lval, int src_reg);
 static int gen_init_array__(Bytecode *code, const struct Expr *e)
 {
+    int dst = 0;
+
     // TODO testing dynamic array
     if (IsGlobal(e->l)) {
         int addr = gen_addr__(code, e->l);
@@ -1157,42 +1159,24 @@ static int gen_init_array__(Bytecode *code, const struct Expr *e)
     else {
         // an init expr always has identifier on the left
         int reg0 = gen_expr__(code, e->l);
-        int reg1 = gen_expr__(code, e->r);
+        int reg1 = LoadInt__(code, e->type->len);
         NewArray__(code, reg0, reg1);
-
-        return reg0;
+        dst = reg0;
     }
-    // TODO =====================
 
-    /*
-    // lval
-    int addr = 0;
-    // an init expr always has identifier on the left
-    EvalAddr(e->l, &addr);
-
-    // array len
-    LoadInt(code, e->type->len);
-    if (IsGlobal(e->l))
-        StoreGlobal(code, addr);
-    else
-        StoreLocal(code, addr);
-    addr++;
-
+    // TODO eval array lit expr and return an array object
     // array lit
     struct Expr *array_lit = e->r;
+    int index = 0;
 
     for (struct Expr *expr = array_lit->l; expr; expr = expr->next) {
-        // rval
-        gen_expr(code, expr);
-
-        // store
-        if (IsGlobal(e->l))
-            StoreGlobal(code, addr);
-        else
-            StoreLocal(code, addr);
-        addr++;
+        int src = gen_expr__(code, expr);
+        int idx = LoadInt__(code, index);
+        StoreArray__(code, dst, idx, src);
+        index++;
     }
-    */
+
+    return dst;
 }
 
 static int gen_init_struct__(Bytecode *code, const struct Expr *e)
