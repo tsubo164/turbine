@@ -823,7 +823,6 @@
     AssertI(0, s.x)
     AssertI(49, s.y)
 
-  //print("======================================================================")
   // struct default initialization
   ---
     - p Point
@@ -837,6 +836,7 @@
     AssertI(31, q.x)
     AssertI(79, q.y)
 
+  //print("======================================================================")
   // global struct initialization
   ---
     AssertI(0,   g_center.x)

@@ -1492,16 +1492,14 @@ static void run__(VM *vm)
 
         case OP_NEWSTRUCT__:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t len  = inst.B;
-                struct Value dst = fetch_register_value(vm, reg0);
-                struct Value val;
+                int dst = inst.A;
+                int len = inst.B;
 
                 struct runtime_struct *s = runtime_struct_new(len);
                 runtime_append_gc_object(&vm->gc_, (struct Obj*) s);
 
-                val.strct = s;
-                set_local(vm, dst.inum, val);
+                struct Value val = {.strct = s};
+                set_local(vm, dst, val);
             }
             break;
 

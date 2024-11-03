@@ -1179,19 +1179,53 @@ static int gen_init_array__(Bytecode *code, const struct Expr *e)
     return dst;
 }
 
+static int gen_struct_lit__(Bytecode *code, const struct Expr *e,
+        const struct Type *type, /* XXX TEMP */
+        int dst_reg)
+{
+    /*
+    if (!e || e->kind != T_STRUCTLIT)
+        return -1;
+    */
+    /*
+    int len = parser_struct_get_field_count(e->type->strct);
+    */ /* XXX TEMP */
+    int len = parser_struct_get_field_count(type->strct);
+    int dst = 0;
+
+    if (dst_reg == -1)
+        dst = NewRegister__(code);
+    else
+        dst = dst_reg;
+
+    NewStruct__(code, dst, len);
+
+    const struct Expr *struct_lit = e;
+
+    for (struct Expr *elem = struct_lit->l; elem; elem = elem->next) {
+        int src = gen_expr__(code, elem->r);
+        int idx = gen_addr__(code, elem->l);
+
+        StoreStruct__(code, dst, idx, src);
+    }
+
+    return dst;
+}
+
 static int gen_init_struct__(Bytecode *code, const struct Expr *e)
 {
-    {
-        // an init expr always has identifier on the left
-        int reg0 = gen_addr__(code, e->l);
-        if (!IsStruct(e->type)) {
-            // TODO internal error
-        }
-        int reg1 = parser_struct_get_field_count(e->type->strct);
-        NewStruct__(code, reg0, reg1);
-
-        return reg0;
+    if (IsGlobal(e->l)) {
+        int tmp = gen_struct_lit__(code, e->r, e->type, -1);
+        int dst = gen_addr__(code, e->l);
+        Store__(code, dst, tmp);
+        return dst;
     }
+    else {
+        int dst = gen_addr__(code, e->l);
+        gen_struct_lit__(code, e->r, e->type, dst);
+        return dst;
+    }
+
     /*
     // lval
     int addr = 0;
