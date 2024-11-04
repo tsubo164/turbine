@@ -1,7 +1,7 @@
 #ifndef GC_H
 #define GC_H
 
-#include "value.h"
+#include "runtime_value.h"
 
 // GC Object
 enum ObjKind {

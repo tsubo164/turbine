@@ -1016,9 +1016,10 @@ static void push_immediate_value(struct Bytecode *code, int operand)
     push_inst(code, id);
 }
 
-struct Value ReadImmediateValue__(const struct Bytecode *code, Int addr, int id, int *imm_size)
+struct runtime_value ReadImmediateValue__(const struct Bytecode *code,
+        Int addr, int id, int *imm_size)
 {
-    struct Value value;
+    struct runtime_value value;
 
     if (is_smallint_register(id)) {
         value.inum = register_to_smallint(id);
@@ -2023,7 +2024,7 @@ void PrintBytecode(const Bytecode *code)
 }
 
 // XXX TEST
-void print_value(struct Value val, int type)
+void print_value(struct runtime_value val, int type)
 {
     switch (type) {
 
@@ -2055,7 +2056,7 @@ void PrintBytecode__(const Bytecode *code)
         int count = code_constant_pool_get_int_count(&code->const_pool);
 
         for (int i = 0; i < count; i++) {
-            struct Value val = code_constant_pool_get_int(&code->const_pool, i);
+            struct runtime_value val = code_constant_pool_get_int(&code->const_pool, i);
             printf("[%6d] %lld\n", i, val.inum);
         }
     }
@@ -2065,7 +2066,7 @@ void PrintBytecode__(const Bytecode *code)
         int count = code_constant_pool_get_float_count(&code->const_pool);
 
         for (int i = 0; i < count; i++) {
-            struct Value val = code_constant_pool_get_float(&code->const_pool, i);
+            struct runtime_value val = code_constant_pool_get_float(&code->const_pool, i);
             printf("[%6d] %g\n", i, val.fpnum);
         }
     }
@@ -2075,7 +2076,7 @@ void PrintBytecode__(const Bytecode *code)
         int count = code_constant_pool_get_string_count(&code->const_pool);
 
         for (int i = 0; i < count; i++) {
-            struct Value val = code_constant_pool_get_string(&code->const_pool, i);
+            struct runtime_value val = code_constant_pool_get_string(&code->const_pool, i);
             printf("[%6d] \"%s\"\n", i, runtime_string_get_cstr(val.str));
         }
     }
@@ -2119,21 +2120,21 @@ static void print_operand__(const struct Bytecode *code,
     case IMMEDIATE_INT32:
     case IMMEDIATE_INT64:
         {
-            struct Value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
+            struct runtime_value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
             printf("$%lld", val.inum);
         }
         break;
 
     case IMMEDIATE_FLOAT:
         {
-            struct Value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
+            struct runtime_value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
             printf("$%g", val.fpnum);
         }
         break;
 
     case IMMEDIATE_STRING:
         {
-            struct Value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
+            struct runtime_value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
             printf("\"%s\"", runtime_string_get_cstr(val.str));
         }
         break;

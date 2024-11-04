@@ -7,8 +7,8 @@ struct runtime_struct *runtime_struct_new(int64_t len)
     struct runtime_struct *s = CALLOC(struct runtime_struct);
     s->obj.kind = OBJ_STRUCT;
 
-    ValueVecInit(&s->values);
-    ValueVecResize(&s->values, len);
+    runtime_valuevec_init(&s->values);
+    runtime_valuevec_resize(&s->values, len);
     runtime_valuevec_zeroclear(&s->values);
 
     return s;
@@ -18,7 +18,7 @@ void runtime_struct_free(struct runtime_struct *s)
 {
 }
 
-struct Value runtime_struct_get(const struct runtime_struct *s, int64_t field_idx)
+struct runtime_value runtime_struct_get(const struct runtime_struct *s, int64_t field_idx)
 {
     if (field_idx < 0 || field_idx >= s->values.len) {
         // todo error
@@ -26,7 +26,7 @@ struct Value runtime_struct_get(const struct runtime_struct *s, int64_t field_id
     return s->values.data[field_idx];
 }
 
-void runtime_struct_set(struct runtime_struct *s, int64_t field_idx, struct Value val)
+void runtime_struct_set(struct runtime_struct *s, int64_t field_idx, struct runtime_value val)
 {
     if (field_idx < 0 || field_idx >= s->values.len) {
         // todo error

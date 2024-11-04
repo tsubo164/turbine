@@ -1,0 +1,54 @@
+#ifndef RUNTIME_VALUE_H
+#define RUNTIME_VALUE_H
+
+#include <stdbool.h>
+#include <stdint.h>
+
+typedef uint8_t  Byte;
+typedef uint16_t Word;
+typedef int64_t  Int;
+typedef double   Float;
+
+typedef int64_t  value_int_t;
+typedef double   value_float_t;
+
+struct StringObj;
+struct ObjArray;
+struct GCArray;
+struct runtime_struct;
+
+enum runtime_value_type {
+    VAL_NIL = 0,
+    VAL_BOOL,
+    VAL_INT,
+    VAL_FLOAT,
+    VAL_STRING,
+};
+
+struct runtime_value {
+    union {
+        value_int_t inum;
+        value_float_t fpnum;
+        struct StringObj *str;
+        struct ObjArray *array_; // TODO REMOVE OLD
+        struct GCArray *array;
+        struct runtime_struct *strct;
+    };
+};
+
+struct runtime_valuevec {
+    struct runtime_value *data;
+    int cap;
+    int len;
+};
+
+void runtime_valuevec_init(struct runtime_valuevec *v);
+bool runtime_valuevec_is_empty(const struct runtime_valuevec *v);
+void runtime_valuevec_resize(struct runtime_valuevec *v, int new_len);
+void runtime_valuevec_push(struct runtime_valuevec *v, struct runtime_value val);
+struct runtime_value runtime_valuevec_get(const struct runtime_valuevec *v, int index);
+void runtime_valuevec_free(struct runtime_valuevec *v);
+
+void runtime_valuevec_zeroclear(struct runtime_valuevec *v);
+
+#endif /* _H */

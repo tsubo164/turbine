@@ -7,23 +7,23 @@
 struct ObjArray {
     Obj obj;
     // TODO remove this
-    struct Value *values;
+    struct runtime_value *values;
     int64_t *data;
     int64_t len;
     int64_t cap;
 };
 
 struct ObjArray *NewArray(struct GC *gc, int64_t len);
-struct Value ArrayIndex(struct ObjArray *array, int64_t index);
+struct runtime_value ArrayIndex(struct ObjArray *array, int64_t index);
 
 struct GCArray {
     struct Obj obj;
-    struct ValueVec values;
+    struct runtime_valuevec values;
 };
 
 struct GCArray *ArrayNew(struct GC *gc, int64_t len);
-struct Value ArrayGet(const struct GCArray *a, int64_t idx);
-void ArraySet(struct GCArray *a, int64_t idx, struct Value val);
+struct runtime_value ArrayGet(const struct GCArray *a, int64_t idx);
+void ArraySet(struct GCArray *a, int64_t idx, struct runtime_value val);
 void ArrayFree(struct GC *gc, struct GCArray *a);
 
 #endif // _H

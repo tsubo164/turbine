@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #include "code_constant_pool.h"
-#include "value.h"
+#include "runtime_value.h"
 #include "data_hashmap.h"
 #include "data_vec.h"
 
@@ -365,7 +365,8 @@ int GetNextRegister__(struct Bytecode *code, int reg);
 bool IsTempRegister(const struct Bytecode *code, int id);
 
 bool IsImmediateValue__(int id);
-struct Value ReadImmediateValue__(const struct Bytecode *code, Int addr, int id, int *imm_size);
+struct runtime_value ReadImmediateValue__(const struct Bytecode *code,
+        Int addr, int id, int *imm_size);
 
 // load/store/move
 int Move__(struct Bytecode *code, uint8_t dst, uint8_t src);
