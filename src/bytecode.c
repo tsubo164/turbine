@@ -614,7 +614,7 @@ void CallFunc(Bytecode *code, const char *fullname, bool builtin)
     }
 
     // lookup
-    struct MapEntry *ent = HashMapLookup(&code->funcnames, fullname);
+    struct data_hashmap_entry *ent = data_hashmap_lookup(&code->funcnames, fullname);
     if (!ent) {
         InternalError(__FILE__, __LINE__, "no function registered: %s\n", fullname);
     }
@@ -1732,7 +1732,7 @@ Int GetFunctionArgCount(const Bytecode *code, Word func_index)
 
 void BackPatchFuncAddr(struct Bytecode *code, const char *fullname)
 {
-    struct MapEntry *ent = HashMapLookup(&code->funcnames, fullname);
+    struct data_hashmap_entry *ent = data_hashmap_lookup(&code->funcnames, fullname);
     if (!ent)
         return;
 
@@ -1742,12 +1742,12 @@ void BackPatchFuncAddr(struct Bytecode *code, const char *fullname)
 
 uint16_t RegisterFunc(struct Bytecode *code, const char *fullname, uint8_t argc)
 {
-    struct MapEntry *ent = HashMapLookup(&code->funcnames, fullname);
+    struct data_hashmap_entry *ent = data_hashmap_lookup(&code->funcnames, fullname);
     if (ent)
         return (uint64_t) ent->val;
 
     const uint64_t next_index = code->funcs_.len;
-    HashMapInsert(&code->funcnames, fullname, (void *)next_index);
+    data_hashmap_insert(&code->funcnames, fullname, (void *)next_index);
 
     const Int next_addr = NextAddr(code);
     push_info(&code->funcs_, next_index, argc, next_addr);

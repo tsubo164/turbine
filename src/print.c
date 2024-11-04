@@ -223,7 +223,7 @@ static void print_scope(const struct Scope *sc, int depth)
             print_header(depth);
             printf("[table] \"%s\"\n", t->name);
             for (int i = 0; i < t->rows.cap; i++) {
-                struct MapEntry *e = &t->rows.buckets[i];
+                struct data_hashmap_entry *e = &t->rows.buckets[i];
                 if (!e->key)
                     continue;
                 struct Row *r = e->val;

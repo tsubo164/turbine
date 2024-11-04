@@ -5,8 +5,8 @@
 #include <stdbool.h>
 
 #include "code_constant_pool.h"
-#include "hashmap.h"
 #include "value.h"
+#include "data_hashmap.h"
 #include "data_vec.h"
 
 #define REGISTER_MACHINE 1
@@ -247,7 +247,7 @@ typedef struct Bytecode {
     PtrVec strings_;
     FuncInfoVec funcs_;
 
-    struct HashMap funcnames;
+    struct data_hashmap funcnames;
 
     // back patches
     struct data_intstack ors_;

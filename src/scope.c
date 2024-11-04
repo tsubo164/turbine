@@ -47,7 +47,7 @@ struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type)
 
 struct Symbol *FindSymbol(const struct Scope *sc, const char *name)
 {
-    struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
+    struct data_hashmap_entry *ent = data_hashmap_lookup(&sc->symbols, name);
     if (ent)
         return ent->val;
 
@@ -59,7 +59,7 @@ struct Symbol *FindSymbol(const struct Scope *sc, const char *name)
 
 struct Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
 {
-    struct MapEntry *ent = HashMapLookup(&sc->symbols, name);
+    struct data_hashmap_entry *ent = data_hashmap_lookup(&sc->symbols, name);
     if (ent)
         return ent->val;
 
@@ -84,7 +84,7 @@ struct Symbol *DefineVar(struct Scope *sc, const char *name, const struct Type *
     struct Symbol *sym = NewSymbol(SYM_VAR, name, type);
     sym->var = new_var(name, type, isglobal);
 
-    if (!HashMapInsert(&sc->symbols, name, sym))
+    if (!data_hashmap_insert(&sc->symbols, name, sym))
         return NULL;
     VecPush(&sc->syms, sym);
 
@@ -123,7 +123,7 @@ struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *mod
     struct Symbol *sym = NewSymbol(SYM_FUNC, func->name, NewFuncType(func->func_type));
     sym->func = func;
 
-    if (!HashMapInsert(&parent->symbols, func->name, sym))
+    if (!data_hashmap_insert(&parent->symbols, func->name, sym))
         return NULL;
     VecPush(&parent->syms, sym);
 
@@ -224,7 +224,7 @@ struct Struct *DefineStruct(struct Scope *sc, const char *name)
     struct Symbol *sym = NewSymbol(SYM_STRUCT, name, NewStructType(strct));
     sym->strct = strct;
 
-    if (!HashMapInsert(&sc->symbols, name, sym))
+    if (!data_hashmap_insert(&sc->symbols, name, sym))
         return NULL;
     VecPush(&sc->syms, sym);
 
@@ -285,7 +285,7 @@ struct Table *DefineTable(struct Scope *sc, const char *name)
     struct Symbol *sym = NewSymbol(SYM_TABLE, name, NewTableType(tab));
     sym->table = tab;
 
-    if (!HashMapInsert(&sc->symbols, name, sym))
+    if (!data_hashmap_insert(&sc->symbols, name, sym))
         return NULL;
     VecPush(&sc->syms, sym);
 
@@ -303,7 +303,7 @@ struct Module *DefineModule(struct Scope *sc, const char *filename, const char *
     struct Symbol *sym = NewSymbol(SYM_MODULE, modulename, NewModuleType(mod));
     sym->module = mod;
 
-    if (!HashMapInsert(&sc->symbols, modulename, sym))
+    if (!data_hashmap_insert(&sc->symbols, modulename, sym))
         return NULL;
     VecPush(&sc->syms, sym);
 

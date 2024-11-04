@@ -358,7 +358,8 @@ static struct Expr *primary_expr(Parser *p)
             }
             else if (IsTable(expr->type)) {
                 expect(p, T_IDENT);
-                struct MapEntry *ent = HashMapLookup(&expr->type->table->rows, tok_str(p));
+                struct data_hashmap_entry *ent =
+                    data_hashmap_lookup(&expr->type->table->rows, tok_str(p));
                 struct Row *r = ent->val;
                 struct Expr *tmp = expr;
                 expr = NewIntLitExpr(r->ival);
@@ -1027,7 +1028,7 @@ static struct Table *table_def(Parser *p)
             struct Row *r = CALLOC(struct Row);
             r->name = tok_str(p);
             r->ival = id++;
-            HashMapInsert(&tab->rows, tok_str(p), r);
+            data_hashmap_insert(&tab->rows, tok_str(p), r);
             expect(p, T_NEWLINE);
         }
         else {

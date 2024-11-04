@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "hashmap.h"
+#include "data_hashmap.h"
 #include "data_vec.h"
 
 /* TODO make specific vec structs */
@@ -75,7 +75,7 @@ struct Row {
 
 struct Table {
     const char *name;
-    struct HashMap rows;
+    struct data_hashmap rows;
 };
 
 struct Module {
@@ -120,7 +120,7 @@ struct Scope {
     int size;
 
     struct Vec syms;
-    struct HashMap symbols;
+    struct data_hashmap symbols;
 };
 
 // Scope

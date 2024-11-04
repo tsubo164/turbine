@@ -1,4 +1,4 @@
-#include "hashmap.h"
+#include "data_hashmap.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -17,7 +17,7 @@ static uint64_t fnv_hash(const char *key)
     return hash;
 }
 
-static void resize(struct HashMap *map)
+static void resize(struct data_hashmap *map)
 {
     int cap = map->cap < 16 ? 16 : 2 * map->cap;
     map->buckets = calloc(cap, sizeof(map->buckets[0]));
@@ -25,25 +25,26 @@ static void resize(struct HashMap *map)
     map->used = 0;
 }
 
-static void rehash(struct HashMap *map)
+static void rehash(struct data_hashmap *map)
 {
-    struct MapEntry *old_buckets = map->buckets;
+    struct data_hashmap_entry *old_buckets = map->buckets;
     int old_cap = map->cap;
     resize(map);
 
     for (int i = 0; i < old_cap; i++) {
-        struct MapEntry *ent = &old_buckets[i];
-        HashMapInsert(map, ent->key, ent->val);
+        struct data_hashmap_entry *ent = &old_buckets[i];
+        data_hashmap_insert(map, ent->key, ent->val);
     }
     free(old_buckets);
 }
 
-static bool match(const struct MapEntry *ent, const char *key)
+static bool match(const struct data_hashmap_entry *ent, const char *key)
 {
     return !strcmp(ent->key, key);
 }
 
-struct MapEntry *HashMapInsert(struct HashMap *map, const char *key, void *data)
+struct data_hashmap_entry *data_hashmap_insert(struct data_hashmap *map,
+        const char *key, void *data)
 {
     if (!key)
         return NULL;
@@ -56,7 +57,7 @@ struct MapEntry *HashMapInsert(struct HashMap *map, const char *key, void *data)
     uint64_t hash = fnv_hash(key);
 
     for (int i = 0; i < map->cap; i++) {
-        struct MapEntry *ent = &map->buckets[(hash + i) % map->cap];
+        struct data_hashmap_entry *ent = &map->buckets[(hash + i) % map->cap];
 
         if (!ent->key) {
             ent->key = key;
@@ -71,7 +72,8 @@ struct MapEntry *HashMapInsert(struct HashMap *map, const char *key, void *data)
     return NULL;
 }
 
-struct MapEntry *HashMapLookup(const struct HashMap *map, const char *key)
+struct data_hashmap_entry *data_hashmap_lookup(const struct data_hashmap *map,
+        const char *key)
 {
     if (!map || !key)
         return NULL;
@@ -79,7 +81,7 @@ struct MapEntry *HashMapLookup(const struct HashMap *map, const char *key)
     uint64_t hash = fnv_hash(key);
 
     for (int i = 0; i < map->cap; i++) {
-        struct MapEntry *ent = &map->buckets[(hash + i) % map->cap];
+        struct data_hashmap_entry *ent = &map->buckets[(hash + i) % map->cap];
 
         if (!ent->key)
             return NULL;
@@ -89,10 +91,10 @@ struct MapEntry *HashMapLookup(const struct HashMap *map, const char *key)
     return NULL;
 }
 
-void HashMapPrint(const struct HashMap *map)
+void data_hashmap_print(const struct data_hashmap *map)
 {
     for (int i = 0; i < map->cap; i++) {
-        struct MapEntry *ent = &map->buckets[i];
+        struct data_hashmap_entry *ent = &map->buckets[i];
         if (ent->key)
             printf( "%4d: key => \"%s\", val => %p\n", i, ent->key, ent->val);
     }
