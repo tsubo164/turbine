@@ -1,5 +1,6 @@
 #include "value.h"
-#include "vec.h"
+#include "data_vec.h"
+#include <stdlib.h>
 #include <string.h>
 
 #define MIN_CAP 8

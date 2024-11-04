@@ -7,9 +7,9 @@
 #include "code_constant_pool.h"
 #include "hashmap.h"
 #include "value.h"
-#include "vec.h"
+#include "data_vec.h"
 
-#define REGISTER_MACHINE 0
+#define REGISTER_MACHINE 1
 
 enum Opcode {
     OP_NOP = 0,
@@ -240,7 +240,7 @@ typedef struct Bytecode {
     int curr_reg;
     int max_reg;
 
-    struct IntStack immediate_ints;
+    struct data_intstack immediate_ints;
     struct code_constant_pool const_pool;
 
     ByteVec bytes_;
@@ -250,10 +250,10 @@ typedef struct Bytecode {
     struct HashMap funcnames;
 
     // back patches
-    struct IntStack ors_;
-    struct IntStack breaks_;
-    struct IntStack continues_;
-    struct IntStack casecloses_;
+    struct data_intstack ors_;
+    struct data_intstack breaks_;
+    struct data_intstack continues_;
+    struct data_intstack casecloses_;
 } Bytecode;
 
 // emit opcode and operand

@@ -4,7 +4,18 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "hashmap.h"
-#include "vec.h"
+#include "data_vec.h"
+
+/* TODO make specific vec structs */
+struct Vec {
+    void **data;
+    int cap;
+    int len;
+};
+
+void VecPush(struct Vec *v, void *data);
+void VecFree(struct Vec *v);
+/* ------------------------------ */
 
 struct Type;
 
