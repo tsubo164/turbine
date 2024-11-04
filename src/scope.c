@@ -1,5 +1,5 @@
 #include "scope.h"
-#include "intern.h"
+#include "data_intern.h"
 #include "type.h"
 #include "mem.h"
 #include <string.h>
@@ -98,7 +98,7 @@ static const char *func_fullname(const char *modulefile, const char *funcname)
     static const size_t size = sizeof(fullname) / sizeof(fullname[0]);
 
     snprintf(fullname, size, "%s:%s", modulefile, funcname);
-    return StrIntern(fullname);
+    return data_string_intern(fullname);
 }
 
 // Func

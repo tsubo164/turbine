@@ -1,5 +1,5 @@
 #include "token.h"
-#include "intern.h"
+#include "data_intern.h"
 #include "escseq.h"
 #include "error.h"
 #include "mem.h"
@@ -376,7 +376,7 @@ static void scan_word(Lexer *l, struct Token *tok, struct Pos pos)
     unget(l);
 
     const int kind = keyword_or_ident(buf);
-    tok->sval = StrIntern(buf);
+    tok->sval = data_string_intern(buf);
     set(tok, kind, pos);
 }
 
@@ -414,7 +414,7 @@ static void scan_string(Lexer *l, struct Token *tok, struct Pos pos)
     *p = '\0';
 
     tok->has_escseq = backslashes > 0;
-    tok->sval = StrIntern(buf);
+    tok->sval = data_string_intern(buf);
     set(tok, T_STRLIT, pos);
 }
 

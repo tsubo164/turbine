@@ -1,7 +1,7 @@
 #include "interpreter.h"
 #include "builtin.h"
 #include "codegen.h"
-#include "intern.h"
+#include "data_intern.h"
 #include "parser.h"
 #include "token.h"
 #include "print.h"
@@ -39,7 +39,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     }
 
     // Compile source
-    struct Module *prog = Parse(src, filename, StrIntern("_main"), tok, &builtin);
+    struct Module *prog = Parse(src, filename, data_string_intern("_main"), tok, &builtin);
     ResolveOffset(prog);
 
     if (opt->print_tree) {

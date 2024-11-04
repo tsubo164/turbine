@@ -1,5 +1,5 @@
 #include "type.h"
-#include "intern.h"
+#include "data_intern.h"
 #include "error.h"
 #include "scope.h"
 #include "mem.h"
@@ -161,7 +161,7 @@ const char *TypeString(const struct Type *type)
             sprintf(buf, "%s%s", interned, type_kind_string(t->kind));
         }
 
-        interned = StrIntern(buf);
+        interned = data_string_intern(buf);
     }
 
     return interned;

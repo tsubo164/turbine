@@ -1,4 +1,4 @@
-#include "intern.h"
+#include "data_intern.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -46,27 +46,25 @@ static const char *insert(const char *key)
 
 static void rehash(void)
 {
-    // save old buckets
     const char **old_buckets = buckets;
     int old_cap = capacity;
 
-    // resize buckets
+    /* resize buckets */
     capacity = capacity < INIT_SIZE ? INIT_SIZE : 2 * capacity;
     buckets = calloc(capacity, sizeof(buckets[0]));
     occupied = 0;
 
-    // move keys to new buckets
+    /* move keys to new buckets */
     for ( int i = 0; i < old_cap; i++ ) {
         const char *ent = old_buckets[i];
         if (ent)
             insert(ent);
     }
 
-    // free old buckets
     free(old_buckets);
 }
 
-const char *StrIntern(const char *key)
+const char *data_string_intern(const char *key)
 {
     if (!key)
         return NULL;
@@ -77,7 +75,7 @@ const char *StrIntern(const char *key)
     return insert(key);
 }
 
-void PrintInternTable(void)
+void data_print_intern_table(void)
 {
     for (int i = 0; i < capacity; i++) {
         const char *ent = buckets[i];

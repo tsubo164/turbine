@@ -1,5 +1,5 @@
 #include "escseq.h"
-#include "intern.h"
+#include "data_intern.h"
 
 bool FindEscapedChar(int second_char, int *result_char)
 {
@@ -47,7 +47,7 @@ int ConvertEscapeSequence(const char *src, const char **dst)
             }
             else {
                 // error
-                *dst = StrIntern(buf);
+                *dst = data_string_intern(buf);
                 return i;
             }
         }

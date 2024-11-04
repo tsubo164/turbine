@@ -1,5 +1,5 @@
 #include "builtin.h"
-#include "intern.h"
+#include "data_intern.h"
 #include "scope.h"
 #include "type.h"
 
@@ -7,7 +7,7 @@ void DefineBuiltinFuncs(struct Scope *builtin)
 {
     int func_id = 0;
     {
-        const char *name = StrIntern("print");
+        const char *name = data_string_intern("print");
         struct Func *func = DeclareBuiltinFunc(builtin, name);
 
         DeclareParam(func, "...", NewAnyType());
@@ -16,7 +16,7 @@ void DefineBuiltinFuncs(struct Scope *builtin)
         func->id = func_id++;
     }
     {
-        const char *name = StrIntern("exit");
+        const char *name = data_string_intern("exit");
         struct Func *func = DeclareBuiltinFunc(builtin, name);
 
         DeclareParam(func, "code", NewIntType());
