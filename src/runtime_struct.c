@@ -9,6 +9,7 @@ struct runtime_struct *runtime_struct_new(int64_t len)
 
     ValueVecInit(&s->values);
     ValueVecResize(&s->values, len);
+    runtime_valuevec_zeroclear(&s->values);
 
     return s;
 }

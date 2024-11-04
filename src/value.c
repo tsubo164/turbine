@@ -1,5 +1,6 @@
 #include "value.h"
 #include "vec.h"
+#include <string.h>
 
 #define MIN_CAP 8
 
@@ -55,4 +56,9 @@ void ValueVecFree(struct ValueVec *v)
     v->data = NULL;
     v->cap = 0;
     v->len = 0;
+}
+
+void runtime_valuevec_zeroclear(struct ValueVec *v)
+{
+    memset(v->data, 0, v->len * sizeof(*v->data));
 }

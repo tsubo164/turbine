@@ -1894,6 +1894,10 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         }
 
     case T_ADR:
+        if (IsStruct(e->l->type)) {
+            int reg0 = gen_expr__(code, e->l);
+            return reg0;
+        }
         {
             int reg1 = gen_addr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);

@@ -52,4 +52,6 @@ void ValueVecPush(struct ValueVec *v, struct Value val);
 struct Value ValueVecGet(const struct ValueVec *v, int index);
 void ValueVecFree(struct ValueVec *v);
 
+void runtime_valuevec_zeroclear(struct ValueVec *v);
+
 #endif // _H

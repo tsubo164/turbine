@@ -20,8 +20,12 @@
   - x int
   - y int
 
-- g_P = Point { y = -238, x = 117/*8*/ }
-- g_Q = g_P
+- g_center = Point { y = 117 }
+//# set_point_x(p *Point, x int)
+//  p.x = x
+//
+//# set_point_y(p *Point, y int)
+//  p.y = y
 
 # main() int
   //- a = 42
@@ -33,6 +37,8 @@
   //return a
 
   //- p = Point { x = 31, y = 79 }
-  //- q = p
+  //set_point_x(&p, 19)
+  //set_point_y(&p, 42)
 
-  return g_Q.x
+  //return p.y
+  return g_center.y

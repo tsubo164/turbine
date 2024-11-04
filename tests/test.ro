@@ -867,7 +867,6 @@
     AssertI(-123, p.y)
     AssertI(-123, get_point_y(p))
 
-  //print("======================================================================")
   // struct reference parameter
   ---
     - p = Point { x = 37, y = 79 }
