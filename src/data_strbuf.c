@@ -1,15 +1,21 @@
-#include "strbuf.h"
+#include "data_strbuf.h"
 #include <string.h>
 #include <stdlib.h>
 
-// calculate new alloc size based on the current alloc and
-// requested new length.
-// the new minimum alloc: 16 bytes
-// grows 2x until 16 kb bytes e.g. 16 -> 32 -> ... -> 1024
-// adds 1024 bytes until it covers new length
-static int grow_cap(int old_cap, int requested)
+/*
+ * Calculates the new allocation size based on the current allocation size
+ * and the requested new length.
+ *
+ * - Minimum allocation: 16 bytes
+ * - Growth pattern:
+ *     - Doubles the allocation size until reaching 16 KB (16,384 bytes),
+ *       i.e., 16 -> 32 -> 64 -> ... -> 16,384.
+ *     - Once the allocation size reaches 16 KB, grows in increments of 1,024 bytes
+ *       until it meets or exceeds the requested length.
+ */
+static int grow_cap(int curr_cap, int requested)
 {
-    int new_cap = old_cap < 16 ? 16 : old_cap;
+    int new_cap = curr_cap < 16 ? 16 : curr_cap;
 
     while (new_cap < requested && new_cap < 1024 * 16)
         new_cap *= 2;
@@ -19,13 +25,13 @@ static int grow_cap(int old_cap, int requested)
     return new_cap;
 }
 
-static void resize(Strbuf *sb, int new_len)
+static void resize(struct data_strbuf *sb, int new_len)
 {
     if (!sb)
         return;
 
     if (sb->cap >= new_len + 1) {
-        // no reallocation
+        /* no reallocation */
         sb->len = new_len;
         sb->data[sb->len] = '\0';
         return;
@@ -42,7 +48,7 @@ static void resize(Strbuf *sb, int new_len)
     sb->data[sb->len] = '\0';
 }
 
-void StrbufCopy(Strbuf *sb, const char *s)
+void data_strbuf_copy(struct data_strbuf *sb, const char *s)
 {
     if (!sb || !s)
         return;
@@ -53,7 +59,7 @@ void StrbufCopy(Strbuf *sb, const char *s)
     sb->len = len;
 }
 
-void StrbufCat(Strbuf *sb, const char *s)
+void data_strbuf_cat(struct data_strbuf *sb, const char *s)
 {
     if (!sb || !s)
         return;
@@ -64,4 +70,11 @@ void StrbufCat(Strbuf *sb, const char *s)
 
     resize(sb, new_len);
     memcpy(sb->data + old_len, s, len + 1);
+}
+
+void data_strbuf_free(struct data_strbuf *sb)
+{
+    if (!sb)
+        return;
+    free(sb->data);
 }

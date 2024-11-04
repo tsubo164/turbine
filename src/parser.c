@@ -14,7 +14,7 @@
 #include <stdio.h>
 
 // TODO
-#include "strbuf.h"
+#include "data_strbuf.h"
 static const char *read_file(const char *filename)
 {
     FILE *fp = fopen(filename, "r");
@@ -23,11 +23,11 @@ static const char *read_file(const char *filename)
         return NULL;
 
     char buf[1024] = {'\0'};
-    Strbuf sb = {0};
+    struct data_strbuf sb = DATA_STRBUF_INIT;
     while (fgets(buf, 1024, fp)) {
-        StrbufCat(&sb, buf);
+        data_strbuf_cat(&sb, buf);
     }
-    StrbufCat(&sb, "\n");
+    data_strbuf_cat(&sb, "\n");
 
     fclose(fp);
 

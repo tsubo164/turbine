@@ -1,5 +1,5 @@
 #include "interpreter.h"
-#include "strbuf.h"
+#include "data_strbuf.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,11 +12,11 @@ const char *read_file(const char *filename)
         return NULL;
 
     char buf[1024] = {'\0'};
-    Strbuf sb = {0};
+    struct data_strbuf sb = DATA_STRBUF_INIT;
     while (fgets(buf, 1024, fp)) {
-        StrbufCat(&sb, buf);
+        data_strbuf_cat(&sb, buf);
     }
-    StrbufCat(&sb, "\n");
+    data_strbuf_cat(&sb, "\n");
 
     fclose(fp);
     return sb.data;
