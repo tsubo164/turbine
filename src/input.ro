@@ -16,11 +16,23 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
+## Point
+  - x int
+  - y int
+
+- g_P = Point { y = -238, x = 117/*8*/ }
+- g_Q = g_P
+
 # main() int
-  - a = 42
-  - b = 242301
-  - c = 0x1234567890
-  - f = 3.14
-  - s = "Hello!"
-  print(a, b, c, f, s)
-  return a
+  //- a = 42
+  //- b = 242301
+  //- c = 0x1234567890
+  //- f = 3.14
+  //- s = "Hello!"
+  //print(a, b, c, f, s)
+  //return a
+
+  //- p = Point { x = 31, y = 79 }
+  //- q = p
+
+  return g_Q.x

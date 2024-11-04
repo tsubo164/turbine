@@ -1183,10 +1183,21 @@ static int gen_struct_lit__(Bytecode *code, const struct Expr *e,
         const struct Type *type, /* XXX TEMP */
         int dst_reg)
 {
-    /*
-    if (!e || e->kind != T_STRUCTLIT)
-        return -1;
-    */
+    /* XXX TEMP */
+    if (e && e->kind == T_IDENT) {
+        /* initialized by another object */
+        if (dst_reg == -1) {
+            /* global */
+            int src = gen_expr__(code, e);
+            return src;
+        }
+        else {
+            /* local */
+            int src = gen_addr__(code, e);
+            Move__(code, dst_reg, src);
+            return dst_reg;
+        }
+    }
     /*
     int len = parser_struct_get_field_count(e->type->strct);
     */ /* XXX TEMP */

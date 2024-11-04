@@ -836,7 +836,6 @@
     AssertI(31, q.x)
     AssertI(79, q.y)
 
-  //print("======================================================================")
   // global struct initialization
   ---
     AssertI(0,   g_center.x)
@@ -844,7 +843,7 @@
 
   // global struct initialization
   ---
-    AssertI(1178,   g_Q.x)
+    AssertI(1178, g_Q.x)
     AssertI(-238, g_Q.y)
 
   // struct assignment
@@ -868,6 +867,7 @@
     AssertI(-123, p.y)
     AssertI(-123, get_point_y(p))
 
+  //print("======================================================================")
   // struct reference parameter
   ---
     - p = Point { x = 37, y = 79 }
