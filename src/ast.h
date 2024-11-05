@@ -4,6 +4,82 @@
 #include "token.h"
 #include <stdint.h>
 
+enum parser_node_kind {
+    /* stmt */
+    NOD_STMT_NOP                    = T_NOP,
+    NOD_STMT_IF                     = T_IF,
+    NOD_STMT_FOR                    = T_FOR,
+    NOD_STMT_ELSE                   = T_ELS,
+    NOD_STMT_BREAK                  = T_BRK,
+    NOD_STMT_CONTINUE               = T_CNT,
+    NOD_STMT_SWITCH                 = T_SWT,
+    NOD_STMT_CASE                   = T_CASE,
+    NOD_STMT_DEFAULT                = T_DFLT,
+    NOD_STMT_RETURN                 = T_RET,
+    NOD_STMT_EXPR                   = T_EXPR,
+    NOD_STMT_BLOCK                  = T_BLOCK,
+    /* identifier */
+    NOD_EXPR_FIELD                  = T_FIELD,
+    NOD_EXPR_IDENT                  = T_IDENT,
+    /* literal */
+    NOD_EXPR_NILLIT                 = T_NILLIT,
+    NOD_EXPR_BOOLLIT                = T_BOLLIT,
+    NOD_EXPR_INTLIT                 = T_INTLIT,
+    NOD_EXPR_FLOATLIT               = T_FLTLIT,
+    NOD_EXPR_STRINGLIT              = T_STRLIT,
+    NOD_EXPR_FUNCLIT                = T_FUNCLIT,
+    NOD_EXPR_ARRAYLIT               = T_ARRAYLIT,
+    NOD_EXPR_STRUCTLIT              = T_STRUCTLIT,
+    /* binary */
+    NOD_EXPR_ADD                    = T_ADD,
+    NOD_EXPR_SUB                    = T_SUB,
+    NOD_EXPR_MUL                    = T_MUL,
+    NOD_EXPR_DIV                    = T_DIV,
+    NOD_EXPR_REM                    = T_REM,
+    /* relational */
+    NOD_EXPR_EQ                     = T_EQ,
+    NOD_EXPR_NEQ                    = T_NEQ,
+    NOD_EXPR_LT                     = T_LT,
+    NOD_EXPR_LTE                    = T_LTE,
+    NOD_EXPR_GT                     = T_GT,
+    NOD_EXPR_GTE                    = T_GTE,
+    /* bitwise */
+    NOD_EXPR_SHL                    = T_SHL,
+    NOD_EXPR_SHR                    = T_SHR,
+    NOD_EXPR_OR                     = T_OR,
+    NOD_EXPR_XOR                    = T_XOR,
+    NOD_EXPR_AND                    = T_AND,
+    /* logical */
+    NOD_EXPR_LOGOR                  = T_LOR,
+    NOD_EXPR_LOGAND                 = T_LAND,
+    NOD_EXPR_LOGNOT                 = T_LNOT,
+    /* unary */
+    NOD_EXPR_POS                    = T_POS,
+    NOD_EXPR_NEG                    = T_NEG,
+    NOD_EXPR_ADDRESS                = T_ADR,
+    NOD_EXPR_DEREF                  = T_DRF,
+    NOD_EXPR_NOT                    = T_NOT,
+    NOD_EXPR_INC                    = T_INC,
+    NOD_EXPR_DEC                    = T_DEC,
+    NOD_EXPR_CONV                   = T_CONV,
+    /* array, struct, func */
+    NOD_EXPR_SELECT                 = T_SELECT,
+    NOD_EXPR_INDEX                  = T_INDEX,
+    NOD_EXPR_CALL                   = T_CALL,
+    /* assign */
+    /* TODO should be NOD_EXPR */
+    NOD_EXPR_ASSIGN                 = T_ASSN,
+    NOD_EXPR_ADDASSIGN              = T_AADD,
+    NOD_EXPR_SUBASSIGN              = T_ASUB,
+    NOD_EXPR_MULASSIGN              = T_AMUL,
+    NOD_EXPR_DIVASSIGN              = T_ADIV,
+    NOD_EXPR_REMASSIGN              = T_AREM,
+    NOD_EXPR_INIT                   = T_INIT,
+    NOD_STMT_ASSIGN                 = NOD_EXPR_ASSIGN,
+    NOD_STMT_INIT                   = NOD_EXPR_INIT,
+    NOD_EXPR_ELEMENT                = T_ELEMENT, /* TODO may not need */
+};
+
 struct Type;
 struct Symbol;
 struct Var;

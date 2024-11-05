@@ -1184,7 +1184,7 @@ static int gen_struct_lit__(Bytecode *code, const struct Expr *e,
         int dst_reg)
 {
     /* XXX TEMP */
-    if (e && e->kind == T_IDENT) {
+    if (e && e->kind == NOD_EXPR_IDENT) {
         /* initialized by another object */
         if (dst_reg == -1) {
             /* global */
@@ -1243,14 +1243,14 @@ static int gen_init_struct__(Bytecode *code, const struct Expr *e)
     // an init expr always has identifier on the left
     EvalAddr(e->l, &addr);
 
-    if (e->r && e->r->kind == T_NILLIT) {
+    if (e->r && e->r->kind == NOD_EXPR_NILLIT) {
         // no initializer
         // clear zero
         gen_clear_block(code, e->l);
         return;
     }
 
-    if (e->r && e->r->kind != T_STRUCTLIT) {
+    if (e->r && e->r->kind != NOD_EXPR_STRUCTLIT) {
         // initialized by another object
         gen_copy_block(code, e->r, e->l);
         return;
@@ -1381,52 +1381,52 @@ static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
         int reg0, int reg1, int reg2)
 {
     switch (kind) {
-    case T_ADD:
-    case T_AADD:
+    case NOD_EXPR_ADD:
+    case NOD_EXPR_ADDASSIGN:
         BINOP_S__(code, type, Add, Concat, reg0, reg1, reg2);
         break;
 
-    case T_SUB:
-    case T_ASUB:
+    case NOD_EXPR_SUB:
+    case NOD_EXPR_SUBASSIGN:
         BINOP__(code, type, Sub, reg0, reg1, reg2);
         break;
 
-    case T_MUL:
-    case T_AMUL:
+    case NOD_EXPR_MUL:
+    case NOD_EXPR_MULASSIGN:
         BINOP__(code, type, Mul, reg0, reg1, reg2);
         break;
 
-    case T_DIV:
-    case T_ADIV:
+    case NOD_EXPR_DIV:
+    case NOD_EXPR_DIVASSIGN:
         BINOP__(code, type, Div, reg0, reg1, reg2);
         break;
 
-    case T_REM:
-    case T_AREM:
+    case NOD_EXPR_REM:
+    case NOD_EXPR_REMASSIGN:
         BINOP__(code, type, Rem, reg0, reg1, reg2);
         break;
 
-    case T_EQ:
+    case NOD_EXPR_EQ:
         BINOP_S__(code, type, Equal, Equal, reg0, reg1, reg2);
         break;
 
-    case T_NEQ:
+    case NOD_EXPR_NEQ:
         BINOP_S__(code, type, NotEqual, NotEqual, reg0, reg1, reg2);
         break;
 
-    case T_LT:
+    case NOD_EXPR_LT:
         BINOP__(code, type, Less, reg0, reg1, reg2);
         break;
 
-    case T_LTE:
+    case NOD_EXPR_LTE:
         BINOP__(code, type, LessEqual, reg0, reg1, reg2);
         break;
 
-    case T_GT:
+    case NOD_EXPR_GT:
         BINOP__(code, type, Greater, reg0, reg1, reg2);
         break;
 
-    case T_GTE:
+    case NOD_EXPR_GTE:
         BINOP__(code, type, GreaterEqual, reg0, reg1, reg2);
         break;
 
@@ -1442,14 +1442,14 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
     int reg1 = -1;
     int reg2 = -1;
 
-    if (lval->kind == T_INDEX) {
+    if (lval->kind == NOD_EXPR_INDEX) {
         int reg0 = gen_expr__(code, lval->l);
         int reg1 = gen_expr__(code, lval->r);
         int reg2 = gen_expr__(code, rval);
         StoreArray__(code, reg0, reg1, reg2);
         return reg0;
     }
-    else if (lval->kind == T_SELECT) {
+    else if (lval->kind == NOD_EXPR_SELECT) {
         // eval struct value
         reg0 = gen_expr__(code, lval->l);
         // get field offset
@@ -1459,7 +1459,7 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         StoreStruct__(code, reg0, reg1, reg2);
         return reg0;
     }
-    else if (lval->kind == T_DRF) {
+    else if (lval->kind == NOD_EXPR_DEREF) {
         // TODO remove
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval);
@@ -1474,7 +1474,7 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
     // e.g. a = b + c
     //            ^ here
     switch (rval->kind) {
-    case T_ADD:
+    case NOD_EXPR_ADD:
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
@@ -1482,7 +1482,7 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         gen_binop__(code, e->type, rval->kind, reg0, reg1, reg2);
         break;
 
-    case T_MUL:
+    case NOD_EXPR_MUL:
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
@@ -1490,7 +1490,7 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         gen_binop__(code, e->type, rval->kind, reg0, reg1, reg2);
         break;
 
-    case T_REM:
+    case NOD_EXPR_REM:
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
@@ -1498,7 +1498,7 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
         gen_binop__(code, e->type, rval->kind, reg0, reg1, reg2);
         break;
 
-    case T_LT:
+    case NOD_EXPR_LT:
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval->l);
         reg2 = gen_expr__(code, rval->r);
@@ -1516,7 +1516,7 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
 
 static int gen_binop_assign__(Bytecode *code, const struct Expr *e)
 {
-    if (e->l->kind == T_INDEX) {
+    if (e->l->kind == NOD_EXPR_INDEX) {
         // lval
         int reg0 = gen_addr__(code, e->l->l);
         int reg1 = gen_expr__(code, e->l->r);
@@ -1641,26 +1641,26 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
 
     switch (e->kind) {
 
-    case T_NILLIT:
+    case NOD_EXPR_NILLIT:
         {
             int reg0 = LoadInt__(code, 0);
             return reg0;
         }
 
-    case T_BOLLIT:
-    case T_INTLIT:
+    case NOD_EXPR_BOOLLIT:
+    case NOD_EXPR_INTLIT:
         {
             int reg0 = LoadInt__(code, e->ival);
             return reg0;
         }
 
-    case T_FLTLIT:
+    case NOD_EXPR_FLOATLIT:
         {
             int reg0 = LoadFloat__(code, e->fval);
             return reg0;
         }
 
-    case T_STRLIT:
+    case NOD_EXPR_STRINGLIT:
         {
             const char *s = NULL;
 
@@ -1674,19 +1674,19 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_FUNCLIT:
+    case NOD_EXPR_FUNCLIT:
         {
             int reg0 = LoadInt__(code, e->func->id);
             return reg0;
         }
 
-    case T_CONV:
+    case NOD_EXPR_CONV:
         reg1 = gen_expr__(code, e->l);
         reg0 = gen_dst_register2(code, reg1);
         reg0 = gen_convert__(code, reg0, reg1, e->l->type->kind, e->type->kind);
         return reg0;
 
-    case T_IDENT:
+    case NOD_EXPR_IDENT:
         if (e->var->is_global) {
             int reg1 = LoadInt__(code, e->var->offset);
             int reg0 = NewRegister__(code);
@@ -1700,18 +1700,18 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_SELECT:
+    case NOD_EXPR_SELECT:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         reg0 = gen_dst_register(code, reg0, reg1);
         LoadStruct__(code, reg0, reg1, reg2);
         return reg0;
 
-    case T_FIELD:
+    case NOD_EXPR_FIELD:
         return e->field->offset;
 
 
-    case T_INDEX:
+    case NOD_EXPR_INDEX:
         {
             int src = gen_expr__(code, e->l);
             int idx = gen_expr__(code, e->r);
@@ -1720,10 +1720,10 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return dst;
         }
 
-    case T_CALL:
+    case NOD_EXPR_CALL:
         return gen_call__(code, e);
 
-    case T_LOR:
+    case NOD_EXPR_LOGOR:
         {
             // eval
             reg1 = gen_expr__(code, e->l);
@@ -1741,7 +1741,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         }
         return reg0;
 
-    case T_LAND:
+    case NOD_EXPR_LOGAND:
         {
             // eval
             reg1 = gen_expr__(code, e->l);
@@ -1760,7 +1760,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         }
         return reg0;
 
-    case T_ADD:
+    case NOD_EXPR_ADD:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
 
@@ -1774,28 +1774,28 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
         return reg0;
 
-    case T_SUB:
+    case NOD_EXPR_SUB:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         reg0 = gen_dst_register(code, reg1, reg2);
         gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
-    case T_MUL:
+    case NOD_EXPR_MUL:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         reg0 = gen_dst_register(code, reg1, reg2);
         gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
-    case T_DIV:
+    case NOD_EXPR_DIV:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         reg0 = gen_dst_register(code, reg1, reg2);
         gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
-    case T_REM:
+    case NOD_EXPR_REM:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
 
@@ -1809,7 +1809,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         BINOP__(code, e->type, Rem, reg0, reg1, reg2);
         return reg0;
 
-    case T_EQ:
+    case NOD_EXPR_EQ:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         reg0 = gen_dst_register(code, reg1, reg2);
@@ -1819,7 +1819,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
-    case T_NEQ:
+    case NOD_EXPR_NEQ:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         reg0 = gen_dst_register(code, reg1, reg2);
@@ -1829,10 +1829,10 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
-    case T_LT:
-    case T_LTE:
-    case T_GT:
-    case T_GTE:
+    case NOD_EXPR_LT:
+    case NOD_EXPR_LTE:
+    case NOD_EXPR_GT:
+    case NOD_EXPR_GTE:
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         reg0 = gen_dst_register(code, reg1, reg2);
@@ -1840,7 +1840,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
         gen_binop__(code, e->l->type, e->kind, reg0, reg1, reg2);
         return reg0;
 
-    case T_AND:
+    case NOD_EXPR_AND:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
@@ -1849,7 +1849,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_OR:
+    case NOD_EXPR_OR:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
@@ -1858,7 +1858,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_XOR:
+    case NOD_EXPR_XOR:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
@@ -1867,7 +1867,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_NOT:
+    case NOD_EXPR_NOT:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
@@ -1875,7 +1875,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_SHL:
+    case NOD_EXPR_SHL:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
@@ -1884,7 +1884,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_SHR:
+    case NOD_EXPR_SHR:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
@@ -1893,7 +1893,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_ADR:
+    case NOD_EXPR_ADDRESS:
         if (IsStruct(e->l->type)) {
             int reg0 = gen_expr__(code, e->l);
             return reg0;
@@ -1905,13 +1905,13 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_POS:
+    case NOD_EXPR_POS:
         {
             int reg0 = gen_expr__(code, e->l);
             return reg0;
         }
 
-    case T_NEG:
+    case NOD_EXPR_NEG:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
@@ -1924,7 +1924,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_LNOT:
+    case NOD_EXPR_LOGNOT:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
@@ -1932,7 +1932,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_DRF:
+    case NOD_EXPR_DEREF:
         {
             int reg1 = gen_expr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
@@ -1940,14 +1940,17 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_ASSN:
+    case NOD_EXPR_ASSIGN:
         return gen_assign__(code, e);
 
-    case T_AADD: case T_ASUB:
-    case T_AMUL: case T_ADIV: case T_AREM:
+    case NOD_EXPR_ADDASSIGN:
+    case NOD_EXPR_SUBASSIGN:
+    case NOD_EXPR_MULASSIGN:
+    case NOD_EXPR_DIVASSIGN:
+    case NOD_EXPR_REMASSIGN:
         return gen_binop_assign__(code, e);
 
-    case T_INIT:
+    case NOD_EXPR_INIT:
         if (IsArray(e->type))
             gen_init_array__(code, e);
         else if (IsStruct(e->type))
@@ -1956,7 +1959,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             gen_init__(code, e);
         return 0;
 
-    case T_INC:
+    case NOD_EXPR_INC:
         if (IsGlobal(e->l)) {
             int src = gen_expr__(code, e->l);
             int dst = gen_dst_register2(code, src);
@@ -1972,7 +1975,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
             return src;
         }
 
-    case T_DEC:
+    case NOD_EXPR_DEC:
         {
             if (IsGlobal(e->l)) {
                 int src = gen_expr__(code, e->l);
@@ -2003,7 +2006,7 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
 
     switch (e->kind) {
 
-    case T_IDENT:
+    case NOD_EXPR_IDENT:
         /*
         if (IsPtr(e->type)) {
             gen_expr(code, e);
@@ -2033,13 +2036,13 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
             return reg0;
         }
 
-    case T_FIELD:
+    case NOD_EXPR_FIELD:
         //LoadByte(code, e->field->offset);
         reg0 = e->field->offset;
         return reg0;
 
         /*
-    case T_SELECT:
+    case NOD_EXPR_SELECT:
         //if (optimize) {
         //    int base = 0;
         //    int offset = 0;
@@ -2056,7 +2059,7 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
         AddInt(code);
         return;
 
-    case T_INDEX:
+    case NOD_EXPR_INDEX:
         //if (optimize) {
         //    int base = 0;
         //    long index = 0;
@@ -2075,7 +2078,7 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
         return;
         */
 
-    case T_DRF:
+    case NOD_EXPR_DEREF:
         {
             int reg0 = gen_expr__(code, e->l);
             return reg0;
@@ -2092,15 +2095,15 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
 
     switch (s->kind) {
 
-    case T_NOP:
+    case NOD_STMT_NOP:
         break;
 
-    case T_BLOCK:
+    case NOD_STMT_BLOCK:
         for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt__(code, stmt);
         break;
 
-    case T_IF:
+    case NOD_STMT_IF:
         BeginIf__(code);
 
         for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
@@ -2110,7 +2113,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         BackPatchElseEnds__(code);
         break;
 
-    case T_ELS:
+    case NOD_STMT_ELSE:
         {
             Int next = 0;
 
@@ -2132,7 +2135,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         }
         break;
 
-    case T_FOR:
+    case NOD_STMT_FOR:
         {
             // init
             BeginFor__(code);
@@ -2157,14 +2160,14 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         }
         break;
 
-    case T_BRK:
+    case NOD_STMT_BREAK:
         {
             Int addr = Jump__(code, -1);
             PushBreak__(code, addr);
         }
         break;
 
-    case T_CNT:
+    case NOD_STMT_CONTINUE:
         {
             Int addr = Jump__(code, -1);
             //PushContinue__(code, addr);
@@ -2174,7 +2177,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         break;
 
 
-    case T_SWT:
+    case NOD_STMT_SWITCH:
         {
             // init
             code_begin_switch(code);
@@ -2201,7 +2204,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         }
         break;
 
-    case T_CASE:
+    case NOD_STMT_CASE:
         {
             // cond
             int reg1 = GetCurrentRegister__(code);
@@ -2241,27 +2244,27 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         }
         break;
 
-    case T_DFLT:
+    case NOD_STMT_DEFAULT:
         // body
         gen_stmt__(code, s->body);
         break;
 
-    case T_RET:
+    case NOD_STMT_RETURN:
         {
             int reg0 = gen_expr__(code, s->expr);
             Return__(code, reg0);
         }
         break;
 
-    case T_EXPR:
+    case NOD_STMT_EXPR:
         gen_expr__(code, s->expr);
         // remove the result
         //Pop(code);
         break;
 
-        // XXX need T_ASSNSTMT?
-    case T_ASSN:
-    case T_INIT:
+        // XXX need NOD_STMT_ASSNSTMT?
+    case NOD_STMT_ASSIGN:
+    case NOD_STMT_INIT:
         gen_expr__(code, s->expr);
         break;
     }

@@ -16,11 +16,11 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
-## Point
-  - x int
-  - y int
+//## Point
+//  - x int
+//  - y int
 
-- g_center = Point { y = 117 }
+//- g_center = Point { y = 117 }
 //# set_point_x(p *Point, x int)
 //  p.x = x
 //
@@ -28,17 +28,18 @@
 //  p.y = y
 
 # main() int
-  //- a = 42
+  - a = 42
+  a = 19
   //- b = 242301
   //- c = 0x1234567890
   //- f = 3.14
   //- s = "Hello!"
   //print(a, b, c, f, s)
-  //return a
+  return a
 
   //- p = Point { x = 31, y = 79 }
   //set_point_x(&p, 19)
   //set_point_y(&p, 42)
 
   //return p.y
-  return g_center.y
+  //return g_center.y
