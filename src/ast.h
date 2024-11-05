@@ -159,7 +159,6 @@ struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind);
 struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r);
 struct Stmt *NewIncDecStmt(struct Expr *l, int kind);
 
-bool IsNull(const struct Expr *e);
 bool IsGlobal(const struct Expr *e);
 bool IsMutable(const struct Expr *e);
 
