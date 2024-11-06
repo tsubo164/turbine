@@ -149,6 +149,59 @@ struct Expr *NewCallExpr(struct Expr *callee, struct Pos p)
     return e;
 }
 
+struct Expr *parser_new_element_expr(struct Expr *key, struct Expr *val)
+{
+    struct Expr *e = new_expr(NOD_EXPR_ELEMENT);
+    e->type = val->type;
+    e->l = key;
+    e->r = val;
+    return e;
+}
+
+static struct Expr *new_unary_expr(struct Expr *l, int kind)
+{
+    struct Expr *e = new_expr(kind);
+    e->type = l->type;
+    e->l = l;
+    return e;
+}
+
+struct Expr *parser_new_posi_expr(struct Expr *l)
+{
+    return new_unary_expr(l, NOD_EXPR_POS);
+}
+
+struct Expr *parser_new_nega_expr(struct Expr *l)
+{
+    return new_unary_expr(l, NOD_EXPR_NEG);
+}
+
+struct Expr *parser_new_lognot_expr(struct Expr *l)
+{
+    return new_unary_expr(l, NOD_EXPR_LOGNOT);
+}
+
+struct Expr *parser_new_not_expr(struct Expr *l)
+{
+    return new_unary_expr(l, NOD_EXPR_NOT);
+}
+
+struct Expr *parser_new_addr_expr(struct Expr *l)
+{
+    struct Expr *e = new_expr(NOD_EXPR_ADDRESS);
+    e->type = NewPtrType(e->type);
+    e->l = l;
+    return e;
+}
+
+struct Expr *parser_new_deref_expr(struct Expr *l)
+{
+    struct Expr *e = new_expr(NOD_EXPR_DEREF);
+    e->type = DuplicateType(l->type->underlying);
+    e->l = l;
+    return e;
+}
+
 static struct Expr *new_binary_expr(struct Expr *l, struct Expr *r, int kind)
 {
     struct Expr *e = new_expr(kind);
@@ -247,64 +300,6 @@ struct Expr *parser_new_gte_expr(struct Expr *l, struct Expr *r)
     return new_rel_expr(l, r, NOD_EXPR_GTE);
 }
 
-struct Expr *NewElementExpr(struct Expr *key, struct Expr *val)
-{
-    struct Expr *e = CALLOC(struct Expr);
-    e->type = val->type;
-    e->kind = NOD_EXPR_ELEMENT;
-    e->l = key;
-    e->r = val;
-    return e;
-}
-
-struct Expr *parser_new_posi_expr(struct Expr *l)
-{
-    struct Expr *e = new_expr(NOD_EXPR_POS);
-    e->type = l->type;
-    e->l = l;
-    return e;
-}
-
-struct Expr *parser_new_nega_expr(struct Expr *l)
-{
-    struct Expr *e = new_expr(NOD_EXPR_NEG);
-    e->type = l->type;
-    e->l = l;
-    return e;
-}
-
-struct Expr *parser_new_lognot_expr(struct Expr *l)
-{
-    struct Expr *e = new_expr(NOD_EXPR_LOGNOT);
-    e->type = l->type;
-    e->l = l;
-    return e;
-}
-
-struct Expr *parser_new_not_expr(struct Expr *l)
-{
-    struct Expr *e = new_expr(NOD_EXPR_NOT);
-    e->type = l->type;
-    e->l = l;
-    return e;
-}
-
-struct Expr *parser_new_addr_expr(struct Expr *l)
-{
-    struct Expr *e = new_expr(NOD_EXPR_ADDRESS);
-    e->type = NewPtrType(e->type);
-    e->l = l;
-    return e;
-}
-
-struct Expr *parser_new_deref_expr(struct Expr *l)
-{
-    struct Expr *e = new_expr(NOD_EXPR_DEREF);
-    e->type = DuplicateType(l->type->underlying);
-    e->l = l;
-    return e;
-}
-
 struct Expr *parser_new_logand_expr(struct Expr *l, struct Expr *r)
 {
     return new_binary_expr(l, r, NOD_EXPR_LOGAND);
@@ -370,16 +365,27 @@ struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
     return s;
 }
 
-struct Stmt *NewJumpStmt(int kind)
+struct Stmt *parser_new_break_stmt(void)
 {
-    struct Stmt *s = new_stmt(kind);
+    return new_stmt(NOD_STMT_BREAK);
+}
+
+struct Stmt *parser_new_continue_stmt(void)
+{
+    return new_stmt(NOD_STMT_CONTINUE);
+}
+
+struct Stmt *parser_new_case_stmt(struct Expr *conds, struct Stmt *body)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_CASE);
+    s->cond = conds;
+    s->body = body;
     return s;
 }
 
-struct Stmt *NewCaseStmt(struct Expr *conds, struct Stmt *body, int kind)
+struct Stmt *parser_new_default_stmt(struct Stmt *body)
 {
-    struct Stmt *s = new_stmt(kind);
-    s->cond = conds;
+    struct Stmt *s = new_stmt(NOD_STMT_DEFAULT);
     s->body = body;
     return s;
 }

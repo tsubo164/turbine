@@ -233,7 +233,7 @@ static struct Expr *struct_lit_expr(struct Parser *p, struct Symbol *sym)
         expect(p, T_ASSN);
 
         struct Expr *f = NewFieldExpr(field);
-        struct Expr *elem = NewElementExpr(f, expression(p));
+        struct Expr *elem = parser_new_element_expr(f, expression(p));
 
         //struct Expr *expr = expression(p);
         struct Expr *expr = elem;
@@ -879,45 +879,44 @@ static struct Stmt *for_stmt(Parser *p)
     return NewForStmt(init, cond, post, body);
 }
 
-static struct Stmt *jump_stmt(Parser *p)
+static struct Stmt *break_stmt(Parser *p)
 {
-    const struct Token *tok = gettok(p);
-    int node_kind = 0;
-
-    switch (tok->kind) {
-    case T_BRK: node_kind = NOD_STMT_BREAK; break;
-    case T_CNT: node_kind = NOD_STMT_CONTINUE; break;
-    }
-
+    gettok(p);
     expect(p, T_NEWLINE);
-
-    return NewJumpStmt(node_kind);
+    return parser_new_break_stmt();
 }
 
-static struct Stmt *case_stmt(Parser *p, int kind)
+static struct Stmt *continue_stmt(Parser *p)
+{
+    gettok(p);
+    expect(p, T_NEWLINE);
+    return parser_new_continue_stmt();
+}
+
+static struct Stmt *case_stmt(Parser *p)
 {
     struct Expr conds = {0};
     struct Expr *cond = &conds;
-    int node_kind = 0;
 
-    if (kind == T_CASE) {
-        node_kind = NOD_STMT_CASE;
-        do {
-            struct Expr *expr = expression(p);
-            // TODO const int check
-            cond = cond->next = expr;
-        }
-        while (consume(p, T_COMMA));
+    do {
+        struct Expr *expr = expression(p);
+        // TODO const int check
+        cond = cond->next = expr;
     }
-    else if (kind == T_DFLT) {
-        node_kind = NOD_STMT_DEFAULT;
-        cond = cond->next = NULL;
-    }
+    while (consume(p, T_COMMA));
 
     expect(p, T_NEWLINE);
 
     struct Stmt *body = block_stmt(p, new_child_scope(p));
-    return NewCaseStmt(conds.next, body, node_kind);
+    return parser_new_case_stmt(conds.next, body);
+}
+
+static struct Stmt *default_stmt(Parser *p)
+{
+    expect(p, T_NEWLINE);
+
+    struct Stmt *body = block_stmt(p, new_child_scope(p));
+    return parser_new_default_stmt(body);
 }
 
 static struct Stmt *switch_stmt(Parser *p)
@@ -930,24 +929,24 @@ static struct Stmt *switch_stmt(Parser *p)
 
     struct Stmt head = {0};
     struct Stmt *tail = &head;
-
     int default_count = 0;
 
     for (;;) {
         const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
+
         case T_CASE:
             if (default_count > 0) {
                 error(p, tok->pos, "No 'case' should come after 'default'");
             }
-            tail = tail->next = case_stmt(p, tok->kind);
-            continue;
+            tail = tail->next = case_stmt(p);
+            break;
 
         case T_DFLT:
-            tail = tail->next = case_stmt(p, tok->kind);
+            tail = tail->next = default_stmt(p);
             default_count++;
-            continue;
+            break;
 
         default:
             ungettok(p);
@@ -1164,56 +1163,64 @@ static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope)
 {
     struct Stmt head = {0};
     struct Stmt *tail = &head;
+    bool has_stmts = true;
 
     // enter scope
     p->scope = block_scope;
     expect(p, T_BLOCKBEGIN);
 
-    for (;;) {
+    while (has_stmts) {
         const int next = peek(p);
 
-        if (next == T_SUB) {
+        switch (next) {
+
+        case T_SUB:
             tail = tail->next = var_decl(p, false);
-            continue;
-        }
-        else if (next == T_IF) {
-            tail = tail->next = if_stmt(p);
-            continue;
-        }
-        else if (next == T_FOR) {
-            tail = tail->next = for_stmt(p);
-            continue;
-        }
-        else if (next == T_BRK || next == T_CNT) {
-            tail = tail->next = jump_stmt(p);
-            continue;
-        }
-        else if (next == T_SWT) {
-            tail = tail->next = switch_stmt(p);
-            continue;
-        }
-        else if (next == T_RET) {
-            tail = tail->next = ret_stmt(p);
-            continue;
-        }
-        else if (next == T_DASH3) {
-            tail = tail->next = scope_stmt(p);
-            continue;
-        }
-        else if (next == T_NOP) {
-            tail = tail->next = nop_stmt(p);
-            continue;
-        }
-        else if (next == T_NEWLINE) {
-            gettok(p);
-            continue;
-        }
-        else if (next == T_BLOCKEND) {
             break;
-        }
-        else {
+
+        case T_IF:
+            tail = tail->next = if_stmt(p);
+            break;
+
+        case T_FOR:
+            tail = tail->next = for_stmt(p);
+            break;
+
+        case T_BRK:
+            tail = tail->next = break_stmt(p);
+            break;
+
+        case T_CNT:
+            tail = tail->next = continue_stmt(p);
+            break;
+
+        case T_SWT:
+            tail = tail->next = switch_stmt(p);
+            break;
+
+        case T_RET:
+            tail = tail->next = ret_stmt(p);
+            break;
+
+        case T_DASH3:
+            tail = tail->next = scope_stmt(p);
+            break;
+
+        case T_NOP:
+            tail = tail->next = nop_stmt(p);
+            break;
+
+        case T_NEWLINE:
+            gettok(p);
+            break;
+
+        case T_BLOCKEND:
+            has_stmts = false;
+            break;
+
+        default:
             tail = tail->next = expr_stmt(p);
-            continue;
+            break;
         }
     }
 
