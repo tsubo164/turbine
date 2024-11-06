@@ -769,7 +769,7 @@ static struct Stmt *assign_stmt(Parser *p)
 
     default:
         ungettok(p);
-        return NewExprStmt(lval);
+        return parser_new_expr_stmt(lval);
     }
 }
 
@@ -950,7 +950,7 @@ static struct Stmt *switch_stmt(Parser *p)
 
         default:
             ungettok(p);
-            return NewSwitchStmt(expr, head.next);
+            return parser_new_switch_stmt(expr, head.next);
         }
     }
 }
@@ -979,7 +979,7 @@ static struct Stmt *ret_stmt(Parser *p)
                 TypeString(expr->type), "");
     }
 
-    return NewReturnStmt(expr);
+    return parser_new_return_stmt(expr);
 }
 
 static struct Stmt *expr_stmt(Parser *p)
@@ -1361,7 +1361,7 @@ static void func_def(struct Parser *p)
     // TODO control flow check to allow implicit return
     for (struct Stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
-            s->next = NewReturnStmt(NULL);
+            s->next = parser_new_return_stmt(NULL);
             break;
         }
     }

@@ -375,6 +375,14 @@ struct Stmt *parser_new_continue_stmt(void)
     return new_stmt(NOD_STMT_CONTINUE);
 }
 
+struct Stmt *parser_new_switch_stmt(struct Expr *cond, struct Stmt *cases)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_SWITCH);
+    s->cond = cond;
+    s->children = cases;
+    return s;
+}
+
 struct Stmt *parser_new_case_stmt(struct Expr *conds, struct Stmt *body)
 {
     struct Stmt *s = new_stmt(NOD_STMT_CASE);
@@ -390,27 +398,16 @@ struct Stmt *parser_new_default_stmt(struct Stmt *body)
     return s;
 }
 
-struct Stmt *NewSwitchStmt(struct Expr *cond, struct Stmt *cases)
+struct Stmt *parser_new_return_stmt(struct Expr *e)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_SWITCH;
-    s->cond = cond;
-    s->children = cases;
-    return s;
-}
-
-struct Stmt *NewReturnStmt(struct Expr *e)
-{
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_RETURN;
+    struct Stmt *s = new_stmt(NOD_STMT_RETURN);
     s->expr = e;
     return s;
 }
 
-struct Stmt *NewExprStmt(struct Expr *e)
+struct Stmt *parser_new_expr_stmt(struct Expr *e)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_EXPR;
+    struct Stmt *s = new_stmt(NOD_STMT_EXPR);
     s->expr = e;
     return s;
 }

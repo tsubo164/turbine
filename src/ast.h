@@ -181,11 +181,11 @@ struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
         struct Stmt *body);
 struct Stmt *parser_new_break_stmt(void);
 struct Stmt *parser_new_continue_stmt(void);
+struct Stmt *parser_new_switch_stmt(struct Expr *cond, struct Stmt *cases);
 struct Stmt *parser_new_case_stmt(struct Expr *conds, struct Stmt *body);
 struct Stmt *parser_new_default_stmt(struct Stmt *body);
-struct Stmt *NewSwitchStmt(struct Expr *cond, struct Stmt *cases);
-struct Stmt *NewReturnStmt(struct Expr *e);
-struct Stmt *NewExprStmt(struct Expr *e);
+struct Stmt *parser_new_return_stmt(struct Expr *e);
+struct Stmt *parser_new_expr_stmt(struct Expr *e);
 struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r);
 struct Stmt *parser_new_assign_stmt(struct Expr *l, struct Expr *r);
 struct Stmt *parser_new_addassign_stmt(struct Expr *l, struct Expr *r);
