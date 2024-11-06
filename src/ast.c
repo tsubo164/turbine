@@ -261,62 +261,44 @@ struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int kind)
     return e;
 }
 
-struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int k)
+static struct Expr *new_rel_expr(struct Expr *l, struct Expr *r, int kind)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(kind);
     e->type = NewBoolType();
-    /*
-    switch (k) {
-    case T_EQ: case T_NEQ:
-    case T_LT: case T_LTE:
-    case T_GT: case T_GTE:
-        e->kind = k;
-        break;
-    default:
-        // error
-        break;
-    }
-    */
-    e->kind = token_to_node(k);
-    e->l = L;
-    e->r = R;
+    e->l = l;
+    e->r = r;
     return e;
 }
 
-#if 0
-struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int k)
+struct Expr *parser_new_eq_expr(struct Expr *l, struct Expr *r)
 {
-    struct Expr *e = CALLOC(struct Expr);
-    /*
-    switch (k) {
-    case T_AND:  e->kind = T_ADR; break;
-    case T_ADD:  e->kind = T_POS; break;
-    case T_SUB:  e->kind = T_NEG; break;
-    case T_MUL:  e->kind = T_DRF; break;
-    case T_LNOT: case T_NOT: e->kind = k; break;
-    default:
-        // error
-        break;
-    }
-    */
-    switch (k) {
-    case T_AND:  e->kind = NOD_EXPR_ADDRESS; break;
-    case T_ADD:  e->kind = NOD_EXPR_POS;     break;
-    case T_SUB:  e->kind = NOD_EXPR_NEG;     break;
-    case T_MUL:  e->kind = NOD_EXPR_DEREF;   break;
-    case T_LNOT:
-    case T_NOT:
-         e->kind = token_to_node(k);
-         break;
-    default:
-        // error
-        break;
-    }
-    e->type = t;
-    e->l = L;
-    return e;
+    return new_rel_expr(l, r, NOD_EXPR_EQ);
 }
-#endif
+
+struct Expr *parser_new_neq_expr(struct Expr *l, struct Expr *r)
+{
+    return new_rel_expr(l, r, NOD_EXPR_NEQ);
+}
+
+struct Expr *parser_new_lt_expr(struct Expr *l, struct Expr *r)
+{
+    return new_rel_expr(l, r, NOD_EXPR_LT);
+}
+
+struct Expr *parser_new_lte_expr(struct Expr *l, struct Expr *r)
+{
+    return new_rel_expr(l, r, NOD_EXPR_LTE);
+}
+
+struct Expr *parser_new_gt_expr(struct Expr *l, struct Expr *r)
+{
+    return new_rel_expr(l, r, NOD_EXPR_GT);
+}
+
+struct Expr *parser_new_gte_expr(struct Expr *l, struct Expr *r)
+{
+    return new_rel_expr(l, r, NOD_EXPR_GTE);
+}
 
 struct Expr *NewElementExpr(struct Expr *key, struct Expr *val)
 {
@@ -376,27 +358,6 @@ struct Expr *parser_new_deref_expr(struct Expr *l)
     return e;
 }
 
-static struct Expr *new_assign_expr(struct Expr *l, struct Expr *r, int k)
-{
-    struct Expr *e = CALLOC(struct Expr);
-    e->type = l->type;
-    /*
-    switch (k) {
-    case T_ASSN: case T_AADD: case T_ASUB:
-    case T_AMUL: case T_ADIV: case T_AREM:
-        e->kind = k;
-        break;
-    default:
-        // error
-        break;
-    }
-    */
-    e->kind = token_to_node(k);
-    e->l = l;
-    e->r = r;
-    return e;
-}
-
 static struct Expr *new_init_expr(struct Expr *l, struct Expr *r)
 {
     struct Expr *e = CALLOC(struct Expr);
@@ -404,24 +365,6 @@ static struct Expr *new_init_expr(struct Expr *l, struct Expr *r)
     e->kind = NOD_EXPR_INIT;
     e->l = l;
     e->r = r;
-    return e;
-}
-
-static struct Expr *new_incdec_expr(struct Expr *l, int kind)
-{
-    struct Expr *e = CALLOC(struct Expr);
-    e->type = l->type;
-    /*
-    switch (kind) {
-    case T_INC: case T_DEC:
-        e->kind = kind;
-    default:
-        // error
-        break;
-    }
-    */
-    e->kind = token_to_node(kind);
-    e->l = l;
     return e;
 }
 
@@ -509,11 +452,54 @@ struct Stmt *NewExprStmt(struct Expr *e)
     return s;
 }
 
-struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind)
+static struct Expr *new_assign_expr(struct Expr *l, struct Expr *r, int kind)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_ASSIGN;
-    s->expr = new_assign_expr(l, r, kind);
+    struct Expr *e = new_expr(kind);
+    e->type = l->type;
+    e->l = l;
+    e->r = r;
+    return e;
+}
+
+struct Stmt *parser_new_assign_stmt(struct Expr *l, struct Expr *r)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = new_assign_expr(l, r, NOD_EXPR_ASSIGN);
+    return s;
+}
+
+struct Stmt *parser_new_addassign_stmt(struct Expr *l, struct Expr *r)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = new_assign_expr(l, r, NOD_EXPR_ADDASSIGN);
+    return s;
+}
+
+struct Stmt *parser_new_subassign_stmt(struct Expr *l, struct Expr *r)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = new_assign_expr(l, r, NOD_EXPR_SUBASSIGN);
+    return s;
+}
+
+struct Stmt *parser_new_mulassign_stmt(struct Expr *l, struct Expr *r)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = new_assign_expr(l, r, NOD_EXPR_MULASSIGN);
+    return s;
+}
+
+struct Stmt *parser_new_divassign_stmt(struct Expr *l, struct Expr *r)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = new_assign_expr(l, r, NOD_EXPR_DIVASSIGN);
+    return s;
+}
+
+struct Stmt *parser_new_remassign_stmt(struct Expr *l, struct Expr *r)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = new_assign_expr(l, r, NOD_EXPR_REMASSIGN);
     return s;
 }
 
@@ -525,12 +511,12 @@ struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r)
     return s;
 }
 
-struct Stmt *NewIncDecStmt(struct Expr *l, int kind)
+static struct Expr *new_incdec_expr(struct Expr *l, int kind)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_ASSIGN;
-    s->expr = new_incdec_expr(l, kind);
-    return s;
+    struct Expr *e = new_expr(kind);
+    e->type = l->type;
+    e->l = l;
+    return e;
 }
 
 struct Stmt *parser_new_inc_stmt(struct Expr *l)

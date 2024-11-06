@@ -139,9 +139,17 @@ struct Expr *NewSelectExpr(struct Expr *inst, struct Expr *fld);
 struct Expr *NewIndexExpr(struct Expr *ary, struct Expr *idx);
 struct Expr *NewCallExpr(struct Expr *callee, struct Pos p);
 struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int kind);
-struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int kind);
+//struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int kind);
 //struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int kind);
 struct Expr *NewElementExpr(struct Expr *key, struct Expr *val);
+
+/* relational expr */
+struct Expr *parser_new_eq_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_neq_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_lt_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_lte_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_gt_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_gte_expr(struct Expr *l, struct Expr *r);
 
 /* unary expr */
 struct Expr *parser_new_posi_expr(struct Expr *l);
@@ -163,9 +171,15 @@ struct Stmt *NewCaseStmt(struct Expr *conds, struct Stmt *body, int kind);
 struct Stmt *NewSwitchStmt(struct Expr *cond, struct Stmt *cases);
 struct Stmt *NewReturnStmt(struct Expr *e);
 struct Stmt *NewExprStmt(struct Expr *e);
-struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind);
+//struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind);
 struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r);
-struct Stmt *NewIncDecStmt(struct Expr *l, int kind);
+//struct Stmt *NewIncDecStmt(struct Expr *l, int kind);
+struct Stmt *parser_new_assign_stmt(struct Expr *l, struct Expr *r);
+struct Stmt *parser_new_addassign_stmt(struct Expr *l, struct Expr *r);
+struct Stmt *parser_new_subassign_stmt(struct Expr *l, struct Expr *r);
+struct Stmt *parser_new_mulassign_stmt(struct Expr *l, struct Expr *r);
+struct Stmt *parser_new_divassign_stmt(struct Expr *l, struct Expr *r);
+struct Stmt *parser_new_remassign_stmt(struct Expr *l, struct Expr *r);
 struct Stmt *parser_new_inc_stmt(struct Expr *l);
 struct Stmt *parser_new_dec_stmt(struct Expr *l);
 

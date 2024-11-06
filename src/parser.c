@@ -528,36 +528,69 @@ static struct Expr *add_expr(Parser *p)
     }
 }
 
-// rel_expr = add_expr (rel_op add_expr)*
-// rel_op   = "==" | "!=" | "<" | ">" | "<=" | ">="
+static void semantic_check_type_match(Parser *p, struct Pos pos,
+        const struct Type *t0, const struct Type *t1)
+{
+    if (!MatchType(t0, t1)) {
+        error(p, pos, "type mismatch: %s and %s",
+                TypeString(t0), TypeString(t1));
+    }
+}
+
+/*
+ * rel_expr = add_expr (rel_op add_expr)*
+ * rel_op   = "==" | "!=" | "<" | ">" | "<=" | ">="
+ */
 static struct Expr *rel_expr(Parser *p)
 {
-    struct Expr *L = add_expr(p);
-    struct Expr *R = NULL;
+    struct Expr *expr = add_expr(p);
+    struct Expr *r = NULL;
 
     for (;;) {
         const struct Token *tok = gettok(p);
+        struct Pos pos = tok->pos;
 
         switch (tok->kind) {
+
         case T_EQ:
+            r = add_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_eq_expr(expr, r);
+            continue;
+
         case T_NEQ:
+            r = add_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_neq_expr(expr, r);
+            continue;
+
         case T_LT:
-        case T_GT:
+            r = add_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_lt_expr(expr, r);
+            continue;
+
         case T_LTE:
+            r = add_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_lte_expr(expr, r);
+            continue;
+
+        case T_GT:
+            r = add_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_gt_expr(expr, r);
+            continue;
+
         case T_GTE:
-            R = add_expr(p);
-            if (!MatchType(L->type, R->type)) {
-                error(p, tok->pos,
-                        "type mismatch: %s and %s",
-                        TypeString(L->type),
-                        TypeString(R->type));
-            }
-            L = NewRelationalExpr(L, R, tok->kind);
+            r = add_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_gte_expr(expr, r);
             continue;
 
         default:
             ungettok(p);
-            return L;
+            return expr;
         }
     }
 }
@@ -637,10 +670,12 @@ static void semantic_check_incdec_stmt(Parser *p, struct Pos pos,
     }
 }
 
-// assign_stmt = logand_expr assing_op expression
-//             | logand_expr incdec_op
-// assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
-// incdec_op   = "++" | "--"
+/*
+ * assign_stmt = logand_expr assing_op expression
+ *             | logand_expr incdec_op
+ * assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
+ * incdec_op   = "++" | "--"
+ */
 static struct Stmt *assign_stmt(Parser *p)
 {
     struct Expr *lval = expression(p);
@@ -653,43 +688,39 @@ static struct Stmt *assign_stmt(Parser *p)
     case T_ASSN:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return NewAssignStmt(lval, rval, NOD_EXPR_ASSIGN);
+        return parser_new_assign_stmt(lval, rval);
 
     case T_AADD:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return NewAssignStmt(lval, rval, NOD_EXPR_ADDASSIGN);
+        return parser_new_addassign_stmt(lval, rval);
 
     case T_ASUB:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return NewAssignStmt(lval, rval, NOD_EXPR_SUBASSIGN);
+        return parser_new_subassign_stmt(lval, rval);
 
     case T_AMUL:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return NewAssignStmt(lval, rval, NOD_EXPR_MULASSIGN);
+        return parser_new_mulassign_stmt(lval, rval);
 
     case T_ADIV:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return NewAssignStmt(lval, rval, NOD_EXPR_DIVASSIGN);
+        return parser_new_divassign_stmt(lval, rval);
 
     case T_AREM:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return NewAssignStmt(lval, rval, NOD_EXPR_REMASSIGN);
+        return parser_new_remassign_stmt(lval, rval);
 
     case T_INC:
         semantic_check_incdec_stmt(p, pos, lval);
-        //return NewIncDecStmt(lval, NOD_EXPR_INC);
-        // TODO testing new function
         return parser_new_inc_stmt(lval);
 
     case T_DEC:
         semantic_check_incdec_stmt(p, pos, lval);
-        // TODO testing new function
-        //return NewIncDecStmt(lval, NOD_EXPR_DEC);
         return parser_new_dec_stmt(lval);
 
     default:
