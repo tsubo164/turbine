@@ -417,37 +417,44 @@ static struct Expr *primary_expr(Parser *p)
     return NULL;
 }
 
-// unary_expr = primary_expr (unary_op primary_expr)*
-// unary_op   = "+" | "-" | "!" | "~"
+/*
+ * unary_expr = primary_expr (unary_op primary_expr)*
+ * unary_op   = "+" | "-" | "!" | "~"
+ */
 static struct Expr *unary_expr(Parser *p)
 {
     const struct Token *tok = gettok(p);
-    const int kind = tok->kind;
+    struct Expr *e = NULL;
 
-    if (kind == T_AND) {
-        struct Expr *expr = unary_expr(p);
-        struct Type *type = NewPtrType(expr->type);
-        return NewUnaryExpr(expr, type, kind);
-    }
-    if (kind == T_MUL) {
-        struct Expr *expr = unary_expr(p);
-        if (!IsPtr(expr->type)) {
+    switch (tok->kind) {
+
+    case T_MUL:
+        e = unary_expr(p);
+        if (!IsPtr(e->type)) {
             error(p, tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
-        struct Type *type = DuplicateType(expr->type->underlying);
-        return NewUnaryExpr(expr, type, kind);
-    }
+        return parser_new_deref_expr(e);
 
-    switch (kind) {
+    case T_AND:
+        e = unary_expr(p);
+        return parser_new_addr_expr(e);
+
     case T_ADD:
+        e = unary_expr(p);
+        return parser_new_posi_expr(e);
+
     case T_SUB:
+        e = unary_expr(p);
+        return parser_new_nega_expr(e);
+
     case T_LNOT:
+        e = unary_expr(p);
+        return parser_new_lognot_expr(e);
+
     case T_NOT:
-        {
-            struct Expr *e = unary_expr(p);
-            return NewUnaryExpr(e, (struct Type*)(e->type), kind);
-        }
+        e = unary_expr(p);
+        return parser_new_not_expr(e);
 
     default:
         ungettok(p);

@@ -94,6 +94,13 @@ static int token_to_node(int token_kind)
     return table[token_kind];
 }
 
+static struct Expr *new_expr(int kind)
+{
+    struct Expr *e = calloc(1, sizeof(struct Expr));
+    e->kind = kind;
+    return e;
+}
+
 static struct Stmt *new_stmt(int kind)
 {
     struct Stmt *s = calloc(1, sizeof(struct Stmt));
@@ -276,6 +283,7 @@ struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int k)
     return e;
 }
 
+#if 0
 struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int k)
 {
     struct Expr *e = CALLOC(struct Expr);
@@ -308,6 +316,7 @@ struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int k)
     e->l = L;
     return e;
 }
+#endif
 
 struct Expr *NewElementExpr(struct Expr *key, struct Expr *val)
 {
@@ -316,6 +325,54 @@ struct Expr *NewElementExpr(struct Expr *key, struct Expr *val)
     e->kind = NOD_EXPR_ELEMENT;
     e->l = key;
     e->r = val;
+    return e;
+}
+
+struct Expr *parser_new_posi_expr(struct Expr *l)
+{
+    struct Expr *e = new_expr(NOD_EXPR_POS);
+    e->type = l->type;
+    e->l = l;
+    return e;
+}
+
+struct Expr *parser_new_nega_expr(struct Expr *l)
+{
+    struct Expr *e = new_expr(NOD_EXPR_NEG);
+    e->type = l->type;
+    e->l = l;
+    return e;
+}
+
+struct Expr *parser_new_lognot_expr(struct Expr *l)
+{
+    struct Expr *e = new_expr(NOD_EXPR_LOGNOT);
+    e->type = l->type;
+    e->l = l;
+    return e;
+}
+
+struct Expr *parser_new_not_expr(struct Expr *l)
+{
+    struct Expr *e = new_expr(NOD_EXPR_NOT);
+    e->type = l->type;
+    e->l = l;
+    return e;
+}
+
+struct Expr *parser_new_addr_expr(struct Expr *l)
+{
+    struct Expr *e = new_expr(NOD_EXPR_ADDRESS);
+    e->type = NewPtrType(e->type);
+    e->l = l;
+    return e;
+}
+
+struct Expr *parser_new_deref_expr(struct Expr *l)
+{
+    struct Expr *e = new_expr(NOD_EXPR_DEREF);
+    e->type = DuplicateType(l->type->underlying);
+    e->l = l;
     return e;
 }
 

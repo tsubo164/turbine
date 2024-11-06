@@ -140,8 +140,16 @@ struct Expr *NewIndexExpr(struct Expr *ary, struct Expr *idx);
 struct Expr *NewCallExpr(struct Expr *callee, struct Pos p);
 struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int kind);
 struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int kind);
-struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int kind);
+//struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int kind);
 struct Expr *NewElementExpr(struct Expr *key, struct Expr *val);
+
+/* unary expr */
+struct Expr *parser_new_posi_expr(struct Expr *l);
+struct Expr *parser_new_nega_expr(struct Expr *l);
+struct Expr *parser_new_lognot_expr(struct Expr *l);
+struct Expr *parser_new_not_expr(struct Expr *l);
+struct Expr *parser_new_addr_expr(struct Expr *l);
+struct Expr *parser_new_deref_expr(struct Expr *l);
 
 // Stmt
 struct Stmt *NewNopStmt(void);
