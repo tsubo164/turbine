@@ -5,95 +5,6 @@
 
 #include <assert.h>
 
-static int token_to_node(int token_kind)
-{
-    static const int table[] = {
-        /* stmt */
-        [T_NOP]                     = NOD_STMT_NOP,
-        [T_IF]                      = NOD_STMT_IF,
-        [T_FOR]                     = NOD_STMT_FOR,
-        [T_ELS]                     = NOD_STMT_ELSE,
-        [T_BRK]                     = NOD_STMT_BREAK,
-        [T_CNT]                     = NOD_STMT_CONTINUE,
-        [T_SWT]                     = NOD_STMT_SWITCH,
-        [T_CASE]                    = NOD_STMT_CASE,
-        [T_DFLT]                    = NOD_STMT_DEFAULT,
-        [T_RET]                     = NOD_STMT_RETURN,
-        [T_EXPR]                    = NOD_STMT_EXPR,
-        [T_BLOCK]                   = NOD_STMT_BLOCK,
-        /*
-        */
-        /* identifier */
-        [T_FIELD]                   = NOD_EXPR_FIELD,
-        [T_IDENT]                   = NOD_EXPR_IDENT,
-        /* literal */
-        [T_NILLIT]                  = NOD_EXPR_NILLIT,
-        [T_BOLLIT]                  = NOD_EXPR_BOOLLIT,
-        [T_INTLIT]                  = NOD_EXPR_INTLIT,
-        [T_FLTLIT]                  = NOD_EXPR_FLOATLIT,
-        [T_STRLIT]                  = NOD_EXPR_STRINGLIT,
-        [T_FUNCLIT]                 = NOD_EXPR_FUNCLIT,
-        [T_ARRAYLIT]                = NOD_EXPR_ARRAYLIT,
-        [T_STRUCTLIT]               = NOD_EXPR_STRUCTLIT,
-        /* binary */
-        [T_ADD]                     = NOD_EXPR_ADD,
-        [T_SUB]                     = NOD_EXPR_SUB,
-        [T_MUL]                     = NOD_EXPR_MUL,
-        [T_DIV]                     = NOD_EXPR_DIV,
-        [T_REM]                     = NOD_EXPR_REM,
-        /* relational */
-        [T_EQ]                      = NOD_EXPR_EQ,
-        [T_NEQ]                     = NOD_EXPR_NEQ,
-        [T_LT]                      = NOD_EXPR_LT,
-        [T_LTE]                     = NOD_EXPR_LTE,
-        [T_GT]                      = NOD_EXPR_GT,
-        [T_GTE]                     = NOD_EXPR_GTE,
-        /* bitwise */
-        [T_SHL]                     = NOD_EXPR_SHL,
-        [T_SHR]                     = NOD_EXPR_SHR,
-        [T_OR]                      = NOD_EXPR_OR,
-        [T_XOR]                     = NOD_EXPR_XOR,
-        [T_AND]                     = NOD_EXPR_AND,
-        /* logical */
-        [T_LOR]                     = NOD_EXPR_LOGOR,
-        [T_LAND]                    = NOD_EXPR_LOGAND,
-        [T_LNOT]                    = NOD_EXPR_LOGNOT,
-        /* unary */
-        [T_POS]                     = NOD_EXPR_POS,
-        [T_NEG]                     = NOD_EXPR_NEG,
-        [T_ADR]                     = NOD_EXPR_ADDRESS,
-        [T_DRF]                     = NOD_EXPR_DEREF,
-        [T_NOT]                     = NOD_EXPR_NOT,
-        [T_INC]                     = NOD_EXPR_INC,
-        [T_DEC]                     = NOD_EXPR_DEC,
-        [T_CONV]                    = NOD_EXPR_CONV,
-        /* array] struct, func */
-        [T_SELECT]                  = NOD_EXPR_SELECT,
-        [T_INDEX]                   = NOD_EXPR_INDEX,
-        [T_CALL]                    = NOD_EXPR_CALL,
-        /* assign */
-        [T_ASSN]                    = NOD_EXPR_ASSIGN,
-        [T_AADD]                    = NOD_EXPR_ADDASSIGN,
-        [T_ASUB]                    = NOD_EXPR_SUBASSIGN,
-        [T_AMUL]                    = NOD_EXPR_MULASSIGN,
-        [T_ADIV]                    = NOD_EXPR_DIVASSIGN,
-        [T_AREM]                    = NOD_EXPR_REMASSIGN,
-        [T_INIT]                    = NOD_EXPR_INIT,
-        /*
-        NOD_EXPR_ASSIGN             = NOD_STMT_ASSIGN,
-        NOD_EXPR_INIT               = NOD_STMT_INIT,
-        */
-        [T_ELEMENT]                 = NOD_EXPR_ELEMENT,
-    };
-
-    int TABLE_SIZE = sizeof(table) / sizeof(table[0]);
-    if (token_kind >= TABLE_SIZE) {
-        assert(!"token_kind >= TABLE_SIZE failed");
-    }
-
-    return table[token_kind];
-}
-
 static struct Expr *new_expr(int kind)
 {
     struct Expr *e = calloc(1, sizeof(struct Expr));
@@ -238,27 +149,63 @@ struct Expr *NewCallExpr(struct Expr *callee, struct Pos p)
     return e;
 }
 
-struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int kind)
+static struct Expr *new_binary_expr(struct Expr *l, struct Expr *r, int kind)
 {
-    struct Expr *e = CALLOC(struct Expr);
-    e->type = L->type;
-    /*
-    switch (kind) {
-    case T_ADD: case T_SUB: case T_MUL: case T_DIV: case T_REM:
-    case T_LOR: case T_LAND: case T_LNOT:
-    case T_AND: case T_OR: case T_XOR: case T_NOT:
-    case T_SHL: case T_SHR:
-        e->kind = kind;
-        break;
-    default:
-        // error
-        break;
-    }
-    */
-    e->kind = token_to_node(kind);
-    e->l = L;
-    e->r = R;
+    struct Expr *e = new_expr(kind);
+    e->type = l->type;
+    e->l = l;
+    e->r = r;
     return e;
+}
+
+struct Expr *parser_new_add_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_ADD);
+}
+
+struct Expr *parser_new_sub_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_SUB);
+}
+
+struct Expr *parser_new_mul_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_MUL);
+}
+
+struct Expr *parser_new_div_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_DIV);
+}
+
+struct Expr *parser_new_rem_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_REM);
+}
+
+struct Expr *parser_new_shl_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_SHL);
+}
+
+struct Expr *parser_new_shr_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_SHR);
+}
+
+struct Expr *parser_new_and_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_AND);
+}
+
+struct Expr *parser_new_or_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_OR);
+}
+
+struct Expr *parser_new_xor_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_XOR);
 }
 
 static struct Expr *new_rel_expr(struct Expr *l, struct Expr *r, int kind)
@@ -356,6 +303,16 @@ struct Expr *parser_new_deref_expr(struct Expr *l)
     e->type = DuplicateType(l->type->underlying);
     e->l = l;
     return e;
+}
+
+struct Expr *parser_new_logand_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_LOGAND);
+}
+
+struct Expr *parser_new_logor_expr(struct Expr *l, struct Expr *r)
+{
+    return new_binary_expr(l, r, NOD_EXPR_LOGOR);
 }
 
 static struct Expr *new_init_expr(struct Expr *l, struct Expr *r)

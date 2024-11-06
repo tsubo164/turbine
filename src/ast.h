@@ -138,10 +138,22 @@ struct Expr *NewFieldExpr(struct Field *f);
 struct Expr *NewSelectExpr(struct Expr *inst, struct Expr *fld);
 struct Expr *NewIndexExpr(struct Expr *ary, struct Expr *idx);
 struct Expr *NewCallExpr(struct Expr *callee, struct Pos p);
-struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int kind);
+//struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int kind);
 //struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int kind);
 //struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int kind);
 struct Expr *NewElementExpr(struct Expr *key, struct Expr *val);
+
+/* binary expr */
+struct Expr *parser_new_add_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_sub_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_mul_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_div_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_rem_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_shl_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_shr_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_and_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_or_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_xor_expr(struct Expr *l, struct Expr *r);
 
 /* relational expr */
 struct Expr *parser_new_eq_expr(struct Expr *l, struct Expr *r);
@@ -158,6 +170,10 @@ struct Expr *parser_new_lognot_expr(struct Expr *l);
 struct Expr *parser_new_not_expr(struct Expr *l);
 struct Expr *parser_new_addr_expr(struct Expr *l);
 struct Expr *parser_new_deref_expr(struct Expr *l);
+
+/* logical expr */
+struct Expr *parser_new_logand_expr(struct Expr *l, struct Expr *r);
+struct Expr *parser_new_logor_expr(struct Expr *l, struct Expr *r);
 
 // Stmt
 struct Stmt *NewNopStmt(void);

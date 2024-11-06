@@ -462,78 +462,116 @@ static struct Expr *unary_expr(Parser *p)
     }
 }
 
-// mul_expr = unary_expr (mul_op unary_expr)*
-// mul_op   = "*" | "/" | "%" | "&" | "<<" | ">>"
-static struct Expr *mul_expr(Parser *p)
-{
-    struct Expr *L = unary_expr(p);
-    struct Expr *R = NULL;
-
-    for (;;) {
-        const struct Token *tok = gettok(p);
-
-        switch (tok->kind) {
-        case T_MUL:
-        case T_DIV:
-        case T_REM:
-        case T_AND:
-        case T_SHL:
-        case T_SHR:
-            R = unary_expr(p);
-            if (!MatchType(L->type, R->type)) {
-                error(p, tok->pos,
-                        "type mismatch: %s and %s",
-                        TypeString(L->type),
-                        TypeString(R->type));
-            }
-            L = NewBinaryExpr(L, R, tok->kind);
-            break;
-
-        default:
-            ungettok(p);
-            return L;
-        }
-    }
-}
-
-// add_expr = mul_expr (add_op mul_expr)*
-// add_op   = "+" | "-" | "|" | "^"
-static struct Expr *add_expr(Parser *p)
-{
-    struct Expr *L = mul_expr(p);
-    struct Expr *R = NULL;
-
-    for (;;) {
-        const struct Token *tok = gettok(p);
-
-        switch (tok->kind) {
-        case T_ADD:
-        case T_SUB:
-        case T_OR:
-        case T_XOR:
-            R = mul_expr(p);
-            if (!MatchType(L->type, R->type)) {
-                error(p, tok->pos,
-                        "type mismatch: %s and %s",
-                        TypeString(L->type),
-                        TypeString(R->type));
-            }
-            L = NewBinaryExpr(L, R, tok->kind);
-            break;
-
-        default:
-            ungettok(p);
-            return L;
-        }
-    }
-}
-
 static void semantic_check_type_match(Parser *p, struct Pos pos,
         const struct Type *t0, const struct Type *t1)
 {
     if (!MatchType(t0, t1)) {
         error(p, pos, "type mismatch: %s and %s",
                 TypeString(t0), TypeString(t1));
+    }
+}
+
+/*
+ * mul_expr = unary_expr (mul_op unary_expr)*
+ * mul_op   = "*" | "/" | "%" | "&" | "<<" | ">>"
+ */
+static struct Expr *mul_expr(Parser *p)
+{
+    struct Expr *expr = unary_expr(p);
+    struct Expr *r = NULL;
+
+    for (;;) {
+        const struct Token *tok = gettok(p);
+        struct Pos pos = tok->pos;
+
+        switch (tok->kind) {
+
+        case T_MUL:
+            r = unary_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_mul_expr(expr, r);
+            break;
+
+        case T_DIV:
+            r = unary_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_div_expr(expr, r);
+            break;
+
+        case T_REM:
+            r = unary_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_rem_expr(expr, r);
+            break;
+
+        case T_AND:
+            r = unary_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_and_expr(expr, r);
+            break;
+
+        case T_SHL:
+            r = unary_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_shl_expr(expr, r);
+            break;
+
+        case T_SHR:
+            r = unary_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_shr_expr(expr, r);
+            break;
+
+        default:
+            ungettok(p);
+            return expr;
+        }
+    }
+}
+
+/*
+ * add_expr = mul_expr (add_op mul_expr)*
+ * add_op   = "+" | "-" | "|" | "^"
+ */
+static struct Expr *add_expr(Parser *p)
+{
+    struct Expr *expr = mul_expr(p);
+    struct Expr *r = NULL;
+
+    for (;;) {
+        const struct Token *tok = gettok(p);
+        struct Pos pos = tok->pos;
+
+        switch (tok->kind) {
+
+        case T_ADD:
+            r = mul_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_add_expr(expr, r);
+            break;
+
+        case T_SUB:
+            r = mul_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_sub_expr(expr, r);
+            break;
+
+        case T_OR:
+            r = mul_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_or_expr(expr, r);
+            break;
+
+        case T_XOR:
+            r = mul_expr(p);
+            semantic_check_type_match(p, pos, expr->type, r->type);
+            expr = parser_new_xor_expr(expr, r);
+            break;
+
+        default:
+            ungettok(p);
+            return expr;
+        }
     }
 }
 
@@ -556,37 +594,37 @@ static struct Expr *rel_expr(Parser *p)
             r = add_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_eq_expr(expr, r);
-            continue;
+            break;
 
         case T_NEQ:
             r = add_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_neq_expr(expr, r);
-            continue;
+            break;
 
         case T_LT:
             r = add_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_lt_expr(expr, r);
-            continue;
+            break;
 
         case T_LTE:
             r = add_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_lte_expr(expr, r);
-            continue;
+            break;
 
         case T_GT:
             r = add_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_gt_expr(expr, r);
-            continue;
+            break;
 
         case T_GTE:
             r = add_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_gte_expr(expr, r);
-            continue;
+            break;
 
         default:
             ungettok(p);
@@ -595,7 +633,9 @@ static struct Expr *rel_expr(Parser *p)
     }
 }
 
-// logand_expr = rel_expr ("&&" rel_expr)*
+/*
+ * logand_expr = rel_expr ("&&" rel_expr)*
+ */
 static struct Expr *logand_expr(Parser *p)
 {
     struct Expr *expr = rel_expr(p);
@@ -604,9 +644,10 @@ static struct Expr *logand_expr(Parser *p)
         const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
+
         case T_LAND:
-            expr = NewBinaryExpr(expr, rel_expr(p), tok->kind);
-            continue;
+            expr = parser_new_logand_expr(expr, rel_expr(p));
+            break;
 
         default:
             ungettok(p);
@@ -615,7 +656,9 @@ static struct Expr *logand_expr(Parser *p)
     }
 }
 
-// logor_expr = logand_expr ("||" logand_expr)*
+/*
+ * logor_expr = logand_expr ("||" logand_expr)*
+ */
 static struct Expr *logor_expr(Parser *p)
 {
     struct Expr *expr = logand_expr(p);
@@ -624,9 +667,10 @@ static struct Expr *logor_expr(Parser *p)
         const struct Token *tok = gettok(p);
 
         switch (tok->kind) {
+
         case T_LOR:
-            expr = NewBinaryExpr(expr, logand_expr(p), tok->kind);
-            continue;
+            expr = parser_new_logor_expr(expr, logand_expr(p));
+            break;
 
         default:
             ungettok(p);
