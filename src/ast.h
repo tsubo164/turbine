@@ -172,13 +172,13 @@ struct Expr *parser_new_gte_expr(struct Expr *l, struct Expr *r);
 struct Expr *parser_new_logand_expr(struct Expr *l, struct Expr *r);
 struct Expr *parser_new_logor_expr(struct Expr *l, struct Expr *r);
 
-// Stmt
-struct Stmt *NewNopStmt(void);
-struct Stmt *NewBlockStmt(struct Stmt *children);
-struct Stmt *NewOrStmt(struct Expr *cond, struct Stmt *body);
-struct Stmt *NewIfStmt(struct Stmt *or_list);
-struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
-        struct Stmt *body);
+/* stmt */
+struct Stmt *parser_new_nop_stmt(void);
+struct Stmt *parser_new_block_stmt(struct Stmt *children);
+struct Stmt *parser_new_if_stmt(struct Stmt *or_list);
+struct Stmt *parser_new_else_stmt(struct Expr *cond, struct Stmt *body);
+struct Stmt *parser_new_for_stmt(struct Stmt *init, struct Expr *cond,
+        struct Stmt *post, struct Stmt *body);
 struct Stmt *parser_new_break_stmt(void);
 struct Stmt *parser_new_continue_stmt(void);
 struct Stmt *parser_new_switch_stmt(struct Expr *cond, struct Stmt *cases);
@@ -186,7 +186,9 @@ struct Stmt *parser_new_case_stmt(struct Expr *conds, struct Stmt *body);
 struct Stmt *parser_new_default_stmt(struct Stmt *body);
 struct Stmt *parser_new_return_stmt(struct Expr *e);
 struct Stmt *parser_new_expr_stmt(struct Expr *e);
-struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r);
+
+/* assign stmt */
+struct Stmt *parser_new_init_stmt(struct Expr *l, struct Expr *r);
 struct Stmt *parser_new_assign_stmt(struct Expr *l, struct Expr *r);
 struct Stmt *parser_new_addassign_stmt(struct Expr *l, struct Expr *r);
 struct Stmt *parser_new_subassign_stmt(struct Expr *l, struct Expr *r);

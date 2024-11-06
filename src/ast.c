@@ -310,54 +310,39 @@ struct Expr *parser_new_logor_expr(struct Expr *l, struct Expr *r)
     return new_binary_expr(l, r, NOD_EXPR_LOGOR);
 }
 
-static struct Expr *new_init_expr(struct Expr *l, struct Expr *r)
+/* stmt */
+struct Stmt *parser_new_nop_stmt(void)
 {
-    struct Expr *e = CALLOC(struct Expr);
-    e->type = l->type;
-    e->kind = NOD_EXPR_INIT;
-    e->l = l;
-    e->r = r;
-    return e;
-}
-
-// Stmt
-struct Stmt *NewNopStmt(void)
-{
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_NOP;
+    struct Stmt *s = new_stmt(NOD_STMT_NOP);
     return s;
 }
 
-struct Stmt *NewBlockStmt(struct Stmt *children)
+struct Stmt *parser_new_block_stmt(struct Stmt *children)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_BLOCK;
+    struct Stmt *s = new_stmt(NOD_STMT_BLOCK);
     s->children = children;
     return s;
 }
 
-struct Stmt *NewOrStmt(struct Expr *cond, struct Stmt *body)
+struct Stmt *parser_new_if_stmt(struct Stmt *or_list)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_ELSE;
+    struct Stmt *s = new_stmt(NOD_STMT_IF);
+    s->children = or_list;
+    return s;
+}
+
+struct Stmt *parser_new_else_stmt(struct Expr *cond, struct Stmt *body)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ELSE);
     s->cond = cond;
     s->body = body;
     return s;
 }
 
-struct Stmt *NewIfStmt(struct Stmt *or_list)
+struct Stmt *parser_new_for_stmt(struct Stmt *init, struct Expr *cond,
+        struct Stmt *post, struct Stmt *body)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_IF;
-    s->children = or_list;
-    return s;
-}
-
-struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
-        struct Stmt *body)
-{
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_FOR;
+    struct Stmt *s = new_stmt(NOD_STMT_FOR);
     s->init = init;
     s->cond = cond;
     s->post = post;
@@ -412,6 +397,22 @@ struct Stmt *parser_new_expr_stmt(struct Expr *e)
     return s;
 }
 
+static struct Expr *new_init_expr(struct Expr *l, struct Expr *r)
+{
+    struct Expr *e = new_expr(NOD_EXPR_INIT);
+    e->type = l->type;
+    e->l = l;
+    e->r = r;
+    return e;
+}
+
+struct Stmt *parser_new_init_stmt(struct Expr *l, struct Expr *r)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_INIT);
+    s->expr = new_init_expr(l, r);
+    return s;
+}
+
 static struct Expr *new_assign_expr(struct Expr *l, struct Expr *r, int kind)
 {
     struct Expr *e = new_expr(kind);
@@ -460,14 +461,6 @@ struct Stmt *parser_new_remassign_stmt(struct Expr *l, struct Expr *r)
 {
     struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
     s->expr = new_assign_expr(l, r, NOD_EXPR_REMASSIGN);
-    return s;
-}
-
-struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r)
-{
-    struct Stmt *s = CALLOC(struct Stmt);
-    s->kind = NOD_STMT_INIT;
-    s->expr = new_init_expr(l, r);
     return s;
 }
 

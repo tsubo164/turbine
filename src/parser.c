@@ -801,7 +801,7 @@ static struct Stmt *or_stmt(Parser *p)
 
     struct Stmt *body = block_stmt(p, new_child_scope(p));
 
-    return NewOrStmt(cond, body);
+    return parser_new_else_stmt(cond, body);
 }
 
 static struct Stmt *if_stmt(Parser *p)
@@ -814,7 +814,7 @@ static struct Stmt *if_stmt(Parser *p)
     struct Stmt *tail = &head;
 
     struct Stmt *body = block_stmt(p, new_child_scope(p));
-    tail = tail->next = NewOrStmt(cond, body);
+    tail = tail->next = parser_new_else_stmt(cond, body);
 
     bool endor = false;
 
@@ -832,7 +832,7 @@ static struct Stmt *if_stmt(Parser *p)
         }
     }
 
-    return NewIfStmt(head.next);
+    return parser_new_if_stmt(head.next);
 }
 
 static struct Stmt *for_stmt(Parser *p)
@@ -876,7 +876,7 @@ static struct Stmt *for_stmt(Parser *p)
 
     // body
     struct Stmt *body = block_stmt(p, new_child_scope(p));
-    return NewForStmt(init, cond, post, body);
+    return parser_new_for_stmt(init, cond, post, body);
 }
 
 static struct Stmt *break_stmt(Parser *p)
@@ -1002,7 +1002,7 @@ static struct Stmt *nop_stmt(Parser *p)
 {
     expect(p, T_NOP);
 
-    struct Stmt *s = NewNopStmt();
+    struct Stmt *s = parser_new_nop_stmt();
     expect(p, T_NEWLINE);
 
     return s;
@@ -1091,7 +1091,7 @@ static struct Stmt *var_decl(Parser *p, bool isglobal)
                 "builtin function can not be assigned: '%s'",
                 func->name);
     }
-    return NewInitStmt(ident, init);
+    return parser_new_init_stmt(ident, init);
 }
 
 static void field_list(Parser *p, struct Struct *strct)
@@ -1228,7 +1228,7 @@ static struct Stmt *block_stmt(Parser *p, struct Scope *block_scope)
     p->scope = p->scope->parent;
     expect(p, T_BLOCKEND);
 
-    return NewBlockStmt(head.next);
+    return parser_new_block_stmt(head.next);
 }
 
 static void param_list(Parser *p, struct Func *func)
