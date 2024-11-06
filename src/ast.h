@@ -158,6 +158,8 @@ struct Stmt *NewExprStmt(struct Expr *e);
 struct Stmt *NewAssignStmt(struct Expr *l, struct Expr *r, int kind);
 struct Stmt *NewInitStmt(struct Expr *l, struct Expr *r);
 struct Stmt *NewIncDecStmt(struct Expr *l, int kind);
+struct Stmt *parser_new_inc_stmt(struct Expr *l);
+struct Stmt *parser_new_dec_stmt(struct Expr *l);
 
 bool IsGlobal(const struct Expr *e);
 bool IsMutable(const struct Expr *e);

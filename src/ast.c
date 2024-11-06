@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-int token_to_node(int token_kind)
+static int token_to_node(int token_kind)
 {
     static const int table[] = {
         /* stmt */
@@ -350,20 +350,20 @@ static struct Expr *new_init_expr(struct Expr *l, struct Expr *r)
     return e;
 }
 
-static struct Expr *new_incdec_expr(struct Expr *l, int k)
+static struct Expr *new_incdec_expr(struct Expr *l, int kind)
 {
     struct Expr *e = CALLOC(struct Expr);
     e->type = l->type;
     /*
-    switch (k) {
+    switch (kind) {
     case T_INC: case T_DEC:
-        e->kind = k;
+        e->kind = kind;
     default:
         // error
         break;
     }
     */
-    e->kind = token_to_node(k);
+    e->kind = token_to_node(kind);
     e->l = l;
     return e;
 }
@@ -473,6 +473,20 @@ struct Stmt *NewIncDecStmt(struct Expr *l, int kind)
     struct Stmt *s = CALLOC(struct Stmt);
     s->kind = NOD_STMT_ASSIGN;
     s->expr = new_incdec_expr(l, kind);
+    return s;
+}
+
+struct Stmt *parser_new_inc_stmt(struct Expr *l)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = new_incdec_expr(l, NOD_EXPR_INC);
+    return s;
+}
+
+struct Stmt *parser_new_dec_stmt(struct Expr *l)
+{
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = new_incdec_expr(l, NOD_EXPR_DEC);
     return s;
 }
 

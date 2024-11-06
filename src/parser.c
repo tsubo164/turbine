@@ -600,6 +600,36 @@ static struct Expr *expression(Parser *p)
     return logor_expr(p);
 }
 
+static void semantic_check_assign_stmt(Parser *p, struct Pos pos,
+        const struct Expr *lval, const struct Expr *rval)
+{
+    if (!MatchType(lval->type, rval->type)) {
+        error(p, pos, "type mismatch: l-value type '%s': r-value type '%s'",
+                TypeString(lval->type), TypeString(rval->type));
+    }
+    // TODO make new_assign_stmt()
+    if (IsFunc(rval->type) && rval->type->func_type->is_builtin) {
+        assert(rval->kind == T_FUNCLIT);
+        struct Func *func = rval->func;
+        error(p, pos, "builtin function can not be assigned: '%s'",
+                func->name);
+    }
+    if (!IsMutable(lval)) {
+        const struct Var *var = FindRootObject(lval);
+        assert(var);
+        error(p, pos, "parameter object can not be modified: '%s'",
+                var->name);
+    }
+}
+
+static void semantic_check_incdec_stmt(Parser *p, struct Pos pos,
+        const struct Expr *lval)
+{
+    if (!IsInt(lval->type)) {
+        error(p, pos, "type mismatch: ++/-- must be used for int");
+    }
+}
+
 // assign_stmt = logand_expr assing_op expression
 //             | logand_expr incdec_op
 // assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
@@ -609,46 +639,51 @@ static struct Stmt *assign_stmt(Parser *p)
     struct Expr *lval = expression(p);
     struct Expr *rval = NULL;
     const struct Token *tok = gettok(p);
-    const int kind = tok->kind;
+    struct Pos pos = tok->pos;
 
-    switch (kind) {
+    switch (tok->kind) {
+
     case T_ASSN:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return NewAssignStmt(lval, rval, NOD_EXPR_ASSIGN);
+
     case T_AADD:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return NewAssignStmt(lval, rval, NOD_EXPR_ADDASSIGN);
+
     case T_ASUB:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return NewAssignStmt(lval, rval, NOD_EXPR_SUBASSIGN);
+
     case T_AMUL:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return NewAssignStmt(lval, rval, NOD_EXPR_MULASSIGN);
+
     case T_ADIV:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return NewAssignStmt(lval, rval, NOD_EXPR_DIVASSIGN);
+
     case T_AREM:
         rval = expression(p);
-        if (!MatchType(lval->type, rval->type)) {
-            error(p, tok->pos,
-                    "type mismatch: l-value type '%s': r-value type '%s'",
-                    TypeString(lval->type),
-                    TypeString(rval->type));
-        }
-        // TODO make new_assign_stmt()
-        if (IsFunc(rval->type) && rval->type->func_type->is_builtin) {
-            assert(rval->kind == T_FUNCLIT);
-            struct Func *func = rval->func;
-            error(p, tok->pos,
-                    "builtin function can not be assigned: '%s'",
-                    func->name);
-        }
-        if (!IsMutable(lval)) {
-            const struct Var *var = FindRootObject(lval);
-            assert(var);
-            error(p, tok->pos,
-                    "parameter object can not be modified: '%s'",
-                    var->name);
-        }
-        return NewAssignStmt(lval, rval, kind);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return NewAssignStmt(lval, rval, NOD_EXPR_REMASSIGN);
 
     case T_INC:
+        semantic_check_incdec_stmt(p, pos, lval);
+        //return NewIncDecStmt(lval, NOD_EXPR_INC);
+        // TODO testing new function
+        return parser_new_inc_stmt(lval);
+
     case T_DEC:
-        if (!IsInt(lval->type)) {
-            error(p, tok->pos,
-                    "type mismatch: ++/-- must be used for int");
-        }
-        return NewIncDecStmt(lval, kind);
+        semantic_check_incdec_stmt(p, pos, lval);
+        // TODO testing new function
+        //return NewIncDecStmt(lval, NOD_EXPR_DEC);
+        return parser_new_dec_stmt(lval);
 
     default:
         ungettok(p);
