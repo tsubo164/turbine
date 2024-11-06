@@ -94,6 +94,13 @@ int token_to_node(int token_kind)
     return table[token_kind];
 }
 
+static struct Stmt *new_stmt(int kind)
+{
+    struct Stmt *s = calloc(1, sizeof(struct Stmt));
+    s->kind = kind;
+    return s;
+}
+
 // Expr
 struct Expr *NewNilLitExpr(void)
 {
@@ -224,24 +231,24 @@ struct Expr *NewCallExpr(struct Expr *callee, struct Pos p)
     return e;
 }
 
-struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int k)
+struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int kind)
 {
     struct Expr *e = CALLOC(struct Expr);
     e->type = L->type;
     /*
-    switch (k) {
+    switch (kind) {
     case T_ADD: case T_SUB: case T_MUL: case T_DIV: case T_REM:
     case T_LOR: case T_LAND: case T_LNOT:
     case T_AND: case T_OR: case T_XOR: case T_NOT:
     case T_SHL: case T_SHR:
-        e->kind = k;
+        e->kind = kind;
         break;
     default:
         // error
         break;
     }
     */
-    e->kind = token_to_node(k);
+    e->kind = token_to_node(kind);
     e->l = L;
     e->r = R;
     return e;
@@ -406,37 +413,15 @@ struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
     return s;
 }
 
-struct Stmt *NewJumpStmt(int k)
+struct Stmt *NewJumpStmt(int kind)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    /*
-    switch (k) {
-    case T_BRK: case T_CNT:
-        s->kind = k;
-        break;
-    default:
-        // error
-        break;
-    }
-    */
-    s->kind = token_to_node(k);
+    struct Stmt *s = new_stmt(kind);
     return s;
 }
 
 struct Stmt *NewCaseStmt(struct Expr *conds, struct Stmt *body, int kind)
 {
-    struct Stmt *s = CALLOC(struct Stmt);
-    /*
-    switch (kind) {
-    case T_CASE: case T_DFLT:
-        s->kind = kind;
-        break;
-    default:
-        // error
-        break;
-    }
-    */
-    s->kind = token_to_node(kind);
+    struct Stmt *s = new_stmt(kind);
     s->cond = conds;
     s->body = body;
     return s;

@@ -138,9 +138,9 @@ struct Expr *NewFieldExpr(struct Field *f);
 struct Expr *NewSelectExpr(struct Expr *inst, struct Expr *fld);
 struct Expr *NewIndexExpr(struct Expr *ary, struct Expr *idx);
 struct Expr *NewCallExpr(struct Expr *callee, struct Pos p);
-struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int k);
-struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int k);
-struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int k);
+struct Expr *NewBinaryExpr(struct Expr *L, struct Expr *R, int kind);
+struct Expr *NewRelationalExpr(struct Expr *L, struct Expr *R, int kind);
+struct Expr *NewUnaryExpr(struct Expr *L, struct Type *t, int kind);
 struct Expr *NewElementExpr(struct Expr *key, struct Expr *val);
 
 // Stmt
@@ -150,7 +150,7 @@ struct Stmt *NewOrStmt(struct Expr *cond, struct Stmt *body);
 struct Stmt *NewIfStmt(struct Stmt *or_list);
 struct Stmt *NewForStmt(struct Stmt *init, struct Expr *cond, struct Stmt *post,
         struct Stmt *body);
-struct Stmt *NewJumpStmt(int k);
+struct Stmt *NewJumpStmt(int kind);
 struct Stmt *NewCaseStmt(struct Expr *conds, struct Stmt *body, int kind);
 struct Stmt *NewSwitchStmt(struct Expr *cond, struct Stmt *cases);
 struct Stmt *NewReturnStmt(struct Expr *e);

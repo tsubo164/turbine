@@ -765,24 +765,26 @@ static struct Stmt *for_stmt(Parser *p)
 static struct Stmt *jump_stmt(Parser *p)
 {
     const struct Token *tok = gettok(p);
-    const int kind = tok->kind;
+    int node_kind = 0;
 
-    if (kind == T_BRK) {
-    }
-    else if (kind == T_CNT) {
+    switch (tok->kind) {
+    case T_BRK: node_kind = NOD_STMT_BREAK; break;
+    case T_CNT: node_kind = NOD_STMT_CONTINUE; break;
     }
 
     expect(p, T_NEWLINE);
 
-    return NewJumpStmt(kind);
+    return NewJumpStmt(node_kind);
 }
 
 static struct Stmt *case_stmt(Parser *p, int kind)
 {
     struct Expr conds = {0};
     struct Expr *cond = &conds;
+    int node_kind = 0;
 
     if (kind == T_CASE) {
+        node_kind = NOD_STMT_CASE;
         do {
             struct Expr *expr = expression(p);
             // TODO const int check
@@ -791,13 +793,14 @@ static struct Stmt *case_stmt(Parser *p, int kind)
         while (consume(p, T_COMMA));
     }
     else if (kind == T_DFLT) {
+        node_kind = NOD_STMT_DEFAULT;
         cond = cond->next = NULL;
     }
 
     expect(p, T_NEWLINE);
 
     struct Stmt *body = block_stmt(p, new_child_scope(p));
-    return NewCaseStmt(conds.next, body, kind);
+    return NewCaseStmt(conds.next, body, node_kind);
 }
 
 static struct Stmt *switch_stmt(Parser *p)
