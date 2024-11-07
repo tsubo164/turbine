@@ -11,140 +11,133 @@
 #include <stdio.h>
 #include <ctype.h>
 
-static const struct KindInfo table[] = {
-    { TOK_NUL,        "nul" },
-    // type
-    { TOK_keyword_begin, "keyword_begin" },
-    { TOK_NIL,        "nil" },
-    { TOK_TRUE,       "true" },
-    { TOK_FALSE,      "false" },
-    { TOK_BOOL,       "bool" },
-    { TOK_INT,        "int" },
-    { TOK_FLOAT,      "float" },
-    { TOK_STRING,     "string" },
-    // stmt
-    { TOK_IF,         "if" },
-    { TOK_FOR,        "for" },
-    { TOK_ELSE,       "or" },
-    { TOK_BREAK,      "break" },
-    { TOK_CONTINUE,   "continue" },
-    { TOK_SWITCH,     "switch" },
-    { TOK_CASE,       "case" },
-    { TOK_DEFAULT,    "default" },
-    { TOK_RETURN,     "return" },
-    { TOK_NOP,        "nop" },
-    { TOK_EXPR,       "expr" },
-    { TOK_BLOCK,      "block" },
-    // special
-    { TOK_CALLER_LINE, "$caller_line" },
-    { TOK_keyword_end, "keyword_end" },
-    // identifier
-    { TOK_FIELD,      "field", 'g' },
-    { TOK_IDENT,      "ident", 'y' },
-    { TOK_FUNC,       "func",  'y' },
-    { TOK_VAR,        "var",   'y' },
-    // literal
-    { TOK_NILLIT,     "nil_lit" },
-    { TOK_BOOLLIT,    "bool_lit",   'i' },
-    { TOK_INTLIT,     "int_lit",    'i' },
-    { TOK_FLOATLIT,   "float_lit",  'f' },
-    { TOK_STRINGLIT,  "string_lit", 's' },
-    { TOK_FUNCLIT,    "func_lit",   'F' },
-    { TOK_ARRAYLIT,   "array_lit" },
-    { TOK_STRUCTLIT,  "struct_lit" },
-    // separator
-    { TOK_LPAREN,     "(" },
-    { TOK_RPAREN,     ")" },
-    { TOK_LBRACK,     "[" },
-    { TOK_RBRACK,     "]" },
-    { TOK_LBRACE,     "{" },
-    { TOK_RBRACE,     "}" },
-    { TOK_SEMICOLON,  ";" },
-    { TOK_COLON,      ":" },
-    { TOK_COLON2,     "::" },
-    { TOK_BLOCKBEGIN, "block_begin" },
-    { TOK_BLOCKEND,   "block_end" },
-    { TOK_DASH3,      "---" },
-    { TOK_DOT,        "." },
-    { TOK_COMMA,      "," },
-    { TOK_HASH,       "#" },
-    { TOK_HASH2,      "##" },
-    { TOK_NEWLINE,    "\\n" },
-    // binary
-    { TOK_ADD,        "+" },
-    { TOK_SUB,        "-" },
-    { TOK_MUL,        "*" },
-    { TOK_DIV,        "/" },
-    { TOK_REM,        "%" },
-    // relational
-    { TOK_EQ,         "==" },
-    { TOK_NEQ,        "!=" },
-    { TOK_LT,         "<" },
-    { TOK_LTE,        "<=" },
-    { TOK_GT,         ">" },
-    { TOK_GTE,        ">=" },
-    // bitwise
-    { TOK_SHL,        "<<" },
-    { TOK_SHR,        ">>" },
-    { TOK_OR,         "|" },
-    { TOK_XOR,        "^" },
-    { TOK_AND,        "&" },
-    { TOK_LOR,        "||" },
-    { TOK_LAND,       "&&" },
-    // array, struct, func
-    { TOK_SELECT,     "select" },
-    { TOK_INDEX,      "index" },
-    { TOK_CALL,       "call" },
-    // unary
-    { TOK_LNOT,       "!" },
-    { TOK_POS,        "+(pos)" },
-    { TOK_NEG,        "-(neg)" },
-    { TOK_ADR,        "&(addr)" },
-    { TOK_DRF,        "*(deref)" },
-    { TOK_NOT,        "~" },
-    { TOK_INC,        "++" },
-    { TOK_DEC,        "--" },
-    { TOK_CONV,       "conversion" },
-    // assign
-    { TOK_ASSN,       "=" },
-    { TOK_AADD,       "+=" },
-    { TOK_ASUB,       "-=" },
-    { TOK_AMUL,       "*=" },
-    { TOK_ADIV,       "/=" },
-    { TOK_AREM,       "%=" },
-    { TOK_INIT,       "init" },
-    { TOK_ELEMENT,    "element" },
-    // eof
-    { TOK_EOF,        "EOF" },
-};
-
-static_assert(sizeof(table)/sizeof(table[0])==TOK_EOF+1, "MISSING_TOKEN_STRING");
-
-const struct KindInfo *LookupKindInfo(int kind)
+const char *parser_get_token_string(int kind)
 {
-    int N = sizeof(table)/sizeof(table[0]);
+    static const char *table[] = {
+    [TOK_NUL]                        =        "nul",
+    /* type */
+    [TOK_KEYWORD_BEGIN]                        = "keyword_begin",
+    [TOK_NIL]                        =        "nil",
+    [TOK_TRUE]                        =       "true",
+    [TOK_FALSE]                        =      "false",
+    [TOK_BOOL]                        =       "bool",
+    [TOK_INT]                        =        "int",
+    [TOK_FLOAT]                        =      "float",
+    [TOK_STRING]                        =     "string",
+    /* stmt */
+    [TOK_IF]                        =         "if",
+    [TOK_FOR]                        =        "for",
+    [TOK_ELSE]                        =       "or",
+    [TOK_BREAK]                        =      "break",
+    [TOK_CONTINUE]                        =   "continue",
+    [TOK_SWITCH]                        =     "switch",
+    [TOK_CASE]                        =       "case",
+    [TOK_DEFAULT]                        =    "default",
+    [TOK_RETURN]                        =     "return",
+    [TOK_NOP]                        =        "nop",
+    [TOK_EXPR]                        =       "expr",
+    [TOK_BLOCK]                        =      "block",
+    /* special */
+    [TOK_CALLER_LINE]                        = "$caller_line",
+    [TOK_KEYWORD_END]                        = "keyword_end",
+    /* identifier */
+    [TOK_FIELD]                        =      "field",
+    [TOK_IDENT]                        =      "ident",
+    [TOK_FUNC]                        =       "func",
+    [TOK_VAR]                        =        "var",
+    /* literal */
+    [TOK_NILLIT]                        =     "nil_lit",
+    [TOK_BOOLLIT]                        =    "bool_lit",
+    [TOK_INTLIT]                        =     "int_lit",
+    [TOK_FLOATLIT]                        =   "float_lit",
+    [TOK_STRINGLIT]                        =  "string_lit",
+    [TOK_FUNCLIT]                        =    "func_lit",
+    [TOK_ARRAYLIT]                        =   "array_lit",
+    [TOK_STRUCTLIT]                        =  "struct_lit",
+    /* separator */
+    [TOK_LPAREN]                        =     "(",
+    [TOK_RPAREN]                        =     ")",
+    [TOK_LBRACK]                        =     "[",
+    [TOK_RBRACK]                        =     "]",
+    [TOK_LBRACE]                        =     "{",
+    [TOK_RBRACE]                        =     "}",
+    [TOK_SEMICOLON]                        =  ";",
+    [TOK_COLON]                        =      ":",
+    [TOK_COLON2]                        =     "::",
+    [TOK_BLOCKBEGIN]                        = "block_begin",
+    [TOK_BLOCKEND]                        =   "block_end",
+    [TOK_DASH3]                        =      "---",
+    [TOK_DOT]                        =        ".",
+    [TOK_COMMA]                        =      ",",
+    [TOK_HASH]                        =       "#",
+    [TOK_HASH2]                        =      "##",
+    [TOK_NEWLINE]                        =    "\\n",
+    /* binary */
+    [TOK_ADD]                        =        "+",
+    [TOK_SUB]                        =        "-",
+    [TOK_MUL]                        =        "*",
+    [TOK_DIV]                        =        "/",
+    [TOK_REM]                        =        "%",
+    /* relational */
+    [TOK_EQ]                        =         "==",
+    [TOK_NEQ]                        =        "!=",
+    [TOK_LT]                        =         "<",
+    [TOK_LTE]                        =        "<=",
+    [TOK_GT]                        =         ">",
+    [TOK_GTE]                        =        ">=",
+    /* bitwise */
+    [TOK_SHL]                        =        "<<",
+    [TOK_SHR]                        =        ">>",
+    [TOK_OR]                        =         "|",
+    [TOK_XOR]                        =        "^",
+    [TOK_AND]                        =        "&",
+    [TOK_LOR]                        =        "||",
+    [TOK_LAND]                        =       "&&",
+    /* array, struct, func */
+    [TOK_SELECT]                        =     "select",
+    [TOK_INDEX]                        =      "index",
+    [TOK_CALL]                        =       "call",
+    /* unary */
+    [TOK_LNOT]                        =       "!",
+    [TOK_POS]                        =        "+(pos)",
+    [TOK_NEG]                        =        "-(neg)",
+    [TOK_ADR]                        =        "&(addr)",
+    [TOK_DRF]                        =        "*(deref)",
+    [TOK_NOT]                        =        "~",
+    [TOK_INC]                        =        "++",
+    [TOK_DEC]                        =        "--",
+    [TOK_CONV]                        =       "conversion",
+    /* assign */
+    [TOK_ASSN]                        =       "=",
+    [TOK_AADD]                        =       "+=",
+    [TOK_ASUB]                        =       "-=",
+    [TOK_AMUL]                        =       "*=",
+    [TOK_ADIV]                        =       "/=",
+    [TOK_AREM]                        =       "%=",
+    [TOK_INIT]                        =       "init",
+    [TOK_ELEMENT]                        =    "element",
+    /* eof */
+    [TOK_EOF]                        =        "EOF",
+    };
 
-    for (int i = 0; i < N; i++) {
-        if (kind == table[i].kind)
-            return &table[i];
-    }
-    return &table[0];
+    int count = sizeof(table) / sizeof(table[0]);
+    
+    if (kind < 0 || kind >= count)
+        return NULL;
+
+    return table[kind];
 }
 
 static int keyword_or_ident(const char *word)
 {
-    for (int i = TOK_keyword_begin + 1; i < TOK_keyword_end; i++) {
-        const struct KindInfo *info = &table[i];
-        if (!strcmp(word, info->str))
-            return info->kind;
-    }
-    return TOK_IDENT;
-}
+    for (int i = TOK_KEYWORD_BEGIN + 1; i < TOK_KEYWORD_END; i++) {
+        const char *keyword = parser_get_token_string(i);
 
-const char *TokenString(int kind)
-{
-    const struct KindInfo *info = LookupKindInfo(kind);
-    return info->str;
+        if (!strcmp(word, keyword))
+            return i;
+    }
+
+    return TOK_IDENT;
 }
 
 static void set(struct parser_token *t, int k, struct parser_pos p)
@@ -875,7 +868,7 @@ static void get_token(Lexer *l, struct parser_token *tok)
     set(tok, TOK_EOF, l->pos);
 }
 
-const struct parser_token *Tokenize(const char *src)
+const struct parser_token *parser_tokenize(const char *src)
 {
     Lexer l = {0};
     set_input(&l, src);

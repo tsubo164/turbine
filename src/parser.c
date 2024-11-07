@@ -101,7 +101,7 @@ static void expect(Parser *p, int kind)
 {
     const struct parser_token *tok = gettok(p);
     if (tok->kind != kind) {
-        error(p, tok->pos, "expected '%s'", TokenString(kind));
+        error(p, tok->pos, "expected '%s'", parser_get_token_string(kind));
     }
 }
 
@@ -407,7 +407,7 @@ static struct parser_expr *primary_expr(Parser *p)
             if (!expr) {
                 error(p, tok->pos,
                         "unknown token for primary expression: \"%s\"",
-                        TokenString(tok->kind));
+                        parser_get_token_string(tok->kind));
             }
 
             ungettok(p);
@@ -1341,7 +1341,7 @@ static struct Type *type_spec(Parser *p)
         const struct parser_token *tok = gettok(p);
         error(p, tok->pos,
                 "not a type name: '%s'",
-                TokenString(tok->kind));
+                parser_get_token_string(tok->kind));
     }
 
     return type;
@@ -1415,7 +1415,7 @@ static void module_import(struct Parser *p)
                 "module %s.ro not found", modulename);
     }
 
-    const struct parser_token *tok = Tokenize(src);
+    const struct parser_token *tok = parser_tokenize(src);
     // TODO use this style => enter_scope(p, mod->scope);
     Parse(src, filename, modulename, tok, p->scope);
 
@@ -1468,7 +1468,7 @@ static void program(Parser *p)
         const struct parser_token *tok = gettok(p);
         error(p, tok->pos,
                 "error: unexpected token for global object: '%s'",
-                TokenString(next));
+                parser_get_token_string(next));
     }
 
     p->module->gvars = head.next;

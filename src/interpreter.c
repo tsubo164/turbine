@@ -28,7 +28,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     DefineBuiltinFuncs(&builtin);
 
     // Tokenize
-    tok = Tokenize(src);
+    tok = parser_tokenize(src);
 
     // Print token
     if (opt->print_token) {

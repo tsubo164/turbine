@@ -5,8 +5,8 @@
 
 enum parser_token_kind {
     TOK_NUL,
-    TOK_keyword_begin,
-    // type
+    TOK_KEYWORD_BEGIN,
+    /* type */
     TOK_NIL,
     TOK_TRUE,
     TOK_FALSE,
@@ -14,7 +14,7 @@ enum parser_token_kind {
     TOK_INT,
     TOK_FLOAT,
     TOK_STRING,
-    // stmt
+    /* stmt */
     TOK_IF,
     TOK_FOR,
     TOK_ELSE,
@@ -27,15 +27,15 @@ enum parser_token_kind {
     TOK_NOP,
     TOK_EXPR,
     TOK_BLOCK,
-    // special
+    /* special */
     TOK_CALLER_LINE,
-    TOK_keyword_end,
-    // identifier
+    TOK_KEYWORD_END,
+    /* identifier */
     TOK_FIELD,
     TOK_IDENT,
     TOK_FUNC,
     TOK_VAR,
-    // literal
+    /* literal */
     TOK_NILLIT,
     TOK_BOOLLIT,
     TOK_INTLIT,
@@ -44,7 +44,7 @@ enum parser_token_kind {
     TOK_FUNCLIT,
     TOK_ARRAYLIT,
     TOK_STRUCTLIT,
-    // separator
+    /* separator */
     TOK_LPAREN,
     TOK_RPAREN,
     TOK_LBRACK,
@@ -62,20 +62,20 @@ enum parser_token_kind {
     TOK_HASH,
     TOK_HASH2,
     TOK_NEWLINE,
-    // binary
+    /* binary */
     TOK_ADD,
     TOK_SUB,
     TOK_MUL,
     TOK_DIV,
     TOK_REM,
-    // relational
+    /* relational */
     TOK_EQ,
     TOK_NEQ,
     TOK_LT,
     TOK_LTE,
     TOK_GT,
     TOK_GTE,
-    // bitwise
+    /* bitwise */
     TOK_SHL,
     TOK_SHR,
     TOK_OR,
@@ -83,11 +83,11 @@ enum parser_token_kind {
     TOK_AND,
     TOK_LOR,
     TOK_LAND,
-    // array, struct, func
+    /* array, struct, func */
     TOK_SELECT,
     TOK_INDEX,
     TOK_CALL,
-    // unary
+    /* unary */
     TOK_LNOT,
     TOK_POS,
     TOK_NEG,
@@ -97,7 +97,7 @@ enum parser_token_kind {
     TOK_INC,
     TOK_DEC,
     TOK_CONV,
-    // assign
+    /* assign */
     TOK_ASSN,
     TOK_AADD,
     TOK_ASUB,
@@ -106,14 +106,8 @@ enum parser_token_kind {
     TOK_AREM,
     TOK_INIT,
     TOK_ELEMENT,
-    // eof
+    /* eof */
     TOK_EOF
-};
-
-struct KindInfo {
-    int kind;
-    const char *str;
-    char type;
 };
 
 struct parser_pos {
@@ -135,8 +129,7 @@ struct parser_token {
     struct parser_token *next;
 };
 
-const struct parser_token *Tokenize(const char *src);
-const struct KindInfo *LookupKindInfo(int kind);
-const char *TokenString(int kind);
+const struct parser_token *parser_tokenize(const char *src);
+const char *parser_get_token_string(int kind);
 
 #endif /* _H */

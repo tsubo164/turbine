@@ -81,9 +81,9 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_EXPR_INIT]           = {"init"},           
     };
 
-    int N = sizeof(table) / sizeof(table[0]);
+    int count = sizeof(table) / sizeof(table[0]);
 
-    if (kind < 0 || kind >= N)
+    if (kind < 0 || kind >= count)
         return NULL;
 
     return &table[kind];

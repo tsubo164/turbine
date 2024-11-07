@@ -17,7 +17,7 @@ void PrintToken(const struct parser_token *token, bool format)
         if (!format) {
             printf("(%4d, %3d) %s",
                     tok->pos.y, tok->pos.x,
-                    TokenString(tok->kind));
+                    parser_get_token_string(tok->kind));
 
             if (tok->kind == TOK_IDENT)
                 printf(" (%s)", tok->sval);
@@ -47,11 +47,11 @@ void PrintToken(const struct parser_token *token, bool format)
             }
 
             if (tok->kind == TOK_NEWLINE) {
-                printf("%s\n", TokenString(tok->kind));
+                printf("%s\n", parser_get_token_string(tok->kind));
                 bol = true;
             }
             else if (tok->kind != TOK_BLOCKBEGIN && tok->kind != TOK_BLOCKEND) {
-                printf("%s ", TokenString(tok->kind));
+                printf("%s ", parser_get_token_string(tok->kind));
             }
         }
 
