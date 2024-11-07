@@ -1,83 +1,84 @@
-#ifndef AST_H
-#define AST_H
+#ifndef PARSER_AST_H
+#define PARSER_AST_H
 
 #include "token.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 enum parser_node_kind {
     /* stmt */
-    NOD_STMT_NOP                    = T_NOP,
-    NOD_STMT_IF                     = T_IF,
-    NOD_STMT_FOR                    = T_FOR,
-    NOD_STMT_ELSE                   = T_ELS,
-    NOD_STMT_BREAK                  = T_BRK,
-    NOD_STMT_CONTINUE               = T_CNT,
-    NOD_STMT_SWITCH                 = T_SWT,
-    NOD_STMT_CASE                   = T_CASE,
-    NOD_STMT_DEFAULT                = T_DFLT,
-    NOD_STMT_RETURN                 = T_RET,
-    NOD_STMT_EXPR                   = T_EXPR,
-    NOD_STMT_BLOCK                  = T_BLOCK,
+    NOD_STMT_NOP,
+    NOD_STMT_IF,
+    NOD_STMT_FOR,
+    NOD_STMT_ELSE,
+    NOD_STMT_BREAK,
+    NOD_STMT_CONTINUE,
+    NOD_STMT_SWITCH,
+    NOD_STMT_CASE,
+    NOD_STMT_DEFAULT,
+    NOD_STMT_RETURN,
+    NOD_STMT_EXPR,
+    NOD_STMT_ASSIGN,
+    NOD_STMT_INIT,
+    NOD_STMT_BLOCK,
     /* identifier */
-    NOD_EXPR_FIELD                  = T_FIELD,
-    NOD_EXPR_IDENT                  = T_IDENT,
+    NOD_EXPR_FIELD,
+    NOD_EXPR_IDENT,
     /* literal */
-    NOD_EXPR_NILLIT                 = T_NILLIT,
-    NOD_EXPR_BOOLLIT                = T_BOLLIT,
-    NOD_EXPR_INTLIT                 = T_INTLIT,
-    NOD_EXPR_FLOATLIT               = T_FLTLIT,
-    NOD_EXPR_STRINGLIT              = T_STRLIT,
-    NOD_EXPR_FUNCLIT                = T_FUNCLIT,
-    NOD_EXPR_ARRAYLIT               = T_ARRAYLIT,
-    NOD_EXPR_STRUCTLIT              = T_STRUCTLIT,
+    NOD_EXPR_NILLIT,
+    NOD_EXPR_BOOLLIT,
+    NOD_EXPR_INTLIT,
+    NOD_EXPR_FLOATLIT,
+    NOD_EXPR_STRINGLIT,
+    NOD_EXPR_FUNCLIT,
+    NOD_EXPR_ARRAYLIT,
+    NOD_EXPR_STRUCTLIT,
     /* binary */
-    NOD_EXPR_ADD                    = T_ADD,
-    NOD_EXPR_SUB                    = T_SUB,
-    NOD_EXPR_MUL                    = T_MUL,
-    NOD_EXPR_DIV                    = T_DIV,
-    NOD_EXPR_REM                    = T_REM,
+    NOD_EXPR_ADD,
+    NOD_EXPR_SUB,
+    NOD_EXPR_MUL,
+    NOD_EXPR_DIV,
+    NOD_EXPR_REM,
     /* relational */
-    NOD_EXPR_EQ                     = T_EQ,
-    NOD_EXPR_NEQ                    = T_NEQ,
-    NOD_EXPR_LT                     = T_LT,
-    NOD_EXPR_LTE                    = T_LTE,
-    NOD_EXPR_GT                     = T_GT,
-    NOD_EXPR_GTE                    = T_GTE,
+    NOD_EXPR_EQ,
+    NOD_EXPR_NEQ,
+    NOD_EXPR_LT,
+    NOD_EXPR_LTE,
+    NOD_EXPR_GT,
+    NOD_EXPR_GTE,
     /* bitwise */
-    NOD_EXPR_SHL                    = T_SHL,
-    NOD_EXPR_SHR                    = T_SHR,
-    NOD_EXPR_OR                     = T_OR,
-    NOD_EXPR_XOR                    = T_XOR,
-    NOD_EXPR_AND                    = T_AND,
+    NOD_EXPR_SHL,
+    NOD_EXPR_SHR,
+    NOD_EXPR_OR,
+    NOD_EXPR_XOR,
+    NOD_EXPR_AND,
     /* logical */
-    NOD_EXPR_LOGOR                  = T_LOR,
-    NOD_EXPR_LOGAND                 = T_LAND,
-    NOD_EXPR_LOGNOT                 = T_LNOT,
+    NOD_EXPR_LOGOR,
+    NOD_EXPR_LOGAND,
+    NOD_EXPR_LOGNOT,
     /* unary */
-    NOD_EXPR_POS                    = T_POS,
-    NOD_EXPR_NEG                    = T_NEG,
-    NOD_EXPR_ADDRESS                = T_ADR,
-    NOD_EXPR_DEREF                  = T_DRF,
-    NOD_EXPR_NOT                    = T_NOT,
-    NOD_EXPR_INC                    = T_INC,
-    NOD_EXPR_DEC                    = T_DEC,
-    NOD_EXPR_CONV                   = T_CONV,
+    NOD_EXPR_POS,
+    NOD_EXPR_NEG,
+    NOD_EXPR_ADDRESS,
+    NOD_EXPR_DEREF,
+    NOD_EXPR_NOT,
+    NOD_EXPR_INC,
+    NOD_EXPR_DEC,
+    NOD_EXPR_CONV,
     /* array, struct, func */
-    NOD_EXPR_SELECT                 = T_SELECT,
-    NOD_EXPR_INDEX                  = T_INDEX,
-    NOD_EXPR_CALL                   = T_CALL,
+    NOD_EXPR_SELECT,
+    NOD_EXPR_INDEX,
+    NOD_EXPR_CALL,
+    NOD_EXPR_ELEMENT, /* TODO may not need */
     /* assign */
     /* TODO should be NOD_EXPR */
-    NOD_EXPR_ASSIGN                 = T_ASSN,
-    NOD_EXPR_ADDASSIGN              = T_AADD,
-    NOD_EXPR_SUBASSIGN              = T_ASUB,
-    NOD_EXPR_MULASSIGN              = T_AMUL,
-    NOD_EXPR_DIVASSIGN              = T_ADIV,
-    NOD_EXPR_REMASSIGN              = T_AREM,
-    NOD_EXPR_INIT                   = T_INIT,
-    NOD_STMT_ASSIGN                 = NOD_EXPR_ASSIGN,
-    NOD_STMT_INIT                   = NOD_EXPR_INIT,
-    NOD_EXPR_ELEMENT                = T_ELEMENT, /* TODO may not need */
+    NOD_EXPR_ASSIGN,
+    NOD_EXPR_ADDASSIGN,
+    NOD_EXPR_SUBASSIGN,
+    NOD_EXPR_MULASSIGN,
+    NOD_EXPR_DIVASSIGN,
+    NOD_EXPR_REMASSIGN,
+    NOD_EXPR_INIT,
 };
 
 struct Type;
@@ -100,7 +101,7 @@ struct Expr {
     struct Var *var;
     struct Field *field;
 
-    // literals
+    /* literals */
     union {
         long ival;
         double fval;
@@ -118,26 +119,26 @@ struct Stmt {
     struct Expr* cond;
     struct Stmt* post;
     struct Stmt* body;
-    // children
+    /* children */
     struct Stmt *children;
     struct Stmt *next;
 };
 
-// Expr
-struct Expr *NewNilLitExpr(void);
-struct Expr *NewBoolLitExpr(bool b);
-struct Expr *NewIntLitExpr(long l);
-struct Expr *NewFloatLitExpr(double d);
-struct Expr *NewStringLitExpr(const char *s);
-struct Expr *NewFuncLitExpr(struct Func *func);
-struct Expr *NewArrayLitExpr(struct Expr *elems, int len);
-struct Expr *NewStructLitExpr(struct Struct *strct, struct Expr *fields);
-struct Expr *NewConversionExpr(struct Expr *from, struct Type *to);
-struct Expr *NewIdentExpr(struct Symbol *sym);
-struct Expr *NewFieldExpr(struct Field *f);
-struct Expr *NewSelectExpr(struct Expr *inst, struct Expr *fld);
-struct Expr *NewIndexExpr(struct Expr *ary, struct Expr *idx);
-struct Expr *NewCallExpr(struct Expr *callee, struct Pos p);
+/* expr */
+struct Expr *parser_new_nillit_expr(void);
+struct Expr *parser_new_boollit_expr(bool b);
+struct Expr *parser_new_intlit_expr(long l);
+struct Expr *parser_new_floatlit_expr(double d);
+struct Expr *parser_new_stringlit_expr(const char *s);
+struct Expr *parser_new_funclit_expr(struct Func *func);
+struct Expr *parser_new_arraylit_expr(struct Expr *elems, int len);
+struct Expr *parser_new_structlit_expr(struct Struct *strct, struct Expr *fields);
+struct Expr *parser_new_conversion_expr(struct Expr *from, struct Type *to);
+struct Expr *parser_new_ident_expr(struct Symbol *sym);
+struct Expr *parser_new_field_expr(struct Field *f);
+struct Expr *parser_new_select_expr(struct Expr *inst, struct Expr *fld);
+struct Expr *parser_new_index_expr(struct Expr *ary, struct Expr *idx);
+struct Expr *parser_new_call_expr(struct Expr *callee, struct Pos p);
 struct Expr *parser_new_element_expr(struct Expr *key, struct Expr *val);
 
 /* unary expr */
@@ -198,13 +199,4 @@ struct Stmt *parser_new_remassign_stmt(struct Expr *l, struct Expr *r);
 struct Stmt *parser_new_inc_stmt(struct Expr *l);
 struct Stmt *parser_new_dec_stmt(struct Expr *l);
 
-bool IsGlobal(const struct Expr *e);
-bool IsMutable(const struct Expr *e);
-
-const struct Var *FindRootObject(const struct Expr *e);
-
-int Addr(const struct Expr *e);
-bool EvalExpr(const struct Expr *e, int64_t *result);
-bool EvalAddr(const struct Expr *e, int *result);
-
-#endif // _H
+#endif /* _H */

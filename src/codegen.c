@@ -4,6 +4,7 @@
 #include "error.h"
 #include "type.h"
 #include "ast.h"
+#include "ast_eval.h"
 #include <stdlib.h>
 #include <stdio.h>
 

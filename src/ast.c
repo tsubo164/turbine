@@ -1,9 +1,8 @@
 #include "ast.h"
 #include "scope.h"
 #include "type.h"
-#include "mem.h"
 
-#include <assert.h>
+#include <stdlib.h>
 
 static struct Expr *new_expr(int kind)
 {
@@ -19,131 +18,117 @@ static struct Stmt *new_stmt(int kind)
     return s;
 }
 
-// Expr
-struct Expr *NewNilLitExpr(void)
+/* expr */
+struct Expr *parser_new_nillit_expr(void)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_NILLIT);
     e->type = NewNilType();
-    e->kind = NOD_EXPR_NILLIT;
     return e;
 }
 
-struct Expr *NewBoolLitExpr(bool b)
+struct Expr *parser_new_boollit_expr(bool b)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_BOOLLIT);
     e->type = NewBoolType();
-    e->kind = NOD_EXPR_BOOLLIT;
     e->ival = b;
     return e;
 }
 
-struct Expr *NewIntLitExpr(long l)
+struct Expr *parser_new_intlit_expr(long l)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_INTLIT);
     e->type = NewIntType();
-    e->kind = NOD_EXPR_INTLIT;
     e->ival = l;
     return e;
 }
 
-struct Expr *NewFloatLitExpr(double d)
+struct Expr *parser_new_floatlit_expr(double d)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_FLOATLIT);
     e->type = NewFloatType();
-    e->kind = NOD_EXPR_FLOATLIT;
     e->fval = d;
     return e;
 }
 
-struct Expr *NewStringLitExpr(const char *s)
+struct Expr *parser_new_stringlit_expr(const char *s)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_STRINGLIT);
     e->type = NewStringType();
-    e->kind = NOD_EXPR_STRINGLIT;
     e->sval = s;
     return e;
 }
 
-struct Expr *NewFuncLitExpr(struct Func *func)
+struct Expr *parser_new_funclit_expr(struct Func *func)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_FUNCLIT);
     e->type = NewFuncType(func->func_type);
-    e->kind = NOD_EXPR_FUNCLIT;
     e->func = func;
     return e;
 }
 
-struct Expr *NewArrayLitExpr(struct Expr *elems, int len)
+struct Expr *parser_new_arraylit_expr(struct Expr *elems, int len)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_ARRAYLIT);
     e->type = NewArrayType(len, elems->type);
-    e->kind = NOD_EXPR_ARRAYLIT;
     e->l = elems;
     return e;
 }
 
-struct Expr *NewStructLitExpr(struct Struct *strct, struct Expr *fields)
+struct Expr *parser_new_structlit_expr(struct Struct *strct, struct Expr *fields)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_STRUCTLIT);
     e->type = NewStructType(strct);
-    e->kind = NOD_EXPR_STRUCTLIT;
     e->l = fields;
     return e;
 }
 
-struct Expr *NewConversionExpr(struct Expr *from, struct Type *to)
+struct Expr *parser_new_conversion_expr(struct Expr *from, struct Type *to)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_CONV);
     e->type = to;
-    e->kind = NOD_EXPR_CONV;
     e->l = from;
     return e;
 }
 
-struct Expr *NewIdentExpr(struct Symbol *sym)
+struct Expr *parser_new_ident_expr(struct Symbol *sym)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_IDENT);
     e->type = sym->type;
-    e->kind = NOD_EXPR_IDENT;
     e->var = sym->var;
     e->sym = sym;
     return e;
 }
 
-struct Expr *NewFieldExpr(struct Field *f)
+struct Expr *parser_new_field_expr(struct Field *f)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_FIELD);
     e->type = f->type;
-    e->kind = NOD_EXPR_FIELD;
     e->field = f;
     return e;
 }
 
-struct Expr *NewSelectExpr(struct Expr *inst, struct Expr *fld)
+struct Expr *parser_new_select_expr(struct Expr *inst, struct Expr *fld)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_SELECT);
     e->type = fld->type;
-    e->kind = NOD_EXPR_SELECT;
     e->l = inst;
     e->r = fld;
     return e;
 }
 
-struct Expr *NewIndexExpr(struct Expr *ary, struct Expr *idx)
+struct Expr *parser_new_index_expr(struct Expr *ary, struct Expr *idx)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_INDEX);
     e->type = ary->type->underlying;
-    e->kind = NOD_EXPR_INDEX;
     e->l = ary;
     e->r = idx;
     return e;
 }
 
-struct Expr *NewCallExpr(struct Expr *callee, struct Pos p)
+struct Expr *parser_new_call_expr(struct Expr *callee, struct Pos p)
 {
-    struct Expr *e = CALLOC(struct Expr);
+    struct Expr *e = new_expr(NOD_EXPR_CALL);
     e->type = callee->type->func_type->return_type;
-    e->kind = NOD_EXPR_CALL;
     e->l = callee;
     e->pos = p;
     return e;
@@ -484,143 +469,4 @@ struct Stmt *parser_new_dec_stmt(struct Expr *l)
     struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
     s->expr = new_incdec_expr(l, NOD_EXPR_DEC);
     return s;
-}
-
-bool IsGlobal(const struct Expr *e)
-{
-    switch (e->kind) {
-    case NOD_EXPR_IDENT:
-        return e->var->is_global;
-
-    case NOD_EXPR_SELECT:
-        return IsGlobal(e->l);
-
-    default:
-        return false;
-    }
-}
-
-bool IsMutable(const struct Expr *e)
-{
-    switch (e->kind) {
-    case NOD_EXPR_IDENT:
-        if (e->var->is_param == true && IsPtr(e->type))
-            return true;
-        return e->var->is_param == false;
-
-    case NOD_EXPR_SELECT:
-        return IsMutable(e->l);
-
-    default:
-        return true;
-    }
-}
-
-const struct Var *FindRootObject(const struct Expr *e)
-{
-    switch (e->kind) {
-    case NOD_EXPR_IDENT:
-        return e->var;
-
-    case NOD_EXPR_SELECT:
-        return FindRootObject(e->l);
-
-    default:
-        return NULL;
-    }
-}
-
-int Addr(const struct Expr *e)
-{
-    switch (e->kind) {
-    case NOD_EXPR_IDENT:
-        return e->var->offset;
-
-    case NOD_EXPR_FIELD:
-        return e->field->offset;
-
-    case NOD_EXPR_SELECT:
-        return Addr(e->l) + Addr(e->r);
-
-    default:
-        return -1;
-    }
-}
-
-static bool eval_binary(const struct Expr *e, int64_t *result)
-{
-    int64_t L = 0, R = 0;
-
-    if (!EvalExpr(e->l, &L))
-        return false;
-
-    if (!EvalExpr(e->r, &R))
-        return false;
-
-    switch (e->kind) {
-    case NOD_EXPR_ADD: *result = L + R; return true;
-    case NOD_EXPR_SUB: *result = L - R; return true;
-    case NOD_EXPR_MUL: *result = L * R; return true;
-    case NOD_EXPR_DIV: *result = L / R; return true;
-    case NOD_EXPR_REM: *result = L % R; return true;
-    default: return false;
-    }
-}
-
-static bool eval_unary(const struct Expr *e, int64_t *result)
-{
-    int64_t L = 0;
-
-    if (!EvalExpr(e->l, &L))
-        return false;
-
-    switch (e->kind) {
-    case NOD_EXPR_POS:    *result = +L; return true;
-    case NOD_EXPR_NEG:    *result = -L; return true;
-    case NOD_EXPR_LOGNOT: *result = !L; return true;
-    case NOD_EXPR_NOT:    *result = ~L; return true;
-    default: return false;
-    }
-}
-
-bool EvalExpr(const struct Expr *e, int64_t *result)
-{
-    switch (e->kind) {
-
-    case NOD_EXPR_INTLIT:
-        *result = e->ival;
-        return true;
-
-    case NOD_EXPR_FUNCLIT:
-        *result = e->func->id;
-        return true;
-
-    case NOD_EXPR_ADD: case NOD_EXPR_SUB:
-    case NOD_EXPR_MUL: case NOD_EXPR_DIV: case NOD_EXPR_REM:
-        return eval_binary(e, result);
-
-    case NOD_EXPR_POS: case NOD_EXPR_NEG:
-    case NOD_EXPR_LOGNOT: case NOD_EXPR_NOT:
-        return eval_unary(e, result);
-
-    default:
-        return false;
-    }
-}
-
-bool EvalAddr(const struct Expr *e, int *result)
-{
-    switch (e->kind) {
-
-    case NOD_EXPR_IDENT:
-        *result = e->var->offset;
-        return true;
-
-    case NOD_EXPR_FIELD:
-        *result = e->field->offset;
-        return true;
-
-    default:
-        return false;
-    }
 }

@@ -3,6 +3,7 @@
 #include "token.h"
 #include "type.h"
 #include "ast.h"
+#include "ast_eval.h"
 #include "mem.h"
 #include "escseq.h"
 #include "error.h"
@@ -136,7 +137,7 @@ static struct Expr *arg_list(Parser *p, struct Expr *call)
 
     const struct FuncType *func_type = call->l->type->func_type;
     if (func_type->has_special_var) {
-        tail = tail->next = NewIntLitExpr(call->pos.y);
+        tail = tail->next = parser_new_intlit_expr(call->pos.y);
         count++;
     }
 
@@ -190,7 +191,7 @@ static struct Expr *conv_expr(Parser *p, int kind)
         break;
     }
 
-    return NewConversionExpr(expr, to_type);
+    return parser_new_conversion_expr(expr, to_type);
 }
 
 static struct Expr *array_lit_expr(Parser *p)
@@ -212,7 +213,7 @@ static struct Expr *array_lit_expr(Parser *p)
     }
     expect(p, T_RBRACK);
 
-    return NewArrayLitExpr(expr, len);
+    return parser_new_arraylit_expr(expr, len);
 }
 
 static struct Expr *struct_lit_expr(struct Parser *p, struct Symbol *sym)
@@ -232,7 +233,7 @@ static struct Expr *struct_lit_expr(struct Parser *p, struct Symbol *sym)
         }
         expect(p, T_ASSN);
 
-        struct Expr *f = NewFieldExpr(field);
+        struct Expr *f = parser_new_field_expr(field);
         struct Expr *elem = parser_new_element_expr(f, expression(p));
 
         //struct Expr *expr = expression(p);
@@ -245,7 +246,7 @@ static struct Expr *struct_lit_expr(struct Parser *p, struct Symbol *sym)
     while (consume(p, T_COMMA));
 
     expect(p, T_RBRACE);
-    return NewStructLitExpr(strct, elems);
+    return parser_new_structlit_expr(strct, elems);
 }
 
 // primary_expr =
@@ -256,22 +257,22 @@ static struct Expr *struct_lit_expr(struct Parser *p, struct Symbol *sym)
 static struct Expr *primary_expr(Parser *p)
 {
     if (consume(p, T_NIL))
-        return NewNilLitExpr();
+        return parser_new_nillit_expr();
 
     if (consume(p, T_TRU))
-        return NewBoolLitExpr(true);
+        return parser_new_boollit_expr(true);
 
     if (consume(p, T_FLS))
-        return NewBoolLitExpr(false);
+        return parser_new_boollit_expr(false);
 
     if (consume(p, T_INTLIT))
-        return NewIntLitExpr(tok_int(p));
+        return parser_new_intlit_expr(tok_int(p));
 
     if (consume(p, T_FLTLIT))
-        return NewFloatLitExpr(tok_float(p));
+        return parser_new_floatlit_expr(tok_float(p));
 
     if (consume(p, T_STRLIT)) {
-        struct Expr *e = NewStringLitExpr(tok_str(p));
+        struct Expr *e = parser_new_stringlit_expr(tok_str(p));
         const struct Token *tok = curtok(p);
         if (tok->has_escseq) {
             const int errpos = ConvertEscapeSequence(e->sval, &e->converted);
@@ -302,7 +303,7 @@ static struct Expr *primary_expr(Parser *p)
                     "special variable '%s' not declared in parameters",
                     tok_str(p));
         }
-        return NewIdentExpr(sym);
+        return parser_new_ident_expr(sym);
     }
 
     const int next = peek(p);
@@ -328,11 +329,11 @@ static struct Expr *primary_expr(Parser *p)
                         tok_str(p));
             }
             if (sym->kind == SYM_FUNC)
-                expr = NewFuncLitExpr(sym->func);
+                expr = parser_new_funclit_expr(sym->func);
             else if (sym->kind == SYM_STRUCT)
                 expr = struct_lit_expr(p, sym);
             else
-                expr = NewIdentExpr(sym);
+                expr = parser_new_ident_expr(sym);
             continue;
         }
         else if (tok->kind == T_LPAREN) {
@@ -341,7 +342,7 @@ static struct Expr *primary_expr(Parser *p)
                         "call operator must be used for function type");
             }
             // TODO func signature check
-            struct Expr *call = NewCallExpr(expr, tok->pos);
+            struct Expr *call = parser_new_call_expr(expr, tok->pos);
             expr = arg_list(p, call);
             continue;
         }
@@ -349,12 +350,12 @@ static struct Expr *primary_expr(Parser *p)
             if (IsStruct(expr->type)) {
                 expect(p, T_IDENT);
                 struct Field *f = FindField(expr->type->strct, tok_str(p));
-                expr = NewSelectExpr(expr, NewFieldExpr(f));
+                expr = parser_new_select_expr(expr, parser_new_field_expr(f));
             }
             else if (IsPtr(expr->type) && IsStruct(expr->type->underlying)) {
                 expect(p, T_IDENT);
                 struct Field *f = FindField(expr->type->underlying->strct, tok_str(p));
-                expr = NewSelectExpr(expr, NewFieldExpr(f));
+                expr = parser_new_select_expr(expr, parser_new_field_expr(f));
             }
             else if (IsTable(expr->type)) {
                 expect(p, T_IDENT);
@@ -362,7 +363,7 @@ static struct Expr *primary_expr(Parser *p)
                     data_hashmap_lookup(&expr->type->table->rows, tok_str(p));
                 struct Row *r = ent->val;
                 struct Expr *tmp = expr;
-                expr = NewIntLitExpr(r->ival);
+                expr = parser_new_intlit_expr(r->ival);
                 expr->l = tmp;
             }
             else if (IsModule(expr->type)) {
@@ -400,7 +401,7 @@ static struct Expr *primary_expr(Parser *p)
                 }
             }
             expect(p, T_RBRACK);
-            return NewIndexExpr(expr, idx);
+            return parser_new_index_expr(expr, idx);
         }
         else {
             if (!expr) {
@@ -684,6 +685,20 @@ static struct Expr *expression(Parser *p)
     return logor_expr(p);
 }
 
+static const struct Var *find_root_object(const struct Expr *e)
+{
+    switch (e->kind) {
+    case NOD_EXPR_IDENT:
+        return e->var;
+
+    case NOD_EXPR_SELECT:
+        return find_root_object(e->l);
+
+    default:
+        return NULL;
+    }
+}
+
 static void semantic_check_assign_stmt(Parser *p, struct Pos pos,
         const struct Expr *lval, const struct Expr *rval)
 {
@@ -699,7 +714,7 @@ static void semantic_check_assign_stmt(Parser *p, struct Pos pos,
                 func->name);
     }
     if (!IsMutable(lval)) {
-        const struct Var *var = FindRootObject(lval);
+        const struct Var *var = find_root_object(lval);
         assert(var);
         error(p, pos, "parameter object can not be modified: '%s'",
                 var->name);
@@ -846,7 +861,7 @@ static struct Stmt *for_stmt(Parser *p)
     if (consume(p, T_NEWLINE)) {
         // infinite loop
         init = NULL;
-        cond = NewIntLitExpr(1);
+        cond = parser_new_intlit_expr(1);
         post = NULL;
     }
     else {
@@ -1012,28 +1027,28 @@ static struct Expr *default_value(const struct Type *type)
 {
     switch (type->kind) {
     case TY_BOOL:
-        return NewBoolLitExpr(false);
+        return parser_new_boollit_expr(false);
     case TY_INT:
-        return NewIntLitExpr(0);
+        return parser_new_intlit_expr(0);
     case TY_FLOAT:
-        return NewFloatLitExpr(0.0);
+        return parser_new_floatlit_expr(0.0);
     case TY_STRING:
-        return NewStringLitExpr("");
+        return parser_new_stringlit_expr("");
 
     case TY_PTR:
-        return NewNilLitExpr();
+        return parser_new_nillit_expr();
 
     case TY_ARRAY:
         // TODO fill with zero values
         // put len at base addr
-        return NewIntLitExpr(type->len);
+        return parser_new_intlit_expr(type->len);
 
     case TY_FUNC:
     case TY_STRUCT:
     case TY_TABLE:
     case TY_MODULE:
         // TODO
-        return NewNilLitExpr();
+        return parser_new_nillit_expr();
 
     case TY_NIL:
     case TY_ANY:
@@ -1082,7 +1097,7 @@ static struct Stmt *var_decl(Parser *p, bool isglobal)
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
     }
-    struct Expr *ident = NewIdentExpr(sym);
+    struct Expr *ident = parser_new_ident_expr(sym);
     // TODO make new_assign_stmt()
     if (init && IsFunc(init->type) && init->type->func_type->is_builtin) {
         assert(init->kind == T_FUNCLIT);
