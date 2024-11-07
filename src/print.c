@@ -1,7 +1,7 @@
 #include "print.h"
 #include "scope.h"
 #include "type.h"
-#include "ast.h"
+#include "parser_ast.h"
 #include <stdio.h>
 
 void PrintToken(const struct Token *token, bool format)

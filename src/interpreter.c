@@ -6,7 +6,7 @@
 #include "token.h"
 #include "print.h"
 #include "scope.h"
-#include "ast.h"
+#include "parser_ast.h"
 #include "vm.h"
 
 #include <stdio.h>

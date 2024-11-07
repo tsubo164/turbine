@@ -1,7 +1,7 @@
 #ifndef PARSER_AST_EVAL_H
 #define PARSER_AST_EVAL_H
 
-#include "ast.h"
+#include "parser_ast.h"
 #include <stdbool.h>
 #include <stdint.h>
 

@@ -2,7 +2,7 @@
 #include "scope.h"
 #include "type.h"
 
-bool IsGlobal(const struct Expr *e)
+bool IsGlobal(const struct parser_expr *e)
 {
     switch (e->kind) {
     case NOD_EXPR_IDENT:
@@ -16,7 +16,7 @@ bool IsGlobal(const struct Expr *e)
     }
 }
 
-bool IsMutable(const struct Expr *e)
+bool IsMutable(const struct parser_expr *e)
 {
     switch (e->kind) {
     case NOD_EXPR_IDENT:
@@ -32,7 +32,7 @@ bool IsMutable(const struct Expr *e)
     }
 }
 
-int Addr(const struct Expr *e)
+int Addr(const struct parser_expr *e)
 {
     switch (e->kind) {
     case NOD_EXPR_IDENT:
@@ -49,7 +49,7 @@ int Addr(const struct Expr *e)
     }
 }
 
-static bool eval_binary(const struct Expr *e, int64_t *result)
+static bool eval_binary(const struct parser_expr *e, int64_t *result)
 {
     int64_t L = 0, R = 0;
 
@@ -69,7 +69,7 @@ static bool eval_binary(const struct Expr *e, int64_t *result)
     }
 }
 
-static bool eval_unary(const struct Expr *e, int64_t *result)
+static bool eval_unary(const struct parser_expr *e, int64_t *result)
 {
     int64_t L = 0;
 
@@ -85,7 +85,7 @@ static bool eval_unary(const struct Expr *e, int64_t *result)
     }
 }
 
-bool EvalExpr(const struct Expr *e, int64_t *result)
+bool EvalExpr(const struct parser_expr *e, int64_t *result)
 {
     switch (e->kind) {
 
@@ -110,7 +110,7 @@ bool EvalExpr(const struct Expr *e, int64_t *result)
     }
 }
 
-bool EvalAddr(const struct Expr *e, int *result)
+bool EvalAddr(const struct parser_expr *e, int *result)
 {
     switch (e->kind) {
 

@@ -2,7 +2,7 @@
 #include "scope.h"
 #include "token.h"
 #include "type.h"
-#include "ast.h"
+#include "parser_ast.h"
 #include "ast_eval.h"
 #include "mem.h"
 #include "escseq.h"
