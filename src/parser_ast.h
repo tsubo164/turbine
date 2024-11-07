@@ -199,4 +199,12 @@ struct parser_stmt *parser_new_remassign_stmt(struct parser_expr *l, struct pars
 struct parser_stmt *parser_new_inc_stmt(struct parser_expr *l);
 struct parser_stmt *parser_new_dec_stmt(struct parser_expr *l);
 
+/* node info */
+struct parser_node_info {
+    const char *str;
+    char type;
+};
+
+const struct parser_node_info *parser_get_node_info(int kind);
+
 #endif /* _H */

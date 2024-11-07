@@ -4,6 +4,91 @@
 
 #include <stdlib.h>
 
+const struct parser_node_info *parser_get_node_info(int kind)
+{
+    static const struct parser_node_info table[] = {
+    /* stmt */
+    [NOD_STMT_NOP]            = {"nop"},
+    [NOD_STMT_IF]             = {"if"},
+    [NOD_STMT_FOR]            = {"for"},
+    [NOD_STMT_ELSE]           = {"else"},
+    [NOD_STMT_BREAK]          = {"break"},
+    [NOD_STMT_CONTINUE]       = {"continue"},
+    [NOD_STMT_SWITCH]         = {"switch"},
+    [NOD_STMT_CASE]           = {"case"},
+    [NOD_STMT_DEFAULT]        = {"default"},
+    [NOD_STMT_RETURN]         = {"return"},
+    [NOD_STMT_EXPR]           = {"expr"},
+    [NOD_STMT_ASSIGN]         = {"assign"},
+    [NOD_STMT_INIT]           = {"init"},
+    [NOD_STMT_BLOCK]          = {"block"},
+    /* identifier */
+    [NOD_EXPR_FIELD]          = {"field", 'g'},
+    [NOD_EXPR_IDENT]          = {"ident", 'y'},
+    /* literal */
+    [NOD_EXPR_NILLIT]         = {"nillit"},
+    [NOD_EXPR_BOOLLIT]        = {"boollit",   'i'},
+    [NOD_EXPR_INTLIT]         = {"intlit",    'i'},
+    [NOD_EXPR_FLOATLIT]       = {"floatlit",  'f'},
+    [NOD_EXPR_STRINGLIT]      = {"stringlit", 's'},
+    [NOD_EXPR_FUNCLIT]        = {"funclit",   'F'},
+    [NOD_EXPR_ARRAYLIT]       = {"arraylit"},
+    [NOD_EXPR_STRUCTLIT]      = {"structlit"},
+    /* binary */
+    [NOD_EXPR_ADD]            = {"+"},
+    [NOD_EXPR_SUB]            = {"-"},
+    [NOD_EXPR_MUL]            = {"*"},
+    [NOD_EXPR_DIV]            = {"/"},
+    [NOD_EXPR_REM]            = {"%"},
+    /* relational */
+    [NOD_EXPR_EQ]             = {"=="},
+    [NOD_EXPR_NEQ]            = {"!="},
+    [NOD_EXPR_LT]             = {"<"},
+    [NOD_EXPR_LTE]            = {"<="},
+    [NOD_EXPR_GT]             = {">"},
+    [NOD_EXPR_GTE]            = {">="},
+    /* bitwise */
+    [NOD_EXPR_SHL]            = {"<<"},
+    [NOD_EXPR_SHR]            = {">>"},
+    [NOD_EXPR_OR]             = {"|"},
+    [NOD_EXPR_XOR]            = {"^"},
+    [NOD_EXPR_AND]            = {"&"},
+    /* logical */
+    [NOD_EXPR_LOGOR]          = {"||"},
+    [NOD_EXPR_LOGAND]         = {"&&"},
+    [NOD_EXPR_LOGNOT]         = {"!"},
+    /* unary */
+    [NOD_EXPR_POS]            = {"+(pos)"},
+    [NOD_EXPR_NEG]            = {"-(neg)"},
+    [NOD_EXPR_ADDRESS]        = {"address"},
+    [NOD_EXPR_DEREF]          = {"deref"},
+    [NOD_EXPR_NOT]            = {"~"},
+    [NOD_EXPR_INC]            = {"++"},
+    [NOD_EXPR_DEC]            = {"--"},
+    [NOD_EXPR_CONV]           = {"conversion"},
+    /* array, struct, func */
+    [NOD_EXPR_SELECT]         = {"select"},
+    [NOD_EXPR_INDEX]          = {"index"},
+    [NOD_EXPR_CALL]           = {"call"},
+    [NOD_EXPR_ELEMENT]        = {"element"},
+    /* assign */
+    [NOD_EXPR_ASSIGN]         = {"="},
+    [NOD_EXPR_ADDASSIGN]      = {"+="},
+    [NOD_EXPR_SUBASSIGN]      = {"-="},
+    [NOD_EXPR_MULASSIGN]      = {"*="},
+    [NOD_EXPR_DIVASSIGN]      = {"/="},
+    [NOD_EXPR_REMASSIGN]      = {"%="},
+    [NOD_EXPR_INIT]           = {"init"},           
+    };
+
+    int N = sizeof(table) / sizeof(table[0]);
+
+    if (kind < 0 || kind >= N)
+        return NULL;
+
+    return &table[kind];
+}
+
 static struct parser_expr *new_expr(int kind)
 {
     struct parser_expr *e = calloc(1, sizeof(struct parser_expr));

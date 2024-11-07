@@ -72,7 +72,7 @@ static void print_expr(const struct parser_expr *e, int depth)
     }
 
     // basic info
-    const struct KindInfo *info = LookupKindInfo(e->kind);
+    const struct parser_node_info *info = parser_get_node_info(e->kind);
     printf("%d. <%s>", depth, info->str);
     printf(" (%s)", TypeString(e->type));
 
@@ -115,7 +115,7 @@ static void print_stmt(const struct parser_stmt *s, int depth)
         printf("  ");
 
     // basic info
-    const struct KindInfo *info = LookupKindInfo(s->kind);
+    const struct parser_node_info *info = parser_get_node_info(s->kind);
     printf("%d. <%s>", depth, info->str);
     printf("\n");
 
