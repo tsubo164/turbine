@@ -298,8 +298,7 @@ struct Expr *parser_new_logor_expr(struct Expr *l, struct Expr *r)
 /* stmt */
 struct Stmt *parser_new_nop_stmt(void)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_NOP);
-    return s;
+    return new_stmt(NOD_STMT_NOP);
 }
 
 struct Stmt *parser_new_block_stmt(struct Stmt *children)
@@ -382,91 +381,80 @@ struct Stmt *parser_new_expr_stmt(struct Expr *e)
     return s;
 }
 
-static struct Expr *new_init_expr(struct Expr *l, struct Expr *r)
+struct Stmt *parser_new_init_stmt(struct Expr *l, struct Expr *r)
 {
     struct Expr *e = new_expr(NOD_EXPR_INIT);
     e->type = l->type;
     e->l = l;
     e->r = r;
-    return e;
-}
 
-struct Stmt *parser_new_init_stmt(struct Expr *l, struct Expr *r)
-{
     struct Stmt *s = new_stmt(NOD_STMT_INIT);
-    s->expr = new_init_expr(l, r);
+    s->expr = e;
+
     return s;
 }
 
-static struct Expr *new_assign_expr(struct Expr *l, struct Expr *r, int kind)
+static struct Stmt *new_assign_stmt(struct Expr *l, struct Expr *r, int kind)
 {
     struct Expr *e = new_expr(kind);
     e->type = l->type;
     e->l = l;
     e->r = r;
-    return e;
+
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = e;
+
+    return s;
 }
 
 struct Stmt *parser_new_assign_stmt(struct Expr *l, struct Expr *r)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = new_assign_expr(l, r, NOD_EXPR_ASSIGN);
-    return s;
+    return new_assign_stmt(l, r, NOD_EXPR_ASSIGN);
 }
 
 struct Stmt *parser_new_addassign_stmt(struct Expr *l, struct Expr *r)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = new_assign_expr(l, r, NOD_EXPR_ADDASSIGN);
-    return s;
+    return new_assign_stmt(l, r, NOD_EXPR_ADDASSIGN);
 }
 
 struct Stmt *parser_new_subassign_stmt(struct Expr *l, struct Expr *r)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = new_assign_expr(l, r, NOD_EXPR_SUBASSIGN);
-    return s;
+    return new_assign_stmt(l, r, NOD_EXPR_SUBASSIGN);
 }
 
 struct Stmt *parser_new_mulassign_stmt(struct Expr *l, struct Expr *r)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = new_assign_expr(l, r, NOD_EXPR_MULASSIGN);
-    return s;
+    return new_assign_stmt(l, r, NOD_EXPR_MULASSIGN);
 }
 
 struct Stmt *parser_new_divassign_stmt(struct Expr *l, struct Expr *r)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = new_assign_expr(l, r, NOD_EXPR_DIVASSIGN);
-    return s;
+    return new_assign_stmt(l, r, NOD_EXPR_DIVASSIGN);
 }
 
 struct Stmt *parser_new_remassign_stmt(struct Expr *l, struct Expr *r)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = new_assign_expr(l, r, NOD_EXPR_REMASSIGN);
-    return s;
+    return new_assign_stmt(l, r, NOD_EXPR_REMASSIGN);
 }
 
-static struct Expr *new_incdec_expr(struct Expr *l, int kind)
+static struct Stmt *new_incdec_stmt(struct Expr *l, int kind)
 {
     struct Expr *e = new_expr(kind);
     e->type = l->type;
     e->l = l;
-    return e;
+
+    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    s->expr = e;
+
+    return s;
 }
 
 struct Stmt *parser_new_inc_stmt(struct Expr *l)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = new_incdec_expr(l, NOD_EXPR_INC);
-    return s;
+    return new_incdec_stmt(l, NOD_EXPR_INC);
 }
 
 struct Stmt *parser_new_dec_stmt(struct Expr *l)
 {
-    struct Stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = new_incdec_expr(l, NOD_EXPR_DEC);
-    return s;
+    return new_incdec_stmt(l, NOD_EXPR_DEC);
 }
