@@ -88,14 +88,14 @@ struct Func;
 struct Field;
 struct Struct;
 
-struct Expr {
+struct parser_expr {
     int kind;
     const struct Type *type;
     struct Pos pos;
 
-    struct Expr *l;
-    struct Expr *r;
-    struct Expr *next;
+    struct parser_expr *l;
+    struct parser_expr *r;
+    struct parser_expr *next;
 
     struct Symbol *sym;
     struct Var *var;
@@ -111,92 +111,92 @@ struct Expr {
     const char *converted;
 };
 
-struct Stmt {
+struct parser_stmt {
     int kind;
 
-    struct Expr* expr;
-    struct Stmt* init;
-    struct Expr* cond;
-    struct Stmt* post;
-    struct Stmt* body;
+    struct parser_expr* expr;
+    struct parser_stmt* init;
+    struct parser_expr* cond;
+    struct parser_stmt* post;
+    struct parser_stmt* body;
     /* children */
-    struct Stmt *children;
-    struct Stmt *next;
+    struct parser_stmt *children;
+    struct parser_stmt *next;
 };
 
 /* expr */
-struct Expr *parser_new_nillit_expr(void);
-struct Expr *parser_new_boollit_expr(bool b);
-struct Expr *parser_new_intlit_expr(long l);
-struct Expr *parser_new_floatlit_expr(double d);
-struct Expr *parser_new_stringlit_expr(const char *s);
-struct Expr *parser_new_funclit_expr(struct Func *func);
-struct Expr *parser_new_arraylit_expr(struct Expr *elems, int len);
-struct Expr *parser_new_structlit_expr(struct Struct *strct, struct Expr *fields);
-struct Expr *parser_new_conversion_expr(struct Expr *from, struct Type *to);
-struct Expr *parser_new_ident_expr(struct Symbol *sym);
-struct Expr *parser_new_field_expr(struct Field *f);
-struct Expr *parser_new_select_expr(struct Expr *inst, struct Expr *fld);
-struct Expr *parser_new_index_expr(struct Expr *ary, struct Expr *idx);
-struct Expr *parser_new_call_expr(struct Expr *callee, struct Pos p);
-struct Expr *parser_new_element_expr(struct Expr *key, struct Expr *val);
+struct parser_expr *parser_new_nillit_expr(void);
+struct parser_expr *parser_new_boollit_expr(bool b);
+struct parser_expr *parser_new_intlit_expr(long l);
+struct parser_expr *parser_new_floatlit_expr(double d);
+struct parser_expr *parser_new_stringlit_expr(const char *s);
+struct parser_expr *parser_new_funclit_expr(struct Func *func);
+struct parser_expr *parser_new_arraylit_expr(struct parser_expr *elems, int len);
+struct parser_expr *parser_new_structlit_expr(struct Struct *strct, struct parser_expr *fields);
+struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct Type *to);
+struct parser_expr *parser_new_ident_expr(struct Symbol *sym);
+struct parser_expr *parser_new_field_expr(struct Field *f);
+struct parser_expr *parser_new_select_expr(struct parser_expr *inst, struct parser_expr *fld);
+struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
+struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct Pos p);
+struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);
 
 /* unary expr */
-struct Expr *parser_new_posi_expr(struct Expr *l);
-struct Expr *parser_new_nega_expr(struct Expr *l);
-struct Expr *parser_new_lognot_expr(struct Expr *l);
-struct Expr *parser_new_not_expr(struct Expr *l);
-struct Expr *parser_new_addr_expr(struct Expr *l);
-struct Expr *parser_new_deref_expr(struct Expr *l);
+struct parser_expr *parser_new_posi_expr(struct parser_expr *l);
+struct parser_expr *parser_new_nega_expr(struct parser_expr *l);
+struct parser_expr *parser_new_lognot_expr(struct parser_expr *l);
+struct parser_expr *parser_new_not_expr(struct parser_expr *l);
+struct parser_expr *parser_new_addr_expr(struct parser_expr *l);
+struct parser_expr *parser_new_deref_expr(struct parser_expr *l);
 
 /* binary expr */
-struct Expr *parser_new_add_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_sub_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_mul_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_div_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_rem_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_shl_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_shr_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_and_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_or_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_xor_expr(struct Expr *l, struct Expr *r);
+struct parser_expr *parser_new_add_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_sub_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_mul_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_div_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_rem_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_shl_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_shr_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_and_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_or_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_xor_expr(struct parser_expr *l, struct parser_expr *r);
 
 /* relational expr */
-struct Expr *parser_new_eq_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_neq_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_lt_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_lte_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_gt_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_gte_expr(struct Expr *l, struct Expr *r);
+struct parser_expr *parser_new_eq_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_neq_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_lt_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_lte_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_gt_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_gte_expr(struct parser_expr *l, struct parser_expr *r);
 
 /* logical expr */
-struct Expr *parser_new_logand_expr(struct Expr *l, struct Expr *r);
-struct Expr *parser_new_logor_expr(struct Expr *l, struct Expr *r);
+struct parser_expr *parser_new_logand_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_logor_expr(struct parser_expr *l, struct parser_expr *r);
 
 /* stmt */
-struct Stmt *parser_new_nop_stmt(void);
-struct Stmt *parser_new_block_stmt(struct Stmt *children);
-struct Stmt *parser_new_if_stmt(struct Stmt *or_list);
-struct Stmt *parser_new_else_stmt(struct Expr *cond, struct Stmt *body);
-struct Stmt *parser_new_for_stmt(struct Stmt *init, struct Expr *cond,
-        struct Stmt *post, struct Stmt *body);
-struct Stmt *parser_new_break_stmt(void);
-struct Stmt *parser_new_continue_stmt(void);
-struct Stmt *parser_new_switch_stmt(struct Expr *cond, struct Stmt *cases);
-struct Stmt *parser_new_case_stmt(struct Expr *conds, struct Stmt *body);
-struct Stmt *parser_new_default_stmt(struct Stmt *body);
-struct Stmt *parser_new_return_stmt(struct Expr *e);
-struct Stmt *parser_new_expr_stmt(struct Expr *e);
+struct parser_stmt *parser_new_nop_stmt(void);
+struct parser_stmt *parser_new_block_stmt(struct parser_stmt *children);
+struct parser_stmt *parser_new_if_stmt(struct parser_stmt *or_list);
+struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser_stmt *body);
+struct parser_stmt *parser_new_for_stmt(struct parser_stmt *init, struct parser_expr *cond,
+        struct parser_stmt *post, struct parser_stmt *body);
+struct parser_stmt *parser_new_break_stmt(void);
+struct parser_stmt *parser_new_continue_stmt(void);
+struct parser_stmt *parser_new_switch_stmt(struct parser_expr *cond, struct parser_stmt *cases);
+struct parser_stmt *parser_new_case_stmt(struct parser_expr *conds, struct parser_stmt *body);
+struct parser_stmt *parser_new_default_stmt(struct parser_stmt *body);
+struct parser_stmt *parser_new_return_stmt(struct parser_expr *e);
+struct parser_stmt *parser_new_expr_stmt(struct parser_expr *e);
 
 /* assign stmt */
-struct Stmt *parser_new_init_stmt(struct Expr *l, struct Expr *r);
-struct Stmt *parser_new_assign_stmt(struct Expr *l, struct Expr *r);
-struct Stmt *parser_new_addassign_stmt(struct Expr *l, struct Expr *r);
-struct Stmt *parser_new_subassign_stmt(struct Expr *l, struct Expr *r);
-struct Stmt *parser_new_mulassign_stmt(struct Expr *l, struct Expr *r);
-struct Stmt *parser_new_divassign_stmt(struct Expr *l, struct Expr *r);
-struct Stmt *parser_new_remassign_stmt(struct Expr *l, struct Expr *r);
-struct Stmt *parser_new_inc_stmt(struct Expr *l);
-struct Stmt *parser_new_dec_stmt(struct Expr *l);
+struct parser_stmt *parser_new_init_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_assign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_addassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_subassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_mulassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_divassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_remassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_inc_stmt(struct parser_expr *l);
+struct parser_stmt *parser_new_dec_stmt(struct parser_expr *l);
 
 #endif /* _H */

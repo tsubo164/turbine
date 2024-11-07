@@ -72,8 +72,8 @@ void SetOptimize(bool enable)
         ops##String__((code), (r0), (r1), (r2)); \
     } while (0)
 
-static void gen_expr(Bytecode *code, const struct Expr *e);
-static void gen_addr(Bytecode *code, const struct Expr *e);
+static void gen_expr(Bytecode *code, const struct parser_expr *e);
+static void gen_addr(Bytecode *code, const struct parser_expr *e);
 
 static void gen_convert(Bytecode *code, enum TY from, enum TY to)
 {
@@ -110,13 +110,13 @@ static void gen_convert(Bytecode *code, enum TY from, enum TY to)
     }
 }
 
-static void gen_call(Bytecode *code, const struct Expr *call)
+static void gen_call(Bytecode *code, const struct parser_expr *call)
 {
     const struct FuncType *func_type = call->l->type->func_type;
 
     if (func_type->is_variadic) {
         int argc = 0;
-        for (const struct Expr *arg = call->r; arg; arg = arg->next, argc++) {
+        for (const struct parser_expr *arg = call->r; arg; arg = arg->next, argc++) {
             // arg value
             gen_expr(code, arg);
 
@@ -151,7 +151,7 @@ static void gen_call(Bytecode *code, const struct Expr *call)
         LoadByte(code, argc);
     }
     else {
-        for (const struct Expr *arg = call->r; arg; arg = arg->next)
+        for (const struct parser_expr *arg = call->r; arg; arg = arg->next)
             gen_expr(code, arg);
     }
 
@@ -165,7 +165,7 @@ static void gen_call(Bytecode *code, const struct Expr *call)
     }
 }
 
-static void gen_logor(Bytecode *code, const struct Expr *e)
+static void gen_logor(Bytecode *code, const struct parser_expr *e)
 {
     Int ELSE = 0;
     Int EXIT = 0;
@@ -184,7 +184,7 @@ static void gen_logor(Bytecode *code, const struct Expr *e)
     BackPatch(code, EXIT);
 }
 
-static void gen_logand(Bytecode *code, const struct Expr *e)
+static void gen_logand(Bytecode *code, const struct parser_expr *e)
 {
     Int ELSE = 0;
     Int EXIT = 0;
@@ -203,7 +203,7 @@ static void gen_logand(Bytecode *code, const struct Expr *e)
     BackPatch(code, EXIT);
 }
 
-/*static*/ void gen_store(Bytecode *code, const struct Expr *l, int offset)
+/*static*/ void gen_store(Bytecode *code, const struct parser_expr *l, int offset)
 {
     // lval
     int addr = 0;
@@ -222,7 +222,7 @@ static void gen_logand(Bytecode *code, const struct Expr *e)
     }
 }
 
-static void gen_clear_block(Bytecode *code, const struct Expr *dst)
+static void gen_clear_block(Bytecode *code, const struct parser_expr *dst)
 {
     int dst_addr = 0;
     EvalAddr(dst, &dst_addr);
@@ -238,7 +238,7 @@ static void gen_clear_block(Bytecode *code, const struct Expr *dst)
 }
 
 static void gen_copy_block(Bytecode *code,
-        const struct Expr *src, const struct Expr *dst)
+        const struct parser_expr *src, const struct parser_expr *dst)
 {
     if (IsGlobal(src)) {
         int src_addr = 0;
@@ -261,7 +261,7 @@ static void gen_copy_block(Bytecode *code,
 }
 
 
-static void gen_assign(Bytecode *code, const struct Expr *e)
+static void gen_assign(Bytecode *code, const struct parser_expr *e)
 {
     if (IsStruct(e->type)) {
         gen_copy_block(code, e->r, e->l);
@@ -316,7 +316,7 @@ static void gen_assign(Bytecode *code, const struct Expr *e)
     }
 }
 
-static void gen_init_array(Bytecode *code, const struct Expr *e)
+static void gen_init_array(Bytecode *code, const struct parser_expr *e)
 {
     // TODO testing dynamic array
     {
@@ -347,9 +347,9 @@ static void gen_init_array(Bytecode *code, const struct Expr *e)
     addr++;
 
     // array lit
-    struct Expr *array_lit = e->r;
+    struct parser_expr *array_lit = e->r;
 
-    for (struct Expr *expr = array_lit->l; expr; expr = expr->next) {
+    for (struct parser_expr *expr = array_lit->l; expr; expr = expr->next) {
         // rval
         gen_expr(code, expr);
 
@@ -362,7 +362,7 @@ static void gen_init_array(Bytecode *code, const struct Expr *e)
     }
 }
 
-static void gen_init_struct(Bytecode *code, const struct Expr *e)
+static void gen_init_struct(Bytecode *code, const struct parser_expr *e)
 {
     // lval
     int addr = 0;
@@ -387,9 +387,9 @@ static void gen_init_struct(Bytecode *code, const struct Expr *e)
     gen_clear_block(code, e->l);
 
     // struct lit
-    struct Expr *struct_lit = e->r;
+    struct parser_expr *struct_lit = e->r;
 
-    for (struct Expr *elem = struct_lit->l; elem; elem = elem->next) {
+    for (struct parser_expr *elem = struct_lit->l; elem; elem = elem->next) {
         // rval
         gen_expr(code, elem->r);
 
@@ -405,7 +405,7 @@ static void gen_init_struct(Bytecode *code, const struct Expr *e)
     }
 }
 
-static void gen_init(Bytecode *code, const struct Expr *e)
+static void gen_init(Bytecode *code, const struct parser_expr *e)
 {
     // rval
     gen_expr(code, e->r);
@@ -427,7 +427,7 @@ static void gen_init(Bytecode *code, const struct Expr *e)
     }
 }
 
-static void gen_expr(Bytecode *code, const struct Expr *e)
+static void gen_expr(Bytecode *code, const struct parser_expr *e)
 {
     if (!e)
         return;
@@ -676,7 +676,7 @@ static void gen_expr(Bytecode *code, const struct Expr *e)
     }
 }
 
-static void gen_addr(Bytecode *code, const struct Expr *e)
+static void gen_addr(Bytecode *code, const struct parser_expr *e)
 {
     if (!e)
         return;
@@ -756,7 +756,7 @@ static void gen_addr(Bytecode *code, const struct Expr *e)
     }
 }
 
-static void gen_stmt(Bytecode *code, const struct Stmt *s)
+static void gen_stmt(Bytecode *code, const struct parser_stmt *s)
 {
     if (!s)
         return;
@@ -767,7 +767,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
         return;
 
     case T_BLOCK:
-        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
+        for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt(code, stmt);
         return;
 
@@ -796,7 +796,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
     case T_IF:
         BeginIf(code);
 
-        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
+        for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt(code, stmt);
 
         // exit
@@ -848,7 +848,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
 
             IntVec trues = {0};
             // eval conds
-            for (struct Expr *cond = s->cond; cond; cond = cond->next) {
+            for (struct parser_expr *cond = s->cond; cond; cond = cond->next) {
                 Int tru = 0;
                 Int fls = 0;
                 DuplicateTop(code);
@@ -887,7 +887,7 @@ static void gen_stmt(Bytecode *code, const struct Stmt *s)
         gen_expr(code, s->cond);
 
         // cases
-        for (struct Stmt *cas = s->children; cas; cas = cas->next)
+        for (struct parser_stmt *cas = s->children; cas; cas = cas->next)
             gen_stmt(code, cas);
 
         // quit
@@ -938,7 +938,7 @@ static void gen_gvars(Bytecode *code, const struct Module *mod)
     }
 
     // self module next
-    for (const struct Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
+    for (const struct parser_stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
         gen_stmt(code, gvar);
 }
 
@@ -1092,8 +1092,8 @@ void ResolveOffset(struct Module *mod)
 }
 
 // XXX TEST compiling to register-based machine code
-static int gen_expr__(Bytecode *code, const struct Expr *e);
-static int gen_addr__(Bytecode *code, const struct Expr *e);
+static int gen_expr__(Bytecode *code, const struct parser_expr *e);
+static int gen_addr__(Bytecode *code, const struct parser_expr *e);
 
 static int gen_convert__(Bytecode *code, int reg0, int reg1, enum TY from, enum TY to)
 {
@@ -1143,8 +1143,8 @@ static int gen_convert__(Bytecode *code, int reg0, int reg1, enum TY from, enum 
 // TODO remove forward decls
 static int gen_dst_register(Bytecode *code, int reg1, int reg2);
 static int gen_dst_register2(struct Bytecode *code, int reg1);
-static int gen_store2__(Bytecode *code, const struct Expr *lval, int src_reg);
-static int gen_init_array__(Bytecode *code, const struct Expr *e)
+static int gen_store2__(Bytecode *code, const struct parser_expr *lval, int src_reg);
+static int gen_init_array__(Bytecode *code, const struct parser_expr *e)
 {
     int dst = 0;
 
@@ -1167,10 +1167,10 @@ static int gen_init_array__(Bytecode *code, const struct Expr *e)
 
     // TODO eval array lit expr and return an array object
     // array lit
-    struct Expr *array_lit = e->r;
+    struct parser_expr *array_lit = e->r;
     int index = 0;
 
-    for (struct Expr *expr = array_lit->l; expr; expr = expr->next) {
+    for (struct parser_expr *expr = array_lit->l; expr; expr = expr->next) {
         int src = gen_expr__(code, expr);
         int idx = LoadInt__(code, index);
         StoreArray__(code, dst, idx, src);
@@ -1180,7 +1180,7 @@ static int gen_init_array__(Bytecode *code, const struct Expr *e)
     return dst;
 }
 
-static int gen_struct_lit__(Bytecode *code, const struct Expr *e,
+static int gen_struct_lit__(Bytecode *code, const struct parser_expr *e,
         const struct Type *type, /* XXX TEMP */
         int dst_reg)
 {
@@ -1212,9 +1212,9 @@ static int gen_struct_lit__(Bytecode *code, const struct Expr *e,
 
     NewStruct__(code, dst, len);
 
-    const struct Expr *struct_lit = e;
+    const struct parser_expr *struct_lit = e;
 
-    for (struct Expr *elem = struct_lit->l; elem; elem = elem->next) {
+    for (struct parser_expr *elem = struct_lit->l; elem; elem = elem->next) {
         int src = gen_expr__(code, elem->r);
         int idx = gen_addr__(code, elem->l);
 
@@ -1224,7 +1224,7 @@ static int gen_struct_lit__(Bytecode *code, const struct Expr *e,
     return dst;
 }
 
-static int gen_init_struct__(Bytecode *code, const struct Expr *e)
+static int gen_init_struct__(Bytecode *code, const struct parser_expr *e)
 {
     if (IsGlobal(e->l)) {
         int tmp = gen_struct_lit__(code, e->r, e->type, -1);
@@ -1262,9 +1262,9 @@ static int gen_init_struct__(Bytecode *code, const struct Expr *e)
     gen_clear_block(code, e->l);
 
     // struct lit
-    struct Expr *struct_lit = e->r;
+    struct parser_expr *struct_lit = e->r;
 
-    for (struct Expr *elem = struct_lit->l; elem; elem = elem->next) {
+    for (struct parser_expr *elem = struct_lit->l; elem; elem = elem->next) {
         // rval
         gen_expr(code, elem->r);
 
@@ -1281,7 +1281,7 @@ static int gen_init_struct__(Bytecode *code, const struct Expr *e)
     */
 }
 
-static int gen_store__(Bytecode *code, const struct Expr *lval, const struct Expr *rval)
+static int gen_store__(Bytecode *code, const struct parser_expr *lval, const struct parser_expr *rval)
 {
     int reg0 = 0xff;
     int reg1 = gen_expr__(code, rval);
@@ -1299,7 +1299,7 @@ static int gen_store__(Bytecode *code, const struct Expr *lval, const struct Exp
     return reg0;
 }
 
-static int gen_store2__(Bytecode *code, const struct Expr *lval, int src_reg)
+static int gen_store2__(Bytecode *code, const struct parser_expr *lval, int src_reg)
 {
     int dst_reg = -1;
 
@@ -1316,7 +1316,7 @@ static int gen_store2__(Bytecode *code, const struct Expr *lval, int src_reg)
     return dst_reg;
 }
 
-static int gen_init__(Bytecode *code, const struct Expr *e)
+static int gen_init__(Bytecode *code, const struct parser_expr *e)
 {
     // rval
     int reg0 = -1;
@@ -1435,10 +1435,10 @@ static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
     return reg0;
 }
 
-static int gen_assign__(Bytecode *code, const struct Expr *e)
+static int gen_assign__(Bytecode *code, const struct parser_expr *e)
 {
-    const struct Expr *lval = e->l;
-    const struct Expr *rval = e->r;
+    const struct parser_expr *lval = e->l;
+    const struct parser_expr *rval = e->r;
     int reg0 = -1;
     int reg1 = -1;
     int reg2 = -1;
@@ -1515,7 +1515,7 @@ static int gen_assign__(Bytecode *code, const struct Expr *e)
     return reg0;
 }
 
-static int gen_binop_assign__(Bytecode *code, const struct Expr *e)
+static int gen_binop_assign__(Bytecode *code, const struct parser_expr *e)
 {
     if (e->l->kind == NOD_EXPR_INDEX) {
         // lval
@@ -1541,7 +1541,7 @@ static int gen_binop_assign__(Bytecode *code, const struct Expr *e)
     }
 }
 
-static int gen_call__(Bytecode *code, const struct Expr *call)
+static int gen_call__(Bytecode *code, const struct parser_expr *call)
 {
     const struct FuncType *func_type = call->l->type->func_type;
 
@@ -1555,7 +1555,7 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
         int argc = 0;
         int argc_dst = GetNextRegister__(code, curr_reg);
 
-        for (const struct Expr *arg = call->r; arg; arg = arg->next, argc++) {
+        for (const struct parser_expr *arg = call->r; arg; arg = arg->next, argc++) {
             // arg value
             int head_reg = GetCurrentRegister__(code);
             int arg_src = gen_expr__(code, arg);
@@ -1602,7 +1602,7 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
         Move__(code, argc_dst, argc_src);
     }
     else {
-        for (const struct Expr *arg = call->r; arg; arg = arg->next) {
+        for (const struct parser_expr *arg = call->r; arg; arg = arg->next) {
             int cur = GetCurrentRegister__(code);
             int src = gen_expr__(code, arg);
             int dst = GetNextRegister__(code, cur);
@@ -1631,7 +1631,7 @@ static int gen_call__(Bytecode *code, const struct Expr *call)
     return retval_reg;
 }
 
-static int gen_expr__(Bytecode *code, const struct Expr *e)
+static int gen_expr__(Bytecode *code, const struct parser_expr *e)
 {
     if (!e)
         return -1;
@@ -1998,7 +1998,7 @@ static int gen_expr__(Bytecode *code, const struct Expr *e)
     return -1;
 }
 
-static int gen_addr__(Bytecode *code, const struct Expr *e)
+static int gen_addr__(Bytecode *code, const struct parser_expr *e)
 {
     if (!e)
         return -1;
@@ -2089,7 +2089,7 @@ static int gen_addr__(Bytecode *code, const struct Expr *e)
 
     return reg0;
 }
-static void gen_stmt__(Bytecode *code, const struct Stmt *s)
+static void gen_stmt__(Bytecode *code, const struct parser_stmt *s)
 {
     if (!s)
         return;
@@ -2100,14 +2100,14 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
         break;
 
     case NOD_STMT_BLOCK:
-        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
+        for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt__(code, stmt);
         break;
 
     case NOD_STMT_IF:
         BeginIf__(code);
 
-        for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
+        for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt__(code, stmt);
 
         // exit
@@ -2188,7 +2188,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
             reg0 = Move__(code, reg0, reg1);
 
             // cases
-            for (struct Stmt *cas = s->children; cas; cas = cas->next) {
+            for (struct parser_stmt *cas = s->children; cas; cas = cas->next) {
                 // set current where expr is stored
                 SetCurrentRegister__(code, reg0);
                 gen_stmt__(code, cas);
@@ -2215,7 +2215,7 @@ static void gen_stmt__(Bytecode *code, const struct Stmt *s)
             data_intvec_init(&trues);
 
             // eval conds
-            for (struct Expr *cond = s->cond; cond; cond = cond->next) {
+            for (struct parser_expr *cond = s->cond; cond; cond = cond->next) {
                 // cond test
                 int reg2 = gen_expr__(code, cond);
                 int reg0 = GetNextRegister__(code, reg1);
@@ -2324,7 +2324,7 @@ static void gen_gvars__(Bytecode *code, const struct Module *mod)
     }
 
     // self module next
-    for (const struct Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
+    for (const struct parser_stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
         gen_stmt__(code, gvar);
 }
 

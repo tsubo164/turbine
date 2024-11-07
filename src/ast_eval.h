@@ -5,11 +5,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-bool IsGlobal(const struct Expr *e);
-bool IsMutable(const struct Expr *e);
+bool IsGlobal(const struct parser_expr *e);
+bool IsMutable(const struct parser_expr *e);
 
-int Addr(const struct Expr *e);
-bool EvalExpr(const struct Expr *e, int64_t *result);
-bool EvalAddr(const struct Expr *e, int *result);
+int Addr(const struct parser_expr *e);
+bool EvalExpr(const struct parser_expr *e, int64_t *result);
+bool EvalAddr(const struct parser_expr *e, int *result);
 
 #endif /* _H */

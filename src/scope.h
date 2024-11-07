@@ -48,7 +48,7 @@ struct Func {
     bool has_special_var;
 
     struct Scope *scope;
-    struct Stmt *body;
+    struct parser_stmt *body;
     struct FuncType *func_type;
 };
 
@@ -81,7 +81,7 @@ struct Table {
 struct Module {
     const char *name;
     struct Scope *scope;
-    struct Stmt* gvars;
+    struct parser_stmt* gvars;
     struct Vec funcs;
 
     const char *filename;

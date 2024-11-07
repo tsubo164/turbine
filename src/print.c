@@ -61,7 +61,7 @@ void PrintToken(const struct Token *token, bool format)
     printf("\n");
 }
 
-static void print_expr(const struct Expr *e, int depth)
+static void print_expr(const struct parser_expr *e, int depth)
 {
     if (!e)
         return;
@@ -105,7 +105,7 @@ static void print_expr(const struct Expr *e, int depth)
     print_expr(e->next, depth);
 }
 
-static void print_stmt(const struct Stmt *s, int depth)
+static void print_stmt(const struct parser_stmt *s, int depth)
 {
     if (!s)
         return;
@@ -120,7 +120,7 @@ static void print_stmt(const struct Stmt *s, int depth)
     printf("\n");
 
     // children
-    for (struct Stmt *stmt = s->children; stmt; stmt = stmt->next)
+    for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
         print_stmt(stmt, depth + 1);
 
     print_expr(s->expr, depth + 1);
@@ -158,7 +158,7 @@ static void print_module(const struct Module *mod, int depth)
     printf("\n");
 
     // children
-    for (const struct Stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
+    for (const struct parser_stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
         print_stmt(gvar, depth + 1);
 
     for (int i = 0; i < mod->funcs.len; i++) {
@@ -258,7 +258,7 @@ void PrintScope(const struct Scope *sc)
     print_scope(sc, 0);
 }
 
-void PrintExpr(const struct Expr *e)
+void PrintExpr(const struct parser_expr *e)
 {
     print_expr(e, 0);
 }
