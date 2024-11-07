@@ -269,7 +269,7 @@ static void gen_assign(Bytecode *code, const struct parser_expr *e)
     }
 
     // rval first
-    if (e->kind == T_ASSN) {
+    if (e->kind == TOK_ASSN) {
         gen_expr(code, e->r);
     }
     else {
@@ -277,23 +277,23 @@ static void gen_assign(Bytecode *code, const struct parser_expr *e)
         gen_expr(code, e->r);
 
         switch (e->kind) {
-        case T_AADD:
+        case TOK_AADD:
             EMITS(code, e->type, Add, Concat);
             break;
 
-        case T_ASUB:
+        case TOK_ASUB:
             EMIT(code, e->type, Sub);
             break;
 
-        case T_AMUL:
+        case TOK_AMUL:
             EMIT(code, e->type, Mul);
             break;
 
-        case T_ADIV:
+        case TOK_ADIV:
             EMIT(code, e->type, Div);
             break;
 
-        case T_AREM:
+        case TOK_AREM:
             EMIT(code, e->type, Rem);
             break;
         }
@@ -369,14 +369,14 @@ static void gen_init_struct(Bytecode *code, const struct parser_expr *e)
     // an init expr always has identifier on the left
     EvalAddr(e->l, &addr);
 
-    if (e->r && e->r->kind == T_NILLIT) {
+    if (e->r && e->r->kind == TOK_NILLIT) {
         // no initializer
         // clear zero
         gen_clear_block(code, e->l);
         return;
     }
 
-    if (e->r && e->r->kind != T_STRUCTLIT) {
+    if (e->r && e->r->kind != TOK_STRUCTLIT) {
         // initialized by another object
         gen_copy_block(code, e->r, e->l);
         return;
@@ -434,26 +434,26 @@ static void gen_expr(Bytecode *code, const struct parser_expr *e)
 
     switch (e->kind) {
 
-    case T_NILLIT:
+    case TOK_NILLIT:
         LoadByte(code, 0);
         return;
 
-    case T_BOLLIT:
+    case TOK_BOOLLIT:
         LoadByte(code, e->ival);
         return;
 
-    case T_INTLIT:
+    case TOK_INTLIT:
         if (e->ival >= 0 && e->ival <= UINT8_MAX)
             LoadByte(code, e->ival);
         else
             LoadInt(code, e->ival);
         return;
 
-    case T_FLTLIT:
+    case TOK_FLOATLIT:
         LoadFloat(code, e->fval);
         return;
 
-    case T_STRLIT:
+    case TOK_STRINGLIT:
         {
             const char *s;
 
@@ -468,16 +468,16 @@ static void gen_expr(Bytecode *code, const struct parser_expr *e)
         }
         return;
 
-    case T_FUNCLIT:
+    case TOK_FUNCLIT:
         LoadInt(code, e->func->id);
         return;
 
-    case T_CONV:
+    case TOK_CONV:
         gen_expr(code, e->l);
         gen_convert(code, e->l->type->kind, e->type->kind);
         return;
 
-    case T_IDENT:
+    case TOK_IDENT:
         if (IsStruct(e->type)) {
             gen_addr(code, e);
             return;
@@ -489,25 +489,25 @@ static void gen_expr(Bytecode *code, const struct parser_expr *e)
             LoadLocal(code, e->var->offset);
         return;
 
-    case T_SELECT:
+    case TOK_SELECT:
         gen_addr(code, e);
         Load(code);
         return;
 
-    case T_INDEX:
+    case TOK_INDEX:
         gen_addr(code, e);
         Load(code);
         return;
 
-    case T_CALL:
+    case TOK_CALL:
         gen_call(code, e);
         return;
 
-    case T_LOR:
+    case TOK_LOR:
         gen_logor(code, e);
         return;
 
-    case T_LAND:
+    case TOK_LAND:
         gen_logand(code, e);
         return;
 
@@ -521,137 +521,137 @@ static void gen_expr(Bytecode *code, const struct parser_expr *e)
     //        return;
     //    }
     //}
-    case T_ADD:
+    case TOK_ADD:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMITS(code, e->type, Add, Concat);
         return;
 
-    case T_SUB:
+    case TOK_SUB:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMIT(code, e->type, Sub);
         return;
 
-    case T_MUL:
+    case TOK_MUL:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMIT(code, e->type, Mul);
         return;
 
-    case T_DIV:
+    case TOK_DIV:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMIT(code, e->type, Div);
         return;
 
-    case T_REM:
+    case TOK_REM:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMIT(code, e->type, Rem);
         return;
 
-    case T_EQ:
+    case TOK_EQ:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMITS(code, e->l->type, Equal, Equal);
         return;
 
-    case T_NEQ:
+    case TOK_NEQ:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMITS(code, e->l->type, NotEqual, NotEqual);
         return;
 
-    case T_LT:
+    case TOK_LT:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMIT(code, e->l->type, Less);
         return;
 
-    case T_LTE:
+    case TOK_LTE:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMIT(code, e->l->type, LessEqual);
         return;
 
-    case T_GT:
+    case TOK_GT:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMIT(code, e->l->type, Greater);
         return;
 
-    case T_GTE:
+    case TOK_GTE:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         EMIT(code, e->l->type, GreaterEqual);
         return;
 
-    case T_AND:
+    case TOK_AND:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         And(code);
         return;
 
-    case T_OR:
+    case TOK_OR:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         Or(code);
         return;
 
-    case T_XOR:
+    case TOK_XOR:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         Xor(code);
         return;
 
-    case T_SHL:
+    case TOK_SHL:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         ShiftLeft(code);
         return;
 
-    case T_SHR:
+    case TOK_SHR:
         gen_expr(code, e->l);
         gen_expr(code, e->r);
         ShiftRight(code);
         return;
 
-    case T_ADR:
+    case TOK_ADR:
         LoadAddress(code, Addr(e->l));
         return;
 
-    case T_POS:
+    case TOK_POS:
         gen_expr(code, e->l);
         return;
 
-    case T_NEG:
+    case TOK_NEG:
         gen_expr(code, e->l);
         EMIT(code, e->type, Negate);
         return;
 
-    case T_LNOT:
+    case TOK_LNOT:
         gen_expr(code, e->l);
         SetIfZero(code);
         return;
 
-    case T_NOT:
+    case TOK_NOT:
         gen_expr(code, e->l);
         Not(code);
         return;
 
-    case T_DRF:
+    case TOK_DRF:
         gen_expr(code, e->l);
         Dereference(code);
         return;
 
-    case T_ASSN:
-    case T_AADD: case T_ASUB:
-    case T_AMUL: case T_ADIV: case T_AREM:
+    case TOK_ASSN:
+    case TOK_AADD: case TOK_ASUB:
+    case TOK_AMUL: case TOK_ADIV: case TOK_AREM:
         gen_assign(code, e);
         return;
 
-    case T_INIT:
+    case TOK_INIT:
         if (IsArray(e->type))
             gen_init_array(code, e);
         else if (IsStruct(e->type))
@@ -660,14 +660,14 @@ static void gen_expr(Bytecode *code, const struct parser_expr *e)
             gen_init(code, e);
         return;
 
-    case T_INC:
+    case TOK_INC:
         if (IsGlobal(e->l))
             IncGlobal(code, Addr(e->l));
         else
             IncLocal(code, Addr(e->l));
         return;
 
-    case T_DEC:
+    case TOK_DEC:
         if (IsGlobal(e->l))
             DecGlobal(code, Addr(e->l));
         else
@@ -683,7 +683,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e)
 
     switch (e->kind) {
 
-    case T_IDENT:
+    case TOK_IDENT:
         if (IsPtr(e->type)) {
             gen_expr(code, e);
             return;
@@ -709,11 +709,11 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e)
             LoadAddress(code, e->var->offset);
         return;
 
-    case T_FIELD:
+    case TOK_FIELD:
         LoadByte(code, e->field->offset);
         return;
 
-    case T_SELECT:
+    case TOK_SELECT:
         //if (optimize) {
         //    int base = 0;
         //    int offset = 0;
@@ -730,7 +730,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e)
         AddInt(code);
         return;
 
-    case T_INDEX:
+    case TOK_INDEX:
         //if (optimize) {
         //    int base = 0;
         //    long index = 0;
@@ -748,7 +748,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e)
         Index(code);
         return;
 
-    case T_DRF:
+    case TOK_DRF:
         // deref *i = ...
         gen_expr(code, e->l);
         return;
@@ -763,15 +763,15 @@ static void gen_stmt(Bytecode *code, const struct parser_stmt *s)
 
     switch (s->kind) {
 
-    case T_NOP:
+    case TOK_NOP:
         return;
 
-    case T_BLOCK:
+    case TOK_BLOCK:
         for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt(code, stmt);
         return;
 
-    case T_ELS:
+    case TOK_ELSE:
         {
             Int next = 0;
 
@@ -793,7 +793,7 @@ static void gen_stmt(Bytecode *code, const struct parser_stmt *s)
         }
         return;
 
-    case T_IF:
+    case TOK_IF:
         BeginIf(code);
 
         for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
@@ -803,7 +803,7 @@ static void gen_stmt(Bytecode *code, const struct parser_stmt *s)
         BackPatchOrCloses(code);
         return;
 
-    case T_FOR:
+    case TOK_FOR:
         {
             // init
             BeginFor(code);
@@ -828,21 +828,21 @@ static void gen_stmt(Bytecode *code, const struct parser_stmt *s)
         }
         return;
 
-    case T_BRK:
+    case TOK_BREAK:
         {
             const Int addr = Jump(code, -1);
             PushBreak(code, addr);
         }
         return;
 
-    case T_CNT:
+    case TOK_CONTINUE:
         {
             const Int addr = Jump(code, -1);
             PushContinue(code, addr);
         }
         return;
 
-    case T_CASE:
+    case TOK_CASE:
         {
             Int exit = 0;
 
@@ -876,12 +876,12 @@ static void gen_stmt(Bytecode *code, const struct parser_stmt *s)
         }
         return;
 
-    case T_DFLT:
+    case TOK_DEFAULT:
         // body
         gen_stmt(code, s->body);
         return;
 
-    case T_SWT:
+    case TOK_SWITCH:
         // init
         BeginSwitch(code);
         gen_expr(code, s->cond);
@@ -896,19 +896,19 @@ static void gen_stmt(Bytecode *code, const struct parser_stmt *s)
         Pop(code);
         return;
 
-    case T_RET:
+    case TOK_RETURN:
         gen_expr(code, s->expr);
         Return(code);
         return;
 
-    case T_EXPR:
+    case TOK_EXPR:
         gen_expr(code, s->expr);
         // remove the result
         Pop(code);
         return;
 
-    case T_ASSN:
-    case T_INIT:
+    case TOK_ASSN:
+    case TOK_INIT:
         gen_expr(code, s->expr);
         return;
     }

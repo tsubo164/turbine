@@ -4,11 +4,11 @@
 #include <stdbool.h>
 
 struct Module;
-struct Token;
+struct parser_token;
 struct Scope;
 struct parser_expr;
 
-void PrintToken(const struct Token *token, bool format);
+void PrintToken(const struct parser_token *token, bool format);
 void PrintProg(const struct Module *mod);
 void PrintScope(const struct Scope *sc);
 void PrintExpr(const struct parser_expr *e);

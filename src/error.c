@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static void print_detail(const char *src, struct Pos pos)
+static void print_detail(const char *src, struct parser_pos pos)
 {
     int x = 0;
     int y = 1;
@@ -29,7 +29,7 @@ static void print_detail(const char *src, struct Pos pos)
     printf("^\n");
 }
 
-void Error(const char *src, const char *filename, struct Pos pos, const char *fmt, ...)
+void Error(const char *src, const char *filename, struct parser_pos pos, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -37,7 +37,7 @@ void Error(const char *src, const char *filename, struct Pos pos, const char *fm
     va_end(args);
 }
 
-void VError(const char *src, const char *filename, struct Pos pos, const char *fmt, va_list args)
+void VError(const char *src, const char *filename, struct parser_pos pos, const char *fmt, va_list args)
 {
     fprintf(stderr, "%s:%d:%d: error: ", filename, pos.x, pos.y);
     vfprintf(stderr, fmt, args);

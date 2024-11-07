@@ -3,7 +3,7 @@
 #include "codegen.h"
 #include "data_intern.h"
 #include "parser.h"
-#include "token.h"
+#include "parser_token.h"
 #include "print.h"
 #include "scope.h"
 #include "parser_ast.h"
@@ -19,7 +19,7 @@ static void print_header(const char *title)
 
 Int Interpret(const char *src, const char *filename, const Option *opt)
 {
-    const struct Token *tok = NULL;
+    const struct parser_token *tok = NULL;
     struct Scope builtin = {0};
     Bytecode code = {{0}};
     VM vm = {{0}};

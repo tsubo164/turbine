@@ -3,9 +3,9 @@
 
 struct Module;
 struct Scope;
-struct Token;
+struct parser_token;
 
 struct Module *Parse(const char *src, const char *filename, const char *modulename,
-        const struct Token *tok, struct Scope *scope);
+        const struct parser_token *tok, struct Scope *scope);
 
 #endif // _H

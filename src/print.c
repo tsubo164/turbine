@@ -4,14 +4,14 @@
 #include "parser_ast.h"
 #include <stdio.h>
 
-void PrintToken(const struct Token *token, bool format)
+void PrintToken(const struct parser_token *token, bool format)
 {
     int indent = 0;
     bool bol = true;
 
-    for (const struct Token *tok = token; tok; tok = tok->next) {
+    for (const struct parser_token *tok = token; tok; tok = tok->next) {
 
-        if (tok->kind == T_NUL)
+        if (tok->kind == TOK_NUL)
             continue;
 
         if (!format) {
@@ -19,23 +19,23 @@ void PrintToken(const struct Token *token, bool format)
                     tok->pos.y, tok->pos.x,
                     TokenString(tok->kind));
 
-            if (tok->kind == T_IDENT)
+            if (tok->kind == TOK_IDENT)
                 printf(" (%s)", tok->sval);
-            if (tok->kind == T_INTLIT)
+            if (tok->kind == TOK_INTLIT)
                 printf(" (%ld)", tok->ival);
-            if (tok->kind == T_FLTLIT)
+            if (tok->kind == TOK_FLOATLIT)
                 printf(" (%g)", tok->fval);
-            if (tok->kind == T_STRLIT)
+            if (tok->kind == TOK_STRINGLIT)
                 printf(" (\"%s\")", tok->sval);
 
             printf("\n");
         }
         else {
-            if (tok->kind == T_BLOCKBEGIN) {
+            if (tok->kind == TOK_BLOCKBEGIN) {
                 indent++;
                 continue;
             }
-            else if (tok->kind == T_BLOCKEND) {
+            else if (tok->kind == TOK_BLOCKEND) {
                 indent--;
                 continue;
             }
@@ -46,16 +46,16 @@ void PrintToken(const struct Token *token, bool format)
                     printf("....");
             }
 
-            if (tok->kind == T_NEWLINE) {
+            if (tok->kind == TOK_NEWLINE) {
                 printf("%s\n", TokenString(tok->kind));
                 bol = true;
             }
-            else if (tok->kind != T_BLOCKBEGIN && tok->kind != T_BLOCKEND) {
+            else if (tok->kind != TOK_BLOCKBEGIN && tok->kind != TOK_BLOCKEND) {
                 printf("%s ", TokenString(tok->kind));
             }
         }
 
-        if (tok->kind == T_EOF)
+        if (tok->kind == TOK_EOF)
             break;
     }
     printf("\n");

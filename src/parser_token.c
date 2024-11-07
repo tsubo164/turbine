@@ -1,4 +1,4 @@
-#include "token.h"
+#include "parser_token.h"
 #include "data_intern.h"
 #include "escseq.h"
 #include "error.h"
@@ -12,113 +12,113 @@
 #include <ctype.h>
 
 static const struct KindInfo table[] = {
-    { T_NUL,        "nul" },
+    { TOK_NUL,        "nul" },
     // type
-    { T_keyword_begin, "keyword_begin" },
-    { T_NIL,        "nil" },
-    { T_TRU,        "true" },
-    { T_FLS,        "false" },
-    { T_BOL,        "bool" },
-    { T_INT,        "int" },
-    { T_FLT,        "float" },
-    { T_STR,        "string" },
+    { TOK_keyword_begin, "keyword_begin" },
+    { TOK_NIL,        "nil" },
+    { TOK_TRUE,       "true" },
+    { TOK_FALSE,      "false" },
+    { TOK_BOOL,       "bool" },
+    { TOK_INT,        "int" },
+    { TOK_FLOAT,      "float" },
+    { TOK_STRING,     "string" },
     // stmt
-    { T_IF,         "if" },
-    { T_FOR,        "for" },
-    { T_ELS,        "or" },
-    { T_BRK,        "break" },
-    { T_CNT,        "continue" },
-    { T_SWT,        "switch" },
-    { T_CASE,       "case" },
-    { T_DFLT,       "default" },
-    { T_RET,        "return" },
-    { T_NOP,        "nop" },
-    { T_EXPR,       "expr" },
-    { T_BLOCK,      "block" },
+    { TOK_IF,         "if" },
+    { TOK_FOR,        "for" },
+    { TOK_ELSE,       "or" },
+    { TOK_BREAK,      "break" },
+    { TOK_CONTINUE,   "continue" },
+    { TOK_SWITCH,     "switch" },
+    { TOK_CASE,       "case" },
+    { TOK_DEFAULT,    "default" },
+    { TOK_RETURN,     "return" },
+    { TOK_NOP,        "nop" },
+    { TOK_EXPR,       "expr" },
+    { TOK_BLOCK,      "block" },
     // special
-    { T_CALLER_LINE, "$caller_line" },
-    { T_keyword_end, "keyword_end" },
+    { TOK_CALLER_LINE, "$caller_line" },
+    { TOK_keyword_end, "keyword_end" },
     // identifier
-    { T_FIELD,      "field", 'g' },
-    { T_IDENT,      "ident", 'y' },
-    { T_FUNC,       "func",  'y' },
-    { T_VAR,        "var",   'y' },
+    { TOK_FIELD,      "field", 'g' },
+    { TOK_IDENT,      "ident", 'y' },
+    { TOK_FUNC,       "func",  'y' },
+    { TOK_VAR,        "var",   'y' },
     // literal
-    { T_NILLIT,     "nil_lit" },
-    { T_BOLLIT,     "bool_lit",   'i' },
-    { T_INTLIT,     "int_lit",    'i' },
-    { T_FLTLIT,     "float_lit",  'f' },
-    { T_STRLIT,     "string_lit", 's' },
-    { T_FUNCLIT,    "func_lit",   'F' },
-    { T_ARRAYLIT,   "array_lit" },
-    { T_STRUCTLIT,  "struct_lit" },
+    { TOK_NILLIT,     "nil_lit" },
+    { TOK_BOOLLIT,    "bool_lit",   'i' },
+    { TOK_INTLIT,     "int_lit",    'i' },
+    { TOK_FLOATLIT,   "float_lit",  'f' },
+    { TOK_STRINGLIT,  "string_lit", 's' },
+    { TOK_FUNCLIT,    "func_lit",   'F' },
+    { TOK_ARRAYLIT,   "array_lit" },
+    { TOK_STRUCTLIT,  "struct_lit" },
     // separator
-    { T_LPAREN,     "(" },
-    { T_RPAREN,     ")" },
-    { T_LBRACK,     "[" },
-    { T_RBRACK,     "]" },
-    { T_LBRACE,     "{" },
-    { T_RBRACE,     "}" },
-    { T_SEM,        ";" },
-    { T_COLON,      ":" },
-    { T_COLON2,     "::" },
-    { T_BLOCKBEGIN, "block_begin" },
-    { T_BLOCKEND,   "block_end" },
-    { T_DASH3,      "---" },
-    { T_DOT,        "." },
-    { T_COMMA,      "," },
-    { T_HASH,       "#" },
-    { T_HASH2,      "##" },
-    { T_NEWLINE,    "\\n" },
+    { TOK_LPAREN,     "(" },
+    { TOK_RPAREN,     ")" },
+    { TOK_LBRACK,     "[" },
+    { TOK_RBRACK,     "]" },
+    { TOK_LBRACE,     "{" },
+    { TOK_RBRACE,     "}" },
+    { TOK_SEMICOLON,  ";" },
+    { TOK_COLON,      ":" },
+    { TOK_COLON2,     "::" },
+    { TOK_BLOCKBEGIN, "block_begin" },
+    { TOK_BLOCKEND,   "block_end" },
+    { TOK_DASH3,      "---" },
+    { TOK_DOT,        "." },
+    { TOK_COMMA,      "," },
+    { TOK_HASH,       "#" },
+    { TOK_HASH2,      "##" },
+    { TOK_NEWLINE,    "\\n" },
     // binary
-    { T_ADD,        "+" },
-    { T_SUB,        "-" },
-    { T_MUL,        "*" },
-    { T_DIV,        "/" },
-    { T_REM,        "%" },
+    { TOK_ADD,        "+" },
+    { TOK_SUB,        "-" },
+    { TOK_MUL,        "*" },
+    { TOK_DIV,        "/" },
+    { TOK_REM,        "%" },
     // relational
-    { T_EQ,         "==" },
-    { T_NEQ,        "!=" },
-    { T_LT,         "<" },
-    { T_LTE,        "<=" },
-    { T_GT,         ">" },
-    { T_GTE,        ">=" },
+    { TOK_EQ,         "==" },
+    { TOK_NEQ,        "!=" },
+    { TOK_LT,         "<" },
+    { TOK_LTE,        "<=" },
+    { TOK_GT,         ">" },
+    { TOK_GTE,        ">=" },
     // bitwise
-    { T_SHL,        "<<" },
-    { T_SHR,        ">>" },
-    { T_OR,         "|" },
-    { T_XOR,        "^" },
-    { T_AND,        "&" },
-    { T_LOR,        "||" },
-    { T_LAND,       "&&" },
+    { TOK_SHL,        "<<" },
+    { TOK_SHR,        ">>" },
+    { TOK_OR,         "|" },
+    { TOK_XOR,        "^" },
+    { TOK_AND,        "&" },
+    { TOK_LOR,        "||" },
+    { TOK_LAND,       "&&" },
     // array, struct, func
-    { T_SELECT,     "select" },
-    { T_INDEX,      "index" },
-    { T_CALL,       "call" },
+    { TOK_SELECT,     "select" },
+    { TOK_INDEX,      "index" },
+    { TOK_CALL,       "call" },
     // unary
-    { T_LNOT,       "!" },
-    { T_POS,        "+(pos)" },
-    { T_NEG,        "-(neg)" },
-    { T_ADR,        "&(addr)" },
-    { T_DRF,        "*(deref)" },
-    { T_NOT,        "~" },
-    { T_INC,        "++" },
-    { T_DEC,        "--" },
-    { T_CONV,       "conversion" },
+    { TOK_LNOT,       "!" },
+    { TOK_POS,        "+(pos)" },
+    { TOK_NEG,        "-(neg)" },
+    { TOK_ADR,        "&(addr)" },
+    { TOK_DRF,        "*(deref)" },
+    { TOK_NOT,        "~" },
+    { TOK_INC,        "++" },
+    { TOK_DEC,        "--" },
+    { TOK_CONV,       "conversion" },
     // assign
-    { T_ASSN,       "=" },
-    { T_AADD,       "+=" },
-    { T_ASUB,       "-=" },
-    { T_AMUL,       "*=" },
-    { T_ADIV,       "/=" },
-    { T_AREM,       "%=" },
-    { T_INIT,       "init" },
-    { T_ELEMENT,    "element" },
+    { TOK_ASSN,       "=" },
+    { TOK_AADD,       "+=" },
+    { TOK_ASUB,       "-=" },
+    { TOK_AMUL,       "*=" },
+    { TOK_ADIV,       "/=" },
+    { TOK_AREM,       "%=" },
+    { TOK_INIT,       "init" },
+    { TOK_ELEMENT,    "element" },
     // eof
-    { T_EOF,        "EOF" },
+    { TOK_EOF,        "EOF" },
 };
 
-static_assert(sizeof(table)/sizeof(table[0])==T_EOF+1, "MISSING_TOKEN_STRING");
+static_assert(sizeof(table)/sizeof(table[0])==TOK_EOF+1, "MISSING_TOKEN_STRING");
 
 const struct KindInfo *LookupKindInfo(int kind)
 {
@@ -133,12 +133,12 @@ const struct KindInfo *LookupKindInfo(int kind)
 
 static int keyword_or_ident(const char *word)
 {
-    for (int i = T_keyword_begin + 1; i < T_keyword_end; i++) {
+    for (int i = TOK_keyword_begin + 1; i < TOK_keyword_end; i++) {
         const struct KindInfo *info = &table[i];
         if (!strcmp(word, info->str))
             return info->kind;
     }
-    return T_IDENT;
+    return TOK_IDENT;
 }
 
 const char *TokenString(int kind)
@@ -147,7 +147,7 @@ const char *TokenString(int kind)
     return info->str;
 }
 
-static void set(struct Token *t, int k, struct Pos p)
+static void set(struct parser_token *t, int k, struct parser_pos p)
 {
     t->kind = k;
     t->pos = p;
@@ -157,7 +157,7 @@ typedef struct Lexer {
     // src text
     const char *src;
     const char *it;
-    struct Pos pos;
+    struct parser_pos pos;
     int prevx;
 
     // indent
@@ -280,7 +280,7 @@ static int top(const Lexer *l)
     return l->indent_stack[l->sp];
 }
 
-static void scan_number(Lexer *l, struct Token *tok, struct Pos pos)
+static void scan_number(Lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
     const char *start = l->it;
     bool fpnum = false;
@@ -314,17 +314,17 @@ static void scan_number(Lexer *l, struct Token *tok, struct Pos pos)
 
     if (fpnum) {
         tok->fval = strtod(&(*start), &end);
-        set(tok, T_FLTLIT, pos);
+        set(tok, TOK_FLOATLIT, pos);
     }
     else {
         tok->ival = strtol(&(*start), &end, base);
-        set(tok, T_INTLIT, pos);
+        set(tok, TOK_INTLIT, pos);
     }
 
     assert(end && (len == (end - &(*start))));
 }
 
-static void scan_char_literal(Lexer *l, struct Token *tok, struct Pos pos)
+static void scan_char_literal(Lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
     int ch = get(l);
 
@@ -338,7 +338,7 @@ static void scan_char_literal(Lexer *l, struct Token *tok, struct Pos pos)
     }
 
     tok->ival = ch;
-    set(tok, T_INTLIT, pos);
+    set(tok, TOK_INTLIT, pos);
 
     ch = get(l);
     if (ch != '\'') {
@@ -352,7 +352,7 @@ static bool isword(int ch)
     return isalnum(ch) || ch == '_';
 }
 
-static void scan_word(Lexer *l, struct Token *tok, struct Pos pos)
+static void scan_word(Lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
     static char buf[128] = {'\0'};
     char *p = buf;
@@ -380,12 +380,12 @@ static void scan_word(Lexer *l, struct Token *tok, struct Pos pos)
     set(tok, kind, pos);
 }
 
-static void scan_string(Lexer *l, struct Token *tok, struct Pos pos)
+static void scan_string(Lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
     static char buf[4096] = {'\0'};
     char *p = buf;
 
-    const struct Pos strpos = pos;
+    const struct parser_pos strpos = pos;
     int len = 0;
     int backslashes = 0;
 
@@ -415,7 +415,7 @@ static void scan_string(Lexer *l, struct Token *tok, struct Pos pos)
 
     tok->has_escseq = backslashes > 0;
     tok->sval = data_string_intern(buf);
-    set(tok, T_STRLIT, pos);
+    set(tok, TOK_STRINGLIT, pos);
 }
 
 static void scan_line_comment(Lexer *l)
@@ -430,9 +430,9 @@ static void scan_line_comment(Lexer *l)
     }
 }
 
-static void scan_block_comment(Lexer *l, struct Pos pos)
+static void scan_block_comment(Lexer *l, struct parser_pos pos)
 {
-    const struct Pos commentpos = pos;
+    const struct parser_pos commentpos = pos;
     // already accepted "/*"
     int depth = 1;
 
@@ -506,14 +506,14 @@ static int count_indent(Lexer *l)
     return indent;
 }
 
-static int scan_indent(Lexer *l, struct Token *tok)
+static int scan_indent(Lexer *l, struct parser_token *tok)
 {
     const int indent = count_indent(l);
 
     if (indent > top(l)) {
         // push indent
         push(l, indent);
-        set(tok, T_BLOCKBEGIN, l->pos);
+        set(tok, TOK_BLOCKBEGIN, l->pos);
 
         // BlockBegin alwasy starts at beginning of line
         tok->pos.x = 1;
@@ -528,7 +528,7 @@ static int scan_indent(Lexer *l, struct Token *tok)
             pop(l);
 
             if (indent == top(l)) {
-                set(tok, T_BLOCKEND, l->pos);
+                set(tok, TOK_BLOCKEND, l->pos);
                 return tok->kind;
             }
 
@@ -545,14 +545,14 @@ static int scan_indent(Lexer *l, struct Token *tok)
     }
 }
 
-static void get_token(Lexer *l, struct Token *tok)
+static void get_token(Lexer *l, struct parser_token *tok)
 {
-    const static struct Token ini = {0};
+    const static struct parser_token ini = {0};
     *tok = ini;
 
     if (l->unread_blockend > 0) {
         l->unread_blockend--;
-        set(tok, T_BLOCKEND, l->pos);
+        set(tok, TOK_BLOCKEND, l->pos);
         return;
     }
 
@@ -560,13 +560,13 @@ static void get_token(Lexer *l, struct Token *tok)
         l->is_line_begin = false;
 
         const int kind = scan_indent(l, tok);
-        if (kind == T_BLOCKBEGIN || kind == T_BLOCKEND)
+        if (kind == TOK_BLOCKBEGIN || kind == TOK_BLOCKEND)
             return;
     }
 
     while (!eof(l)) {
         int ch = get(l);
-        const struct Pos pos = l->pos;
+        const struct parser_pos pos = l->pos;
 
         // number
         if (isdigit(ch)) {
@@ -584,11 +584,11 @@ static void get_token(Lexer *l, struct Token *tok)
             ch = get(l);
 
             if (ch == '=') {
-                set(tok, T_EQ, pos);
+                set(tok, TOK_EQ, pos);
             }
             else {
                 unget(l);
-                set(tok, T_ASSN, pos);
+                set(tok, TOK_ASSN, pos);
             }
             return;
         }
@@ -597,36 +597,36 @@ static void get_token(Lexer *l, struct Token *tok)
             ch = get(l);
 
             if (ch == '=') {
-                set(tok, T_NEQ, pos);
+                set(tok, TOK_NEQ, pos);
             }
             else {
                 unget(l);
-                set(tok, T_LNOT, pos);
+                set(tok, TOK_LNOT, pos);
             }
             return;
         }
 
         if (ch == '^') {
-            set(tok, T_XOR, pos);
+            set(tok, TOK_XOR, pos);
             return;
         }
 
         if (ch == '~') {
-            set(tok, T_NOT, pos);
+            set(tok, TOK_NOT, pos);
             return;
         }
 
         if (ch == '<') {
             ch = get(l);
             if (ch == '<') {
-                set(tok, T_SHL, pos);
+                set(tok, TOK_SHL, pos);
             }
             else if (ch == '=') {
-                set(tok, T_LTE, pos);
+                set(tok, TOK_LTE, pos);
             }
             else {
                 unget(l);
-                set(tok, T_LT, pos);
+                set(tok, TOK_LT, pos);
             }
             return;
         }
@@ -634,14 +634,14 @@ static void get_token(Lexer *l, struct Token *tok)
         if (ch == '>') {
             ch = get(l);
             if (ch == '>') {
-                set(tok, T_SHR, pos);
+                set(tok, TOK_SHR, pos);
             }
             else if (ch == '=') {
-                set(tok, T_GTE, pos);
+                set(tok, TOK_GTE, pos);
             }
             else {
                 unget(l);
-                set(tok, T_GT, pos);
+                set(tok, TOK_GT, pos);
             }
             return;
         }
@@ -649,14 +649,14 @@ static void get_token(Lexer *l, struct Token *tok)
         if (ch == '+') {
             ch = get(l);
             if (ch == '+') {
-                set(tok, T_INC, pos);
+                set(tok, TOK_INC, pos);
             }
             else if (ch == '=') {
-                set(tok, T_AADD, pos);
+                set(tok, TOK_AADD, pos);
             }
             else {
                 unget(l);
-                set(tok, T_ADD, pos);
+                set(tok, TOK_ADD, pos);
             }
             return;
         }
@@ -666,19 +666,19 @@ static void get_token(Lexer *l, struct Token *tok)
             if (ch == '-') {
                 ch = get(l);
                 if (ch == '-') {
-                    set(tok, T_DASH3, pos);
+                    set(tok, TOK_DASH3, pos);
                 }
                 else {
                     unget(l);
-                    set(tok, T_DEC, pos);
+                    set(tok, TOK_DEC, pos);
                 }
             }
             else if (ch == '=') {
-                set(tok, T_ASUB, pos);
+                set(tok, TOK_ASUB, pos);
             }
             else {
                 unget(l);
-                set(tok, T_SUB, pos);
+                set(tok, TOK_SUB, pos);
             }
             return;
         }
@@ -686,11 +686,11 @@ static void get_token(Lexer *l, struct Token *tok)
         if (ch == '*') {
             ch = get(l);
             if (ch == '=') {
-                set(tok, T_AMUL, pos);
+                set(tok, TOK_AMUL, pos);
             }
             else {
                 unget(l);
-                set(tok, T_MUL, pos);
+                set(tok, TOK_MUL, pos);
             }
             return;
         }
@@ -706,11 +706,11 @@ static void get_token(Lexer *l, struct Token *tok)
                 continue;
             }
             else if (ch == '=') {
-                set(tok, T_ADIV, pos);
+                set(tok, TOK_ADIV, pos);
             }
             else {
                 unget(l);
-                set(tok, T_DIV, pos);
+                set(tok, TOK_DIV, pos);
             }
             return;
         }
@@ -718,11 +718,11 @@ static void get_token(Lexer *l, struct Token *tok)
         if (ch == '%') {
             ch = get(l);
             if (ch == '=') {
-                set(tok, T_AREM, pos);
+                set(tok, TOK_AREM, pos);
             }
             else {
                 unget(l);
-                set(tok, T_REM, pos);
+                set(tok, TOK_REM, pos);
             }
             return;
         }
@@ -730,11 +730,11 @@ static void get_token(Lexer *l, struct Token *tok)
         if (ch == '|') {
             ch = get(l);
             if (ch == '|') {
-                set(tok, T_LOR, pos);
+                set(tok, TOK_LOR, pos);
             }
             else {
                 unget(l);
-                set(tok, T_OR, pos);
+                set(tok, TOK_OR, pos);
             }
             return;
         }
@@ -742,75 +742,75 @@ static void get_token(Lexer *l, struct Token *tok)
         if (ch == '&') {
             ch = get(l);
             if (ch == '&') {
-                set(tok, T_LAND, pos);
+                set(tok, TOK_LAND, pos);
             }
             else {
                 unget(l);
-                set(tok, T_AND, pos);
+                set(tok, TOK_AND, pos);
             }
             return;
         }
 
         if (ch == '.') {
-            set(tok, T_DOT, pos);
+            set(tok, TOK_DOT, pos);
             return;
         }
 
         if (ch == ',') {
-            set(tok, T_COMMA, pos);
+            set(tok, TOK_COMMA, pos);
             return;
         }
 
         if (ch == ';') {
-            set(tok, T_SEM, pos);
+            set(tok, TOK_SEMICOLON, pos);
             return;
         }
 
         if (ch == ':') {
             ch = get(l);
             if (ch == ':') {
-                set(tok, T_COLON2, pos);
+                set(tok, TOK_COLON2, pos);
             }
             else {
                 unget(l);
-                set(tok, T_COLON, pos);
+                set(tok, TOK_COLON, pos);
             }
             return;
         }
 
         if (ch == '(') {
             l->is_inside_brackets = true;
-            set(tok, T_LPAREN, pos);
+            set(tok, TOK_LPAREN, pos);
             return;
         }
 
         if (ch == ')') {
             l->is_inside_brackets = false;
-            set(tok, T_RPAREN, pos);
+            set(tok, TOK_RPAREN, pos);
             return;
         }
 
         if (ch == '[') {
             l->is_inside_brackets = true;
-            set(tok, T_LBRACK, pos);
+            set(tok, TOK_LBRACK, pos);
             return;
         }
 
         if (ch == ']') {
             l->is_inside_brackets = false;
-            set(tok, T_RBRACK, pos);
+            set(tok, TOK_RBRACK, pos);
             return;
         }
 
         if (ch == '{') {
             l->is_inside_brackets = true;
-            set(tok, T_LBRACE, pos);
+            set(tok, TOK_LBRACE, pos);
             return;
         }
 
         if (ch == '}') {
             l->is_inside_brackets = false;
-            set(tok, T_RBRACE, pos);
+            set(tok, TOK_RBRACE, pos);
             return;
         }
 
@@ -824,7 +824,7 @@ static void get_token(Lexer *l, struct Token *tok)
         if (ch == '$') {
             unget(l);
             scan_word(l, tok, pos);
-            if (tok->kind == T_IDENT) {
+            if (tok->kind == TOK_IDENT) {
                 l->pos = pos;
                 error(l, "unknown special variables: '%s'", tok->sval);
             }
@@ -840,11 +840,11 @@ static void get_token(Lexer *l, struct Token *tok)
         if (ch == '#') {
             ch = get(l);
             if (ch == '#') {
-                set(tok, T_HASH2, pos);
+                set(tok, TOK_HASH2, pos);
             }
             else {
                 unget(l);
-                set(tok, T_HASH, pos);
+                set(tok, TOK_HASH, pos);
             }
             return;
         }
@@ -853,13 +853,13 @@ static void get_token(Lexer *l, struct Token *tok)
             if (l->is_inside_brackets)
                 continue;
 
-            set(tok, T_NEWLINE, pos);
+            set(tok, TOK_NEWLINE, pos);
             l->is_line_begin = true;
             return;
         }
 
         if (ch == EOF) {
-            set(tok, T_EOF, pos);
+            set(tok, TOK_EOF, pos);
             return;
         }
 
@@ -872,26 +872,26 @@ static void get_token(Lexer *l, struct Token *tok)
         return;
     }
 
-    set(tok, T_EOF, l->pos);
+    set(tok, TOK_EOF, l->pos);
 }
 
-const struct Token *Tokenize(const char *src)
+const struct parser_token *Tokenize(const char *src)
 {
     Lexer l = {0};
     set_input(&l, src);
 
-    struct Token *head = CALLOC(struct Token);
-    struct Token *tail = head;
+    struct parser_token *head = CALLOC(struct parser_token);
+    struct parser_token *tail = head;
 
     for (;;) {
-        struct Token *t = CALLOC(struct Token);
+        struct parser_token *t = CALLOC(struct parser_token);
         get_token(&l, t);
 
         tail->next = t;
         t->prev = tail;
         tail = t;
 
-        if (t->kind == T_EOF)
+        if (t->kind == TOK_EOF)
             break;
     }
 
