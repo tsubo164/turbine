@@ -4,7 +4,7 @@
 #include "error.h"
 #include "type.h"
 #include "parser_ast.h"
-#include "ast_eval.h"
+#include "parser_ast_eval.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -156,7 +156,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
     }
 
     int64_t func_id = 0;
-    if (EvalExpr(call->l, &func_id)) {
+    if (parser_eval_expr(call->l, &func_id)) {
         CallFunction(code, func_id, func_type->is_builtin);
     }
     else {
@@ -207,11 +207,11 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
 {
     // lval
     int addr = 0;
-    const bool isconst = EvalAddr(l, &addr);
+    const bool isconst = parser_eval_addr(l, &addr);
 
     // store
     if (isconst) {
-        if (IsGlobal(l))
+        if (parser_ast_is_global(l))
             StoreGlobal(code, addr + offset);
         else
             StoreLocal(code, addr + offset);
@@ -225,9 +225,9 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
 /*static*/ void gen_clear_block(Bytecode *code, const struct parser_expr *dst)
 {
     int dst_addr = 0;
-    EvalAddr(dst, &dst_addr);
+    parser_eval_addr(dst, &dst_addr);
 
-    if (IsGlobal(dst)) {
+    if (parser_ast_is_global(dst)) {
         // TODO support variable addresses
         ClearGlobal(code, dst_addr, SizeOf(dst->type));
     }
@@ -240,12 +240,12 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
 /*static*/ void gen_copy_block(Bytecode *code,
         const struct parser_expr *src, const struct parser_expr *dst)
 {
-    if (IsGlobal(src)) {
+    if (parser_ast_is_global(src)) {
         int src_addr = 0;
         int dst_addr = 0;
 
-        EvalAddr(src, &src_addr);
-        EvalAddr(dst, &dst_addr);
+        parser_eval_addr(src, &src_addr);
+        parser_eval_addr(dst, &dst_addr);
         // TODO support variable addresses
         CopyGlobal(code, src_addr, dst_addr, SizeOf(src->type));
     }
@@ -253,8 +253,8 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
         int src_addr = 0;
         int dst_addr = 0;
 
-        EvalAddr(src, &src_addr);
-        EvalAddr(dst, &dst_addr);
+        parser_eval_addr(src, &src_addr);
+        parser_eval_addr(dst, &dst_addr);
         // TODO support variable addresses
         CopyLocal(code, src_addr, dst_addr, SizeOf(src->type));
     }
@@ -302,11 +302,11 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
 
     // lval
     int addr = 0;
-    const bool isconst = EvalAddr(e->l, &addr);
+    const bool isconst = parser_eval_addr(e->l, &addr);
 
     // store
     if (isconst) {
-        if (IsGlobal(e->l))
+        if (parser_ast_is_global(e->l))
             StoreGlobal(code, addr);
         else
             StoreLocal(code, addr);
@@ -325,7 +325,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
         // lval
         int addr = 0;
         // an init expr always has identifier on the left
-        EvalAddr(e->l, &addr);
+        parser_eval_addr(e->l, &addr);
 
         LoadInt(code, e->type->len);
         ArrayLocal(code, addr);
@@ -338,11 +338,11 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
     // lval
     int addr = 0;
     // an init expr always has identifier on the left
-    EvalAddr(e->l, &addr);
+    parser_eval_addr(e->l, &addr);
 
     // array len
     LoadInt(code, e->type->len);
-    if (IsGlobal(e->l))
+    if (parser_ast_is_global(e->l))
         StoreGlobal(code, addr);
     else
         StoreLocal(code, addr);
@@ -356,7 +356,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
         gen_expr(code, expr);
 
         // store
-        if (IsGlobal(e->l))
+        if (parser_ast_is_global(e->l))
             StoreGlobal(code, addr);
         else
             StoreLocal(code, addr);
@@ -370,7 +370,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
     // lval
     int addr = 0;
     // an init expr always has identifier on the left
-    EvalAddr(e->l, &addr);
+    parser_eval_addr(e->l, &addr);
 
     if (e->r && e->r->kind == TOK_NILLIT) {
         // no initializer
@@ -398,10 +398,10 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
 
         // lval
         int offset = 0;
-        EvalAddr(elem->l, &offset);
+        parser_eval_addr(elem->l, &offset);
 
         // store
-        if (IsGlobal(e->l))
+        if (parser_ast_is_global(e->l))
             StoreGlobal(code, addr + offset);
         else
             StoreLocal(code, addr + offset);
@@ -416,11 +416,11 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
 
     // lval
     int addr = 0;
-    const bool isconst = EvalAddr(e->l, &addr);
+    const bool isconst = parser_eval_addr(e->l, &addr);
 
     // store
     if (isconst) {
-        if (IsGlobal(e->l))
+        if (parser_ast_is_global(e->l))
             StoreGlobal(code, addr);
         else
             StoreLocal(code, addr);
@@ -666,14 +666,14 @@ static void gen_expr(Bytecode *code, const struct parser_expr *e)
         return;
 
     case TOK_INC:
-        if (IsGlobal(e->l))
+        if (parser_ast_is_global(e->l))
             IncGlobal(code, Addr(e->l));
         else
             IncLocal(code, Addr(e->l));
         return;
 
     case TOK_DEC:
-        if (IsGlobal(e->l))
+        if (parser_ast_is_global(e->l))
             DecGlobal(code, Addr(e->l));
         else
             DecLocal(code, Addr(e->l));
@@ -724,8 +724,8 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e)
         //if (optimize) {
         //    int base = 0;
         //    int offset = 0;
-        //    if (inst->EvalAddr(base) && fld->EvalAddr(offset)) {
-        //        if (inst->IsGlobal())
+        //    if (inst->parser_eval_addr(base) && fld->EvalAddr(offset)) {
+        //        if (inst->parser_ast_is_global())
         //            code.LoadInt(base + offset + 1);
         //        else
         //            code.LoadAddress(base + offset);
@@ -741,8 +741,8 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e)
         //if (optimize) {
         //    int base = 0;
         //    long index = 0;
-        //    if (ary->EvalAddr(base) && idx->Eval(index)) {
-        //        if (ary->IsGlobal())
+        //    if (ary->parser_eval_addr(base) && idx->Eval(index)) {
+        //        if (ary->parser_ast_is_global())
         //            code.LoadInt(base + index + 1);
         //        else
         //            // index from next to base
@@ -1159,7 +1159,7 @@ static int gen_init_array__(Bytecode *code, const struct parser_expr *e)
     int dst = 0;
 
     // TODO testing dynamic array
-    if (IsGlobal(e->l)) {
+    if (parser_ast_is_global(e->l)) {
         int addr = gen_addr__(code, e->l);
         int len = gen_expr__(code, e->r);
         int dst = gen_dst_register(code, addr, len);
@@ -1236,7 +1236,7 @@ static int gen_struct_lit__(Bytecode *code, const struct parser_expr *e,
 
 static int gen_init_struct__(Bytecode *code, const struct parser_expr *e)
 {
-    if (IsGlobal(e->l)) {
+    if (parser_ast_is_global(e->l)) {
         int tmp = gen_struct_lit__(code, e->r, e->type, -1);
         int dst = gen_addr__(code, e->l);
         Store__(code, dst, tmp);
@@ -1252,7 +1252,7 @@ static int gen_init_struct__(Bytecode *code, const struct parser_expr *e)
     // lval
     int addr = 0;
     // an init expr always has identifier on the left
-    EvalAddr(e->l, &addr);
+    parser_eval_addr(e->l, &addr);
 
     if (e->r && e->r->kind == NOD_EXPR_NILLIT) {
         // no initializer
@@ -1280,10 +1280,10 @@ static int gen_init_struct__(Bytecode *code, const struct parser_expr *e)
 
         // lval
         int offset = 0;
-        EvalAddr(elem->l, &offset);
+        parser_eval_addr(elem->l, &offset);
 
         // store
-        if (IsGlobal(e->l))
+        if (parser_ast_is_global(e->l))
             StoreGlobal(code, addr + offset);
         else
             StoreLocal(code, addr + offset);
@@ -1296,7 +1296,7 @@ static int gen_store__(Bytecode *code, const struct parser_expr *lval, const str
     int reg0 = 0xff;
     int reg1 = gen_expr__(code, rval);
 
-    if (IsGlobal(lval)) {
+    if (parser_ast_is_global(lval)) {
         reg0 = gen_addr__(code, lval);
         Store__(code, reg0, reg1);
     }
@@ -1313,7 +1313,7 @@ static int gen_store2__(Bytecode *code, const struct parser_expr *lval, int src_
 {
     int dst_reg = -1;
 
-    if (IsGlobal(lval)) {
+    if (parser_ast_is_global(lval)) {
         dst_reg = gen_addr__(code, lval);
         Store__(code, dst_reg, src_reg);
     }
@@ -1332,7 +1332,7 @@ static int gen_init__(Bytecode *code, const struct parser_expr *e)
     int reg0 = -1;
     int reg1 = gen_expr__(code, e->r);
 
-    if (IsGlobal(e->l)) {
+    if (parser_ast_is_global(e->l)) {
         reg0 = gen_addr__(code, e->l);
         Store__(code, reg0, reg1);
     }
@@ -1345,7 +1345,7 @@ static int gen_init__(Bytecode *code, const struct parser_expr *e)
         /*
     // store
     if (isconst) {
-        if (IsGlobal(e->l))
+        if (parser_ast_is_global(e->l))
             StoreGlobal(code, addr);
         else
             StoreLocal(code, addr);
@@ -1624,7 +1624,7 @@ static int gen_call__(Bytecode *code, const struct parser_expr *call)
     int retval_reg = 0;
 
     int64_t func_id = 0;
-    if (EvalExpr(call->l, &func_id)) {
+    if (parser_eval_expr(call->l, &func_id)) {
         retval_reg = GetNextRegister__(code, curr_reg);
         CallFunction__(code, retval_reg, func_id, func_type->is_builtin);
     }
@@ -1971,7 +1971,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
         return 0;
 
     case NOD_EXPR_INC:
-        if (IsGlobal(e->l)) {
+        if (parser_ast_is_global(e->l)) {
             int src = gen_expr__(code, e->l);
             int dst = gen_dst_register2(code, src);
             Move__(code, dst, src);
@@ -1988,7 +1988,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_DEC:
         {
-            if (IsGlobal(e->l)) {
+            if (parser_ast_is_global(e->l)) {
                 int src = gen_expr__(code, e->l);
                 int dst = gen_dst_register2(code, src);
                 Move__(code, dst, src);
@@ -2057,8 +2057,8 @@ static int gen_addr__(Bytecode *code, const struct parser_expr *e)
         //if (optimize) {
         //    int base = 0;
         //    int offset = 0;
-        //    if (inst->EvalAddr(base) && fld->EvalAddr(offset)) {
-        //        if (inst->IsGlobal())
+        //    if (inst->parser_eval_addr(base) && fld->EvalAddr(offset)) {
+        //        if (inst->parser_ast_is_global())
         //            code.LoadInt(base + offset + 1);
         //        else
         //            code.LoadAddress(base + offset);
@@ -2074,8 +2074,8 @@ static int gen_addr__(Bytecode *code, const struct parser_expr *e)
         //if (optimize) {
         //    int base = 0;
         //    long index = 0;
-        //    if (ary->EvalAddr(base) && idx->Eval(index)) {
-        //        if (ary->IsGlobal())
+        //    if (ary->parser_eval_addr(base) && idx->Eval(index)) {
+        //        if (ary->parser_ast_is_global())
         //            code.LoadInt(base + index + 1);
         //        else
         //            // index from next to base

@@ -1,22 +1,22 @@
-#include "ast_eval.h"
+#include "parser_ast_eval.h"
 #include "scope.h"
 #include "type.h"
 
-bool IsGlobal(const struct parser_expr *e)
+bool parser_ast_is_global(const struct parser_expr *e)
 {
     switch (e->kind) {
     case NOD_EXPR_IDENT:
         return e->var->is_global;
 
     case NOD_EXPR_SELECT:
-        return IsGlobal(e->l);
+        return parser_ast_is_global(e->l);
 
     default:
         return false;
     }
 }
 
-bool IsMutable(const struct parser_expr *e)
+bool parser_ast_is_mutable(const struct parser_expr *e)
 {
     switch (e->kind) {
     case NOD_EXPR_IDENT:
@@ -25,27 +25,10 @@ bool IsMutable(const struct parser_expr *e)
         return e->var->is_param == false;
 
     case NOD_EXPR_SELECT:
-        return IsMutable(e->l);
+        return parser_ast_is_mutable(e->l);
 
     default:
         return true;
-    }
-}
-
-int Addr(const struct parser_expr *e)
-{
-    switch (e->kind) {
-    case NOD_EXPR_IDENT:
-        return e->var->offset;
-
-    case NOD_EXPR_FIELD:
-        return e->field->offset;
-
-    case NOD_EXPR_SELECT:
-        return Addr(e->l) + Addr(e->r);
-
-    default:
-        return -1;
     }
 }
 
@@ -53,10 +36,10 @@ static bool eval_binary(const struct parser_expr *e, int64_t *result)
 {
     int64_t L = 0, R = 0;
 
-    if (!EvalExpr(e->l, &L))
+    if (!parser_eval_expr(e->l, &L))
         return false;
 
-    if (!EvalExpr(e->r, &R))
+    if (!parser_eval_expr(e->r, &R))
         return false;
 
     switch (e->kind) {
@@ -73,7 +56,7 @@ static bool eval_unary(const struct parser_expr *e, int64_t *result)
 {
     int64_t L = 0;
 
-    if (!EvalExpr(e->l, &L))
+    if (!parser_eval_expr(e->l, &L))
         return false;
 
     switch (e->kind) {
@@ -85,7 +68,7 @@ static bool eval_unary(const struct parser_expr *e, int64_t *result)
     }
 }
 
-bool EvalExpr(const struct parser_expr *e, int64_t *result)
+bool parser_eval_expr(const struct parser_expr *e, int64_t *result)
 {
     switch (e->kind) {
 
@@ -110,7 +93,7 @@ bool EvalExpr(const struct parser_expr *e, int64_t *result)
     }
 }
 
-bool EvalAddr(const struct parser_expr *e, int *result)
+bool parser_eval_addr(const struct parser_expr *e, int *result)
 {
     switch (e->kind) {
 

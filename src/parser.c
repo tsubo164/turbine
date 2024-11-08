@@ -3,8 +3,8 @@
 #include "type.h"
 #include "parser_token.h"
 #include "parser_ast.h"
+#include "parser_ast_eval.h"
 #include "parser_escseq.h"
-#include "ast_eval.h"
 #include "mem.h"
 #include "error.h"
 
@@ -392,7 +392,7 @@ static struct parser_expr *primary_expr(Parser *p)
                         "index expression must be integer type");
             }
             int64_t index = 0;
-            if (EvalExpr(idx, &index)) {
+            if (parser_eval_expr(idx, &index)) {
                 const int64_t len = expr->type->len;
                 if (index >= len) {
                     error(p, tok_pos(p),
@@ -713,7 +713,7 @@ static void semantic_check_assign_stmt(Parser *p, struct parser_pos pos,
         error(p, pos, "builtin function can not be assigned: '%s'",
                 func->name);
     }
-    if (!IsMutable(lval)) {
+    if (!parser_ast_is_mutable(lval)) {
         const struct Var *var = find_root_object(lval);
         assert(var);
         error(p, pos, "parameter object can not be modified: '%s'",
@@ -1302,7 +1302,7 @@ static struct Type *type_spec(Parser *p)
                 error(p, tok_pos(p),
                         "array length expression must be integer type");
             }
-            if (!EvalExpr(e, &len)) {
+            if (!parser_eval_expr(e, &len)) {
                 error(p, tok_pos(p),
                         "array length expression must be compile time constant");
             }
