@@ -4,9 +4,9 @@
 #include "data_intern.h"
 #include "parser.h"
 #include "parser_token.h"
-#include "print.h"
-#include "scope.h"
+#include "parser_print.h"
 #include "parser_ast.h"
+#include "scope.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -32,7 +32,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
 
     // Print token
     if (opt->print_token) {
-        PrintToken(tok, !opt->print_token_raw);
+        parser_print_token(tok, !opt->print_token_raw);
         if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
             return 0;
         }
@@ -44,15 +44,15 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
 
     if (opt->print_tree) {
         print_header("tree");
-        PrintProg(prog);
+        parser_print_prog(prog);
     }
 
     if (opt->print_symbols) {
         print_header("symbol");
         if (opt->print_symbols_all)
-            PrintScope(&builtin);
+            parser_print_scope(&builtin);
         else
-            PrintScope(prog->scope);
+            parser_print_scope(prog->scope);
     }
 
     // Generate bytecode

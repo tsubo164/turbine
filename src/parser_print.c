@@ -1,13 +1,14 @@
-#include "print.h"
+#include "parser_print.h"
+#include "parser_ast.h"
 #include "scope.h"
 #include "type.h"
-#include "parser_ast.h"
+
 #include <stdio.h>
 
-void PrintToken(const struct parser_token *token, bool format)
+void parser_print_token(const struct parser_token *token, bool format)
 {
     int indent = 0;
-    bool bol = true;
+    bool begin_of_line = true;
 
     for (const struct parser_token *tok = token; tok; tok = tok->next) {
 
@@ -37,15 +38,15 @@ void PrintToken(const struct parser_token *token, bool format)
                 continue;
             }
 
-            if (bol) {
-                bol = false;
+            if (begin_of_line) {
+                begin_of_line = false;
                 for (int i = 0; i < indent; i++)
                     printf("....");
             }
 
             if (tok->kind == TOK_NEWLINE) {
                 printf("%s\n", parser_get_token_string(tok->kind));
-                bol = true;
+                begin_of_line = true;
             }
             else if (tok->kind != TOK_BLOCKBEGIN && tok->kind != TOK_BLOCKEND) {
                 printf("%s ", parser_get_token_string(tok->kind));
@@ -66,17 +67,17 @@ static void print_expr(const struct parser_expr *e, int depth)
     if (!e)
         return;
 
-    // indentation
+    /* indentation */
     for (int i = 0; i < depth; i++) {
         printf("  ");
     }
 
-    // basic info
+    /* basic info */
     const struct parser_node_info *info = parser_get_node_info(e->kind);
     printf("%d. <%s>", depth, info->str);
     printf(" (%s)", TypeString(e->type));
 
-    // extra value
+    /* extra value */
     switch (info->type) {
     case 'i':
         printf(" %ld", e->ival);
@@ -99,7 +100,7 @@ static void print_expr(const struct parser_expr *e, int depth)
     }
     printf("\n");
 
-    // children
+    /* children */
     print_expr(e->l, depth + 1);
     print_expr(e->r, depth + 1);
     print_expr(e->next, depth);
@@ -110,16 +111,16 @@ static void print_stmt(const struct parser_stmt *s, int depth)
     if (!s)
         return;
 
-    // indentation
+    /* indentation */
     for (int i = 0; i < depth; i++)
         printf("  ");
 
-    // basic info
+    /* basic info */
     const struct parser_node_info *info = parser_get_node_info(s->kind);
     printf("%d. <%s>", depth, info->str);
     printf("\n");
 
-    // children
+    /* children */
     for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
         print_stmt(stmt, depth + 1);
 
@@ -135,16 +136,16 @@ static void print_func(const struct Func *func, int depth)
     if (!func)
         return;
 
-    // indentation
+    /* indentation */
     for (int i = 0; i < depth; i++)
         printf("  ");
 
-    // basic info
+    /* basic info */
     printf("%d. <func> \"%s\"", depth, func->name);
     printf(" %s", TypeString(func->return_type));
     printf("\n");
 
-    // children
+    /* children */
     print_stmt(func->body, depth + 1);
 }
 
@@ -153,21 +154,21 @@ static void print_module(const struct Module *mod, int depth)
     if (!mod)
         return;
 
-    // basic info
+    /* basic info */
     printf("%d. <mod> \"%s\"", depth, mod->name);
     printf("\n");
 
-    // children
+    /* children */
     for (const struct parser_stmt *gvar = mod->gvars; gvar; gvar = gvar->next)
         print_stmt(gvar, depth + 1);
 
     for (int i = 0; i < mod->funcs.len; i++) {
-        struct Func *f = mod->funcs.data[i];
+        const struct Func *f = mod->funcs.data[i];
         print_func(f, depth + 1);
     }
 }
 
-void PrintProg(const struct Module *mod)
+void parser_print_prog(const struct Module *mod)
 {
     if (!mod)
         return;
@@ -184,7 +185,7 @@ static void print_header(int depth)
 
 static void print_scope(const struct Scope *sc, int depth)
 {
-    // symbols
+    /* symbols */
     for (int i = 0; i < sc->syms.len; i++) {
         const struct Symbol *sym = sc->syms.data[i];
 
@@ -247,18 +248,18 @@ static void print_scope(const struct Scope *sc, int depth)
     }
 
     if (sc->symbols.used == 0) {
-        // no symbol
+        /* no symbol */
         print_header(depth);
         printf("--\n");
     }
 }
 
-void PrintScope(const struct Scope *sc)
+void parser_print_scope(const struct Scope *sc)
 {
     print_scope(sc, 0);
 }
 
-void PrintExpr(const struct parser_expr *e)
+void parser_print_expr(const struct parser_expr *e)
 {
     print_expr(e, 0);
 }
