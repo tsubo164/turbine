@@ -17,18 +17,18 @@ void VecPush(struct Vec *v, void *data);
 void VecFree(struct Vec *v);
 /* ------------------------------ */
 
-struct Type;
+struct parser_type;
 
 struct Var {
     const char *name;
-    const struct Type *type;
+    const struct parser_type *type;
     int offset;
     bool is_global;
     bool is_param;
 };
 
 struct FuncType {
-    const struct Type *return_type;
+    const struct parser_type *return_type;
     struct Vec param_types;
     bool is_builtin;
     bool is_variadic;
@@ -38,7 +38,7 @@ struct FuncType {
 struct Func {
     const char *name;
     const char *fullname;
-    const struct Type *return_type;
+    const struct parser_type *return_type;
     struct Vec params;
     int size;
     int id;
@@ -54,7 +54,7 @@ struct Func {
 
 struct Field {
     const char *name;
-    const struct Type *type;
+    const struct parser_type *type;
     int offset;
 };
 
@@ -103,7 +103,7 @@ struct Symbol {
     int kind;
     int id;
     const char *name;
-    const struct Type *type;
+    const struct parser_type *type;
 
     union {
         struct Var *var;
@@ -127,26 +127,26 @@ struct Scope {
 struct Scope *NewScope(struct Scope *parent);
 
 // Symbol
-struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type);
+struct Symbol *NewSymbol(int kind, const char *name, const struct parser_type *type);
 struct Symbol *FindSymbol(const struct Scope *sc, const char *name);
 
 // Var
 struct Symbol *DefineVar(struct Scope *sc, const char *name,
-        const struct Type *type, bool isglobal);
+        const struct parser_type *type, bool isglobal);
 
 // Func
 struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *modulefile);
 struct Func *DeclareBuiltinFunc(struct Scope *parent, const char *name);
 struct FuncType *MakeFuncType(struct Func *func);
-void DeclareParam(struct Func *f, const char *name, const struct Type *type);
+void DeclareParam(struct Func *f, const char *name, const struct parser_type *type);
 const struct Var *GetParam(const struct Func *f, int index);
-const struct Type *GetParamType(const struct FuncType *func_type, int index);
+const struct parser_type *GetParamType(const struct FuncType *func_type, int index);
 int RequiredParamCount(const struct FuncType *func_type);
 
 // Struct
 struct Struct *DefineStruct(struct Scope *sc, const char *name);
 struct Struct *FindStruct(const struct Scope *sc, const char *name);
-struct Field *AddField(struct Struct *strct, const char *name, const struct Type *type);
+struct Field *AddField(struct Struct *strct, const char *name, const struct parser_type *type);
 struct Field *FindField(const struct Struct *strct, const char *name);
 // XXX TEST
 int parser_struct_get_field_count(const struct Struct *s);

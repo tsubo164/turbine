@@ -1,7 +1,7 @@
 #include "parser_print.h"
 #include "parser_ast.h"
+#include "parser_type.h"
 #include "scope.h"
-#include "type.h"
 
 #include <stdio.h>
 
@@ -75,7 +75,7 @@ static void print_expr(const struct parser_expr *e, int depth)
     /* basic info */
     const struct parser_node_info *info = parser_get_node_info(e->kind);
     printf("%d. <%s>", depth, info->str);
-    printf(" (%s)", TypeString(e->type));
+    printf(" (%s)", parser_type_string(e->type));
 
     /* extra value */
     switch (info->type) {
@@ -142,7 +142,7 @@ static void print_func(const struct Func *func, int depth)
 
     /* basic info */
     printf("%d. <func> \"%s\"", depth, func->name);
-    printf(" %s", TypeString(func->return_type));
+    printf(" %s", parser_type_string(func->return_type));
     printf("\n");
 
     /* children */
@@ -193,7 +193,7 @@ static void print_scope(const struct Scope *sc, int depth)
             const struct Var *v = sym->var;
             print_header(depth);
             printf("[var] \"%s\" %s @%d\n",
-                    v->name, TypeString(v->type),
+                    v->name, parser_type_string(v->type),
                     v->offset);
         }
 
@@ -201,7 +201,7 @@ static void print_scope(const struct Scope *sc, int depth)
             const struct Func *func = sym->func;
             print_header(depth);
             printf("[fnc] \"%s\" %s (id:%d)\n",
-                    func->name, TypeString(func->return_type), func->id);
+                    func->name, parser_type_string(func->return_type), func->id);
             print_scope(func->scope, depth + 1);
         }
 
@@ -214,7 +214,7 @@ static void print_scope(const struct Scope *sc, int depth)
                 const struct Field *f = strct->fields.data[j];
                 print_header(depth + 1);
                 printf("[field] \"%s\" @%d %s\n",
-                        f->name, f->offset, TypeString(f->type));
+                        f->name, f->offset, parser_type_string(f->type));
             }
         }
 

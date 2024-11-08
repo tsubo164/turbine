@@ -1,6 +1,6 @@
 #include "parser_ast.h"
+#include "parser_type.h"
 #include "scope.h"
-#include "type.h"
 
 #include <stdlib.h>
 
@@ -107,14 +107,14 @@ static struct parser_stmt *new_stmt(int kind)
 struct parser_expr *parser_new_nillit_expr(void)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_NILLIT);
-    e->type = NewNilType();
+    e->type = parser_new_nil_type();
     return e;
 }
 
 struct parser_expr *parser_new_boollit_expr(bool b)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_BOOLLIT);
-    e->type = NewBoolType();
+    e->type = parser_new_bool_type();
     e->ival = b;
     return e;
 }
@@ -122,7 +122,7 @@ struct parser_expr *parser_new_boollit_expr(bool b)
 struct parser_expr *parser_new_intlit_expr(long l)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_INTLIT);
-    e->type = NewIntType();
+    e->type = parser_new_int_type();
     e->ival = l;
     return e;
 }
@@ -130,7 +130,7 @@ struct parser_expr *parser_new_intlit_expr(long l)
 struct parser_expr *parser_new_floatlit_expr(double d)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_FLOATLIT);
-    e->type = NewFloatType();
+    e->type = parser_new_float_type();
     e->fval = d;
     return e;
 }
@@ -138,7 +138,7 @@ struct parser_expr *parser_new_floatlit_expr(double d)
 struct parser_expr *parser_new_stringlit_expr(const char *s)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_STRINGLIT);
-    e->type = NewStringType();
+    e->type = parser_new_string_type();
     e->sval = s;
     return e;
 }
@@ -146,7 +146,7 @@ struct parser_expr *parser_new_stringlit_expr(const char *s)
 struct parser_expr *parser_new_funclit_expr(struct Func *func)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_FUNCLIT);
-    e->type = NewFuncType(func->func_type);
+    e->type = parser_new_func_type(func->func_type);
     e->func = func;
     return e;
 }
@@ -154,7 +154,7 @@ struct parser_expr *parser_new_funclit_expr(struct Func *func)
 struct parser_expr *parser_new_arraylit_expr(struct parser_expr *elems, int len)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_ARRAYLIT);
-    e->type = NewArrayType(len, elems->type);
+    e->type = parser_new_array_type(len, elems->type);
     e->l = elems;
     return e;
 }
@@ -162,12 +162,12 @@ struct parser_expr *parser_new_arraylit_expr(struct parser_expr *elems, int len)
 struct parser_expr *parser_new_structlit_expr(struct Struct *strct, struct parser_expr *fields)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_STRUCTLIT);
-    e->type = NewStructType(strct);
+    e->type = parser_new_struct_type(strct);
     e->l = fields;
     return e;
 }
 
-struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct Type *to)
+struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct parser_type *to)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_CONV);
     e->type = to;
@@ -259,7 +259,7 @@ struct parser_expr *parser_new_not_expr(struct parser_expr *l)
 struct parser_expr *parser_new_addr_expr(struct parser_expr *l)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_ADDRESS);
-    e->type = NewPtrType(e->type);
+    e->type = parser_new_ptr_type(e->type);
     e->l = l;
     return e;
 }
@@ -267,7 +267,7 @@ struct parser_expr *parser_new_addr_expr(struct parser_expr *l)
 struct parser_expr *parser_new_deref_expr(struct parser_expr *l)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_DEREF);
-    e->type = DuplicateType(l->type->underlying);
+    e->type = parser_duplicate_type(l->type->underlying);
     e->l = l;
     return e;
 }
@@ -334,7 +334,7 @@ struct parser_expr *parser_new_xor_expr(struct parser_expr *l, struct parser_exp
 static struct parser_expr *new_rel_expr(struct parser_expr *l, struct parser_expr *r, int kind)
 {
     struct parser_expr *e = new_expr(kind);
-    e->type = NewBoolType();
+    e->type = parser_new_bool_type();
     e->l = l;
     e->r = r;
     return e;

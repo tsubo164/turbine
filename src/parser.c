@@ -1,9 +1,9 @@
 #include "parser.h"
 #include "scope.h"
-#include "type.h"
 #include "parser_token.h"
 #include "parser_ast.h"
 #include "parser_ast_eval.h"
+#include "parser_type.h"
 #include "parser_escseq.h"
 #include "mem.h"
 #include "error.h"
@@ -117,7 +117,7 @@ static bool consume(Parser *p, int kind)
 }
 
 // forward decls
-static struct Type *type_spec(Parser *p);
+static struct parser_type *type_spec(Parser *p);
 static struct parser_expr *expression(Parser *p);
 static struct parser_stmt *block_stmt(Parser *p, struct Scope *block_scope);
 
@@ -150,17 +150,17 @@ static struct parser_expr *arg_list(Parser *p, struct parser_expr *call)
 
     const struct parser_expr *arg = call->r;
     for (int i = 0; i < argc; i++, arg = arg->next) {
-        const struct Type *param_type = GetParamType(func_type, i);
+        const struct parser_type *param_type = GetParamType(func_type, i);
 
         if (!param_type)
             error(p, tok_pos(p), "too many arguments");
 
         // TODO arg needs to know its pos
-        if (!MatchType(arg->type, param_type)) {
+        if (!parser_match_type(arg->type, param_type)) {
             error(p, tok_pos(p),
                     "type mismatch: parameter type '%s': argument type '%s'",
-                    TypeString(param_type),
-                    TypeString(arg->type));
+                    parser_type_string(param_type),
+                    parser_type_string(arg->type));
         }
     }
 
@@ -171,7 +171,7 @@ static struct parser_expr *arg_list(Parser *p, struct parser_expr *call)
 
 static struct parser_expr *conv_expr(Parser *p, int kind)
 {
-    struct Type *to_type = type_spec(p);
+    struct parser_type *to_type = type_spec(p);
     const struct parser_pos tokpos = tok_pos(p);
 
     expect(p, TOK_LPAREN);
@@ -179,15 +179,15 @@ static struct parser_expr *conv_expr(Parser *p, int kind)
     expect(p, TOK_RPAREN);
 
     switch (expr->type->kind) {
-    case TY_BOOL:
-    case TY_INT:
-    case TY_FLOAT:
+    case TYP_BOOL:
+    case TYP_INT:
+    case TYP_FLOAT:
         break;
     default:
         error(p, tokpos,
                 "unable to convert type from '%s' to '%s'",
-                TypeString(expr->type),
-                TypeString(to_type));
+                parser_type_string(expr->type),
+                parser_type_string(to_type));
         break;
     }
 
@@ -198,16 +198,16 @@ static struct parser_expr *array_lit_expr(Parser *p)
 {
     struct parser_expr *expr = expression(p);
     struct parser_expr *e = expr;
-    const struct Type *elem_type = expr->type;
+    const struct parser_type *elem_type = expr->type;
     int len = 1;
 
     while (consume(p, TOK_COMMA)) {
         e = e->next = expression(p);
-        if (!MatchType(elem_type, e->type)) {
+        if (!parser_match_type(elem_type, e->type)) {
             error(p, tok_pos(p),
                     "type mismatch: first element type '%s': this element type '%s'",
-                    TypeString(elem_type),
-                    TypeString(e->type));
+                    parser_type_string(elem_type),
+                    parser_type_string(e->type));
         }
         len++;
     }
@@ -337,7 +337,7 @@ static struct parser_expr *primary_expr(Parser *p)
             continue;
         }
         else if (tok->kind == TOK_LPAREN) {
-            if (!expr || !IsFunc(expr->type)) {
+            if (!expr || !parser_is_func_type(expr->type)) {
                 error(p, tok_pos(p),
                         "call operator must be used for function type");
             }
@@ -347,17 +347,17 @@ static struct parser_expr *primary_expr(Parser *p)
             continue;
         }
         else if (tok->kind == TOK_PERIOD) {
-            if (IsStruct(expr->type)) {
+            if (parser_is_struct_type(expr->type)) {
                 expect(p, TOK_IDENT);
                 struct Field *f = FindField(expr->type->strct, tok_str(p));
                 expr = parser_new_select_expr(expr, parser_new_field_expr(f));
             }
-            else if (IsPtr(expr->type) && IsStruct(expr->type->underlying)) {
+            else if (parser_is_ptr_type(expr->type) && parser_is_struct_type(expr->type->underlying)) {
                 expect(p, TOK_IDENT);
                 struct Field *f = FindField(expr->type->underlying->strct, tok_str(p));
                 expr = parser_new_select_expr(expr, parser_new_field_expr(f));
             }
-            else if (IsTable(expr->type)) {
+            else if (parser_is_table_type(expr->type)) {
                 expect(p, TOK_IDENT);
                 struct data_hashmap_entry *ent =
                     data_hashmap_lookup(&expr->type->table->rows, tok_str(p));
@@ -366,7 +366,7 @@ static struct parser_expr *primary_expr(Parser *p)
                 expr = parser_new_intlit_expr(r->ival);
                 expr->l = tmp;
             }
-            else if (IsModule(expr->type)) {
+            else if (parser_is_module_type(expr->type)) {
                 struct Scope *cur = p->scope;
                 p->scope = expr->type->module->scope;
                 struct parser_expr *r = primary_expr(p);
@@ -382,12 +382,12 @@ static struct parser_expr *primary_expr(Parser *p)
             continue;
         }
         else if (tok->kind == TOK_LBRACK) {
-            if (!IsArray(expr->type)) {
+            if (!parser_is_array_type(expr->type)) {
                 error(p, tok_pos(p),
                         "index operator must be used for array type");
             }
             struct parser_expr *idx = expression(p);
-            if (!IsInt(idx->type)) {
+            if (!parser_is_int_type(idx->type)) {
                 error(p, tok_pos(p),
                         "index expression must be integer type");
             }
@@ -431,7 +431,7 @@ static struct parser_expr *unary_expr(Parser *p)
 
     case TOK_ASTER:
         e = unary_expr(p);
-        if (!IsPtr(e->type)) {
+        if (!parser_is_ptr_type(e->type)) {
             error(p, tok->pos,
                     "type mismatch: * must be used for pointer type");
         }
@@ -464,11 +464,11 @@ static struct parser_expr *unary_expr(Parser *p)
 }
 
 static void semantic_check_type_match(Parser *p, struct parser_pos pos,
-        const struct Type *t0, const struct Type *t1)
+        const struct parser_type *t0, const struct parser_type *t1)
 {
-    if (!MatchType(t0, t1)) {
+    if (!parser_match_type(t0, t1)) {
         error(p, pos, "type mismatch: %s and %s",
-                TypeString(t0), TypeString(t1));
+                parser_type_string(t0), parser_type_string(t1));
     }
 }
 
@@ -702,12 +702,12 @@ static const struct Var *find_root_object(const struct parser_expr *e)
 static void semantic_check_assign_stmt(Parser *p, struct parser_pos pos,
         const struct parser_expr *lval, const struct parser_expr *rval)
 {
-    if (!MatchType(lval->type, rval->type)) {
+    if (!parser_match_type(lval->type, rval->type)) {
         error(p, pos, "type mismatch: l-value type '%s': r-value type '%s'",
-                TypeString(lval->type), TypeString(rval->type));
+                parser_type_string(lval->type), parser_type_string(rval->type));
     }
     // TODO make new_assign_stmt()
-    if (IsFunc(rval->type) && rval->type->func_type->is_builtin) {
+    if (parser_is_func_type(rval->type) && rval->type->func_type->is_builtin) {
         assert(rval->kind == NOD_EXPR_FUNCLIT);
         struct Func *func = rval->func;
         error(p, pos, "builtin function can not be assigned: '%s'",
@@ -724,7 +724,7 @@ static void semantic_check_assign_stmt(Parser *p, struct parser_pos pos,
 static void semantic_check_incdec_stmt(Parser *p, struct parser_pos pos,
         const struct parser_expr *lval)
 {
-    if (!IsInt(lval->type)) {
+    if (!parser_is_int_type(lval->type)) {
         error(p, pos, "type mismatch: ++/-- must be used for int");
     }
 }
@@ -792,7 +792,7 @@ static struct Scope *new_child_scope(struct Parser *p)
 {
     struct Scope *parent = p->scope;
     struct Scope *child = NewScope(parent);
-    struct Symbol *sym = NewSymbol(SYM_SCOPE, "_", NewNilType());
+    struct Symbol *sym = NewSymbol(SYM_SCOPE, "_", parser_new_nil_type());
 
     sym->scope = child;
     VecPush(&parent->syms, sym);
@@ -990,8 +990,8 @@ static struct parser_stmt *ret_stmt(Parser *p)
     if (expr && p->func_->return_type->kind != expr->type->kind) {
         error(p, exprpos,
                 "type mismatch: function type '%s': expression type '%s'",
-                TypeString(p->func_->return_type),
-                TypeString(expr->type), "");
+                parser_type_string(p->func_->return_type),
+                parser_type_string(expr->type), "");
     }
 
     return parser_new_return_stmt(expr);
@@ -1023,38 +1023,40 @@ static struct parser_stmt *nop_stmt(Parser *p)
     return s;
 }
 
-static struct parser_expr *default_value(const struct Type *type)
+static struct parser_expr *default_value(const struct parser_type *type)
 {
     switch (type->kind) {
-    case TY_BOOL:
+    case TYP_BOOL:
         return parser_new_boollit_expr(false);
-    case TY_INT:
+    case TYP_INT:
         return parser_new_intlit_expr(0);
-    case TY_FLOAT:
+    case TYP_FLOAT:
         return parser_new_floatlit_expr(0.0);
-    case TY_STRING:
+    case TYP_STRING:
         return parser_new_stringlit_expr("");
 
-    case TY_PTR:
+    case TYP_PTR:
         return parser_new_nillit_expr();
 
-    case TY_ARRAY:
+    case TYP_ARRAY:
         // TODO fill with zero values
         // put len at base addr
         return parser_new_intlit_expr(type->len);
 
-    case TY_FUNC:
-    case TY_STRUCT:
-    case TY_TABLE:
-    case TY_MODULE:
+    case TYP_FUNC:
+    case TYP_STRUCT:
+    case TYP_TABLE:
+    case TYP_MODULE:
         // TODO
         return parser_new_nillit_expr();
 
-    case TY_NIL:
-    case TY_ANY:
+    case TYP_NIL:
+    case TYP_ANY:
         UNREACHABLE;
         return NULL;
     }
+
+    return NULL;
 }
 
 // var_decl = "-" identifier type newline
@@ -1067,14 +1069,14 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
     // var anme
     const char *name = tok_str(p);
     const struct parser_pos ident_pos = tok_pos(p);
-    struct Type *type = NULL;
+    struct parser_type *type = NULL;
     struct parser_expr *init = NULL;
 
     // type and init
     if (consume(p, TOK_EQUAL)) {
         // "- x = 42"
         init = expression(p);
-        type = DuplicateType(init->type);
+        type = parser_duplicate_type(init->type);
     }
     else {
         type = type_spec(p);
@@ -1099,7 +1101,7 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
     }
     struct parser_expr *ident = parser_new_ident_expr(sym);
     // TODO make new_assign_stmt()
-    if (init && IsFunc(init->type) && init->type->func_type->is_builtin) {
+    if (init && parser_is_func_type(init->type) && init->type->func_type->is_builtin) {
         assert(init->kind == NOD_EXPR_FUNCLIT);
         struct Func *func = init->func;
         error(p, init_pos,
@@ -1254,12 +1256,12 @@ static void param_list(Parser *p, struct Func *func)
         return;
 
     do {
-        const struct Type *type = NULL;
+        const struct parser_type *type = NULL;
         const char *name;
 
         if (consume(p, TOK_CALLER_LINE)) {
             name = tok_str(p);
-            type = NewIntType();
+            type = parser_new_int_type();
         }
         else {
             expect(p, TOK_IDENT);
@@ -1279,26 +1281,26 @@ static void ret_type(Parser *p, struct Func *func)
     const int next = peek(p);
 
     if (next == TOK_NEWLINE)
-        func->return_type = NewNilType();
+        func->return_type = parser_new_nil_type();
     else
         func->return_type = type_spec(p);
 }
 
 // type_spec = "bool" | "int" | "float" | "string" | identifier
 // func_type = "#" param_list type_spec?
-static struct Type *type_spec(Parser *p)
+static struct parser_type *type_spec(Parser *p)
 {
-    struct Type *type = NULL;
+    struct parser_type *type = NULL;
 
     if (consume(p, TOK_ASTER)) {
-        return NewPtrType(type_spec(p));
+        return parser_new_ptr_type(type_spec(p));
     }
 
     if (consume(p, TOK_LBRACK)) {
         int64_t len = 0;
         if (peek(p) != TOK_RBRACK) {
             struct parser_expr *e = expression(p);
-            if (!IsInt(e->type)) {
+            if (!parser_is_int_type(e->type)) {
                 error(p, tok_pos(p),
                         "array length expression must be integer type");
             }
@@ -1308,7 +1310,7 @@ static struct Type *type_spec(Parser *p)
             }
         }
         expect(p, TOK_RBRACK);
-        return NewArrayType(len, type_spec(p));
+        return parser_new_array_type(len, type_spec(p));
     }
 
     if (consume(p, TOK_HASH)) {
@@ -1319,23 +1321,23 @@ static struct Type *type_spec(Parser *p)
         ret_type(p, func);
         // func type
         func->func_type = MakeFuncType(func);
-        return NewFuncType(func->func_type);
+        return parser_new_func_type(func->func_type);
     }
 
     if (consume(p, TOK_BOOL)) {
-        type = NewBoolType();
+        type = parser_new_bool_type();
     }
     else if (consume(p, TOK_INT)) {
-        type = NewIntType();
+        type = parser_new_int_type();
     }
     else if (consume(p, TOK_FLOAT)) {
-        type = NewFloatType();
+        type = parser_new_float_type();
     }
     else if (consume(p, TOK_STRING)) {
-        type = NewStringType();
+        type = parser_new_string_type();
     }
     else if (consume(p, TOK_IDENT)) {
-        type = NewStructType(FindStruct(p->scope, tok_str(p)));
+        type = parser_new_struct_type(FindStruct(p->scope, tok_str(p)));
     }
     else {
         const struct parser_token *tok = gettok(p);

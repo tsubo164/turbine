@@ -2,9 +2,9 @@
 #include "bytecode.h"
 #include "scope.h"
 #include "error.h"
-#include "type.h"
 #include "parser_ast.h"
 #include "parser_ast_eval.h"
+#include "parser_type.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -38,69 +38,69 @@ void SetOptimize(bool enable)
 
 #define EMIT(code, ty, op) \
     do { \
-    if (IsInt((ty)) || IsBool((ty))) \
+    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
         op##Int((code)); \
-    else if (IsFloat((ty))) \
+    else if (parser_is_float_type((ty))) \
         op##Float((code)); \
     } while (0)
 
 #define EMITS(code, ty, op, ops) \
     do { \
-    if (IsInt((ty)) || IsBool((ty))) \
+    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
         op##Int((code)); \
-    else if (IsFloat((ty))) \
+    else if (parser_is_float_type((ty))) \
         op##Float((code)); \
-    else if (IsString((ty))) \
+    else if (parser_is_string_type((ty))) \
         ops##String((code)); \
     } while (0)
 
 #define BINOP__(code, ty, op, r0, r1, r2) \
     do { \
-    if (IsInt((ty)) || IsBool((ty))) \
+    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
         op##Int__((code), (r0), (r1), (r2)); \
-    else if (IsFloat((ty))) \
+    else if (parser_is_float_type((ty))) \
         op##Float__((code), (r0), (r1), (r2)); \
     } while (0)
 
 #define BINOP_S__(code, ty, op, ops, r0, r1, r2) \
     do { \
-    if (IsInt((ty)) || IsBool((ty))) \
+    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
         op##Int__((code), (r0), (r1), (r2)); \
-    else if (IsFloat((ty))) \
+    else if (parser_is_float_type((ty))) \
         op##Float__((code), (r0), (r1), (r2)); \
-    else if (IsString((ty))) \
+    else if (parser_is_string_type((ty))) \
         ops##String__((code), (r0), (r1), (r2)); \
     } while (0)
 
 static void gen_expr(Bytecode *code, const struct parser_expr *e);
 static void gen_addr(Bytecode *code, const struct parser_expr *e);
 
-/*static*/ void gen_convert(Bytecode *code, enum TY from, enum TY to)
+/*static*/ void gen_convert(Bytecode *code, int from, int to)
 {
     switch (from) {
-    case TY_BOOL:
+    case TYP_BOOL:
         switch (to) {
-        case TY_BOOL:  break;
-        case TY_INT:   BoolToInt(code); break;
-        case TY_FLOAT: BoolToFloat(code); break;
+        case TYP_BOOL:  break;
+        case TYP_INT:   BoolToInt(code); break;
+        case TYP_FLOAT: BoolToFloat(code); break;
         default: break;
         }
         break;
 
-    case TY_INT:
+    case TYP_INT:
         switch (to) {
-        case TY_BOOL:  IntToBool(code); break;
-        case TY_INT:   break;
-        case TY_FLOAT: IntToFloat(code); break;
+        case TYP_BOOL:  IntToBool(code); break;
+        case TYP_INT:   break;
+        case TYP_FLOAT: IntToFloat(code); break;
         default: break;
         }
         break;
 
-    case TY_FLOAT:
+    case TYP_FLOAT:
         switch (to) {
-        case TY_BOOL:  FloatToBool(code); break;
-        case TY_INT:   FloatToInt(code); break;
-        case TY_FLOAT: break;
+        case TYP_BOOL:  FloatToBool(code); break;
+        case TYP_INT:   FloatToInt(code); break;
+        case TYP_FLOAT: break;
         default: break;
         }
         break;
@@ -121,28 +121,28 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
             gen_expr(code, arg);
 
             switch (arg->type->kind) {
-            case TY_NIL:
+            case TYP_NIL:
                 LoadTypeNil(code);
                 break;
-            case TY_BOOL:
+            case TYP_BOOL:
                 LoadTypeBool(code);
                 break;
-            case TY_INT:
+            case TYP_INT:
                 LoadTypeInt(code);
                 break;
-            case TY_FLOAT:
+            case TYP_FLOAT:
                 LoadTypeFloat(code);
                 break;
-            case TY_STRING:
+            case TYP_STRING:
                 LoadTypeString(code);
                 break;
-            case TY_FUNC:
-            case TY_STRUCT:
-            case TY_TABLE:
-            case TY_MODULE:
-            case TY_PTR:
-            case TY_ARRAY:
-            case TY_ANY:
+            case TYP_FUNC:
+            case TYP_STRUCT:
+            case TYP_TABLE:
+            case TYP_MODULE:
+            case TYP_PTR:
+            case TYP_ARRAY:
+            case TYP_ANY:
                 LoadTypeNil(code);
                 break;
             }
@@ -229,11 +229,11 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
 
     if (parser_ast_is_global(dst)) {
         // TODO support variable addresses
-        ClearGlobal(code, dst_addr, SizeOf(dst->type));
+        ClearGlobal(code, dst_addr, parser_sizeof_type(dst->type));
     }
     else {
         // TODO support variable addresses
-        ClearLocal(code, dst_addr, SizeOf(dst->type));
+        ClearLocal(code, dst_addr, parser_sizeof_type(dst->type));
     }
 }
 
@@ -247,7 +247,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
         parser_eval_addr(src, &src_addr);
         parser_eval_addr(dst, &dst_addr);
         // TODO support variable addresses
-        CopyGlobal(code, src_addr, dst_addr, SizeOf(src->type));
+        CopyGlobal(code, src_addr, dst_addr, parser_sizeof_type(src->type));
     }
     else {
         int src_addr = 0;
@@ -256,7 +256,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
         parser_eval_addr(src, &src_addr);
         parser_eval_addr(dst, &dst_addr);
         // TODO support variable addresses
-        CopyLocal(code, src_addr, dst_addr, SizeOf(src->type));
+        CopyLocal(code, src_addr, dst_addr, parser_sizeof_type(src->type));
     }
 }
 
@@ -1060,11 +1060,11 @@ static int resolve_offset(struct Scope *scope, int start_offset)
             struct Var *var = sym->var;
             // offset
             var->offset = cur_offset;
-            cur_offset += SizeOf(var->type);
+            cur_offset += parser_sizeof_type(var->type);
             max_offset = max(max_offset, cur_offset);
             // size
             if (!var->is_param)
-                cur_size += SizeOf(var->type);
+                cur_size += parser_sizeof_type(var->type);
             max_size = max(max_size, cur_size);
         }
         else if (sym->kind == SYM_FUNC) {
@@ -1105,39 +1105,39 @@ void ResolveOffset(struct Module *mod)
 static int gen_expr__(Bytecode *code, const struct parser_expr *e);
 static int gen_addr__(Bytecode *code, const struct parser_expr *e);
 
-static int gen_convert__(Bytecode *code, int reg0, int reg1, enum TY from, enum TY to)
+static int gen_convert__(Bytecode *code, int reg0, int reg1, int from, int to)
 {
     int reg = -1;
 
     switch (from) {
-    case TY_BOOL:
+    case TYP_BOOL:
         switch (to) {
-        case TY_BOOL:  break;
-        case TY_INT:   reg = BoolToInt__(code, reg0, reg1); break;
+        case TYP_BOOL:  break;
+        case TYP_INT:   reg = BoolToInt__(code, reg0, reg1); break;
         /*
-        case TY_FLOAT: BoolToFloat(code); break;
+        case TYP_FLOAT: BoolToFloat(code); break;
         */
         default: break;
         }
         break;
 
                        /*
-    case TY_INT:
+    case TYP_INT:
         switch (to) {
-        case TY_BOOL:  reg = IntToBool__(code, reg0, reg1); break;
-        case TY_INT:   break;
-        case TY_FLOAT: IntToFloat(code); break;
+        case TYP_BOOL:  reg = IntToBool__(code, reg0, reg1); break;
+        case TYP_INT:   break;
+        case TYP_FLOAT: IntToFloat(code); break;
         default: break;
         }
         break;
                        */
 
         /*
-    case TY_FLOAT:
+    case TYP_FLOAT:
         switch (to) {
-        case TY_BOOL:  FloatToBool(code); break;
-        case TY_INT:   FloatToInt(code); break;
-        case TY_FLOAT: break;
+        case TYP_BOOL:  FloatToBool(code); break;
+        case TYP_INT:   FloatToInt(code); break;
+        case TYP_FLOAT: break;
         default: break;
         }
         break;
@@ -1191,7 +1191,7 @@ static int gen_init_array__(Bytecode *code, const struct parser_expr *e)
 }
 
 static int gen_struct_lit__(Bytecode *code, const struct parser_expr *e,
-        const struct Type *type, /* XXX TEMP */
+        const struct parser_type *type, /* XXX TEMP */
         int dst_reg)
 {
     /* XXX TEMP */
@@ -1388,7 +1388,7 @@ static int gen_dst_register2(struct Bytecode *code, int reg1)
     return reg0;
 }
 
-static int gen_binop__(Bytecode *code, const struct Type *type, int kind,
+static int gen_binop__(Bytecode *code, const struct parser_type *type, int kind,
         int reg0, int reg1, int reg2)
 {
     switch (kind) {
@@ -1575,33 +1575,33 @@ static int gen_call__(Bytecode *code, const struct parser_expr *call)
             int type_dst = GetNextRegister__(code, arg_dst);
 
             switch (arg->type->kind) {
-            case TY_NIL:
+            case TYP_NIL:
                 LoadTypeNil__(code, type_dst);
                 break;
 
-            case TY_BOOL:
+            case TYP_BOOL:
                 LoadTypeBool__(code, type_dst);
                 break;
 
-            case TY_INT:
+            case TYP_INT:
                 LoadTypeInt__(code, type_dst);
                 break;
 
-            case TY_FLOAT:
+            case TYP_FLOAT:
                 LoadTypeFloat__(code, type_dst);
                 break;
 
-            case TY_STRING:
+            case TYP_STRING:
                 LoadTypeString__(code, type_dst);
                 break;
 
-            case TY_FUNC:
-            case TY_STRUCT:
-            case TY_TABLE:
-            case TY_MODULE:
-            case TY_PTR:
-            case TY_ARRAY:
-            case TY_ANY:
+            case TYP_FUNC:
+            case TYP_STRUCT:
+            case TYP_TABLE:
+            case TYP_MODULE:
+            case TYP_PTR:
+            case TYP_ARRAY:
+            case TYP_ANY:
                 LoadTypeNil__(code, type_dst);
                 break;
             }
@@ -1905,7 +1905,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
         }
 
     case NOD_EXPR_ADDRESS:
-        if (IsStruct(e->l->type)) {
+        if (parser_is_struct_type(e->l->type)) {
             int reg0 = gen_expr__(code, e->l);
             return reg0;
         }
@@ -1927,9 +1927,9 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
             int reg1 = gen_expr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
 
-            if (IsInt(e->type))
+            if (parser_is_int_type(e->type))
                 reg0 = NegateInt__(code, reg0, reg1);
-            else if (IsFloat(e->type))
+            else if (parser_is_float_type(e->type))
                 reg0 = NegateFloat__(code, reg0, reg1);
 
             return reg0;
@@ -1962,9 +1962,9 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
         return gen_binop_assign__(code, e);
 
     case NOD_EXPR_INIT:
-        if (IsArray(e->type))
+        if (parser_is_array_type(e->type))
             gen_init_array__(code, e);
-        else if (IsStruct(e->type))
+        else if (parser_is_struct_type(e->type))
             gen_init_struct__(code, e);
         else
             gen_init__(code, e);

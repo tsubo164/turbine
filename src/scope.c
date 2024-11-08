@@ -1,6 +1,6 @@
 #include "scope.h"
 #include "data_intern.h"
-#include "type.h"
+#include "parser_type.h"
 #include "mem.h"
 #include <string.h>
 #include <stdio.h>
@@ -36,7 +36,7 @@ struct Scope *NewScope(struct Scope *parent)
 }
 
 // Symbol
-struct Symbol *NewSymbol(int kind, const char *name, const struct Type *type)
+struct Symbol *NewSymbol(int kind, const char *name, const struct parser_type *type)
 {
     struct Symbol *sym = CALLOC(struct Symbol);
     sym->kind = kind;
@@ -67,7 +67,7 @@ struct Symbol *FindSymbolThisScope(struct Scope *sc, const char *name)
 }
 
 // Var
-static struct Var *new_var(const char *Name, const struct Type *t, bool global)
+static struct Var *new_var(const char *Name, const struct parser_type *t, bool global)
 {
     struct Var *v = CALLOC(struct Var);
     v->name = Name;
@@ -76,7 +76,7 @@ static struct Var *new_var(const char *Name, const struct Type *t, bool global)
     return v;
 }
 
-struct Symbol *DefineVar(struct Scope *sc, const char *name, const struct Type *type, bool isglobal)
+struct Symbol *DefineVar(struct Scope *sc, const char *name, const struct parser_type *type, bool isglobal)
 {
     if (FindSymbolThisScope(sc, name))
         return NULL;
@@ -120,7 +120,7 @@ struct Func *DeclareFunc(struct Scope *parent, const char *name, const char *mod
         return NULL;
 
     // Add func itself to symbol table
-    struct Symbol *sym = NewSymbol(SYM_FUNC, func->name, NewFuncType(func->func_type));
+    struct Symbol *sym = NewSymbol(SYM_FUNC, func->name, parser_new_func_type(func->func_type));
     sym->func = func;
 
     if (!data_hashmap_insert(&parent->symbols, func->name, sym))
@@ -154,7 +154,7 @@ struct FuncType *MakeFuncType(struct Func *func)
     return func_type;
 }
 
-void DeclareParam(struct Func *f, const char *name, const struct Type *type)
+void DeclareParam(struct Func *f, const char *name, const struct parser_type *type)
 {
     struct Symbol *sym = DefineVar(f->scope, name, type, false);
     sym->var->is_param = true;
@@ -183,7 +183,7 @@ const struct Var *GetParam(const struct Func *f, int index)
     return f->params.data[idx];
 }
 
-const struct Type *GetParamType(const struct FuncType *func_type, int index)
+const struct parser_type *GetParamType(const struct FuncType *func_type, int index)
 {
     int idx = 0;
     int param_count = func_type->param_types.len;
@@ -221,7 +221,7 @@ static struct Struct *new_struct(const char *name)
 struct Struct *DefineStruct(struct Scope *sc, const char *name)
 {
     struct Struct *strct = new_struct(name);
-    struct Symbol *sym = NewSymbol(SYM_STRUCT, name, NewStructType(strct));
+    struct Symbol *sym = NewSymbol(SYM_STRUCT, name, parser_new_struct_type(strct));
     sym->strct = strct;
 
     if (!data_hashmap_insert(&sc->symbols, name, sym))
@@ -240,7 +240,7 @@ struct Struct *FindStruct(const struct Scope *sc, const char *name)
     return NULL;
 }
 
-static struct Field *new_field(const char *Name, const struct Type *type, int offset)
+static struct Field *new_field(const char *Name, const struct parser_type *type, int offset)
 {
     struct Field *f = CALLOC(struct Field);
     f->name = Name;
@@ -249,13 +249,13 @@ static struct Field *new_field(const char *Name, const struct Type *type, int of
     return f;
 }
 
-struct Field *AddField(struct Struct *strct, const char *name, const struct Type *type)
+struct Field *AddField(struct Struct *strct, const char *name, const struct parser_type *type)
 {
     if (FindField(strct, name))
         return NULL;
 
     struct Field *f = new_field(name, type, strct->size);
-    strct->size += SizeOf(f->type);
+    strct->size += parser_sizeof_type(f->type);
 
     VecPush(&strct->fields, f);
     return f;
@@ -282,7 +282,7 @@ struct Table *DefineTable(struct Scope *sc, const char *name)
     struct Table *tab = CALLOC(struct Table);
     tab->name = name;
 
-    struct Symbol *sym = NewSymbol(SYM_TABLE, name, NewTableType(tab));
+    struct Symbol *sym = NewSymbol(SYM_TABLE, name, parser_new_table_type(tab));
     sym->table = tab;
 
     if (!data_hashmap_insert(&sc->symbols, name, sym))
@@ -300,7 +300,7 @@ struct Module *DefineModule(struct Scope *sc, const char *filename, const char *
     mod->filename = filename;
     mod->scope = NewScope(sc);
 
-    struct Symbol *sym = NewSymbol(SYM_MODULE, modulename, NewModuleType(mod));
+    struct Symbol *sym = NewSymbol(SYM_MODULE, modulename, parser_new_module_type(mod));
     sym->module = mod;
 
     if (!data_hashmap_insert(&sc->symbols, modulename, sym))

@@ -1,6 +1,6 @@
 #include "parser_ast_eval.h"
+#include "parser_type.h"
 #include "scope.h"
-#include "type.h"
 
 bool parser_ast_is_global(const struct parser_expr *e)
 {
@@ -20,7 +20,7 @@ bool parser_ast_is_mutable(const struct parser_expr *e)
 {
     switch (e->kind) {
     case NOD_EXPR_IDENT:
-        if (e->var->is_param == true && IsPtr(e->type))
+        if (e->var->is_param == true && parser_is_ptr_type(e->type))
             return true;
         return e->var->is_param == false;
 
