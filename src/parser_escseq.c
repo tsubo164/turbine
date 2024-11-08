@@ -1,7 +1,7 @@
-#include "escseq.h"
+#include "parser_escseq.h"
 #include "data_intern.h"
 
-bool FindEscapedChar(int second_char, int *result_char)
+bool parser_find_escaped_char(int second_char, int *result_char)
 {
     static const int table[][2] = {
         {'"',  '"'},
@@ -17,7 +17,8 @@ bool FindEscapedChar(int second_char, int *result_char)
         {'b',  '\b'},
         {'?',  '\?'},
     };
-    static const int N = sizeof(table) / sizeof(table[0]);
+
+    static int N = sizeof(table) / sizeof(table[0]);
 
     for (int j = 0; j < N; j++) {
         if (second_char == table[j][0]) {
@@ -25,11 +26,13 @@ bool FindEscapedChar(int second_char, int *result_char)
             return true;
         }
     }
+
     return false;
 }
 
-int ConvertEscapeSequence(const char *src, const char **dst)
+int parser_convert_escape_sequence(const char *src, const char **dst)
 {
+    /* TODO take care of buffer overflow */
     static char buf[4096] = {'\0'};
     const char *s = src;
     char *d = buf;
@@ -39,14 +42,14 @@ int ConvertEscapeSequence(const char *src, const char **dst)
         int ch = *s;
 
         if (ch == '\\') {
-            const int next = *++s;
-            const bool found = FindEscapedChar(next, &ch);
+            int next = *++s;
+            bool found = parser_find_escaped_char(next, &ch);
 
             if (found) {
                 i++;
             }
             else {
-                // error
+                /* error */
                 *dst = data_string_intern(buf);
                 return i;
             }
@@ -54,5 +57,6 @@ int ConvertEscapeSequence(const char *src, const char **dst)
         *d++ = ch;
         s++;
     }
+
     return -1;
 }

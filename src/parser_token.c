@@ -1,6 +1,6 @@
 #include "parser_token.h"
+#include "parser_escseq.h"
 #include "data_intern.h"
-#include "escseq.h"
 #include "error.h"
 
 #include <assert.h>
@@ -216,14 +216,14 @@ static bool eof(const struct lexer *l)
 
 static bool isfp(int ch)
 {
-    const int c = tolower(ch);
+    int c = tolower(ch);
 
     return c == '.' || c == 'e';
 }
 
 static bool ishex(int ch)
 {
-    const int c = tolower(ch);
+    int c = tolower(ch);
 
     return c == 'x' ||
         c == 'a' || c == 'b' || c == 'c' ||
@@ -302,8 +302,8 @@ static void scan_char_literal(struct lexer *l, struct parser_token *tok, struct 
     int ch = get(l);
 
     if (ch == '\\') {
-        const int next = get(l);
-        const bool found = FindEscapedChar(next, &ch);
+        int next = get(l);
+        bool found = parser_find_escaped_char(next, &ch);
         if (!found) {
             unget(l);
             error(l, "unknown escape sequence");
@@ -332,7 +332,7 @@ static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_p
     char *p = buf;
     int len = 0;
 
-    const int first = get(l);
+    int first = get(l);
     if (first == '$' || isword(first)) {
         *p++ = first;
         len++;
@@ -349,7 +349,7 @@ static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_p
 
     unget(l);
 
-    const int kind = keyword_or_ident(buf);
+    int kind = keyword_or_ident(buf);
     tok->sval = data_string_intern(buf);
     set(tok, kind, pos);
 }
@@ -360,12 +360,12 @@ static void scan_string(struct lexer *l, struct parser_token *tok, struct parser
     static char buf[4096] = {'\0'};
     char *p = buf;
 
-    const struct parser_pos strpos = pos;
+    struct parser_pos strpos = pos;
     int len = 0;
     int backslashes = 0;
 
     for (int ch = get(l); ch != '"'; ch = get(l)) {
-        const int next = peek(l);
+        int next = peek(l);
 
         if (ch == '\\') {
             backslashes++;
@@ -396,7 +396,7 @@ static void scan_string(struct lexer *l, struct parser_token *tok, struct parser
 static void scan_line_comment(struct lexer *l)
 {
     for (;;) {
-        const int ch = get(l);
+        int ch = get(l);
 
         if (ch == '\n') {
             unget(l);
@@ -407,7 +407,7 @@ static void scan_line_comment(struct lexer *l)
 
 static void scan_block_comment(struct lexer *l, struct parser_pos pos)
 {
-    const struct parser_pos commentpos = pos;
+    struct parser_pos commentpos = pos;
     /* already accepted "slash-star" */
     int depth = 1;
 
@@ -446,7 +446,7 @@ static int count_indent(struct lexer *l)
     int indent = 0;
 
     for (;;) {
-        const int ch = get(l);
+        int ch = get(l);
 
         if (ch == '/') {
             /* indent + line comment => next line */
@@ -483,7 +483,7 @@ static int count_indent(struct lexer *l)
 
 static int scan_indent(struct lexer *l, struct parser_token *tok)
 {
-    const int indent = count_indent(l);
+    int indent = count_indent(l);
 
     if (indent > top(l)) {
         /* push indent */
@@ -522,7 +522,7 @@ static int scan_indent(struct lexer *l, struct parser_token *tok)
 
 static void get_token(struct lexer *l, struct parser_token *tok)
 {
-    const static struct parser_token ini = {0};
+    static const struct parser_token ini = {0};
     *tok = ini;
 
     if (l->unread_blockend > 0) {
@@ -534,14 +534,14 @@ static void get_token(struct lexer *l, struct parser_token *tok)
     if (l->is_line_begin) {
         l->is_line_begin = false;
 
-        const int kind = scan_indent(l, tok);
+        int kind = scan_indent(l, tok);
         if (kind == TOK_BLOCKBEGIN || kind == TOK_BLOCKEND)
             return;
     }
 
     while (!eof(l)) {
         int ch = get(l);
-        const struct parser_pos pos = l->pos;
+        struct parser_pos pos = l->pos;
 
         /* number */
         if (isdigit(ch)) {

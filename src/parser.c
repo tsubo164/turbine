@@ -1,11 +1,11 @@
 #include "parser.h"
 #include "scope.h"
-#include "parser_token.h"
 #include "type.h"
+#include "parser_token.h"
 #include "parser_ast.h"
+#include "parser_escseq.h"
 #include "ast_eval.h"
 #include "mem.h"
-#include "escseq.h"
 #include "error.h"
 
 #include <assert.h>
@@ -275,7 +275,7 @@ static struct parser_expr *primary_expr(Parser *p)
         struct parser_expr *e = parser_new_stringlit_expr(tok_str(p));
         const struct parser_token *tok = curtok(p);
         if (tok->has_escseq) {
-            const int errpos = ConvertEscapeSequence(e->sval, &e->converted);
+            const int errpos = parser_convert_escape_sequence(e->sval, &e->converted);
             if (errpos != -1) {
                 printf("!! e->val.s [%s] errpos %d\n", e->sval, errpos);
                 struct parser_pos pos = tok->pos;
