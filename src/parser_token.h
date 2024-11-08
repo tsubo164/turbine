@@ -4,9 +4,9 @@
 #include <stdbool.h>
 
 enum parser_token_kind {
-    TOK_NUL,
+    TOK_ROOT,
     TOK_KEYWORD_BEGIN,
-    /* type */
+    /* keyword */
     TOK_NIL,
     TOK_TRUE,
     TOK_FALSE,
@@ -14,7 +14,6 @@ enum parser_token_kind {
     TOK_INT,
     TOK_FLOAT,
     TOK_STRING,
-    /* stmt */
     TOK_IF,
     TOK_FOR,
     TOK_ELSE,
@@ -25,25 +24,15 @@ enum parser_token_kind {
     TOK_DEFAULT,
     TOK_RETURN,
     TOK_NOP,
-    TOK_EXPR,
-    TOK_BLOCK,
     /* special */
     TOK_CALLER_LINE,
     TOK_KEYWORD_END,
     /* identifier */
-    TOK_FIELD,
     TOK_IDENT,
-    TOK_FUNC,
-    TOK_VAR,
     /* literal */
-    TOK_NILLIT,
-    TOK_BOOLLIT,
     TOK_INTLIT,
     TOK_FLOATLIT,
     TOK_STRINGLIT,
-    TOK_FUNCLIT,
-    TOK_ARRAYLIT,
-    TOK_STRUCTLIT,
     /* separator */
     TOK_LPAREN,
     TOK_RPAREN,
@@ -83,20 +72,11 @@ enum parser_token_kind {
     TOK_AND,
     TOK_LOR,
     TOK_LAND,
-    /* array, struct, func */
-    TOK_SELECT,
-    TOK_INDEX,
-    TOK_CALL,
     /* unary */
     TOK_LNOT,
-    TOK_POS,
-    TOK_NEG,
-    TOK_ADR,
-    TOK_DRF,
     TOK_NOT,
     TOK_INC,
     TOK_DEC,
-    TOK_CONV,
     /* assign */
     TOK_ASSN,
     TOK_AADD,
@@ -104,8 +84,6 @@ enum parser_token_kind {
     TOK_AMUL,
     TOK_ADIV,
     TOK_AREM,
-    TOK_INIT,
-    TOK_ELEMENT,
     /* eof */
     TOK_EOF
 };

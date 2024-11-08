@@ -708,7 +708,7 @@ static void semantic_check_assign_stmt(Parser *p, struct parser_pos pos,
     }
     // TODO make new_assign_stmt()
     if (IsFunc(rval->type) && rval->type->func_type->is_builtin) {
-        assert(rval->kind == TOK_FUNCLIT);
+        assert(rval->kind == NOD_EXPR_FUNCLIT);
         struct Func *func = rval->func;
         error(p, pos, "builtin function can not be assigned: '%s'",
                 func->name);
@@ -1100,7 +1100,7 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
     struct parser_expr *ident = parser_new_ident_expr(sym);
     // TODO make new_assign_stmt()
     if (init && IsFunc(init->type) && init->type->func_type->is_builtin) {
-        assert(init->kind == TOK_FUNCLIT);
+        assert(init->kind == NOD_EXPR_FUNCLIT);
         struct Func *func = init->func;
         error(p, init_pos,
                 "builtin function can not be assigned: '%s'",

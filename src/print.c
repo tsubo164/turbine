@@ -11,9 +11,6 @@ void PrintToken(const struct parser_token *token, bool format)
 
     for (const struct parser_token *tok = token; tok; tok = tok->next) {
 
-        if (tok->kind == TOK_NUL)
-            continue;
-
         if (!format) {
             printf("(%4d, %3d) %s",
                     tok->pos.y, tok->pos.x,
@@ -53,6 +50,9 @@ void PrintToken(const struct parser_token *token, bool format)
             else if (tok->kind != TOK_BLOCKBEGIN && tok->kind != TOK_BLOCKEND) {
                 printf("%s ", parser_get_token_string(tok->kind));
             }
+
+            if (tok->kind == TOK_ROOT)
+                printf("\n");
         }
 
         if (tok->kind == TOK_EOF)
