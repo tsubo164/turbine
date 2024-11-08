@@ -123,35 +123,38 @@ static void set(struct parser_token *t, int k, struct parser_pos p)
     t->pos = p;
 }
 
-typedef struct Lexer {
+#define MAX_INDENT 128
+
+struct lexer {
     /* src text */
     const char *src;
-    const char *it;
+    const char *itr;
     struct parser_pos pos;
     int prevx;
 
     /* indent */
-    int indent_stack[128];
+    int indent_stack[MAX_INDENT];
     int sp;
     int unread_blockend;
     bool is_line_begin;
     bool is_inside_brackets;
-} Lexer;
+};
 
-static void error(const Lexer *l, const char *fmt, ...)
+static void error(const struct lexer *l, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
+    /* TODO print file name */
     VError(l->src, "fixme.ro", l->pos, fmt, args);
     va_end(args);
 }
 
-static void set_input(Lexer *l, const char *src)
+static void set_input(struct lexer *l, const char *src)
 {
     l->src = src;
 
     /* init */
-    l->it = l->src;
+    l->itr = l->src;
     l->pos.x = 0;
     l->pos.y = 1;
     l->prevx = 0;
@@ -164,15 +167,15 @@ static void set_input(Lexer *l, const char *src)
     l->is_inside_brackets = false;
 }
 
-static int curr(const Lexer *l)
+static int curr(const struct lexer *l)
 {
-    if (l->it == l->src)
+    if (l->itr == l->src)
         return '\0';
     else
-        return *(l->it - 1);
+        return *(l->itr - 1);
 }
 
-static int get(Lexer *l)
+static int get(struct lexer *l)
 {
     l->prevx = l->pos.x;
 
@@ -184,17 +187,17 @@ static int get(Lexer *l)
         l->pos.x++;
     }
 
-    return *l->it++;
+    return *l->itr++;
 }
 
-static int peek(const Lexer *l)
+static int peek(const struct lexer *l)
 {
-    return *l->it;
+    return *l->itr;
 }
 
-static void unget(Lexer *l)
+static void unget(struct lexer *l)
 {
-    l->it--;
+    l->itr--;
 
     if (curr(l) == '\n') {
         l->pos.x = l->prevx;
@@ -206,9 +209,9 @@ static void unget(Lexer *l)
     }
 }
 
-static bool eof(const Lexer *l)
+static bool eof(const struct lexer *l)
 {
-    return *l->it == '\0';
+    return *l->itr == '\0';
 }
 
 static bool isfp(int ch)
@@ -232,27 +235,27 @@ static bool isnum(int ch)
     return isdigit(ch) || ishex(ch) || isfp(ch);
 }
 
-static void push(Lexer *l, int indent)
+static void push(struct lexer *l, int indent)
 {
-    if (l->sp == 127)
+    if (l->sp == MAX_INDENT - 1)
         error(l, "indent stack overflow");
 
     l->indent_stack[++l->sp] = indent;
 }
 
-static void pop(Lexer *l)
+static void pop(struct lexer *l)
 {
     l->sp--;
 }
 
-static int top(const Lexer *l)
+static int top(const struct lexer *l)
 {
     return l->indent_stack[l->sp];
 }
 
-static void scan_number(Lexer *l, struct parser_token *tok, struct parser_pos pos)
+static void scan_number(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
-    const char *start = l->it;
+    const char *start = l->itr;
     bool fpnum = false;
     int base = 10;
     int len = 0;
@@ -294,7 +297,7 @@ static void scan_number(Lexer *l, struct parser_token *tok, struct parser_pos po
     assert(end && (len == (end - &(*start))));
 }
 
-static void scan_char_literal(Lexer *l, struct parser_token *tok, struct parser_pos pos)
+static void scan_char_literal(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
     int ch = get(l);
 
@@ -322,8 +325,9 @@ static bool isword(int ch)
     return isalnum(ch) || ch == '_';
 }
 
-static void scan_word(Lexer *l, struct parser_token *tok, struct parser_pos pos)
+static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
+    /* TODO take care of buffer overflow */
     static char buf[128] = {'\0'};
     char *p = buf;
     int len = 0;
@@ -350,8 +354,9 @@ static void scan_word(Lexer *l, struct parser_token *tok, struct parser_pos pos)
     set(tok, kind, pos);
 }
 
-static void scan_string(Lexer *l, struct parser_token *tok, struct parser_pos pos)
+static void scan_string(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
+    /* TODO take care of buffer overflow */
     static char buf[4096] = {'\0'};
     char *p = buf;
 
@@ -388,7 +393,7 @@ static void scan_string(Lexer *l, struct parser_token *tok, struct parser_pos po
     set(tok, TOK_STRINGLIT, pos);
 }
 
-static void scan_line_comment(Lexer *l)
+static void scan_line_comment(struct lexer *l)
 {
     for (;;) {
         const int ch = get(l);
@@ -400,7 +405,7 @@ static void scan_line_comment(Lexer *l)
     }
 }
 
-static void scan_block_comment(Lexer *l, struct parser_pos pos)
+static void scan_block_comment(struct lexer *l, struct parser_pos pos)
 {
     const struct parser_pos commentpos = pos;
     /* already accepted "slash-star" */
@@ -436,7 +441,7 @@ static void scan_block_comment(Lexer *l, struct parser_pos pos)
     }
 }
 
-static int count_indent(Lexer *l)
+static int count_indent(struct lexer *l)
 {
     int indent = 0;
 
@@ -476,7 +481,7 @@ static int count_indent(Lexer *l)
     return indent;
 }
 
-static int scan_indent(Lexer *l, struct parser_token *tok)
+static int scan_indent(struct lexer *l, struct parser_token *tok)
 {
     const int indent = count_indent(l);
 
@@ -515,7 +520,7 @@ static int scan_indent(Lexer *l, struct parser_token *tok)
     }
 }
 
-static void get_token(Lexer *l, struct parser_token *tok)
+static void get_token(struct lexer *l, struct parser_token *tok)
 {
     const static struct parser_token ini = {0};
     *tok = ini;
@@ -857,7 +862,7 @@ static struct parser_token *new_token(int kind)
 
 const struct parser_token *parser_tokenize(const char *src)
 {
-    Lexer l = {0};
+    struct lexer l = {0};
     set_input(&l, src);
 
     struct parser_token *head = new_token(TOK_ROOT);
