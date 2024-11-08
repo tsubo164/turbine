@@ -1,6 +1,6 @@
 #include "parser_ast_eval.h"
+#include "parser_symbol.h"
 #include "parser_type.h"
-#include "scope.h"
 
 bool parser_ast_is_global(const struct parser_expr *e)
 {

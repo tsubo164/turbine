@@ -4,10 +4,10 @@
 #include <stdbool.h>
 
 struct Bytecode;
-struct Module;
+struct parser_module;
 
 void SetOptimize(bool enable);
-void ResolveOffset(struct Module *mod);
-void GenerateCode(struct Bytecode *code, const struct Module *mod);
+void ResolveOffset(struct parser_module *mod);
+void GenerateCode(struct Bytecode *code, const struct parser_module *mod);
 
 #endif // _H

@@ -1,6 +1,6 @@
 #include "parser_ast.h"
+#include "parser_symbol.h"
 #include "parser_type.h"
-#include "scope.h"
 
 #include <stdlib.h>
 
@@ -143,7 +143,7 @@ struct parser_expr *parser_new_stringlit_expr(const char *s)
     return e;
 }
 
-struct parser_expr *parser_new_funclit_expr(struct Func *func)
+struct parser_expr *parser_new_funclit_expr(struct parser_func *func)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_FUNCLIT);
     e->type = parser_new_func_type(func->func_type);
@@ -159,7 +159,7 @@ struct parser_expr *parser_new_arraylit_expr(struct parser_expr *elems, int len)
     return e;
 }
 
-struct parser_expr *parser_new_structlit_expr(struct Struct *strct, struct parser_expr *fields)
+struct parser_expr *parser_new_structlit_expr(struct parser_struct *strct, struct parser_expr *fields)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_STRUCTLIT);
     e->type = parser_new_struct_type(strct);
@@ -175,7 +175,7 @@ struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct 
     return e;
 }
 
-struct parser_expr *parser_new_ident_expr(struct Symbol *sym)
+struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_IDENT);
     e->type = sym->type;
@@ -184,7 +184,7 @@ struct parser_expr *parser_new_ident_expr(struct Symbol *sym)
     return e;
 }
 
-struct parser_expr *parser_new_field_expr(struct Field *f)
+struct parser_expr *parser_new_field_expr(struct parser_field *f)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_FIELD);
     e->type = f->type;

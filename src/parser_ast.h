@@ -82,11 +82,11 @@ enum parser_node_kind {
 };
 
 struct parser_type;
-struct Symbol;
-struct Var;
-struct Func;
-struct Field;
-struct Struct;
+struct parser_symbol;
+struct parser_var;
+struct parser_func;
+struct parser_field;
+struct parser_struct;
 
 struct parser_expr {
     int kind;
@@ -97,16 +97,16 @@ struct parser_expr {
     struct parser_expr *r;
     struct parser_expr *next;
 
-    struct Symbol *sym;
-    struct Var *var;
-    struct Field *field;
+    struct parser_symbol *sym;
+    struct parser_var *var;
+    struct parser_field *field;
 
     /* literals */
     union {
         long ival;
         double fval;
         const char *sval;
-        struct Func *func;
+        struct parser_func *func;
     };
     const char *converted;
 };
@@ -130,12 +130,12 @@ struct parser_expr *parser_new_boollit_expr(bool b);
 struct parser_expr *parser_new_intlit_expr(long l);
 struct parser_expr *parser_new_floatlit_expr(double d);
 struct parser_expr *parser_new_stringlit_expr(const char *s);
-struct parser_expr *parser_new_funclit_expr(struct Func *func);
+struct parser_expr *parser_new_funclit_expr(struct parser_func *func);
 struct parser_expr *parser_new_arraylit_expr(struct parser_expr *elems, int len);
-struct parser_expr *parser_new_structlit_expr(struct Struct *strct, struct parser_expr *fields);
+struct parser_expr *parser_new_structlit_expr(struct parser_struct *strct, struct parser_expr *fields);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct parser_type *to);
-struct parser_expr *parser_new_ident_expr(struct Symbol *sym);
-struct parser_expr *parser_new_field_expr(struct Field *f);
+struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym);
+struct parser_expr *parser_new_field_expr(struct parser_field *f);
 struct parser_expr *parser_new_select_expr(struct parser_expr *inst, struct parser_expr *fld);
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_pos p);

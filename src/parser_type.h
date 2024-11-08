@@ -3,10 +3,10 @@
 
 #include <stdbool.h>
 
-struct FuncType;
-struct Struct;
-struct Table;
-struct Module;
+struct parser_func_type;
+struct parser_struct;
+struct parser_table;
+struct parser_module;
 
 enum parser_type_kind {
     TYP_NIL,
@@ -28,10 +28,10 @@ struct parser_type {
     const struct parser_type *underlying;
 
     union {
-        const struct FuncType *func_type;
-        const struct Struct *strct;
-        const struct Table *table;
-        const struct Module *module;
+        const struct parser_func_type *func_type;
+        const struct parser_struct *strct;
+        const struct parser_table *table;
+        const struct parser_module *module;
         int len;
     };
 };
@@ -41,10 +41,10 @@ struct parser_type *parser_new_bool_type(void);
 struct parser_type *parser_new_int_type(void);
 struct parser_type *parser_new_float_type(void);
 struct parser_type *parser_new_string_type(void);
-struct parser_type *parser_new_func_type(struct FuncType *func_type);
-struct parser_type *parser_new_struct_type(struct Struct *s);
-struct parser_type *parser_new_table_type(struct Table *t);
-struct parser_type *parser_new_module_type(struct Module *m);
+struct parser_type *parser_new_func_type(struct parser_func_type *func_type);
+struct parser_type *parser_new_struct_type(struct parser_struct *s);
+struct parser_type *parser_new_table_type(struct parser_table *t);
+struct parser_type *parser_new_module_type(struct parser_module *m);
 struct parser_type *parser_new_ptr_type(const struct parser_type *underlying);
 struct parser_type *parser_new_array_type(int len, const struct parser_type *underlying);
 struct parser_type *parser_new_any_type(void);

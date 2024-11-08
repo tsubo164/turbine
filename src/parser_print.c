@@ -1,7 +1,7 @@
 #include "parser_print.h"
-#include "parser_ast.h"
+#include "parser_symbol.h"
 #include "parser_type.h"
-#include "scope.h"
+#include "parser_ast.h"
 
 #include <stdio.h>
 
@@ -131,7 +131,7 @@ static void print_stmt(const struct parser_stmt *s, int depth)
     print_stmt(s->body, depth + 1);
 }
 
-static void print_func(const struct Func *func, int depth)
+static void print_func(const struct parser_func *func, int depth)
 {
     if (!func)
         return;
@@ -149,7 +149,7 @@ static void print_func(const struct Func *func, int depth)
     print_stmt(func->body, depth + 1);
 }
 
-static void print_module(const struct Module *mod, int depth)
+static void print_module(const struct parser_module *mod, int depth)
 {
     if (!mod)
         return;
@@ -163,12 +163,12 @@ static void print_module(const struct Module *mod, int depth)
         print_stmt(gvar, depth + 1);
 
     for (int i = 0; i < mod->funcs.len; i++) {
-        const struct Func *f = mod->funcs.data[i];
+        const struct parser_func *f = mod->funcs.data[i];
         print_func(f, depth + 1);
     }
 }
 
-void parser_print_prog(const struct Module *mod)
+void parser_print_prog(const struct parser_module *mod)
 {
     if (!mod)
         return;
@@ -183,14 +183,14 @@ static void print_header(int depth)
     printf("%d. ", depth);
 }
 
-static void print_scope(const struct Scope *sc, int depth)
+static void print_scope(const struct parser_scope *sc, int depth)
 {
     /* symbols */
     for (int i = 0; i < sc->syms.len; i++) {
-        const struct Symbol *sym = sc->syms.data[i];
+        const struct parser_symbol *sym = sc->syms.data[i];
 
         if (sym->kind == SYM_VAR) {
-            const struct Var *v = sym->var;
+            const struct parser_var *v = sym->var;
             print_header(depth);
             printf("[var] \"%s\" %s @%d\n",
                     v->name, parser_type_string(v->type),
@@ -198,7 +198,7 @@ static void print_scope(const struct Scope *sc, int depth)
         }
 
         if (sym->kind == SYM_FUNC) {
-            const struct Func *func = sym->func;
+            const struct parser_func *func = sym->func;
             print_header(depth);
             printf("[fnc] \"%s\" %s (id:%d)\n",
                     func->name, parser_type_string(func->return_type), func->id);
@@ -206,12 +206,12 @@ static void print_scope(const struct Scope *sc, int depth)
         }
 
         if (sym->kind == SYM_STRUCT) {
-            const struct Struct *strct = sym->strct;
+            const struct parser_struct *strct = sym->strct;
             print_header(depth);
             printf("[struct] \"%s\"\n", strct->name);
 
             for (int j = 0; j < strct->fields.len; j++) {
-                const struct Field *f = strct->fields.data[j];
+                const struct parser_field *f = strct->fields.data[j];
                 print_header(depth + 1);
                 printf("[field] \"%s\" @%d %s\n",
                         f->name, f->offset, parser_type_string(f->type));
@@ -219,7 +219,7 @@ static void print_scope(const struct Scope *sc, int depth)
         }
 
         if (sym->kind == SYM_TABLE) {
-            const struct Table *t = sym->table;
+            const struct parser_table *t = sym->table;
 
             print_header(depth);
             printf("[table] \"%s\"\n", t->name);
@@ -227,14 +227,14 @@ static void print_scope(const struct Scope *sc, int depth)
                 struct data_hashmap_entry *e = &t->rows.buckets[i];
                 if (!e->key)
                     continue;
-                struct Row *r = e->val;
+                struct parser_table_row *r = e->val;
                 print_header(depth + 1);
                 printf("[row] \"%s\" => %lld\n", r->name, r->ival);
             }
         }
 
         if (sym->kind == SYM_MODULE) {
-            const struct Module *m = sym->module;
+            const struct parser_module *m = sym->module;
 
             print_header(depth);
             printf("[module] \"%s\"\n", m->name);
@@ -242,7 +242,7 @@ static void print_scope(const struct Scope *sc, int depth)
         }
 
         if (sym->kind == SYM_SCOPE) {
-            const struct Scope *child = sym->scope;
+            const struct parser_scope *child = sym->scope;
             print_scope(child, depth + 1);
         }
     }
@@ -254,7 +254,7 @@ static void print_scope(const struct Scope *sc, int depth)
     }
 }
 
-void parser_print_scope(const struct Scope *sc)
+void parser_print_scope(const struct parser_scope *sc)
 {
     print_scope(sc, 0);
 }

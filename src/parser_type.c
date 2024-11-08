@@ -1,7 +1,7 @@
 #include "parser_type.h"
+#include "parser_symbol.h"
 #include "data_intern.h"
 #include "error.h"
-#include "scope.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,28 +52,28 @@ static struct parser_type *new_type(int kind)
     return t;
 }
 
-struct parser_type *parser_new_func_type(struct FuncType *func_type)
+struct parser_type *parser_new_func_type(struct parser_func_type *func_type)
 {
     struct parser_type *t = new_type(TYP_FUNC);
     t->func_type = func_type;
     return t;
 }
 
-struct parser_type *parser_new_struct_type(struct Struct *s)
+struct parser_type *parser_new_struct_type(struct parser_struct *s)
 {
     struct parser_type *t = new_type(TYP_STRUCT);
     t->strct = s;
     return t;
 }
 
-struct parser_type *parser_new_table_type(struct Table *tab)
+struct parser_type *parser_new_table_type(struct parser_table *tab)
 {
     struct parser_type *t = new_type(TYP_TABLE);
     t->table = tab;
     return t;
 }
 
-struct parser_type *parser_new_module_type(struct Module *mod)
+struct parser_type *parser_new_module_type(struct parser_module *mod)
 {
     struct parser_type *t = new_type(TYP_MODULE);
     t->module = mod;

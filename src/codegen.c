@@ -1,9 +1,9 @@
 #include "codegen.h"
 #include "bytecode.h"
-#include "scope.h"
 #include "error.h"
 #include "parser_ast.h"
 #include "parser_ast_eval.h"
+#include "parser_symbol.h"
 #include "parser_type.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -112,7 +112,7 @@ static void gen_addr(Bytecode *code, const struct parser_expr *e);
 
 /*static*/ void gen_call(Bytecode *code, const struct parser_expr *call)
 {
-    const struct FuncType *func_type = call->l->type->func_type;
+    const struct parser_func_type *func_type = call->l->type->func_type;
 
     if (func_type->is_variadic) {
         int argc = 0;
@@ -924,7 +924,7 @@ static void gen_stmt(Bytecode *code, const struct parser_stmt *s)
     */
 }
 
-static void gen_func(Bytecode *code, const struct Func *func, int func_id)
+static void gen_func(Bytecode *code, const struct parser_func *func, int func_id)
 {
     //BackPatchFuncAddr(code, func->fullname);
     RegisterFunction(code, func_id, func->params.len);
@@ -935,13 +935,13 @@ static void gen_func(Bytecode *code, const struct Func *func, int func_id)
     gen_stmt(code, func->body);
 }
 
-static void gen_gvars(Bytecode *code, const struct Module *mod)
+static void gen_gvars(Bytecode *code, const struct parser_module *mod)
 {
-    struct Scope *scope = mod->scope;
+    struct parser_scope *scope = mod->scope;
 
     // imported modules first
     for (int i = 0; i < scope->syms.len; i++) {
-        struct Symbol *sym = scope->syms.data[i];
+        struct parser_symbol *sym = scope->syms.data[i];
 
         if (sym->kind == SYM_MODULE)
             gen_gvars(code, sym->module);
@@ -952,13 +952,13 @@ static void gen_gvars(Bytecode *code, const struct Module *mod)
         gen_stmt(code, gvar);
 }
 
-static void gen_funcs(Bytecode *code, const struct Module *mod)
+static void gen_funcs(Bytecode *code, const struct parser_module *mod)
 {
-    struct Scope *scope = mod->scope;
+    struct parser_scope *scope = mod->scope;
 
     // imported modules first
     for (int i = 0; i < scope->syms.len; i++) {
-        struct Symbol *sym = scope->syms.data[i];
+        struct parser_symbol *sym = scope->syms.data[i];
 
         if (sym->kind == SYM_MODULE)
             gen_funcs(code, sym->module);
@@ -966,13 +966,13 @@ static void gen_funcs(Bytecode *code, const struct Module *mod)
 
     // self module next
     for (int i = 0; i < mod->funcs.len; i++) {
-        struct Func *func = mod->funcs.data[i];
+        struct parser_func *func = mod->funcs.data[i];
         if (!func->is_builtin)
             gen_func(code, func, func->id);
     }
 }
 
-static void gen_module(Bytecode *code, const struct Module *mod)
+static void gen_module(Bytecode *code, const struct parser_module *mod)
 {
     if (!mod->main_func) {
         fprintf(stderr, "error: 'main' function not found");
@@ -992,10 +992,10 @@ static void gen_module(Bytecode *code, const struct Module *mod)
     gen_funcs(code, mod);
 }
 
-/*static*/ void register_funcs(Bytecode *code, const struct Module *mod)
+/*static*/ void register_funcs(Bytecode *code, const struct parser_module *mod)
 {
     for (int i = 0; i < mod->funcs.len; i++) {
-        struct Func *func = mod->funcs.data[i];
+        struct parser_func *func = mod->funcs.data[i];
         if (!func->is_builtin) {
             func->id = RegisterFunc(code, func->fullname, func->params.len);
         }
@@ -1003,14 +1003,14 @@ static void gen_module(Bytecode *code, const struct Module *mod)
 }
 
 // XXX TEST ----------------
-static void gen_module__(Bytecode *code, const struct Module *mod);
-void GenerateCode__(struct Bytecode *code, const struct Module *mod)
+static void gen_module__(Bytecode *code, const struct parser_module *mod);
+void GenerateCode__(struct Bytecode *code, const struct parser_module *mod)
 {
     gen_module__(code, mod);
     End__(code);
 }
 
-void GenerateCode(struct Bytecode *code, const struct Module *mod)
+void GenerateCode(struct Bytecode *code, const struct parser_module *mod)
 {
     //register_funcs(code, mod);
     // XXX TEST ----------------
@@ -1022,12 +1022,12 @@ void GenerateCode(struct Bytecode *code, const struct Module *mod)
     End(code);
 }
 
-static int resolve_func_id(struct Scope *scope, int start_id)
+static int resolve_func_id(struct parser_scope *scope, int start_id)
 {
     int next_id = start_id;
 
     for (int i = 0; i < scope->syms.len; i++) {
-        struct Symbol *sym = scope->syms.data[i];
+        struct parser_symbol *sym = scope->syms.data[i];
 
         if (sym->kind == SYM_FUNC) {
             if (!sym->func->is_builtin)
@@ -1046,7 +1046,7 @@ static int max(int a, int b)
     return a < b ? b : a;
 }
 
-static int resolve_offset(struct Scope *scope, int start_offset)
+static int resolve_offset(struct parser_scope *scope, int start_offset)
 {
     int cur_offset = start_offset;
     int max_offset = start_offset;
@@ -1054,10 +1054,10 @@ static int resolve_offset(struct Scope *scope, int start_offset)
     int max_size = 0;
 
     for (int i = 0; i < scope->syms.len; i++) {
-        struct Symbol *sym = scope->syms.data[i];
+        struct parser_symbol *sym = scope->syms.data[i];
 
         if (sym->kind == SYM_VAR) {
-            struct Var *var = sym->var;
+            struct parser_var *var = sym->var;
             // offset
             var->offset = cur_offset;
             cur_offset += parser_sizeof_type(var->type);
@@ -1068,12 +1068,12 @@ static int resolve_offset(struct Scope *scope, int start_offset)
             max_size = max(max_size, cur_size);
         }
         else if (sym->kind == SYM_FUNC) {
-            struct Scope *child = sym->func->scope;
+            struct parser_scope *child = sym->func->scope;
             // start over from offset 0
             resolve_offset(child, 0);
         }
         else if (sym->kind == SYM_SCOPE) {
-            struct Scope *child = sym->scope;
+            struct parser_scope *child = sym->scope;
             int child_max = resolve_offset(child, cur_offset);
             // offset
             max_offset = max(max_offset, child_max);
@@ -1081,7 +1081,7 @@ static int resolve_offset(struct Scope *scope, int start_offset)
             max_size = max(max_size, cur_size + child->size);
         }
         else if (sym->kind == SYM_MODULE) {
-            struct Scope *child = sym->module->scope;
+            struct parser_scope *child = sym->module->scope;
             // offset
             cur_offset = resolve_offset(child, cur_offset);
             max_offset = max(max_offset, cur_offset);
@@ -1095,7 +1095,7 @@ static int resolve_offset(struct Scope *scope, int start_offset)
     return max_offset;
 }
 
-void ResolveOffset(struct Module *mod)
+void ResolveOffset(struct parser_module *mod)
 {
     resolve_offset(mod->scope, 0);
     resolve_func_id(mod->scope, 0);
@@ -1553,7 +1553,7 @@ static int gen_binop_assign__(Bytecode *code, const struct parser_expr *e)
 
 static int gen_call__(Bytecode *code, const struct parser_expr *call)
 {
-    const struct FuncType *func_type = call->l->type->func_type;
+    const struct parser_func_type *func_type = call->l->type->func_type;
 
     // Save the current register right before evaluating args
     //int retval_reg = NewRegister__(code);
@@ -2283,7 +2283,7 @@ static void gen_stmt__(Bytecode *code, const struct parser_stmt *s)
     ResetCurrentRegister__(code);
 }
 
-static void gen_func__(Bytecode *code, const struct Func *func, int func_id)
+static void gen_func__(Bytecode *code, const struct parser_func *func, int func_id)
 {
     // Register function
     RegisterFunction__(code, func_id, func->params.len);
@@ -2301,13 +2301,13 @@ static void gen_func__(Bytecode *code, const struct Func *func, int func_id)
     SetMaxRegisterCount__(code, func_id);
 }
 
-static void gen_funcs__(Bytecode *code, const struct Module *mod)
+static void gen_funcs__(Bytecode *code, const struct parser_module *mod)
 {
-    struct Scope *scope = mod->scope;
+    struct parser_scope *scope = mod->scope;
 
     // imported modules first
     for (int i = 0; i < scope->syms.len; i++) {
-        struct Symbol *sym = scope->syms.data[i];
+        struct parser_symbol *sym = scope->syms.data[i];
 
         if (sym->kind == SYM_MODULE)
             gen_funcs__(code, sym->module);
@@ -2315,19 +2315,19 @@ static void gen_funcs__(Bytecode *code, const struct Module *mod)
 
     // self module next
     for (int i = 0; i < mod->funcs.len; i++) {
-        struct Func *func = mod->funcs.data[i];
+        struct parser_func *func = mod->funcs.data[i];
         if (!func->is_builtin)
             gen_func__(code, func, func->id);
     }
 }
 
-static void gen_gvars__(Bytecode *code, const struct Module *mod)
+static void gen_gvars__(Bytecode *code, const struct parser_module *mod)
 {
-    struct Scope *scope = mod->scope;
+    struct parser_scope *scope = mod->scope;
 
     // imported modules first
     for (int i = 0; i < scope->syms.len; i++) {
-        struct Symbol *sym = scope->syms.data[i];
+        struct parser_symbol *sym = scope->syms.data[i];
 
         if (sym->kind == SYM_MODULE)
             gen_gvars__(code, sym->module);
@@ -2338,7 +2338,7 @@ static void gen_gvars__(Bytecode *code, const struct Module *mod)
         gen_stmt__(code, gvar);
 }
 
-static void gen_module__(Bytecode *code, const struct Module *mod)
+static void gen_module__(Bytecode *code, const struct parser_module *mod)
 {
     if (!mod->main_func) {
         fprintf(stderr, "error: 'main' function not found");

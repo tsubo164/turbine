@@ -5,8 +5,8 @@
 #include "parser.h"
 #include "parser_token.h"
 #include "parser_print.h"
+#include "parser_symbol.h"
 #include "parser_ast.h"
-#include "scope.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -20,7 +20,7 @@ static void print_header(const char *title)
 Int Interpret(const char *src, const char *filename, const Option *opt)
 {
     const struct parser_token *tok = NULL;
-    struct Scope builtin = {0};
+    struct parser_scope builtin = {0};
     Bytecode code = {{0}};
     VM vm = {{0}};
 
@@ -39,7 +39,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     }
 
     // Compile source
-    struct Module *prog = Parse(src, filename, data_string_intern("_main"), tok, &builtin);
+    struct parser_module *prog = Parse(src, filename, data_string_intern("_main"), tok, &builtin);
     ResolveOffset(prog);
 
     if (opt->print_tree) {

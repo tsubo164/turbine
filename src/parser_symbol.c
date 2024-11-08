@@ -1,0 +1,313 @@
+#include "parser_symbol.h"
+#include "parser_type.h"
+#include "data_intern.h"
+#include "mem.h"
+#include <string.h>
+#include <stdio.h>
+
+/* TODO make specific vec structs */
+void VecPush(struct Vec *v, void *data)
+{
+    if (!v)
+        return;
+
+    if (v->len >= v->cap) {
+        v->cap = v->cap < 4 ? 4 : 2 * v->cap;
+        v->data = realloc(v->data, v->cap * sizeof(v->data[0]));
+    }
+    v->data[v->len++] = data;
+}
+
+void VecFree(struct Vec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+/* ------------------------------ */
+
+/* scope */
+struct parser_scope *parser_new_scope(struct parser_scope *parent)
+{
+    struct parser_scope *sc = CALLOC(struct parser_scope);
+    sc->parent = parent;
+    return sc;
+}
+
+/* symbol */
+struct parser_symbol *parser_new_symbol(int kind, const char *name, const struct parser_type *type)
+{
+    struct parser_symbol *sym = CALLOC(struct parser_symbol);
+    sym->kind = kind;
+    sym->name = name;
+    sym->type = type;
+    return sym;
+}
+
+struct parser_symbol *parser_find_symbol(const struct parser_scope *sc, const char *name)
+{
+    struct data_hashmap_entry *ent = data_hashmap_lookup(&sc->symbols, name);
+    if (ent)
+        return ent->val;
+
+    if (sc->parent)
+        return parser_find_symbol(sc->parent, name);
+
+    return NULL;
+}
+
+struct parser_symbol *FindSymbolThisScope(struct parser_scope *sc, const char *name)
+{
+    struct data_hashmap_entry *ent = data_hashmap_lookup(&sc->symbols, name);
+    if (ent)
+        return ent->val;
+
+    return NULL;
+}
+
+/* var */
+static struct parser_var *new_var(const char *Name, const struct parser_type *t, bool global)
+{
+    struct parser_var *v = CALLOC(struct parser_var);
+    v->name = Name;
+    v->type = t;
+    v->is_global = global;
+    return v;
+}
+
+struct parser_symbol *parser_define_var(struct parser_scope *sc, const char *name, const struct parser_type *type, bool isglobal)
+{
+    if (FindSymbolThisScope(sc, name))
+        return NULL;
+
+    struct parser_symbol *sym = parser_new_symbol(SYM_VAR, name, type);
+    sym->var = new_var(name, type, isglobal);
+
+    if (!data_hashmap_insert(&sc->symbols, name, sym))
+        return NULL;
+    VecPush(&sc->syms, sym);
+
+    return sym;
+}
+
+static const char *func_fullname(const char *modulefile, const char *funcname)
+{
+    /* unique func name */
+    static char fullname[1024] = {'\0'};
+    static const size_t size = sizeof(fullname) / sizeof(fullname[0]);
+
+    snprintf(fullname, size, "%s:%s", modulefile, funcname);
+    return data_string_intern(fullname);
+}
+
+/* func */
+static struct parser_func *new_func(struct parser_scope *parent, const char *modulefile, const char *name)
+{
+    struct parser_func *f = CALLOC(struct parser_func);
+    f->name = name;
+    f->fullname = func_fullname(modulefile, name);
+    f->scope = parser_new_scope(parent);
+    f->is_builtin = false;
+    return f;
+}
+
+struct parser_func *parser_declare_func(struct parser_scope *parent, const char *name, const char *modulefile)
+{
+    struct parser_func *func = new_func(parent, modulefile, name);
+
+    if (parser_find_symbol(parent, func->name))
+        return NULL;
+
+    /* add func itself to symbol table */
+    struct parser_symbol *sym = parser_new_symbol(SYM_FUNC, func->name, parser_new_func_type(func->func_type));
+    sym->func = func;
+
+    if (!data_hashmap_insert(&parent->symbols, func->name, sym))
+        return NULL;
+    VecPush(&parent->syms, sym);
+
+    return func;
+}
+
+struct parser_func *parser_declare_builtin_func(struct parser_scope *parent, const char *name)
+{
+    struct parser_func *func = parser_declare_func(parent, name, ":buitin");
+    func->is_builtin = true;
+    return func;
+}
+
+static const struct parser_var *parser_get_param(const struct parser_func *f, int index);
+
+struct parser_func_type *parser_make_func_type(struct parser_func *func)
+{
+    struct parser_func_type *func_type = CALLOC(struct parser_func_type);
+
+    func_type->return_type = func->return_type;
+    for (int i = 0; i < func->params.len; i++) {
+        const struct parser_var *var = parser_get_param(func, i);
+        VecPush(&func_type->param_types, (void*) var->type);
+    }
+
+    func_type->is_builtin = func->is_builtin;
+    func_type->is_variadic = func->is_variadic;
+    func_type->has_special_var = func->has_special_var;
+
+    return func_type;
+}
+
+void parser_declare_param(struct parser_func *f, const char *name, const struct parser_type *type)
+{
+    struct parser_symbol *sym = parser_define_var(f->scope, name, type, false);
+    sym->var->is_param = true;
+    VecPush(&f->params, sym->var);
+
+    if (!strcmp(name, "..."))
+        f->is_variadic = true;
+
+    if (name[0] == '$')
+        f->has_special_var = true;
+}
+
+static const struct parser_var *parser_get_param(const struct parser_func *f, int index)
+{
+    int idx = 0;
+    int param_count = f->params.len;
+
+    if (f->is_variadic && index >= param_count)
+        idx = param_count - 1;
+    else
+        idx = index;
+
+    if (idx < 0 || idx >= param_count)
+        return NULL;
+
+    return f->params.data[idx];
+}
+
+const struct parser_type *parser_get_param_type(const struct parser_func_type *func_type, int index)
+{
+    int idx = 0;
+    int param_count = func_type->param_types.len;
+
+    if (func_type->is_variadic && index >= param_count)
+        idx = param_count - 1;
+    else
+        idx = index;
+
+    if (idx < 0 || idx >= param_count)
+        return NULL;
+
+    return func_type->param_types.data[idx];
+}
+
+int parser_required_param_count(const struct parser_func_type *func_type)
+{
+    int param_count = func_type->param_types.len;
+
+    if (func_type->is_variadic)
+        return param_count - 1;
+    else
+        return param_count;
+}
+
+/* struct */
+static struct parser_struct *new_struct(const char *name)
+{
+    struct parser_struct *s = CALLOC(struct parser_struct);
+    s->name = name;
+
+    return s;
+}
+
+struct parser_struct *parser_define_struct(struct parser_scope *sc, const char *name)
+{
+    struct parser_struct *strct = new_struct(name);
+    struct parser_symbol *sym = parser_new_symbol(SYM_STRUCT, name, parser_new_struct_type(strct));
+    sym->strct = strct;
+
+    if (!data_hashmap_insert(&sc->symbols, name, sym))
+        return NULL;
+    VecPush(&sc->syms, sym);
+
+    return strct;
+}
+
+struct parser_struct *parser_find_struct(const struct parser_scope *sc, const char *name)
+{
+    struct parser_symbol *sym = parser_find_symbol(sc, name);
+    if (sym)
+        return sym->strct;
+
+    return NULL;
+}
+
+static struct parser_field *new_field(const char *Name, const struct parser_type *type, int offset)
+{
+    struct parser_field *f = CALLOC(struct parser_field);
+    f->name = Name;
+    f->type = type;
+    f->offset = offset;
+    return f;
+}
+
+struct parser_field *parser_add_field(struct parser_struct *strct, const char *name, const struct parser_type *type)
+{
+    if (parser_find_field(strct, name))
+        return NULL;
+
+    struct parser_field *f = new_field(name, type, strct->size);
+    strct->size += parser_sizeof_type(f->type);
+
+    VecPush(&strct->fields, f);
+    return f;
+}
+
+struct parser_field *parser_find_field(const struct parser_struct *strct, const char *name)
+{
+    for (int i = 0; i < strct->fields.len; i++) {
+        struct parser_field *f = strct->fields.data[i];
+        if (!strcmp(f->name, name))
+            return f;
+    }
+    return NULL;
+}
+
+int parser_struct_get_field_count(const struct parser_struct *s)
+{
+    return s->fields.len;
+}
+
+/* table */
+struct parser_table *parser_define_table(struct parser_scope *sc, const char *name)
+{
+    struct parser_table *tab = CALLOC(struct parser_table);
+    tab->name = name;
+
+    struct parser_symbol *sym = parser_new_symbol(SYM_TABLE, name, parser_new_table_type(tab));
+    sym->table = tab;
+
+    if (!data_hashmap_insert(&sc->symbols, name, sym))
+        return NULL;
+    VecPush(&sc->syms, sym);
+
+    return tab;
+}
+
+/* module */
+struct parser_module *parser_define_module(struct parser_scope *sc, const char *filename, const char *modulename)
+{
+    struct parser_module *mod = CALLOC(struct parser_module);
+    mod->name = modulename;
+    mod->filename = filename;
+    mod->scope = parser_new_scope(sc);
+
+    struct parser_symbol *sym = parser_new_symbol(SYM_MODULE, modulename, parser_new_module_type(mod));
+    sym->module = mod;
+
+    if (!data_hashmap_insert(&sc->symbols, modulename, sym))
+        return NULL;
+    VecPush(&sc->syms, sym);
+
+    return mod;
+}
