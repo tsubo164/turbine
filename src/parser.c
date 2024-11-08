@@ -231,7 +231,7 @@ static struct parser_expr *struct_lit_expr(struct Parser *p, struct Symbol *sym)
             error(p, tok_pos(p),
                     "struct '%s' has no field '%s'", strct->name, tok_str(p));
         }
-        expect(p, TOK_ASSN);
+        expect(p, TOK_EQUAL);
 
         struct parser_expr *f = parser_new_field_expr(field);
         struct parser_expr *elem = parser_new_element_expr(f, expression(p));
@@ -346,7 +346,7 @@ static struct parser_expr *primary_expr(Parser *p)
             expr = arg_list(p, call);
             continue;
         }
-        else if (tok->kind == TOK_DOT) {
+        else if (tok->kind == TOK_PERIOD) {
             if (IsStruct(expr->type)) {
                 expect(p, TOK_IDENT);
                 struct Field *f = FindField(expr->type->strct, tok_str(p));
@@ -429,7 +429,7 @@ static struct parser_expr *unary_expr(Parser *p)
 
     switch (tok->kind) {
 
-    case TOK_MUL:
+    case TOK_ASTER:
         e = unary_expr(p);
         if (!IsPtr(e->type)) {
             error(p, tok->pos,
@@ -437,23 +437,23 @@ static struct parser_expr *unary_expr(Parser *p)
         }
         return parser_new_deref_expr(e);
 
-    case TOK_AND:
+    case TOK_AMPERSAND:
         e = unary_expr(p);
         return parser_new_addr_expr(e);
 
-    case TOK_ADD:
+    case TOK_PLUS:
         e = unary_expr(p);
         return parser_new_posi_expr(e);
 
-    case TOK_SUB:
+    case TOK_MINUS:
         e = unary_expr(p);
         return parser_new_nega_expr(e);
 
-    case TOK_LNOT:
+    case TOK_EXCLAM:
         e = unary_expr(p);
         return parser_new_lognot_expr(e);
 
-    case TOK_NOT:
+    case TOK_TILDE:
         e = unary_expr(p);
         return parser_new_not_expr(e);
 
@@ -487,37 +487,37 @@ static struct parser_expr *mul_expr(Parser *p)
 
         switch (tok->kind) {
 
-        case TOK_MUL:
+        case TOK_ASTER:
             r = unary_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_mul_expr(expr, r);
             break;
 
-        case TOK_DIV:
+        case TOK_SLASH:
             r = unary_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_div_expr(expr, r);
             break;
 
-        case TOK_REM:
+        case TOK_PERCENT:
             r = unary_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_rem_expr(expr, r);
             break;
 
-        case TOK_AND:
+        case TOK_AMPERSAND:
             r = unary_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_and_expr(expr, r);
             break;
 
-        case TOK_SHL:
+        case TOK_LT2:
             r = unary_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_shl_expr(expr, r);
             break;
 
-        case TOK_SHR:
+        case TOK_GT2:
             r = unary_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_shr_expr(expr, r);
@@ -545,25 +545,25 @@ static struct parser_expr *add_expr(Parser *p)
 
         switch (tok->kind) {
 
-        case TOK_ADD:
+        case TOK_PLUS:
             r = mul_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_add_expr(expr, r);
             break;
 
-        case TOK_SUB:
+        case TOK_MINUS:
             r = mul_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_sub_expr(expr, r);
             break;
 
-        case TOK_OR:
+        case TOK_VBAR:
             r = mul_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_or_expr(expr, r);
             break;
 
-        case TOK_XOR:
+        case TOK_CARET:
             r = mul_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_xor_expr(expr, r);
@@ -591,13 +591,13 @@ static struct parser_expr *rel_expr(Parser *p)
 
         switch (tok->kind) {
 
-        case TOK_EQ:
+        case TOK_EQUAL2:
             r = add_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_eq_expr(expr, r);
             break;
 
-        case TOK_NEQ:
+        case TOK_EXCLAMEQ:
             r = add_expr(p);
             semantic_check_type_match(p, pos, expr->type, r->type);
             expr = parser_new_neq_expr(expr, r);
@@ -646,7 +646,7 @@ static struct parser_expr *logand_expr(Parser *p)
 
         switch (tok->kind) {
 
-        case TOK_LAND:
+        case TOK_AMPERSAND2:
             expr = parser_new_logand_expr(expr, rel_expr(p));
             break;
 
@@ -669,7 +669,7 @@ static struct parser_expr *logor_expr(Parser *p)
 
         switch (tok->kind) {
 
-        case TOK_LOR:
+        case TOK_VBAR2:
             expr = parser_new_logor_expr(expr, logand_expr(p));
             break;
 
@@ -744,41 +744,41 @@ static struct parser_stmt *assign_stmt(Parser *p)
 
     switch (tok->kind) {
 
-    case TOK_ASSN:
+    case TOK_EQUAL:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
         return parser_new_assign_stmt(lval, rval);
 
-    case TOK_AADD:
+    case TOK_PLUSEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
         return parser_new_addassign_stmt(lval, rval);
 
-    case TOK_ASUB:
+    case TOK_MINUSEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
         return parser_new_subassign_stmt(lval, rval);
 
-    case TOK_AMUL:
+    case TOK_ASTEREQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
         return parser_new_mulassign_stmt(lval, rval);
 
-    case TOK_ADIV:
+    case TOK_SLASHEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
         return parser_new_divassign_stmt(lval, rval);
 
-    case TOK_AREM:
+    case TOK_PERCENTEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
         return parser_new_remassign_stmt(lval, rval);
 
-    case TOK_INC:
+    case TOK_PLUS2:
         semantic_check_incdec_stmt(p, pos, lval);
         return parser_new_inc_stmt(lval);
 
-    case TOK_DEC:
+    case TOK_MINUS2:
         semantic_check_incdec_stmt(p, pos, lval);
         return parser_new_dec_stmt(lval);
 
@@ -1007,7 +1007,7 @@ static struct parser_stmt *expr_stmt(Parser *p)
 
 static struct parser_stmt *scope_stmt(Parser *p)
 {
-    expect(p, TOK_DASH3);
+    expect(p, TOK_MINUS3);
     expect(p, TOK_NEWLINE);
 
     return block_stmt(p, new_child_scope(p));
@@ -1061,7 +1061,7 @@ static struct parser_expr *default_value(const struct Type *type)
 //          | "-" identifier type = expression newline
 static struct parser_stmt *var_decl(Parser *p, bool isglobal)
 {
-    expect(p, TOK_SUB);
+    expect(p, TOK_MINUS);
     expect(p, TOK_IDENT);
 
     // var anme
@@ -1071,7 +1071,7 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
     struct parser_expr *init = NULL;
 
     // type and init
-    if (consume(p, TOK_ASSN)) {
+    if (consume(p, TOK_EQUAL)) {
         // "- x = 42"
         init = expression(p);
         type = DuplicateType(init->type);
@@ -1079,7 +1079,7 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
     else {
         type = type_spec(p);
 
-        if (consume(p, TOK_ASSN)) {
+        if (consume(p, TOK_EQUAL)) {
             // "- x int = 42"
             init = expression(p);
         }
@@ -1111,7 +1111,7 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
 
 static void field_list(Parser *p, struct Struct *strct)
 {
-    expect(p, TOK_SUB);
+    expect(p, TOK_MINUS);
 
     do {
         expect(p, TOK_IDENT);
@@ -1120,7 +1120,7 @@ static void field_list(Parser *p, struct Struct *strct)
         AddField(strct, name, type_spec(p));
         expect(p, TOK_NEWLINE);
     }
-    while (consume(p, TOK_SUB));
+    while (consume(p, TOK_MINUS));
 }
 
 static struct Struct *struct_decl(Parser *p)
@@ -1157,7 +1157,7 @@ static struct Table *table_def(Parser *p)
     expect(p, TOK_BLOCKBEGIN);
     int id = 0;
     for (;;) {
-        if (consume(p, TOK_OR)) {
+        if (consume(p, TOK_VBAR)) {
             expect(p, TOK_IDENT);
             struct Row *r = CALLOC(struct Row);
             r->name = tok_str(p);
@@ -1189,7 +1189,7 @@ static struct parser_stmt *block_stmt(Parser *p, struct Scope *block_scope)
 
         switch (next) {
 
-        case TOK_SUB:
+        case TOK_MINUS:
             tail = tail->next = var_decl(p, false);
             break;
 
@@ -1217,7 +1217,7 @@ static struct parser_stmt *block_stmt(Parser *p, struct Scope *block_scope)
             tail = tail->next = ret_stmt(p);
             break;
 
-        case TOK_DASH3:
+        case TOK_MINUS3:
             tail = tail->next = scope_stmt(p);
             break;
 
@@ -1290,7 +1290,7 @@ static struct Type *type_spec(Parser *p)
 {
     struct Type *type = NULL;
 
-    if (consume(p, TOK_MUL)) {
+    if (consume(p, TOK_ASTER)) {
         return NewPtrType(type_spec(p));
     }
 
@@ -1446,7 +1446,7 @@ static void program(Parser *p)
             continue;
         }
 
-        if (next == TOK_SUB) {
+        if (next == TOK_MINUS) {
             tail = tail->next = var_decl(p, true);
             continue;
         }
