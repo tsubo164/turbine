@@ -73,7 +73,7 @@ static void set_bp(VM *vm, Int bp)
 
 static Int read_byte(const VM *vm, Int index)
 {
-    return Read(vm->code_, index);
+    return Read__(vm->code_, index);
 }
 
 static Int fetch_byte(VM *vm)
@@ -1057,7 +1057,7 @@ static void run__(VM *vm);
 void Run(VM *vm, const Bytecode *code)
 {
     vm->code_ = code;
-    vm->eoc_ = Size(vm->code_);
+    //vm->eoc_ = Size(vm->code_);
     vm->eoc = Size__(vm->code_);
 
     // empty data at the bottom of stacks

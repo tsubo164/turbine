@@ -1,7 +1,7 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include "bytecode.h"
+#include "code_bytecode.h"
 
 typedef struct Option {
     bool print_token;

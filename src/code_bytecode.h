@@ -1,5 +1,5 @@
-#ifndef BYTECODE_H
-#define BYTECODE_H
+#ifndef CODE_BYTECODE_H
+#define CODE_BYTECODE_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -13,7 +13,7 @@
 
 enum Opcode {
     OP_NOP = 0,
-    // local and arg
+    /* local and arg */
     OP_LOADB,
     OP_LOADI,
     OP_LOADF,
@@ -29,29 +29,29 @@ enum Opcode {
     OP_DECLOCAL,
     OP_DECGLOBAL,
     OP_ALLOC,
-    // clear
+    /* clear */
     OP_CLEAR_LOCAL,
     OP_CLEAR_GLOBAL,
     OP_COPY_LOCAL,
     OP_COPY_GLOBAL,
-    // address
+    /* address */
     OP_LOADA,
     OP_DEREF,
     OP_INDEX,
-    // arg type spec
+    /* arg type spec */
     OP_LOADTYPEN,
     OP_LOADTYPEB,
     OP_LOADTYPEI,
     OP_LOADTYPEF,
     OP_LOADTYPES,
-    // jump and function
+    /* jump and function */
     OP_CALL,
     OP_CALL_POINTER,
     OP_CALL_BUILTIN,
     OP_RET,
     OP_JMP,
     OP_JEQ,
-    // arithmetic
+    /* arithmetic */
     OP_ADD,
     OP_ADDF,
     OP_CATS,
@@ -63,7 +63,7 @@ enum Opcode {
     OP_DIVF,
     OP_REM,
     OP_REMF,
-    // relational
+    /* relational */
     OP_EQ,
     OP_EQF,
     OP_EQS,
@@ -90,24 +90,26 @@ enum Opcode {
     OP_SETNZ,
     OP_POP,
     OP_DUP,
-    // conversion
+    /* conversion */
     OP_BTOI,
     OP_BTOF,
     OP_ITOB,
     OP_ITOF,
     OP_FTOB,
     OP_FTOI,
-    // array
+    /* array */
     OP_ARRAYLOCAL,
-    // debug
+    /* debug */
     OP_PUSH_CHECK_NUM,
     OP_POP_CHECK_NUM,
-    // exit
+    /* exit */
     OP_EXIT,
     OP_EOC,
-    // XXX TEST register machine
+#if 0
+#endif
+    /* XXX TEST register machine */
     OP_NOP__,
-    // load/store/move
+    /* load/store/move */
     OP_MOVE__,
     OP_LOADINT__,
     OP_LOADFLOAT__,
@@ -126,10 +128,10 @@ enum Opcode {
     OP_LOADADDR__,
     OP_DEREF__,
 /* ------------------------------ */
-    // array/struct
+    /* array/struct */
     OP_NEWARRAY__,
     OP_NEWSTRUCT__,
-    // arithmetic
+    /* arithmetic */
     OP_ADDINT__,
     OP_ADDFLOAT__,
     OP_SUBINT__,
@@ -164,32 +166,32 @@ enum Opcode {
     OP_SETIFNOTZ__,
     OP_INC__,
     OP_DEC__,
-    // string
+    /* string */
     OP_CATSTRING__,
     OP_EQSTRING__,
     OP_NEQSTRING__,
-    // function call
+    /* function call */
     OP_CALL__,
     OP_CALLPOINTER__,
     OP_CALLBUILTIN__,
     OP_RETURN__,
-    // jump
+    /* jump */
     OP_JUMP__,
     OP_JUMPIFZERO__,
     OP_JUMPIFNOTZ__,
-    // stack operation TODO move to right place
+    /* stack operation TODO move to right place */
     OP_ALLOCATE__,
-    // conversion
+    /* conversion */
     OP_BOOLTOINT__,
     OP_BOOLTOFLOAT__,
     OP_INTTOBOOL__,
     OP_INTTOFLOAT__,
     OP_FLOATTOBOOL__,
     OP_FLOATTOINT__,
-    // program control
+    /* program control */
     OP_EXIT__,
     OP_EOC__,
-    // XXX TEST register machine
+    /* XXX TEST register machine */
     END_OF_OPCODE__,
 };
 
@@ -201,13 +203,13 @@ struct OpcodeInfo {
 
 const char *OpcodeString(Byte op);
 
-// XXX TEST register machine
+/* XXX TEST register machine */
 struct InstVec {
     uint32_t *data;
     int cap;
     int len;
 };
-// XXX TEST register machine
+/* XXX TEST register machine */
 
 typedef struct ByteVec {
     Byte *data;
@@ -249,113 +251,15 @@ typedef struct Bytecode {
 
     struct data_hashmap funcnames;
 
-    // back patches
+    /* back patches */
     struct data_intstack ors_;
     struct data_intstack breaks_;
     struct data_intstack continues_;
     struct data_intstack casecloses_;
 } Bytecode;
 
-// emit opcode and operand
-void LoadByte(Bytecode *code, Byte byte);
-void LoadInt(Bytecode *code, Int integer);
-void LoadFloat(Bytecode *code, Float fp);
-void LoadString(Bytecode *code, Word id);
-void LoadLocal(Bytecode *code, Byte id);
-void LoadGlobal(Bytecode *code, Word id);
-void StoreLocal(Bytecode *code, Byte id);
-void StoreGlobal(Bytecode *code, Word id);
-void Load(Bytecode *code);
-void Store(Bytecode *code);
-void IncLocal(Bytecode *code, Byte id);
-void IncGlobal(Bytecode *code, Word id);
-void DecLocal(Bytecode *code, Byte id);
-void DecGlobal(Bytecode *code, Word id);
-void Allocate(Bytecode *code, Byte count);
-// clear
-void ClearLocal(Bytecode *code, uint16_t base, uint16_t count);
-void ClearGlobal(Bytecode *code, uint16_t base, uint16_t count);
-void CopyLocal(Bytecode *code, uint16_t src, uint16_t dst, uint16_t count);
-void CopyGlobal(Bytecode *code, uint16_t src, uint16_t dst, uint16_t count);
-
-// address
-void LoadAddress(Bytecode *code, Word id);
-void Dereference(Bytecode *code);
-void Index(Bytecode *code);
-// arg type spec
-void LoadTypeNil(Bytecode *code);
-void LoadTypeBool(Bytecode *code);
-void LoadTypeInt(Bytecode *code);
-void LoadTypeFloat(Bytecode *code);
-void LoadTypeString(Bytecode *code);
-// jump and function
-void CallFunc(Bytecode *code, const char *fullname, bool builtin);
-void CallFunction(Bytecode *code, Word func_index, bool builtin);
-void CallFunctionPointer(struct Bytecode *code);
-// jump instructions return the address
-// where the destination address is stored.
-Int Jump(Bytecode *code, Int addr);
-Int JumpIfZero(Bytecode *code, Int addr);
-void Return(Bytecode *code);
-
-// arithmetic
-void AddInt(Bytecode *code);
-void AddFloat(Bytecode *code);
-void ConcatString(Bytecode *code);
-void SubInt(Bytecode *code);
-void SubFloat(Bytecode *code);
-void MulInt(Bytecode *code);
-void MulFloat(Bytecode *code);
-void DivInt(Bytecode *code);
-void DivFloat(Bytecode *code);
-void RemInt(Bytecode *code);
-void RemFloat(Bytecode *code);
-void EqualInt(Bytecode *code);
-void EqualFloat(Bytecode *code);
-void EqualString(Bytecode *code);
-void NotEqualInt(Bytecode *code);
-void NotEqualFloat(Bytecode *code);
-void NotEqualString(Bytecode *code);
-void LessInt(Bytecode *code);
-void LessFloat(Bytecode *code);
-void LessEqualInt(Bytecode *code);
-void LessEqualFloat(Bytecode *code);
-void GreaterInt(Bytecode *code);
-void GreaterFloat(Bytecode *code);
-void GreaterEqualInt(Bytecode *code);
-void GreaterEqualFloat(Bytecode *code);
-void And(Bytecode *code);
-void Or(Bytecode *code);
-void Xor(Bytecode *code);
-void Not(Bytecode *code);
-void ShiftLeft(Bytecode *code);
-void ShiftRight(Bytecode *code);
-void NegateInt(Bytecode *code);
-void NegateFloat(Bytecode *code);
-void SetIfZero(Bytecode *code);
-void SetIfNotZero(Bytecode *code);
-
-// stack
-void Pop(Bytecode *code);
-void DuplicateTop(Bytecode *code);
-// conversion
-void BoolToInt(Bytecode *code);
-void BoolToFloat(Bytecode *code);
-void IntToBool(Bytecode *code);
-void IntToFloat(Bytecode *code);
-void FloatToBool(Bytecode *code);
-void FloatToInt(Bytecode *code);
-// array
-void ArrayLocal(Bytecode *code, Byte id);
-//
-void PushCheckNum(Bytecode *code, int64_t num);
-void PopCheckNum(Bytecode *code, int64_t num);
-//
-void Exit(Bytecode *code);
-void End(Bytecode *code);
-
-// XXX TEST register
-// TODO remove Temp?
+/* XXX TEST register */
+/* TODO remove Temp? */
 void InitLocalVarRegister__(struct Bytecode *code, uint8_t lvar_count);
 void ResetCurrentRegister__(struct Bytecode *code);
 int NewRegister__(struct Bytecode *code);
@@ -368,7 +272,7 @@ bool IsImmediateValue__(int id);
 struct runtime_value ReadImmediateValue__(const struct Bytecode *code,
         Int addr, int id, int *imm_size);
 
-// load/store/move
+/* load/store/move */
 int Move__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int LoadInt__(struct Bytecode *code, int64_t val);
 int LoadFloat__(struct Bytecode *code, double val);
@@ -390,11 +294,11 @@ int LoadAddress__(struct Bytecode *code, int dst, int src);
 int Dereference__(struct Bytecode *code, int dst, int src);
 /* ------------------------------ */
 
-// array/struct
+/* array/struct */
 int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len);
 int NewStruct__(struct Bytecode *code, uint8_t dst, uint8_t len);
 
-// arithmetic
+/* arithmetic */
 int AddInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int AddFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int SubInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
@@ -429,45 +333,45 @@ int SetIfZero__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int SetIfNotZero__(struct Bytecode *code, uint8_t dst, uint8_t src);
 int Inc__(struct Bytecode *code, uint8_t src);
 int Dec__(struct Bytecode *code, uint8_t src);
-// string
+/* string */
 int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
 int NotEqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1);
-// function call
+/* function call */
 int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin);
 int CallFunctionPointer__(struct Bytecode *code, int ret, int src);
 void Allocate__(Bytecode *code, Byte count);
 void Return__(Bytecode *code, Byte id);
-// branch
+/* branch */
 void BeginIf__(struct Bytecode *code);
 void code_begin_switch(struct Bytecode *code);
 void PushElseEnd__(struct Bytecode *code, Int addr);
 void PushBreak__(struct Bytecode *code, Int addr);
 void PushContinue__(struct Bytecode *code, Int addr);
 void PushCaseEnd__(struct Bytecode *code, Int addr);
-// TODO testing new naming convention
+/* TODO testing new naming convention */
 void code_push_continue(struct Bytecode *code, Int addr);
-// jump instructions return the address
-// where the destination address is stored.
+/* jump instructions return the address */
+/* where the destination address is stored. */
 Int Jump__(struct Bytecode *code, Int addr);
 Int JumpIfZero__(struct Bytecode *code, uint8_t src, Int addr);
 Int JumpIfNotZero__(struct Bytecode *code, uint8_t src, Int addr);
-// conversion
+/* conversion */
 int BoolToInt__(struct Bytecode *code, uint8_t dst, uint8_t src);
 //void BoolToFloat__(struct Bytecode *code, uint8_t dst, uint8_t src);
 //void IntToBool__(struct Bytecode *code, uint8_t dst, uint8_t src);
 //void IntToFloat__(struct Bytecode *code, uint8_t dst, uint8_t src);
 //void FloatToBool__(struct Bytecode *code, uint8_t dst, uint8_t src);
 //void FloatToInt__(struct Bytecode *code, uint8_t dst, uint8_t src);
-// program control
+/* program control */
 void Exit__(Bytecode *code);
 void End__(Bytecode *code);
 
-// functions
+/* functions */
 void RegisterFunction__(Bytecode *code, Word func_index, Byte argc);
 void SetMaxRegisterCount__(struct Bytecode *code, Word func_index);
 int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index);
-// back-patches
+/* back-patches */
 void BeginFor__(struct Bytecode *code);
 void BackPatch__(struct Bytecode *code, Int operand_addr);
 void BackPatchBreaks__(struct Bytecode *code);
@@ -486,7 +390,7 @@ void Decode__(uint32_t instcode, struct Instruction *inst);
 void PrintInstruction__(const struct Bytecode *code,
         Int addr, const struct Instruction *inst, int *imm_size);
 
-// read / write
+/* read / write */
 uint32_t Read__(const Bytecode *code, Int addr);
 void Write__(const Bytecode *code, Int addr, uint32_t inst);
 Int Size__(const Bytecode *code);
@@ -498,40 +402,18 @@ Int NextAddr__(const struct Bytecode *code);
 #define DECODE_C(inst)  ((inst) & 0xFF)
 #define DECODE_BB(inst) ((inst) & 0xFFFF)
 #define ENCODE_ABB(op,a,bb) (((op) << 24) | ((a) << 16) | (bb))
-// XXX TEST register
+/* XXX TEST register */
 
-// Backpatches
-void BeginIf(Bytecode *code);
-void BeginFor(Bytecode *code);
-void BeginSwitch(Bytecode *code);
-void PushOrClose(Bytecode *code, Int addr);
-void PushBreak(Bytecode *code, Int addr);
-void PushContinue(Bytecode *code, Int addr);
-void PushCaseClose(Bytecode *code, Int addr);
-void BackPatch(Bytecode *code, Int operand_addr);
-void BackPatchOrCloses(Bytecode *code);
-void BackPatchBreaks(Bytecode *code);
-void BackPatchContinues(Bytecode *code);
-void BackPatchCaseCloses(Bytecode *code);
+/* Backpatches */
 
-// functions
-void BackPatchFuncAddr(struct Bytecode *code, const char *fullname);
-uint16_t RegisterFunc(struct Bytecode *code, const char *fullname, uint8_t argc);
+/* functions */
 Int GetFunctionAddress(const Bytecode *code, Word func_index);
 Int GetFunctionArgCount(const Bytecode *code, Word func_index);
-void RegisterFunction(Bytecode *code, Word func_index, Byte argc);
-Int RegisterConstString(Bytecode *code, const char *str);
 const char *GetConstString(const Bytecode *code, Word str_index);
 
-// read/write
-Byte Read(const Bytecode *code, Int addr);
-Word ReadWord(const Bytecode *code, Int addr);
-Int ReadInt(const Bytecode *code, Int addr);
-Float ReadFloat(const Bytecode *code, Int addr);
-Int NextAddr(const Bytecode *code);
-Int Size(const Bytecode *code);
+/* read/write */
 
-// print
+/* print */
 void PrintBytecode(const Bytecode *code);
 
-#endif // _H
+#endif /* _H */

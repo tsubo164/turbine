@@ -1,7 +1,7 @@
 #ifndef VM_H
 #define VM_H
 
-#include "bytecode.h"
+#include "code_bytecode.h"
 #include "gc.h"
 // TODO remove this
 #include "objarray.h"
