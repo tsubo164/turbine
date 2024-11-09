@@ -21,13 +21,6 @@ enum immediate_value_register {
 };
 
 enum OperandSize {
-    OPERAND_NONE,
-    OPERAND_BYTE,
-    OPERAND_WORD,
-    OPERAND_WORD2,
-    OPERAND_WORD3,
-    OPERAND_QUAD,
-    /* XXX TEST register machine */
     OPERAND____,
     OPERAND_A__,
     OPERAND_AB_,
@@ -1193,7 +1186,7 @@ static Int print_op__(const Bytecode *code, Int addr, const struct Instruction *
         printf("[%6lld] ", addr);
 
     /* padding spaces */
-    if (info->operand != OPERAND_NONE)
+    if (info->operand != OPERAND____)
         printf("%-12s", info->mnemonic);
     else
         printf("%s", info->mnemonic);
