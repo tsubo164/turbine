@@ -194,7 +194,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
             print_header(depth);
             printf("[var] \"%s\" %s @%d\n",
                     v->name, parser_type_string(v->type),
-                    v->offset);
+                    v->id);
         }
 
         if (sym->kind == SYM_FUNC) {

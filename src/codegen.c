@@ -1059,7 +1059,7 @@ static int resolve_offset(struct parser_scope *scope, int start_offset)
         if (sym->kind == SYM_VAR) {
             struct parser_var *var = sym->var;
             // offset
-            var->offset = cur_offset;
+            var->id = cur_offset;
             cur_offset += parser_sizeof_type(var->type);
             max_offset = max(max_offset, cur_offset);
             // size
@@ -1699,7 +1699,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_IDENT:
         if (e->var->is_global) {
-            int reg1 = LoadInt__(code, e->var->offset);
+            int reg1 = LoadInt__(code, e->var->id);
             int reg0 = NewRegister__(code);
 
             // TODO rename it to LoadGlobal()
@@ -1707,7 +1707,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
             return reg0;
         }
         else {
-            int reg0 = e->var->offset;
+            int reg0 = e->var->id;
             return reg0;
         }
 
@@ -2039,11 +2039,11 @@ static int gen_addr__(Bytecode *code, const struct parser_expr *e)
         }
         */
         if (e->var->is_global) {
-            int reg0 = LoadInt__(code, e->var->offset);
+            int reg0 = LoadInt__(code, e->var->id);
             return reg0;
         }
         else {
-            int reg0 = e->var->offset;
+            int reg0 = e->var->id;
             return reg0;
         }
 

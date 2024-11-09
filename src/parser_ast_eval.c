@@ -98,7 +98,7 @@ bool parser_eval_addr(const struct parser_expr *e, int *result)
     switch (e->kind) {
 
     case NOD_EXPR_IDENT:
-        *result = e->var->offset;
+        *result = e->var->id;
         return true;
 
     case NOD_EXPR_FIELD:

@@ -795,7 +795,7 @@ static struct parser_scope *new_child_scope(struct Parser *p)
     struct parser_symbol *sym = parser_new_symbol(SYM_SCOPE, "_", parser_new_nil_type());
 
     sym->scope = child;
-    VecPush(&parent->syms, sym);
+    parser_scope_add_symbol(parent, sym);
 
     return child;
 }
@@ -1316,7 +1316,7 @@ static struct parser_type *type_spec(Parser *p)
     if (consume(p, TOK_HASH)) {
         struct parser_func *func = parser_declare_func(p->scope, "_", p->module->filename);
         // TODO check NULL func
-        VecPush(&p->module->funcs, func);
+        parser_module_add_func(p->module, func);
         param_list(p, func);
         ret_type(p, func);
         // func type
@@ -1362,7 +1362,7 @@ static void func_def(struct Parser *p)
     if (!func) {
         error(p, ident_pos, "re-defined identifier: '%s'", name);
     }
-    VecPush(&p->module->funcs, func);
+    parser_module_add_func(p->module, func);
 
     // params
     param_list(p, func);
