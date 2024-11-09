@@ -1,9 +1,9 @@
 #include "parser_symbol.h"
 #include "parser_type.h"
 #include "data_intern.h"
-#include "mem.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 #define MIN_CAP 8
@@ -57,7 +57,8 @@ static void push_symbol(struct parser_symbolvec *v, struct parser_symbol *val)
 /* scope */
 struct parser_scope *parser_new_scope(struct parser_scope *parent)
 {
-    struct parser_scope *sc = CALLOC(struct parser_scope);
+    struct parser_scope *sc;
+    sc = calloc(1, sizeof(*sc));
     sc->parent = parent;
     return sc;
 }
@@ -71,10 +72,13 @@ void parser_scope_add_symbol(struct parser_scope *sc, struct parser_symbol *sym)
 struct parser_symbol *parser_new_symbol(int kind,
         const char *name, const struct parser_type *type)
 {
-    struct parser_symbol *sym = CALLOC(struct parser_symbol);
+    struct parser_symbol *sym;
+
+    sym = calloc(1, sizeof(*sym));
     sym->kind = kind;
     sym->name = name;
     sym->type = type;
+
     return sym;
 }
 
@@ -105,7 +109,9 @@ struct parser_symbol *FindSymbolThisScope(struct parser_scope *sc,
 static struct parser_var *new_var(const char *Name,
         const struct parser_type *t, bool global)
 {
-    struct parser_var *v = CALLOC(struct parser_var);
+    struct parser_var *v;
+
+    v = calloc(1, sizeof(*v));
     v->name = Name;
     v->type = t;
     v->is_global = global;
@@ -142,11 +148,14 @@ static const char *func_fullname(const char *modulefile, const char *funcname)
 static struct parser_func *new_func(struct parser_scope *parent,
         const char *modulefile, const char *name)
 {
-    struct parser_func *f = CALLOC(struct parser_func);
+    struct parser_func *f;
+
+    f = calloc(1, sizeof(*f));
     f->name = name;
     f->fullname = func_fullname(modulefile, name);
     f->scope = parser_new_scope(parent);
     f->is_builtin = false;
+
     return f;
 }
 
@@ -182,9 +191,11 @@ static const struct parser_var *parser_get_param(const struct parser_func *f, in
 
 struct parser_func_type *parser_make_func_type(struct parser_func *func)
 {
-    struct parser_func_type *func_type = CALLOC(struct parser_func_type);
+    struct parser_func_type *func_type;
 
+    func_type = calloc(1, sizeof(*func_type));
     func_type->return_type = func->return_type;
+
     for (int i = 0; i < func->params.len; i++) {
         const struct parser_var *var = parser_get_param(func, i);
         push_type(&func_type->param_types, var->type);
@@ -258,7 +269,9 @@ int parser_required_param_count(const struct parser_func_type *func_type)
 /* struct */
 static struct parser_struct *new_struct(const char *name)
 {
-    struct parser_struct *s = CALLOC(struct parser_struct);
+    struct parser_struct *s;
+
+    s = calloc(1, sizeof(*s));
     s->name = name;
 
     return s;
@@ -292,7 +305,9 @@ struct parser_struct *parser_find_struct(const struct parser_scope *sc,
 static struct parser_field *new_field(const char *Name,
         const struct parser_type *type, int offset)
 {
-    struct parser_field *f = CALLOC(struct parser_field);
+    struct parser_field *f;
+
+    f = calloc(1, sizeof(*f));
     f->name = Name;
     f->type = type;
     f->offset = offset;
@@ -332,7 +347,9 @@ int parser_struct_get_field_count(const struct parser_struct *s)
 struct parser_table *parser_define_table(struct parser_scope *sc,
         const char *name)
 {
-    struct parser_table *tab = CALLOC(struct parser_table);
+    struct parser_table *tab;
+
+    tab = calloc(1, sizeof(*tab));
     tab->name = name;
 
     struct parser_symbol *sym = parser_new_symbol(SYM_TABLE,
@@ -350,7 +367,9 @@ struct parser_table *parser_define_table(struct parser_scope *sc,
 struct parser_module *parser_define_module(struct parser_scope *sc,
         const char *filename, const char *modulename)
 {
-    struct parser_module *mod = CALLOC(struct parser_module);
+    struct parser_module *mod;
+
+    mod = calloc(1, sizeof(*mod));
     mod->name = modulename;
     mod->filename = filename;
     mod->scope = parser_new_scope(sc);

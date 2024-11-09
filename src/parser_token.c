@@ -1,7 +1,7 @@
 #include "parser_token.h"
 #include "parser_escseq.h"
+#include "parser_error.h"
 #include "data_intern.h"
-#include "error.h"
 
 #include <assert.h>
 #include <string.h>
@@ -145,7 +145,7 @@ static void error(const struct lexer *l, const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     /* TODO print file name */
-    VError(l->src, "fixme.ro", l->pos, fmt, args);
+    parser_error_va(l->src, "fixme.ro", l->pos.x, l->pos.y, fmt, args);
     va_end(args);
 }
 

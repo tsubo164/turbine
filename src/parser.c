@@ -5,8 +5,8 @@
 #include "parser_ast_eval.h"
 #include "parser_type.h"
 #include "parser_escseq.h"
+#include "parser_error.h"
 #include "mem.h"
-#include "error.h"
 
 #include <assert.h>
 #include <string.h>
@@ -49,7 +49,7 @@ static void error(const Parser *p, struct parser_pos pos, const char *fmt, ...)
 {
     va_list args; 
     va_start(args, fmt);
-    VError(p->src_, p->filename, pos, fmt, args);
+    parser_error_va(p->src_, p->filename, pos.x, pos.y, fmt, args);
     va_end(args);
 }
 
@@ -1052,7 +1052,7 @@ static struct parser_expr *default_value(const struct parser_type *type)
 
     case TYP_NIL:
     case TYP_ANY:
-        UNREACHABLE;
+        assert(!"unreachable");
         return NULL;
     }
 
