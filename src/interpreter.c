@@ -1,12 +1,12 @@
-#include "interpreter.h"
-#include "builtin.h"
-#include "codegen.h"
 #include "data_intern.h"
-#include "parser.h"
+#include "parser_parse.h"
 #include "parser_token.h"
 #include "parser_print.h"
 #include "parser_symbol.h"
 #include "parser_ast.h"
+#include "interpreter.h"
+#include "builtin.h"
+#include "codegen.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -39,7 +39,9 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     }
 
     // Compile source
-    struct parser_module *prog = Parse(src, filename, data_string_intern("_main"), tok, &builtin);
+    struct parser_module *prog;
+
+    prog = parser_parse(src, filename, data_string_intern("_main"), tok, &builtin);
     ResolveOffset(prog);
 
     if (opt->print_tree) {

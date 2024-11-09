@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "parser_parse.h"
 #include "parser_symbol.h"
 #include "parser_token.h"
 #include "parser_ast.h"
@@ -6,7 +6,6 @@
 #include "parser_type.h"
 #include "parser_escseq.h"
 #include "parser_error.h"
-#include "mem.h"
 
 #include <assert.h>
 #include <string.h>
@@ -14,7 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// TODO
+/* TODO move this somewhere */
 #include "data_strbuf.h"
 static const char *read_file(const char *filename)
 {
@@ -35,69 +34,72 @@ static const char *read_file(const char *filename)
     return sb.data;
 }
 
-typedef struct Parser {
-    struct parser_scope *scope; // current scope
-    struct parser_func *func_;
-    const struct parser_token *curr_;
-    const char *src_;
+struct parser {
+    /* current context */
+    struct parser_scope *scope;
+    struct parser_func *func;
+    const struct parser_token *curr;
+
+    /* source */
+    const char *src;
     const char *filename;
 
     struct parser_module *module;
-} Parser;
+};
 
-static void error(const Parser *p, struct parser_pos pos, const char *fmt, ...)
+static void error(const struct parser *p, struct parser_pos pos, const char *fmt, ...)
 {
     va_list args; 
     va_start(args, fmt);
-    parser_error_va(p->src_, p->filename, pos.x, pos.y, fmt, args);
+    parser_error_va(p->src, p->filename, pos.x, pos.y, fmt, args);
     va_end(args);
 }
 
-static const struct parser_token *curtok(const Parser *p)
+static const struct parser_token *curtok(const struct parser *p)
 {
-    return p->curr_;
+    return p->curr;
 }
 
-static const struct parser_token *gettok(Parser *p)
+static const struct parser_token *gettok(struct parser *p)
 {
-    p->curr_ = p->curr_->next;
-    return p->curr_;
+    p->curr = p->curr->next;
+    return p->curr;
 }
 
-static void ungettok(Parser *p)
+static void ungettok(struct parser *p)
 {
-    p->curr_ = p->curr_->prev;
+    p->curr = p->curr->prev;
 }
 
-static struct parser_pos tok_pos(const Parser *p)
+static struct parser_pos tok_pos(const struct parser *p)
 {
-    return p->curr_->pos;
+    return p->curr->pos;
 }
 
-static long tok_int(const Parser *p)
+static long tok_int(const struct parser *p)
 {
-    return p->curr_->ival;
+    return p->curr->ival;
 }
 
-static double tok_float(const Parser *p)
+static double tok_float(const struct parser *p)
 {
-    return p->curr_->fval;
+    return p->curr->fval;
 }
 
-static const char *tok_str(const Parser *p)
+static const char *tok_str(const struct parser *p)
 {
-    return p->curr_->sval;
+    return p->curr->sval;
 }
 
-static int peek(const Parser *p)
+static int peek(const struct parser *p)
 {
-    if (p->curr_->kind == TOK_EOF)
+    if (p->curr->kind == TOK_EOF)
         return TOK_EOF;
     else
-        return p->curr_->next->kind;
+        return p->curr->next->kind;
 }
 
-static void expect(Parser *p, int kind)
+static void expect(struct parser *p, int kind)
 {
     const struct parser_token *tok = gettok(p);
     if (tok->kind != kind) {
@@ -105,7 +107,7 @@ static void expect(Parser *p, int kind)
     }
 }
 
-static bool consume(Parser *p, int kind)
+static bool consume(struct parser *p, int kind)
 {
     if (peek(p) == kind) {
         gettok(p);
@@ -116,12 +118,12 @@ static bool consume(Parser *p, int kind)
     }
 }
 
-// forward decls
-static struct parser_type *type_spec(Parser *p);
-static struct parser_expr *expression(Parser *p);
-static struct parser_stmt *block_stmt(Parser *p, struct parser_scope *block_scope);
+/* forward decls */
+static struct parser_type *type_spec(struct parser *p);
+static struct parser_expr *expression(struct parser *p);
+static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
 
-static struct parser_expr *arg_list(Parser *p, struct parser_expr *call)
+static struct parser_expr *arg_list(struct parser *p, struct parser_expr *call)
 {
     struct parser_expr head = {0};
     struct parser_expr *tail = &head;
@@ -155,7 +157,7 @@ static struct parser_expr *arg_list(Parser *p, struct parser_expr *call)
         if (!param_type)
             error(p, tok_pos(p), "too many arguments");
 
-        // TODO arg needs to know its pos
+        /* TODO arg needs to know its pos */
         if (!parser_match_type(arg->type, param_type)) {
             error(p, tok_pos(p),
                     "type mismatch: parameter type '%s': argument type '%s'",
@@ -169,7 +171,7 @@ static struct parser_expr *arg_list(Parser *p, struct parser_expr *call)
     return call;
 }
 
-static struct parser_expr *conv_expr(Parser *p, int kind)
+static struct parser_expr *conv_expr(struct parser *p, int kind)
 {
     struct parser_type *to_type = type_spec(p);
     const struct parser_pos tokpos = tok_pos(p);
@@ -194,7 +196,7 @@ static struct parser_expr *conv_expr(Parser *p, int kind)
     return parser_new_conversion_expr(expr, to_type);
 }
 
-static struct parser_expr *array_lit_expr(Parser *p)
+static struct parser_expr *array_lit_expr(struct parser *p)
 {
     struct parser_expr *expr = expression(p);
     struct parser_expr *e = expr;
@@ -216,7 +218,7 @@ static struct parser_expr *array_lit_expr(Parser *p)
     return parser_new_arraylit_expr(expr, len);
 }
 
-static struct parser_expr *struct_lit_expr(struct Parser *p, struct parser_symbol *sym)
+static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbol *sym)
 {
     struct parser_struct *strct = sym->strct;
     struct parser_expr *elems = NULL;
@@ -249,12 +251,14 @@ static struct parser_expr *struct_lit_expr(struct Parser *p, struct parser_symbo
     return parser_new_structlit_expr(strct, elems);
 }
 
-// primary_expr =
-//     IntNum |
-//     FpNum |
-//     StringLit |
-//     primary_expr selector
-static struct parser_expr *primary_expr(Parser *p)
+/*
+ * primary_expr =
+ *     IntNum |
+ *     FpNum |
+ *     StringLit |
+ *     primary_expr selector
+ */
+static struct parser_expr *primary_expr(struct parser *p)
 {
     if (consume(p, TOK_NIL))
         return parser_new_nillit_expr();
@@ -341,7 +345,7 @@ static struct parser_expr *primary_expr(Parser *p)
                 error(p, tok_pos(p),
                         "call operator must be used for function type");
             }
-            // TODO func signature check
+            /* TODO func signature check */
             struct parser_expr *call = parser_new_call_expr(expr, tok->pos);
             expr = arg_list(p, call);
             continue;
@@ -352,9 +356,11 @@ static struct parser_expr *primary_expr(Parser *p)
                 struct parser_field *f = parser_find_field(expr->type->strct, tok_str(p));
                 expr = parser_new_select_expr(expr, parser_new_field_expr(f));
             }
-            else if (parser_is_ptr_type(expr->type) && parser_is_struct_type(expr->type->underlying)) {
+            else if (parser_is_ptr_type(expr->type) &&
+                    parser_is_struct_type(expr->type->underlying)) {
                 expect(p, TOK_IDENT);
-                struct parser_field *f = parser_find_field(expr->type->underlying->strct, tok_str(p));
+                struct parser_field *f;
+                f = parser_find_field(expr->type->underlying->strct, tok_str(p));
                 expr = parser_new_select_expr(expr, parser_new_field_expr(f));
             }
             else if (parser_is_table_type(expr->type)) {
@@ -372,7 +378,7 @@ static struct parser_expr *primary_expr(Parser *p)
                 struct parser_expr *r = primary_expr(p);
                 p->scope = cur;
 
-                // TODO keep module expr somewhere
+                /* TODO keep module expr somewhere */
                 expr = r;
             }
             else {
@@ -422,7 +428,7 @@ static struct parser_expr *primary_expr(Parser *p)
  * unary_expr = primary_expr (unary_op primary_expr)*
  * unary_op   = "+" | "-" | "!" | "~"
  */
-static struct parser_expr *unary_expr(Parser *p)
+static struct parser_expr *unary_expr(struct parser *p)
 {
     const struct parser_token *tok = gettok(p);
     struct parser_expr *e = NULL;
@@ -463,7 +469,7 @@ static struct parser_expr *unary_expr(Parser *p)
     }
 }
 
-static void semantic_check_type_match(Parser *p, struct parser_pos pos,
+static void semantic_check_type_match(struct parser *p, struct parser_pos pos,
         const struct parser_type *t0, const struct parser_type *t1)
 {
     if (!parser_match_type(t0, t1)) {
@@ -476,7 +482,7 @@ static void semantic_check_type_match(Parser *p, struct parser_pos pos,
  * mul_expr = unary_expr (mul_op unary_expr)*
  * mul_op   = "*" | "/" | "%" | "&" | "<<" | ">>"
  */
-static struct parser_expr *mul_expr(Parser *p)
+static struct parser_expr *mul_expr(struct parser *p)
 {
     struct parser_expr *expr = unary_expr(p);
     struct parser_expr *r = NULL;
@@ -534,7 +540,7 @@ static struct parser_expr *mul_expr(Parser *p)
  * add_expr = mul_expr (add_op mul_expr)*
  * add_op   = "+" | "-" | "|" | "^"
  */
-static struct parser_expr *add_expr(Parser *p)
+static struct parser_expr *add_expr(struct parser *p)
 {
     struct parser_expr *expr = mul_expr(p);
     struct parser_expr *r = NULL;
@@ -580,7 +586,7 @@ static struct parser_expr *add_expr(Parser *p)
  * rel_expr = add_expr (rel_op add_expr)*
  * rel_op   = "==" | "!=" | "<" | ">" | "<=" | ">="
  */
-static struct parser_expr *rel_expr(Parser *p)
+static struct parser_expr *rel_expr(struct parser *p)
 {
     struct parser_expr *expr = add_expr(p);
     struct parser_expr *r = NULL;
@@ -637,7 +643,7 @@ static struct parser_expr *rel_expr(Parser *p)
 /*
  * logand_expr = rel_expr ("&&" rel_expr)*
  */
-static struct parser_expr *logand_expr(Parser *p)
+static struct parser_expr *logand_expr(struct parser *p)
 {
     struct parser_expr *expr = rel_expr(p);
 
@@ -660,7 +666,7 @@ static struct parser_expr *logand_expr(Parser *p)
 /*
  * logor_expr = logand_expr ("||" logand_expr)*
  */
-static struct parser_expr *logor_expr(Parser *p)
+static struct parser_expr *logor_expr(struct parser *p)
 {
     struct parser_expr *expr = logand_expr(p);
 
@@ -680,7 +686,7 @@ static struct parser_expr *logor_expr(Parser *p)
     }
 }
 
-static struct parser_expr *expression(Parser *p)
+static struct parser_expr *expression(struct parser *p)
 {
     return logor_expr(p);
 }
@@ -699,14 +705,14 @@ static const struct parser_var *find_root_object(const struct parser_expr *e)
     }
 }
 
-static void semantic_check_assign_stmt(Parser *p, struct parser_pos pos,
+static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
         const struct parser_expr *lval, const struct parser_expr *rval)
 {
     if (!parser_match_type(lval->type, rval->type)) {
         error(p, pos, "type mismatch: l-value type '%s': r-value type '%s'",
                 parser_type_string(lval->type), parser_type_string(rval->type));
     }
-    // TODO make new_assign_stmt()
+    /* TODO make new_assign_stmt() */
     if (parser_is_func_type(rval->type) && rval->type->func_type->is_builtin) {
         assert(rval->kind == NOD_EXPR_FUNCLIT);
         struct parser_func *func = rval->func;
@@ -721,7 +727,7 @@ static void semantic_check_assign_stmt(Parser *p, struct parser_pos pos,
     }
 }
 
-static void semantic_check_incdec_stmt(Parser *p, struct parser_pos pos,
+static void semantic_check_incdec_stmt(struct parser *p, struct parser_pos pos,
         const struct parser_expr *lval)
 {
     if (!parser_is_int_type(lval->type)) {
@@ -735,7 +741,7 @@ static void semantic_check_incdec_stmt(Parser *p, struct parser_pos pos,
  * assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
  * incdec_op   = "++" | "--"
  */
-static struct parser_stmt *assign_stmt(Parser *p)
+static struct parser_stmt *assign_stmt(struct parser *p)
 {
     struct parser_expr *lval = expression(p);
     struct parser_expr *rval = NULL;
@@ -788,7 +794,7 @@ static struct parser_stmt *assign_stmt(Parser *p)
     }
 }
 
-static struct parser_scope *new_child_scope(struct Parser *p)
+static struct parser_scope *new_child_scope(struct parser *p)
 {
     struct parser_scope *parent = p->scope;
     struct parser_scope *child = parser_new_scope(parent);
@@ -800,16 +806,16 @@ static struct parser_scope *new_child_scope(struct Parser *p)
     return child;
 }
 
-static struct parser_stmt *or_stmt(Parser *p)
+static struct parser_stmt *or_stmt(struct parser *p)
 {
     struct parser_expr *cond = NULL;
 
     if (consume(p, TOK_NEWLINE)) {
-        // or (else)
+        /* or (else) */
         cond = NULL;
     }
     else {
-        // or if (else if)
+        /* or if (else if) */
         cond = expression(p);
         expect(p, TOK_NEWLINE);
     }
@@ -819,7 +825,7 @@ static struct parser_stmt *or_stmt(Parser *p)
     return parser_new_else_stmt(cond, body);
 }
 
-static struct parser_stmt *if_stmt(Parser *p)
+static struct parser_stmt *if_stmt(struct parser *p)
 {
     expect(p, TOK_IF);
     struct parser_expr *cond = expression(p);
@@ -836,7 +842,7 @@ static struct parser_stmt *if_stmt(Parser *p)
     while (!endor) {
         if (consume(p, TOK_ELSE)) {
             if (peek(p) == TOK_NEWLINE) {
-                // last 'or' (else)
+                /* last 'or' (else) */
                 endor = true;
             }
 
@@ -850,7 +856,7 @@ static struct parser_stmt *if_stmt(Parser *p)
     return parser_new_if_stmt(head.next);
 }
 
-static struct parser_stmt *for_stmt(Parser *p)
+static struct parser_stmt *for_stmt(struct parser *p)
 {
     expect(p, TOK_FOR);
 
@@ -859,7 +865,7 @@ static struct parser_stmt *for_stmt(Parser *p)
     struct parser_stmt *post = NULL;
 
     if (consume(p, TOK_NEWLINE)) {
-        // infinite loop
+        /* infinite loop */
         init = NULL;
         cond = parser_new_intlit_expr(1);
         post = NULL;
@@ -868,7 +874,7 @@ static struct parser_stmt *for_stmt(Parser *p)
         struct parser_stmt *stmt = assign_stmt(p);
 
         if (consume(p, TOK_SEMICOLON)) {
-            // traditional for
+            /* traditional for */
             init = stmt;
             cond = expression(p);
             expect(p, TOK_SEMICOLON);
@@ -876,11 +882,11 @@ static struct parser_stmt *for_stmt(Parser *p)
             expect(p, TOK_NEWLINE);
         }
         else if (consume(p, TOK_NEWLINE)) {
-            // while style
+            /* while style */
             init = NULL;
             cond = stmt->expr;
             post = NULL;
-            // TODO need mem pool?
+            /* TODO need mem pool? */
             free(stmt);
         }
         else {
@@ -889,33 +895,33 @@ static struct parser_stmt *for_stmt(Parser *p)
         }
     }
 
-    // body
+    /* body */
     struct parser_stmt *body = block_stmt(p, new_child_scope(p));
     return parser_new_for_stmt(init, cond, post, body);
 }
 
-static struct parser_stmt *break_stmt(Parser *p)
+static struct parser_stmt *break_stmt(struct parser *p)
 {
     gettok(p);
     expect(p, TOK_NEWLINE);
     return parser_new_break_stmt();
 }
 
-static struct parser_stmt *continue_stmt(Parser *p)
+static struct parser_stmt *continue_stmt(struct parser *p)
 {
     gettok(p);
     expect(p, TOK_NEWLINE);
     return parser_new_continue_stmt();
 }
 
-static struct parser_stmt *case_stmt(Parser *p)
+static struct parser_stmt *case_stmt(struct parser *p)
 {
     struct parser_expr conds = {0};
     struct parser_expr *cond = &conds;
 
     do {
         struct parser_expr *expr = expression(p);
-        // TODO const int check
+        /* TODO const int check */
         cond = cond->next = expr;
     }
     while (consume(p, TOK_COMMA));
@@ -926,7 +932,7 @@ static struct parser_stmt *case_stmt(Parser *p)
     return parser_new_case_stmt(conds.next, body);
 }
 
-static struct parser_stmt *default_stmt(Parser *p)
+static struct parser_stmt *default_stmt(struct parser *p)
 {
     expect(p, TOK_NEWLINE);
 
@@ -934,12 +940,12 @@ static struct parser_stmt *default_stmt(Parser *p)
     return parser_new_default_stmt(body);
 }
 
-static struct parser_stmt *switch_stmt(Parser *p)
+static struct parser_stmt *switch_stmt(struct parser *p)
 {
     expect(p, TOK_SWITCH);
 
     struct parser_expr *expr = expression(p);
-    // TODO int check
+    /* TODO int check */
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt head = {0};
@@ -970,7 +976,7 @@ static struct parser_stmt *switch_stmt(Parser *p)
     }
 }
 
-static struct parser_stmt *ret_stmt(Parser *p)
+static struct parser_stmt *ret_stmt(struct parser *p)
 {
     expect(p, TOK_RETURN);
 
@@ -985,19 +991,19 @@ static struct parser_stmt *ret_stmt(Parser *p)
         expect(p, TOK_NEWLINE);
     }
 
-    assert(p->func_);
+    assert(p->func);
 
-    if (expr && p->func_->return_type->kind != expr->type->kind) {
+    if (expr && p->func->return_type->kind != expr->type->kind) {
         error(p, exprpos,
                 "type mismatch: function type '%s': expression type '%s'",
-                parser_type_string(p->func_->return_type),
+                parser_type_string(p->func->return_type),
                 parser_type_string(expr->type), "");
     }
 
     return parser_new_return_stmt(expr);
 }
 
-static struct parser_stmt *expr_stmt(Parser *p)
+static struct parser_stmt *expr_stmt(struct parser *p)
 {
     struct parser_stmt *s = assign_stmt(p);
     expect(p, TOK_NEWLINE);
@@ -1005,7 +1011,7 @@ static struct parser_stmt *expr_stmt(Parser *p)
     return s;
 }
 
-static struct parser_stmt *scope_stmt(Parser *p)
+static struct parser_stmt *scope_stmt(struct parser *p)
 {
     expect(p, TOK_MINUS3);
     expect(p, TOK_NEWLINE);
@@ -1013,7 +1019,7 @@ static struct parser_stmt *scope_stmt(Parser *p)
     return block_stmt(p, new_child_scope(p));
 }
 
-static struct parser_stmt *nop_stmt(Parser *p)
+static struct parser_stmt *nop_stmt(struct parser *p)
 {
     expect(p, TOK_NOP);
 
@@ -1039,15 +1045,15 @@ static struct parser_expr *default_value(const struct parser_type *type)
         return parser_new_nillit_expr();
 
     case TYP_ARRAY:
-        // TODO fill with zero values
-        // put len at base addr
+        /* TODO fill with zero values */
+        /* put len at base addr */
         return parser_new_intlit_expr(type->len);
 
     case TYP_FUNC:
     case TYP_STRUCT:
     case TYP_TABLE:
     case TYP_MODULE:
-        // TODO
+        /* TODO */
         return parser_new_nillit_expr();
 
     case TYP_NIL:
@@ -1059,22 +1065,24 @@ static struct parser_expr *default_value(const struct parser_type *type)
     return NULL;
 }
 
-// var_decl = "-" identifier type newline
-//          | "-" identifier type = expression newline
-static struct parser_stmt *var_decl(Parser *p, bool isglobal)
+/*
+ * var_decl = "-" identifier type newline
+ *          | "-" identifier type = expression newline
+ */
+static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
 {
     expect(p, TOK_MINUS);
     expect(p, TOK_IDENT);
 
-    // var anme
+    /* var anme */
     const char *name = tok_str(p);
     const struct parser_pos ident_pos = tok_pos(p);
     struct parser_type *type = NULL;
     struct parser_expr *init = NULL;
 
-    // type and init
+    /* type and init */
     if (consume(p, TOK_EQUAL)) {
-        // "- x = 42"
+        /* "- x = 42" */
         init = expression(p);
         type = parser_duplicate_type(init->type);
     }
@@ -1082,11 +1090,11 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
         type = type_spec(p);
 
         if (consume(p, TOK_EQUAL)) {
-            // "- x int = 42"
+            /* "- x int = 42" */
             init = expression(p);
         }
         else {
-            // "- x int"
+            /* "- x int" */
             init = default_value(type);
         }
     }
@@ -1100,7 +1108,7 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
                 "re-defined identifier: '%s'", name);
     }
     struct parser_expr *ident = parser_new_ident_expr(sym);
-    // TODO make new_assign_stmt()
+    /* TODO make new_assign_stmt() */
     if (init && parser_is_func_type(init->type) && init->type->func_type->is_builtin) {
         assert(init->kind == NOD_EXPR_FUNCLIT);
         struct parser_func *func = init->func;
@@ -1111,7 +1119,7 @@ static struct parser_stmt *var_decl(Parser *p, bool isglobal)
     return parser_new_init_stmt(ident, init);
 }
 
-static void field_list(Parser *p, struct parser_struct *strct)
+static void field_list(struct parser *p, struct parser_struct *strct)
 {
     expect(p, TOK_MINUS);
 
@@ -1125,12 +1133,12 @@ static void field_list(Parser *p, struct parser_struct *strct)
     while (consume(p, TOK_MINUS));
 }
 
-static struct parser_struct *struct_decl(Parser *p)
+static struct parser_struct *struct_decl(struct parser *p)
 {
     expect(p, TOK_HASH2);
     expect(p, TOK_IDENT);
 
-    // struct name
+    /* struct name */
     struct parser_struct *strct = parser_define_struct(p->scope, tok_str(p));
     if (!strct) {
         fprintf(stderr, "error: re-defined struct: '%s'\n", tok_str(p));
@@ -1145,7 +1153,7 @@ static struct parser_struct *struct_decl(Parser *p)
     return strct;
 }
 
-static struct parser_table *table_def(Parser *p)
+static struct parser_table *table_def(struct parser *p)
 {
     expect(p, TOK_COLON2);
     expect(p, TOK_IDENT);
@@ -1161,9 +1169,12 @@ static struct parser_table *table_def(Parser *p)
     for (;;) {
         if (consume(p, TOK_VBAR)) {
             expect(p, TOK_IDENT);
-            struct parser_table_row *r = CALLOC(struct parser_table_row);
+            struct parser_table_row *r;
+
+            r = calloc(1, sizeof(*r));
             r->name = tok_str(p);
             r->ival = id++;
+
             data_hashmap_insert(&tab->rows, tok_str(p), r);
             expect(p, TOK_NEWLINE);
         }
@@ -1176,13 +1187,13 @@ static struct parser_table *table_def(Parser *p)
     return tab;
 }
 
-static struct parser_stmt *block_stmt(Parser *p, struct parser_scope *block_scope)
+static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope)
 {
     struct parser_stmt head = {0};
     struct parser_stmt *tail = &head;
     bool has_stmts = true;
 
-    // enter scope
+    /* enter scope */
     p->scope = block_scope;
     expect(p, TOK_BLOCKBEGIN);
 
@@ -1241,14 +1252,14 @@ static struct parser_stmt *block_stmt(Parser *p, struct parser_scope *block_scop
         }
     }
 
-    // leave scope
+    /* leave scope */
     p->scope = p->scope->parent;
     expect(p, TOK_BLOCKEND);
 
     return parser_new_block_stmt(head.next);
 }
 
-static void param_list(Parser *p, struct parser_func *func)
+static void param_list(struct parser *p, struct parser_func *func)
 {
     expect(p, TOK_LPAREN);
 
@@ -1276,7 +1287,7 @@ static void param_list(Parser *p, struct parser_func *func)
     expect(p, TOK_RPAREN);
 }
 
-static void ret_type(Parser *p, struct parser_func *func)
+static void ret_type(struct parser *p, struct parser_func *func)
 {
     const int next = peek(p);
 
@@ -1286,9 +1297,11 @@ static void ret_type(Parser *p, struct parser_func *func)
         func->return_type = type_spec(p);
 }
 
-// type_spec = "bool" | "int" | "float" | "string" | identifier
-// func_type = "#" param_list type_spec?
-static struct parser_type *type_spec(Parser *p)
+/*
+ * type_spec = "bool" | "int" | "float" | "string" | identifier
+ * func_type = "#" param_list type_spec?
+ */
+static struct parser_type *type_spec(struct parser *p)
 {
     struct parser_type *type = NULL;
 
@@ -1315,11 +1328,11 @@ static struct parser_type *type_spec(Parser *p)
 
     if (consume(p, TOK_HASH)) {
         struct parser_func *func = parser_declare_func(p->scope, "_", p->module->filename);
-        // TODO check NULL func
+        /* TODO check NULL func */
         parser_module_add_func(p->module, func);
         param_list(p, func);
         ret_type(p, func);
-        // func type
+        /* func type */
         func->func_type = parser_make_func_type(func);
         return parser_new_func_type(func->func_type);
     }
@@ -1349,33 +1362,35 @@ static struct parser_type *type_spec(Parser *p)
     return type;
 }
 
-// func_def = "#" identifier param_list type_spec? newline block_stmt
-static void func_def(struct Parser *p)
+/*
+ * func_def = "#" identifier param_list type_spec? newline block_stmt
+ */
+static void func_def(struct parser *p)
 {
     expect(p, TOK_HASH);
     expect(p, TOK_IDENT);
 
-    // func
+    /* func */
     const char *name = tok_str(p);
-    const struct parser_pos ident_pos = tok_pos(p);
+    struct parser_pos ident_pos = tok_pos(p);
     struct parser_func *func = parser_declare_func(p->scope, name, p->module->filename);
     if (!func) {
         error(p, ident_pos, "re-defined identifier: '%s'", name);
     }
     parser_module_add_func(p->module, func);
 
-    // params
+    /* params */
     param_list(p, func);
     ret_type(p, func);
     expect(p, TOK_NEWLINE);
 
-    // func type
+    /* func type */
     func->func_type = parser_make_func_type(func);
 
-    // func body
-    p->func_ = func;
+    /* func body */
+    p->func = func;
     struct parser_stmt *body = block_stmt(p, func->scope);
-    // TODO control flow check to allow implicit return
+    /* TODO control flow check to allow implicit return */
     for (struct parser_stmt *s = body->children; s; s = s->next) {
         if (!s->next) {
             s->next = parser_new_return_stmt(NULL);
@@ -1383,113 +1398,122 @@ static void func_def(struct Parser *p)
         }
     }
     func->body = body;
-    p->func_ = NULL;
+    p->func = NULL;
 
-    // TODO remove this
+    /* TODO remove this */
     if (!strcmp(func->name, "main"))
         p->module->main_func = func;
 }
 
-static void module_import(struct Parser *p)
+static void module_import(struct parser *p)
 {
     expect(p, TOK_LBRACK);
     expect(p, TOK_IDENT);
-    const char *modulename = tok_str(p);
 
+    const char *modulename = tok_str(p);
     char filename[512] = {'\0'};
+
     if (strlen(modulename) > 500) {
         error(p, tok_pos(p),
                 "error: too long module name: '%s'", modulename);
     }
 
-    // TODO have search paths
+    /* TODO have search paths */
     const char *src = NULL;
+
     if (!src) {
         sprintf(filename, "src/%s.ro", modulename);
         src = read_file(filename);
     }
+
     if (!src) {
         sprintf(filename, "%s.ro", modulename);
         src = read_file(filename);
     }
+
     if (!src) {
         error(p, tok_pos(p),
                 "module %s.ro not found", modulename);
     }
 
     const struct parser_token *tok = parser_tokenize(src);
-    // TODO use this style => enter_scope(p, mod->scope);
-    Parse(src, filename, modulename, tok, p->scope);
+    /* TODO use this style => enter_scope(p, mod->scope); */
+    parser_parse(src, filename, modulename, tok, p->scope);
 
     expect(p, TOK_RBRACK);
     expect(p, TOK_NEWLINE);
 }
 
-static void program(Parser *p)
+static void program(struct parser *p)
 {
     struct parser_stmt head = {0};
     struct parser_stmt *tail = &head;
+    bool eof = false;
 
-    for (;;) {
-        const int next = peek(p);
+    while (!eof) {
+        int next = peek(p);
 
-        if (next == TOK_HASH) {
+        switch (next) {
+
+        case TOK_HASH:
             func_def(p);
-            continue;
-        }
+            break;
 
-        if (next == TOK_HASH2) {
+        case TOK_HASH2:
             struct_decl(p);
-            continue;
-        }
+            break;
 
-        if (next == TOK_COLON2) {
+        case TOK_COLON2:
             table_def(p);
-            continue;
-        }
+            break;
 
-        if (next == TOK_MINUS) {
+        case TOK_MINUS:
             tail = tail->next = var_decl(p, true);
-            continue;
-        }
+            break;
 
-        if (next == TOK_LBRACK) {
+        case TOK_LBRACK:
             module_import(p);
-            continue;
-        }
+            break;
 
-        if (next == TOK_NEWLINE) {
+        case TOK_NEWLINE:
             gettok(p);
-            continue;
-        }
+            break;
 
-        if (next == TOK_EOF) {
+        case TOK_EOF:
+            eof = true;
+            break;
+
+        default:
+            {
+                const struct parser_token *tok = gettok(p);
+                error(p, tok->pos,
+                        "error: unexpected token for global object: '%s'",
+                        parser_get_token_string(next));
+            }
             break;
         }
-
-        const struct parser_token *tok = gettok(p);
-        error(p, tok->pos,
-                "error: unexpected token for global object: '%s'",
-                parser_get_token_string(next));
     }
 
     p->module->gvars = head.next;
 }
 
-struct parser_module *Parse(const char *src, const char *filename, const char *modulename,
+struct parser_module *parser_parse(const char *src,
+        const char *filename, const char *modulename,
         const struct parser_token *tok, struct parser_scope *scope)
 {
-    struct parser_module *mod = parser_define_module(scope, filename, modulename);
+    struct parser_module *mod;
+    mod = parser_define_module(scope, filename, modulename);
 
-    Parser p = {0};
+    struct parser p = {0};
 
-    p.src_ = src;
-    p.curr_ = tok;
+    p.src = src;
+    p.curr = tok;
     p.scope = mod->scope;
-    p.func_ = NULL;
+    p.func = NULL;
     p.filename = filename;
     p.module = mod;
 
     program(&p);
+
     return mod;
 }
