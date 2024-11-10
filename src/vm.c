@@ -249,8 +249,8 @@ static void run__(VM *vm)
         const Int old_ip = vm->ip_;
         const uint32_t instcode = fetch__(vm);
 
-        struct Instruction inst = {0};
-        Decode__(instcode, &inst);
+        struct code_instruction inst = {0};
+        code_decode_instruction(instcode, &inst);
 
         if (vm->print_stack_) {
             int imm_size = 0;
@@ -345,7 +345,7 @@ static void run__(VM *vm)
             break;
             */
 
-        case OP_ALLOCATE__:
+        case OP_ALLOCATE:
             {
                 const Int size = inst.A;
                 set_sp(vm, vm->sp_ + size);
@@ -376,7 +376,7 @@ static void run__(VM *vm)
             break;
             */
 
-        case OP_MOVE__:
+        case OP_MOVE:
             {
                 const uint8_t dst = inst.A;
                 const uint8_t src = inst.B;
@@ -386,7 +386,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADINT__:
+        case OP_LOADINT:
             {
                 uint8_t dst = inst.A;
                 int64_t lo = fetch__(vm);
@@ -398,7 +398,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADFLOAT__:
+        case OP_LOADFLOAT:
             {
                 uint8_t dst = inst.A;
                 int64_t lo = fetch__(vm);
@@ -411,7 +411,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOAD__:
+        case OP_LOAD:
             {
                 int dst = inst.A;
                 int src = inst.B;
@@ -422,7 +422,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_STORE__:
+        case OP_STORE:
             {
                 int dst = inst.A;
                 int src = inst.B;
@@ -433,7 +433,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADARRAY__:
+        case OP_LOADARRAY:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -446,7 +446,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_STOREARRAY__:
+        case OP_STOREARRAY:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -459,7 +459,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADSTRUCT__:
+        case OP_LOADSTRUCT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -471,7 +471,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_STORESTRUCT__:
+        case OP_STORESTRUCT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t field_idx = inst.B;
@@ -497,7 +497,7 @@ static void run__(VM *vm)
             break;
             */
 
-        case OP_LOADADDR__:
+        case OP_LOADADDR:
             {
                 int reg0 = inst.A;
                 int reg1 = inst.B;
@@ -508,7 +508,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_DEREF__:
+        case OP_DEREF:
             {
                 int reg0 = inst.A;
                 int reg1 = inst.B;
@@ -540,7 +540,7 @@ static void run__(VM *vm)
             break;
             */
 
-        case OP_LOADTYPENIL__:
+        case OP_LOADTYPENIL:
             {
                 int dst = inst.A;
                 struct runtime_value val;
@@ -549,7 +549,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADTYPEBOOL__:
+        case OP_LOADTYPEBOOL:
             {
                 int dst = inst.A;
                 struct runtime_value val;
@@ -558,7 +558,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADTYPEINT__:
+        case OP_LOADTYPEINT:
             {
                 int dst = inst.A;
                 struct runtime_value val;
@@ -567,7 +567,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADTYPEFLOAT__:
+        case OP_LOADTYPEFLOAT:
             {
                 int dst = inst.A;
                 struct runtime_value val;
@@ -576,7 +576,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADTYPESTRING__:
+        case OP_LOADTYPESTRING:
             {
                 int dst = inst.A;
                 struct runtime_value val;
@@ -586,7 +586,7 @@ static void run__(VM *vm)
             break;
 
         // array/struct
-        case OP_NEWARRAY__:
+        case OP_NEWARRAY:
             {
                 int dst = inst.A;
                 int reg1 = inst.B;
@@ -598,7 +598,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_NEWSTRUCT__:
+        case OP_NEWSTRUCT:
             {
                 int dst = inst.A;
                 int len = inst.B;
@@ -612,7 +612,7 @@ static void run__(VM *vm)
             break;
 
         // function call
-        case OP_CALL__:
+        case OP_CALL:
             {
                 uint16_t func_index = inst.BB;
                 int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
@@ -635,7 +635,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_CALLPOINTER__:
+        case OP_CALLPOINTER:
             {
                 int ret = inst.A;
                 int src = inst.B;
@@ -661,7 +661,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_CALLBUILTIN__:
+        case OP_CALLBUILTIN:
             {
                 int ret_reg = inst.A;
                 int func_index = inst.BB;
@@ -744,7 +744,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_RETURN__:
+        case OP_RETURN:
             {
                 uint8_t reg_id = inst.A;
                 struct runtime_value ret_val = fetch_register_value(vm, reg_id);
@@ -758,14 +758,14 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_JUMP__:
+        case OP_JUMP:
             {
                 uint16_t addr = inst.BB;
                 set_ip(vm, addr);
             }
             break;
 
-        case OP_JUMPIFZERO__:
+        case OP_JUMPIFZERO:
             {
                 uint8_t reg0 = inst.A;
                 uint16_t addr = inst.BB;
@@ -776,7 +776,7 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_JUMPIFNOTZ__:
+        case OP_JUMPIFNOTZ:
             {
                 uint8_t reg0 = inst.A;
                 uint16_t addr = inst.BB;
@@ -799,7 +799,7 @@ do { \
     set_local(vm, reg0, val0); \
 } while (0)
         // arithmetic
-        case OP_ADDINT__:
+        case OP_ADDINT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -814,7 +814,7 @@ do { \
             }
             break;
 
-        case OP_ADDFLOAT__:
+        case OP_ADDFLOAT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -829,7 +829,7 @@ do { \
             }
             break;
 
-        case OP_SUBINT__:
+        case OP_SUBINT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -844,7 +844,7 @@ do { \
             }
             break;
 
-        case OP_SUBFLOAT__:
+        case OP_SUBFLOAT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -859,7 +859,7 @@ do { \
             }
             break;
 
-        case OP_MULINT__:
+        case OP_MULINT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -874,7 +874,7 @@ do { \
             }
             break;
 
-        case OP_MULFLOAT__:
+        case OP_MULFLOAT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -889,7 +889,7 @@ do { \
             }
             break;
 
-        case OP_DIVINT__:
+        case OP_DIVINT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -905,7 +905,7 @@ do { \
             }
             break;
 
-        case OP_DIVFLOAT__:
+        case OP_DIVFLOAT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -921,7 +921,7 @@ do { \
             }
             break;
 
-        case OP_REMINT__:
+        case OP_REMINT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -937,7 +937,7 @@ do { \
             }
             break;
 
-        case OP_REMFLOAT__:
+        case OP_REMFLOAT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -954,7 +954,7 @@ do { \
             break;
 
             // TODO move this
-        case OP_CATSTRING__:
+        case OP_CATSTRING:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -972,7 +972,7 @@ do { \
             }
             break;
 
-        case OP_EQINT__:
+        case OP_EQINT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -1001,7 +1001,7 @@ do { \
     val0.r0 = val1.r1 op val2.r2; \
     set_local(vm, reg0, val0); \
 } while (0)
-        case OP_EQFLOAT__:
+        case OP_EQFLOAT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1018,7 +1018,7 @@ do { \
             //DO_BINOP__(inum, fpnum, ==, fpnum, 0);
             break;
 
-        case OP_EQSTRING__:
+        case OP_EQSTRING:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1034,7 +1034,7 @@ do { \
             }
             break;
 
-        case OP_NEQINT__:
+        case OP_NEQINT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1050,7 +1050,7 @@ do { \
             }
             break;
 
-        case OP_NEQFLOAT__:
+        case OP_NEQFLOAT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1066,7 +1066,7 @@ do { \
             }
             break;
 
-        case OP_NEQSTRING__:
+        case OP_NEQSTRING:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1082,7 +1082,7 @@ do { \
             }
             break;
 
-        case OP_LTINT__:
+        case OP_LTINT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1097,7 +1097,7 @@ do { \
             }
             break;
 
-        case OP_LTFLOAT__:
+        case OP_LTFLOAT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1112,7 +1112,7 @@ do { \
             }
             break;
 
-        case OP_LTEINT__:
+        case OP_LTEINT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1127,7 +1127,7 @@ do { \
             }
             break;
 
-        case OP_LTEFLOAT__:
+        case OP_LTEFLOAT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1142,7 +1142,7 @@ do { \
             }
             break;
 
-        case OP_GTINT__:
+        case OP_GTINT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1157,7 +1157,7 @@ do { \
             }
             break;
 
-        case OP_GTFLOAT__:
+        case OP_GTFLOAT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1172,7 +1172,7 @@ do { \
             }
             break;
 
-        case OP_GTEINT__:
+        case OP_GTEINT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1187,7 +1187,7 @@ do { \
             }
             break;
 
-        case OP_GTEFLOAT__:
+        case OP_GTEFLOAT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1202,7 +1202,7 @@ do { \
             }
             break;
 
-        case OP_BITWISEAND__:
+        case OP_BITWISEAND:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1217,7 +1217,7 @@ do { \
             }
             break;
 
-        case OP_BITWISEOR__:
+        case OP_BITWISEOR:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1232,7 +1232,7 @@ do { \
             }
             break;
 
-        case OP_BITWISEXOR__:
+        case OP_BITWISEXOR:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1247,7 +1247,7 @@ do { \
             }
             break;
 
-        case OP_BITWISENOT__:
+        case OP_BITWISENOT:
             {
                 uint8_t dst = inst.A;
                 uint8_t src = inst.B;
@@ -1257,7 +1257,7 @@ do { \
             }
             break;
 
-        case OP_SHL__:
+        case OP_SHL:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1272,7 +1272,7 @@ do { \
             }
             break;
 
-        case OP_SHR__:
+        case OP_SHR:
             {
                 uint8_t dst = inst.A;
                 uint8_t src1 = inst.B;
@@ -1287,7 +1287,7 @@ do { \
             }
             break;
 
-        case OP_INC__:
+        case OP_INC:
             {
                 uint8_t src = inst.A;
                 struct runtime_value val0 = fetch_register_value(vm, src);
@@ -1296,7 +1296,7 @@ do { \
             }
             break;
 
-        case OP_DEC__:
+        case OP_DEC:
             {
                 uint8_t src = inst.A;
                 struct runtime_value val0 = fetch_register_value(vm, src);
@@ -1305,7 +1305,7 @@ do { \
             }
             break;
 
-        case OP_NEGINT__:
+        case OP_NEGINT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -1315,7 +1315,7 @@ do { \
             }
             break;
 
-        case OP_NEGFLOAT__:
+        case OP_NEGFLOAT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -1325,7 +1325,7 @@ do { \
             }
             break;
 
-        case OP_SETIFZERO__:
+        case OP_SETIFZERO:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -1335,7 +1335,7 @@ do { \
             }
             break;
 
-        case OP_SETIFNOTZ__:
+        case OP_SETIFNOTZ:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -1360,7 +1360,7 @@ do { \
             break;
             */
 
-        case OP_BOOLTOINT__:
+        case OP_BOOLTOINT:
             {
                 uint8_t reg0 = inst.A;
                 uint8_t reg1 = inst.B;
@@ -1428,12 +1428,12 @@ do { \
             break;
         */
 
-        case OP_EXIT__:
-        case OP_EOC__:
+        case OP_EXIT:
+        case OP_EOC:
             brk = true;
             break;
 
-        case OP_NOP__:
+        case OP_NOP:
             break;
 
         default:

@@ -9,110 +9,7 @@
 #include "data_hashmap.h"
 #include "data_vec.h"
 
-enum Opcode {
-    /* XXX TEST register machine */
-    OP_NOP__,
-    /* load/store/move */
-    OP_MOVE__,
-    OP_LOADINT__,
-    OP_LOADFLOAT__,
-    OP_LOAD__,
-    OP_STORE__,
-    OP_LOADARRAY__,
-    OP_STOREARRAY__,
-    OP_LOADSTRUCT__,
-    OP_STORESTRUCT__,
-    OP_LOADTYPENIL__,
-    OP_LOADTYPEBOOL__,
-    OP_LOADTYPEINT__,
-    OP_LOADTYPEFLOAT__,
-    OP_LOADTYPESTRING__,
-/* TODO remove address operations */
-    OP_LOADADDR__,
-    OP_DEREF__,
-/* ------------------------------ */
-    /* array/struct */
-    OP_NEWARRAY__,
-    OP_NEWSTRUCT__,
-    /* arithmetic */
-    OP_ADDINT__,
-    OP_ADDFLOAT__,
-    OP_SUBINT__,
-    OP_SUBFLOAT__,
-    OP_MULINT__,
-    OP_MULFLOAT__,
-    OP_DIVINT__,
-    OP_DIVFLOAT__,
-    OP_REMINT__,
-    OP_REMFLOAT__,
-    OP_EQINT__,
-    OP_EQFLOAT__,
-    OP_NEQINT__,
-    OP_NEQFLOAT__,
-    OP_LTINT__,
-    OP_LTFLOAT__,
-    OP_LTEINT__,
-    OP_LTEFLOAT__,
-    OP_GTINT__,
-    OP_GTFLOAT__,
-    OP_GTEINT__,
-    OP_GTEFLOAT__,
-    OP_BITWISEAND__,
-    OP_BITWISEOR__,
-    OP_BITWISEXOR__,
-    OP_BITWISENOT__,
-    OP_SHL__,
-    OP_SHR__,
-    OP_NEGINT__,
-    OP_NEGFLOAT__,
-    OP_SETIFZERO__,
-    OP_SETIFNOTZ__,
-    OP_INC__,
-    OP_DEC__,
-    /* string */
-    OP_CATSTRING__,
-    OP_EQSTRING__,
-    OP_NEQSTRING__,
-    /* function call */
-    OP_CALL__,
-    OP_CALLPOINTER__,
-    OP_CALLBUILTIN__,
-    OP_RETURN__,
-    /* jump */
-    OP_JUMP__,
-    OP_JUMPIFZERO__,
-    OP_JUMPIFNOTZ__,
-    /* stack operation TODO move to right place */
-    OP_ALLOCATE__,
-    /* conversion */
-    OP_BOOLTOINT__,
-    OP_BOOLTOFLOAT__,
-    OP_INTTOBOOL__,
-    OP_INTTOFLOAT__,
-    OP_FLOATTOBOOL__,
-    OP_FLOATTOINT__,
-    /* program control */
-    OP_EXIT__,
-    OP_EOC__,
-    /* XXX TEST register machine */
-    END_OF_OPCODE__,
-};
-
-struct OpcodeInfo {
-    int opcode;
-    const char *mnemonic;
-    int operand_size;
-};
-
-const char *OpcodeString(Byte op);
-
-/* XXX TEST register machine */
-struct InstVec {
-    uint32_t *data;
-    int cap;
-    int len;
-};
-/* XXX TEST register machine */
+#include "code_instruction.h"
 
 typedef struct ByteVec {
     Byte *data;
@@ -140,7 +37,7 @@ typedef struct FuncInfoVec {
 } FuncInfoVec;
 
 typedef struct Bytecode {
-    struct InstVec insts;
+    struct code_instructionvec insts;
     int base_reg;
     int curr_reg;
     int max_reg;
@@ -282,30 +179,14 @@ void BackPatchElseEnds__(struct Bytecode *code);
 void BackPatchContinues__(struct Bytecode *code);
 void code_backpatch_case_ends(struct Bytecode *code);
 
-struct Instruction {
-    int op;
-    Byte A, B, C;
-    Word BB;
-    Int iIMM;
-    Float fIMM;
-};
-void Decode__(uint32_t instcode, struct Instruction *inst);
 void PrintInstruction__(const struct Bytecode *code,
-        Int addr, const struct Instruction *inst, int *imm_size);
+        Int addr, const struct code_instruction *inst, int *imm_size);
 
 /* read / write */
 uint32_t Read__(const Bytecode *code, Int addr);
 void Write__(const Bytecode *code, Int addr, uint32_t inst);
 Int Size__(const Bytecode *code);
 Int NextAddr__(const struct Bytecode *code);
-
-#define DECODE_OP(inst) (((inst) >> 24))
-#define DECODE_A(inst)  (((inst) >> 16) & 0xFF)
-#define DECODE_B(inst)  (((inst) >>  8) & 0xFF)
-#define DECODE_C(inst)  ((inst) & 0xFF)
-#define DECODE_BB(inst) ((inst) & 0xFFFF)
-#define ENCODE_ABB(op,a,bb) (((op) << 24) | ((a) << 16) | (bb))
-/* XXX TEST register */
 
 /* Backpatches */
 
