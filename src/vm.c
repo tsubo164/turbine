@@ -165,7 +165,7 @@ static struct runtime_value fetch_register_value(struct VM *vm, int id)
 
 // XXX TEST
 static void run__(VM *vm);
-void Run(VM *vm, const Bytecode *code)
+void Run(VM *vm, const struct code_bytecode *code)
 {
     vm->code_ = code;
     //vm->eoc_ = Size(vm->code_);

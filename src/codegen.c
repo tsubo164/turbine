@@ -73,10 +73,10 @@ void SetOptimize(bool enable)
     } while (0)
 
 // XXX TEST compiling to register-based machine code
-static int gen_expr__(Bytecode *code, const struct parser_expr *e);
-static int gen_addr__(Bytecode *code, const struct parser_expr *e);
+static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e);
+static int gen_addr__(struct code_bytecode *code, const struct parser_expr *e);
 
-static int gen_convert__(Bytecode *code, int reg0, int reg1, int from, int to)
+static int gen_convert__(struct code_bytecode *code, int reg0, int reg1, int from, int to)
 {
     int reg = -1;
 
@@ -122,10 +122,10 @@ static int gen_convert__(Bytecode *code, int reg0, int reg1, int from, int to)
 }
 
 // TODO remove forward decls
-static int gen_dst_register(Bytecode *code, int reg1, int reg2);
-static int gen_dst_register2(struct Bytecode *code, int reg1);
-static int gen_store2__(Bytecode *code, const struct parser_expr *lval, int src_reg);
-static int gen_init_array__(Bytecode *code, const struct parser_expr *e)
+static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2);
+static int gen_dst_register2(struct code_bytecode *code, int reg1);
+static int gen_store2__(struct code_bytecode *code, const struct parser_expr *lval, int src_reg);
+static int gen_init_array__(struct code_bytecode *code, const struct parser_expr *e)
 {
     int dst = 0;
 
@@ -135,13 +135,13 @@ static int gen_init_array__(Bytecode *code, const struct parser_expr *e)
         int len = gen_expr__(code, e->r);
         int dst = gen_dst_register(code, addr, len);
         NewArray__(code, dst, len);
-        Store__(code, addr, dst);
+        code_emit_store_global(code, addr, dst);
         return addr;
     }
     else {
         // an init expr always has identifier on the left
         int reg0 = gen_expr__(code, e->l);
-        int reg1 = LoadInt__(code, e->type->len);
+        int reg1 = code_emit_load_int(code, e->type->len);
         NewArray__(code, reg0, reg1);
         dst = reg0;
     }
@@ -153,15 +153,15 @@ static int gen_init_array__(Bytecode *code, const struct parser_expr *e)
 
     for (struct parser_expr *expr = array_lit->l; expr; expr = expr->next) {
         int src = gen_expr__(code, expr);
-        int idx = LoadInt__(code, index);
-        StoreArray__(code, dst, idx, src);
+        int idx = code_emit_load_int(code, index);
+        code_emit_store_array(code, dst, idx, src);
         index++;
     }
 
     return dst;
 }
 
-static int gen_struct_lit__(Bytecode *code, const struct parser_expr *e,
+static int gen_struct_lit__(struct code_bytecode *code, const struct parser_expr *e,
         const struct parser_type *type, /* XXX TEMP */
         int dst_reg)
 {
@@ -176,7 +176,7 @@ static int gen_struct_lit__(Bytecode *code, const struct parser_expr *e,
         else {
             /* local */
             int src = gen_addr__(code, e);
-            Move__(code, dst_reg, src);
+            code_emit_move(code, dst_reg, src);
             return dst_reg;
         }
     }
@@ -199,18 +199,18 @@ static int gen_struct_lit__(Bytecode *code, const struct parser_expr *e,
         int src = gen_expr__(code, elem->r);
         int idx = gen_addr__(code, elem->l);
 
-        StoreStruct__(code, dst, idx, src);
+        code_emit_store_struct(code, dst, idx, src);
     }
 
     return dst;
 }
 
-static int gen_init_struct__(Bytecode *code, const struct parser_expr *e)
+static int gen_init_struct__(struct code_bytecode *code, const struct parser_expr *e)
 {
     if (parser_ast_is_global(e->l)) {
         int tmp = gen_struct_lit__(code, e->r, e->type, -1);
         int dst = gen_addr__(code, e->l);
-        Store__(code, dst, tmp);
+        code_emit_store_global(code, dst, tmp);
         return dst;
     }
     else {
@@ -262,42 +262,42 @@ static int gen_init_struct__(Bytecode *code, const struct parser_expr *e)
     */
 }
 
-static int gen_store__(Bytecode *code, const struct parser_expr *lval, const struct parser_expr *rval)
+static int gen_store__(struct code_bytecode *code, const struct parser_expr *lval, const struct parser_expr *rval)
 {
     int reg0 = 0xff;
     int reg1 = gen_expr__(code, rval);
 
     if (parser_ast_is_global(lval)) {
         reg0 = gen_addr__(code, lval);
-        Store__(code, reg0, reg1);
+        code_emit_store_global(code, reg0, reg1);
     }
     else {
         // TODO handle case where lhs is not addressable
         reg0 = gen_addr__(code, lval);
-        Move__(code, reg0, reg1);
+        code_emit_move(code, reg0, reg1);
     }
 
     return reg0;
 }
 
-static int gen_store2__(Bytecode *code, const struct parser_expr *lval, int src_reg)
+static int gen_store2__(struct code_bytecode *code, const struct parser_expr *lval, int src_reg)
 {
     int dst_reg = -1;
 
     if (parser_ast_is_global(lval)) {
         dst_reg = gen_addr__(code, lval);
-        Store__(code, dst_reg, src_reg);
+        code_emit_store_global(code, dst_reg, src_reg);
     }
     else {
         // TODO handle case where lhs is not addressable
         dst_reg = gen_addr__(code, lval);
-        Move__(code, dst_reg, src_reg);
+        code_emit_move(code, dst_reg, src_reg);
     }
 
     return dst_reg;
 }
 
-static int gen_init__(Bytecode *code, const struct parser_expr *e)
+static int gen_init__(struct code_bytecode *code, const struct parser_expr *e)
 {
     // rval
     int reg0 = -1;
@@ -305,12 +305,12 @@ static int gen_init__(Bytecode *code, const struct parser_expr *e)
 
     if (parser_ast_is_global(e->l)) {
         reg0 = gen_addr__(code, e->l);
-        Store__(code, reg0, reg1);
+        code_emit_store_global(code, reg0, reg1);
     }
     else {
         // TODO handle case where lhs is not addressable
         reg0 = gen_addr__(code, e->l);
-        Move__(code, reg0, reg1);
+        code_emit_move(code, reg0, reg1);
     }
 
         /*
@@ -330,7 +330,7 @@ static int gen_init__(Bytecode *code, const struct parser_expr *e)
 }
 
 // TODO move to bytecode.c
-static int gen_dst_register(Bytecode *code, int reg1, int reg2)
+static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2)
 {
     int reg0 = -1;
 
@@ -346,7 +346,7 @@ static int gen_dst_register(Bytecode *code, int reg1, int reg2)
 }
 
 // TODO move to bytecode.c
-static int gen_dst_register2(struct Bytecode *code, int reg1)
+static int gen_dst_register2(struct code_bytecode *code, int reg1)
 {
     int reg0 = -1;
 
@@ -359,7 +359,7 @@ static int gen_dst_register2(struct Bytecode *code, int reg1)
     return reg0;
 }
 
-static int gen_binop__(Bytecode *code, const struct parser_type *type, int kind,
+static int gen_binop__(struct code_bytecode *code, const struct parser_type *type, int kind,
         int reg0, int reg1, int reg2)
 {
     switch (kind) {
@@ -416,7 +416,7 @@ static int gen_binop__(Bytecode *code, const struct parser_type *type, int kind,
     return reg0;
 }
 
-static int gen_assign__(Bytecode *code, const struct parser_expr *e)
+static int gen_assign__(struct code_bytecode *code, const struct parser_expr *e)
 {
     const struct parser_expr *lval = e->l;
     const struct parser_expr *rval = e->r;
@@ -428,7 +428,7 @@ static int gen_assign__(Bytecode *code, const struct parser_expr *e)
         int reg0 = gen_expr__(code, lval->l);
         int reg1 = gen_expr__(code, lval->r);
         int reg2 = gen_expr__(code, rval);
-        StoreArray__(code, reg0, reg1, reg2);
+        code_emit_store_array(code, reg0, reg1, reg2);
         return reg0;
     }
     else if (lval->kind == NOD_EXPR_SELECT) {
@@ -438,14 +438,14 @@ static int gen_assign__(Bytecode *code, const struct parser_expr *e)
         reg1 = gen_addr__(code, lval->r);
         // eval rval
         reg2 = gen_expr__(code, rval);
-        StoreStruct__(code, reg0, reg1, reg2);
+        code_emit_store_struct(code, reg0, reg1, reg2);
         return reg0;
     }
     else if (lval->kind == NOD_EXPR_DEREF) {
         // TODO remove
         reg0 = gen_addr__(code, lval);
         reg1 = gen_expr__(code, rval);
-        Store__(code, reg0, reg1);
+        code_emit_store_global(code, reg0, reg1);
         return reg0;
     }
 
@@ -496,7 +496,7 @@ static int gen_assign__(Bytecode *code, const struct parser_expr *e)
     return reg0;
 }
 
-static int gen_binop_assign__(Bytecode *code, const struct parser_expr *e)
+static int gen_binop_assign__(struct code_bytecode *code, const struct parser_expr *e)
 {
     if (e->l->kind == NOD_EXPR_INDEX) {
         // lval
@@ -509,7 +509,7 @@ static int gen_binop_assign__(Bytecode *code, const struct parser_expr *e)
         int reg2 = gen_dst_register(code, tmp1, tmp2);
         gen_binop__(code, e->type, e->kind, reg2, tmp1, tmp2);
         // store
-        StoreArray__(code, reg0, reg1, reg2);
+        code_emit_store_array(code, reg0, reg1, reg2);
         return reg0;
     }
     else {
@@ -522,7 +522,7 @@ static int gen_binop_assign__(Bytecode *code, const struct parser_expr *e)
     }
 }
 
-static int gen_call__(Bytecode *code, const struct parser_expr *call)
+static int gen_call__(struct code_bytecode *code, const struct parser_expr *call)
 {
     const struct parser_func_type *func_type = call->l->type->func_type;
 
@@ -541,29 +541,29 @@ static int gen_call__(Bytecode *code, const struct parser_expr *call)
             int head_reg = GetCurrentRegister__(code);
             int arg_src = gen_expr__(code, arg);
             int arg_dst = GetNextRegister__(code, head_reg);
-            Move__(code, arg_dst, arg_src);
+            code_emit_move(code, arg_dst, arg_src);
 
             int type_dst = GetNextRegister__(code, arg_dst);
 
             switch (arg->type->kind) {
             case TYP_NIL:
-                LoadTypeNil__(code, type_dst);
+                code_emit_load_type_nil(code, type_dst);
                 break;
 
             case TYP_BOOL:
-                LoadTypeBool__(code, type_dst);
+                code_emit_load_type_bool(code, type_dst);
                 break;
 
             case TYP_INT:
-                LoadTypeInt__(code, type_dst);
+                code_emit_load_type_int(code, type_dst);
                 break;
 
             case TYP_FLOAT:
-                LoadTypeFloat__(code, type_dst);
+                code_emit_load_type_float(code, type_dst);
                 break;
 
             case TYP_STRING:
-                LoadTypeString__(code, type_dst);
+                code_emit_load_type_string(code, type_dst);
                 break;
 
             case TYP_FUNC:
@@ -573,21 +573,21 @@ static int gen_call__(Bytecode *code, const struct parser_expr *call)
             case TYP_PTR:
             case TYP_ARRAY:
             case TYP_ANY:
-                LoadTypeNil__(code, type_dst);
+                code_emit_load_type_nil(code, type_dst);
                 break;
             }
         }
 
         // arg count
-        int argc_src = LoadInt__(code, argc);
-        Move__(code, argc_dst, argc_src);
+        int argc_src = code_emit_load_int(code, argc);
+        code_emit_move(code, argc_dst, argc_src);
     }
     else {
         for (const struct parser_expr *arg = call->r; arg; arg = arg->next) {
             int cur = GetCurrentRegister__(code);
             int src = gen_expr__(code, arg);
             int dst = GetNextRegister__(code, cur);
-            Move__(code, dst, src);
+            code_emit_move(code, dst, src);
         }
     }
 
@@ -612,7 +612,7 @@ static int gen_call__(Bytecode *code, const struct parser_expr *call)
     return retval_reg;
 }
 
-static int gen_expr__(Bytecode *code, const struct parser_expr *e)
+static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
 {
     if (!e)
         return -1;
@@ -625,20 +625,20 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_NILLIT:
         {
-            int reg0 = LoadInt__(code, 0);
+            int reg0 = code_emit_load_int(code, 0);
             return reg0;
         }
 
     case NOD_EXPR_BOOLLIT:
     case NOD_EXPR_INTLIT:
         {
-            int reg0 = LoadInt__(code, e->ival);
+            int reg0 = code_emit_load_int(code, e->ival);
             return reg0;
         }
 
     case NOD_EXPR_FLOATLIT:
         {
-            int reg0 = LoadFloat__(code, e->fval);
+            int reg0 = code_emit_load_float(code, e->fval);
             return reg0;
         }
 
@@ -652,13 +652,13 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
             else
                 s = e->converted;
 
-            reg0 = LoadString__(code, s);
+            reg0 = code_emit_load_string(code, s);
             return reg0;
         }
 
     case NOD_EXPR_FUNCLIT:
         {
-            int reg0 = LoadInt__(code, e->func->id);
+            int reg0 = code_emit_load_int(code, e->func->id);
             return reg0;
         }
 
@@ -670,11 +670,10 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_IDENT:
         if (e->var->is_global) {
-            int reg1 = LoadInt__(code, e->var->id);
+            int reg1 = code_emit_load_int(code, e->var->id);
             int reg0 = NewRegister__(code);
 
-            // TODO rename it to LoadGlobal()
-            reg0 = Load__(code, reg0, reg1);
+            reg0 = code_emit_load_global(code, reg0, reg1);
             return reg0;
         }
         else {
@@ -686,7 +685,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
         reg0 = gen_dst_register(code, reg0, reg1);
-        LoadStruct__(code, reg0, reg1, reg2);
+        code_emit_load_struct(code, reg0, reg1, reg2);
         return reg0;
 
     case NOD_EXPR_FIELD:
@@ -698,7 +697,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
             int src = gen_expr__(code, e->l);
             int idx = gen_expr__(code, e->r);
             int dst = gen_dst_register(code, src, idx);
-            LoadArray__(code, dst, src, idx);
+            code_emit_load_array(code, dst, src, idx);
             return dst;
         }
 
@@ -713,7 +712,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
 
             // true
             reg0 = gen_dst_register2(code, reg1);
-            Move__(code, reg0, reg1);
+            code_emit_move(code, reg0, reg1);
             Int exit = Jump__(code, -1);
 
             // false
@@ -732,12 +731,12 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
             // true
             reg2 = gen_expr__(code, e->r);
             reg0 = gen_dst_register(code, reg1, reg2);
-            Move__(code, reg0, reg2);
+            code_emit_move(code, reg0, reg2);
             Int exit = Jump__(code, -1);
 
             // false
             BackPatch__(code, els);
-            Move__(code, reg0, reg1);
+            code_emit_move(code, reg0, reg1);
             BackPatch__(code, exit);
         }
         return reg0;
@@ -883,7 +882,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
         {
             int reg1 = gen_addr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
-            LoadAddress__(code, reg0, reg1);
+            code_emit_load_address(code, reg0, reg1);
             return reg0;
         }
 
@@ -918,7 +917,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
         {
             int reg1 = gen_expr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
-            Dereference__(code, reg0, reg1);
+            code_emit_dereference(code, reg0, reg1);
             return reg0;
         }
 
@@ -945,7 +944,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
         if (parser_ast_is_global(e->l)) {
             int src = gen_expr__(code, e->l);
             int dst = gen_dst_register2(code, src);
-            Move__(code, dst, src);
+            code_emit_move(code, dst, src);
             Inc__(code, dst);
 
             gen_store2__(code, e->l, dst);
@@ -962,7 +961,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
             if (parser_ast_is_global(e->l)) {
                 int src = gen_expr__(code, e->l);
                 int dst = gen_dst_register2(code, src);
-                Move__(code, dst, src);
+                code_emit_move(code, dst, src);
                 Dec__(code, dst);
 
                 gen_store2__(code, e->l, dst);
@@ -979,7 +978,7 @@ static int gen_expr__(Bytecode *code, const struct parser_expr *e)
     return -1;
 }
 
-static int gen_addr__(Bytecode *code, const struct parser_expr *e)
+static int gen_addr__(struct code_bytecode *code, const struct parser_expr *e)
 {
     if (!e)
         return -1;
@@ -1010,7 +1009,7 @@ static int gen_addr__(Bytecode *code, const struct parser_expr *e)
         }
         */
         if (e->var->is_global) {
-            int reg0 = LoadInt__(code, e->var->id);
+            int reg0 = code_emit_load_int(code, e->var->id);
             return reg0;
         }
         else {
@@ -1070,7 +1069,7 @@ static int gen_addr__(Bytecode *code, const struct parser_expr *e)
 
     return reg0;
 }
-static void gen_stmt__(Bytecode *code, const struct parser_stmt *s)
+static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
 {
     if (!s)
         return;
@@ -1166,7 +1165,7 @@ static void gen_stmt__(Bytecode *code, const struct parser_stmt *s)
             int curr = GetCurrentRegister__(code);
             int reg0 = GetNextRegister__(code, curr);
             int reg1 = gen_expr__(code, s->cond);
-            reg0 = Move__(code, reg0, reg1);
+            reg0 = code_emit_move(code, reg0, reg1);
 
             // cases
             for (struct parser_stmt *cas = s->children; cas; cas = cas->next) {
@@ -1254,7 +1253,7 @@ static void gen_stmt__(Bytecode *code, const struct parser_stmt *s)
     ResetCurrentRegister__(code);
 }
 
-static void gen_func__(Bytecode *code, const struct parser_func *func, int func_id)
+static void gen_func__(struct code_bytecode *code, const struct parser_func *func, int func_id)
 {
     // Register function
     RegisterFunction__(code, func_id, func->params.len);
@@ -1272,7 +1271,7 @@ static void gen_func__(Bytecode *code, const struct parser_func *func, int func_
     SetMaxRegisterCount__(code, func_id);
 }
 
-static void gen_funcs__(Bytecode *code, const struct parser_module *mod)
+static void gen_funcs__(struct code_bytecode *code, const struct parser_module *mod)
 {
     struct parser_scope *scope = mod->scope;
 
@@ -1292,7 +1291,7 @@ static void gen_funcs__(Bytecode *code, const struct parser_module *mod)
     }
 }
 
-static void gen_gvars__(Bytecode *code, const struct parser_module *mod)
+static void gen_gvars__(struct code_bytecode *code, const struct parser_module *mod)
 {
     struct parser_scope *scope = mod->scope;
 
@@ -1309,7 +1308,7 @@ static void gen_gvars__(Bytecode *code, const struct parser_module *mod)
         gen_stmt__(code, gvar);
 }
 
-static void gen_module__(Bytecode *code, const struct parser_module *mod)
+static void gen_module__(struct code_bytecode *code, const struct parser_module *mod)
 {
     if (!mod->main_func) {
         fprintf(stderr, "error: 'main' function not found");
@@ -1336,7 +1335,7 @@ static void gen_module__(Bytecode *code, const struct parser_module *mod)
     gen_funcs__(code, mod);
 }
 
-void GenerateCode(struct Bytecode *code, const struct parser_module *mod)
+void GenerateCode(struct code_bytecode *code, const struct parser_module *mod)
 {
     gen_module__(code, mod);
     End__(code);

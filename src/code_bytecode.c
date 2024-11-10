@@ -29,27 +29,27 @@ static void assert_range(const struct code_functionvec *v,  Word index)
     }
 }
 
-static void push_immediate_value(struct Bytecode *code, int operand);
+static void push_immediate_value(struct code_bytecode *code, int operand);
 
-static void push_inst_op(struct Bytecode *code, uint8_t op)
+static void push_inst_op(struct code_bytecode *code, uint8_t op)
 {
     code_push_instruction__(&code->insts, op);
 }
 
-static void push_inst_a(struct Bytecode *code, uint8_t op, uint8_t a)
+static void push_inst_a(struct code_bytecode *code, uint8_t op, uint8_t a)
 {
     code_push_instruction_a(&code->insts, op, a);
     push_immediate_value(code, a);
 }
 
-static void push_inst_ab(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b)
+static void push_inst_ab(struct code_bytecode *code, uint8_t op, uint8_t a, uint8_t b)
 {
     code_push_instruction_ab(&code->insts, op, a, b);
     push_immediate_value(code, a);
     push_immediate_value(code, b);
 }
 
-static void push_inst_abc(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t b, uint8_t c)
+static void push_inst_abc(struct code_bytecode *code, uint8_t op, uint8_t a, uint8_t b, uint8_t c)
 {
     code_push_instruction_abc(&code->insts, op, a, b, c);
     push_immediate_value(code, a);
@@ -57,30 +57,30 @@ static void push_inst_abc(struct Bytecode *code, uint8_t op, uint8_t a, uint8_t 
     push_immediate_value(code, c);
 }
 
-static void push_inst_abb(struct Bytecode *code, uint8_t op, uint8_t a, uint16_t bb)
+static void push_inst_abb(struct code_bytecode *code, uint8_t op, uint8_t a, uint16_t bb)
 {
     code_push_instruction_abb(&code->insts, op, a, bb);
     push_immediate_value(code, a);
 }
 
-static bool is_localreg_full(const struct Bytecode *code)
+static bool is_localreg_full(const struct code_bytecode *code)
 {
     return code->curr_reg == IMMEDIATE_SMALLINT_BEGIN - 1;
 }
 
-void InitLocalVarRegister__(struct Bytecode *code, uint8_t lvar_count)
+void InitLocalVarRegister__(struct code_bytecode *code, uint8_t lvar_count)
 {
     code->base_reg = lvar_count - 1;
     code->curr_reg = code->base_reg;
     code->max_reg = code->base_reg;
 }
 
-void ResetCurrentRegister__(struct Bytecode *code)
+void ResetCurrentRegister__(struct code_bytecode *code)
 {
     code->curr_reg = code->base_reg;
 }
 
-int NewRegister__(struct Bytecode *code)
+int NewRegister__(struct code_bytecode *code)
 {
     if (is_localreg_full(code)) {
         return -1;
@@ -93,18 +93,18 @@ int NewRegister__(struct Bytecode *code)
     return code->curr_reg;
 }
 
-int GetCurrentRegister__(const struct Bytecode *code)
+int GetCurrentRegister__(const struct code_bytecode *code)
 {
     return code->curr_reg;
 }
 
-int SetCurrentRegister__(struct Bytecode *code, int curr)
+int SetCurrentRegister__(struct code_bytecode *code, int curr)
 {
     code->curr_reg = curr;
     return curr;
 }
 
-int GetNextRegister__(struct Bytecode *code, int reg)
+int GetNextRegister__(struct code_bytecode *code, int reg)
 {
     int next = -1;
 
@@ -119,7 +119,7 @@ int GetNextRegister__(struct Bytecode *code, int reg)
     return next;
 }
 
-bool IsTempRegister(const struct Bytecode *code, int id)
+bool IsTempRegister(const struct code_bytecode *code, int id)
 {
     return id > code->base_reg && !IsImmediateValue__(id);
 }
@@ -162,7 +162,7 @@ int smallint_to_register(int64_t val)
     return val + IMMEDIATE_SMALLINT_BEGIN;
 }
 
-static void push_immediate_value(struct Bytecode *code, int operand)
+static void push_immediate_value(struct code_bytecode *code, int operand)
 {
     if (!is_constpool_register(operand))
         return;
@@ -173,7 +173,7 @@ static void push_immediate_value(struct Bytecode *code, int operand)
     code_push_immediate_value(&code->insts, id);
 }
 
-struct runtime_value ReadImmediateValue__(const struct Bytecode *code,
+struct runtime_value ReadImmediateValue__(const struct code_bytecode *code,
         Int addr, int id, int *imm_size)
 {
     struct runtime_value value;
@@ -226,15 +226,16 @@ struct runtime_value ReadImmediateValue__(const struct Bytecode *code,
 }
 
 /* Load/store/move */
-int Move__(Bytecode *code, Byte dst, Byte src)
+int code_emit_move(struct code_bytecode *code, int dst, int src)
 {
     if (dst == src)
         return dst;
+
     push_inst_ab(code, OP_MOVE, dst, src);
     return dst;
 }
 
-int LoadInt__(struct Bytecode *code, int64_t val)
+int code_emit_load_int(struct code_bytecode *code, int64_t val)
 {
     if (can_fit_smallint(val)) {
         return smallint_to_register(val);
@@ -250,94 +251,93 @@ int LoadInt__(struct Bytecode *code, int64_t val)
     }
 }
 
-int LoadFloat__(struct Bytecode *code, double val)
+int code_emit_load_float(struct code_bytecode *code, double val)
 {
     int id = code_constant_pool_push_float(&code->const_pool, val);
     data_intstack_push(&code->immediate_ints, id);
     return IMMEDIATE_FLOAT;
 }
 
-int LoadString__(struct Bytecode *code, const char *cstr)
+int code_emit_load_string(struct code_bytecode *code, const char *cstr)
 {
     int id = code_constant_pool_push_string(&code->const_pool, cstr);
     data_intstack_push(&code->immediate_ints, id);
     return IMMEDIATE_STRING;
 }
 
-int Load__(struct Bytecode *code, uint8_t dst, uint8_t src)
+int code_emit_load_global(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_LOAD, dst, src);
     return dst;
 }
 
-int Store__(struct Bytecode *code, uint8_t dst, uint8_t src)
+int code_emit_store_global(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_STORE, dst, src);
     return dst;
 }
 
-int LoadArray__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t idx)
+int code_emit_load_array(struct code_bytecode *code, int dst, int src, int idx)
 {
     push_inst_abc(code, OP_LOADARRAY, dst, src, idx);
     return dst;
 }
 
-int StoreArray__(struct Bytecode *code, uint8_t dst, uint8_t idx, uint8_t src)
+int code_emit_store_array(struct code_bytecode *code, int dst, int idx, int src)
 {
     push_inst_abc(code, OP_STOREARRAY, dst, idx, src);
     return dst;
 }
 
-int LoadStruct__(struct Bytecode *code, uint8_t dst, uint8_t src, uint8_t field_idx)
+int code_emit_load_struct(struct code_bytecode *code, int dst, int src, int field_idx)
 {
     push_inst_abc(code, OP_LOADSTRUCT, dst, src, field_idx);
     return dst;
 }
 
-int StoreStruct__(struct Bytecode *code, uint8_t dst, uint8_t field_idx, uint8_t src)
+int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, int src)
 {
     push_inst_abc(code, OP_STORESTRUCT, dst, field_idx, src);
     return dst;
 }
 
-int LoadTypeNil__(struct Bytecode *code, int dst)
+int code_emit_load_type_nil(struct code_bytecode *code, int dst)
 {
     push_inst_a(code, OP_LOADTYPENIL, dst);
     return dst;
 }
 
-int LoadTypeBool__(struct Bytecode *code, int dst)
+int code_emit_load_type_bool(struct code_bytecode *code, int dst)
 {
     push_inst_a(code, OP_LOADTYPEBOOL, dst);
     return dst;
 }
 
-int LoadTypeInt__(struct Bytecode *code, int dst)
+int code_emit_load_type_int(struct code_bytecode *code, int dst)
 {
     push_inst_a(code, OP_LOADTYPEINT, dst);
     return dst;
 }
 
-int LoadTypeFloat__(struct Bytecode *code, int dst)
+int code_emit_load_type_float(struct code_bytecode *code, int dst)
 {
     push_inst_a(code, OP_LOADTYPEFLOAT, dst);
     return dst;
 }
 
-int LoadTypeString__(struct Bytecode *code, int dst)
+int code_emit_load_type_string(struct code_bytecode *code, int dst)
 {
     push_inst_a(code, OP_LOADTYPESTRING, dst);
     return dst;
 }
 
-/* TODO remove address operations */
-int LoadAddress__(struct Bytecode *code, int dst, int src)
+int code_emit_load_address(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_LOADADDR, dst, src);
     return dst;
 }
 
-int Dereference__(struct Bytecode *code, int dst, int src)
+int code_emit_dereference(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_DEREF, dst, src);
     return dst;
@@ -345,244 +345,244 @@ int Dereference__(struct Bytecode *code, int dst, int src)
 /* ------------------------------ */
 
 /* array/struct */
-int NewArray__(struct Bytecode *code, uint8_t dst, uint8_t len)
+int NewArray__(struct code_bytecode *code, uint8_t dst, uint8_t len)
 {
     push_inst_ab(code, OP_NEWARRAY, dst, len);
     return dst;
 }
 
-int NewStruct__(struct Bytecode *code, uint8_t dst, uint8_t len)
+int NewStruct__(struct code_bytecode *code, uint8_t dst, uint8_t len)
 {
     push_inst_ab(code, OP_NEWSTRUCT, dst, len);
     return dst;
 }
 
 /* arithmetic */
-int AddInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int AddInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_ADDINT, dst, src0, src1);
     return dst;
 }
 
-int AddFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int AddFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_ADDFLOAT, dst, src0, src1);
     return dst;
 }
 
-int SubInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int SubInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_SUBINT, dst, src0, src1);
     return dst;
 }
 
-int SubFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int SubFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_SUBFLOAT, dst, src0, src1);
     return dst;
 }
 
-int MulInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int MulInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_MULINT, dst, src0, src1);
     return dst;
 }
 
-int MulFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int MulFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_MULFLOAT, dst, src0, src1);
     return dst;
 }
 
-int DivInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int DivInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_DIVINT, dst, src0, src1);
     return dst;
 }
 
-int DivFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int DivFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_DIVFLOAT, dst, src0, src1);
     return dst;
 }
 
-int RemInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int RemInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_REMINT, dst, src0, src1);
     return dst;
 }
 
-int RemFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int RemFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_REMFLOAT, dst, src0, src1);
     return dst;
 }
 
-int EqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int EqualInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_EQINT, dst, src0, src1);
     return dst;
 }
 
-int EqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int EqualFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_EQFLOAT, dst, src0, src1);
     return dst;
 }
 
-int NotEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int NotEqualInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_NEQINT, dst, src0, src1);
     return dst;
 }
 
-int NotEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int NotEqualFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_NEQFLOAT, dst, src0, src1);
     return dst;
 }
 
-int LessInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int LessInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_LTINT, dst, src0, src1);
     return dst;
 }
 
-int LessFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int LessFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_LTFLOAT, dst, src0, src1);
     return dst;
 }
 
-int LessEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int LessEqualInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_LTEINT, dst, src0, src1);
     return dst;
 }
 
-int LessEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int LessEqualFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_LTEFLOAT, dst, src0, src1);
     return dst;
 }
 
-int GreaterInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int GreaterInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_GTINT, dst, src0, src1);
     return dst;
 }
 
-int GreaterFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int GreaterFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_GTFLOAT, dst, src0, src1);
     return dst;
 }
 
-int GreaterEqualInt__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int GreaterEqualInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_GTEINT, dst, src0, src1);
     return dst;
 }
 
-int GreaterEqualFloat__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int GreaterEqualFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_GTEFLOAT, dst, src0, src1);
     return dst;
 }
 
-int BitwiseAnd__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int BitwiseAnd__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_BITWISEAND, dst, src0, src1);
     return dst;
 }
 
-int BitwiseOr__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int BitwiseOr__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_BITWISEOR, dst, src0, src1);
     return dst;
 }
 
-int BitwiseXor__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int BitwiseXor__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_BITWISEXOR, dst, src0, src1);
     return dst;
 }
 
-int BitwiseNot__(struct Bytecode *code, uint8_t dst, uint8_t src)
+int BitwiseNot__(struct code_bytecode *code, uint8_t dst, uint8_t src)
 {
     push_inst_ab(code, OP_BITWISENOT, dst, src);
     return dst;
 }
 
-int ShiftLeft__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int ShiftLeft__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_SHL, dst, src0, src1);
     return dst;
 }
 
-int ShiftRight__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int ShiftRight__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_SHR, dst, src0, src1);
     return dst;
 }
 
-int NegateInt__(struct Bytecode *code, uint8_t dst, uint8_t src)
+int NegateInt__(struct code_bytecode *code, uint8_t dst, uint8_t src)
 {
     push_inst_ab(code, OP_NEGINT, dst, src);
     return dst;
 }
 
-int NegateFloat__(struct Bytecode *code, uint8_t dst, uint8_t src)
+int NegateFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src)
 {
     push_inst_ab(code, OP_NEGFLOAT, dst, src);
     return dst;
 }
 
-int SetIfZero__(struct Bytecode *code, uint8_t dst, uint8_t src)
+int SetIfZero__(struct code_bytecode *code, uint8_t dst, uint8_t src)
 {
     push_inst_ab(code, OP_SETIFZERO, dst, src);
     return dst;
 }
 
-int SetIfNotZero__(struct Bytecode *code, uint8_t dst, uint8_t src)
+int SetIfNotZero__(struct code_bytecode *code, uint8_t dst, uint8_t src)
 {
     push_inst_ab(code, OP_SETIFNOTZ, dst, src);
     return dst;
 }
 
-int Inc__(struct Bytecode *code, uint8_t src)
+int Inc__(struct code_bytecode *code, uint8_t src)
 {
     push_inst_a(code, OP_INC, src);
     return src;
 }
 
-int Dec__(struct Bytecode *code, uint8_t src)
+int Dec__(struct code_bytecode *code, uint8_t src)
 {
     push_inst_a(code, OP_DEC, src);
     return src;
 }
 
 /* string */
-int ConcatString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int ConcatString__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_CATSTRING, dst, src0, src1);
     return dst;
 }
 
-int EqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int EqualString__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_EQSTRING, dst, src0, src1);
     return dst;
 }
 
-int NotEqualString__(struct Bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int NotEqualString__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
 {
     push_inst_abc(code, OP_NEQSTRING, dst, src0, src1);
     return dst;
 }
 
 /* Function call */
-int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin)
+int CallFunction__(struct code_bytecode *code, Byte ret_reg, Word func_index, bool builtin)
 {
     int reg0 = ret_reg;
 
@@ -596,13 +596,13 @@ int CallFunction__(Bytecode *code, Byte ret_reg, Word func_index, bool builtin)
     return reg0;
 }
 
-int CallFunctionPointer__(struct Bytecode *code, int ret, int src)
+int CallFunctionPointer__(struct code_bytecode *code, int ret, int src)
 {
     push_inst_ab(code, OP_CALLPOINTER, ret, src);
     return ret;
 }
 
-void Allocate__(Bytecode *code, Byte count)
+void Allocate__(struct code_bytecode *code, Byte count)
 {
     if (count == 0)
         return;
@@ -610,64 +610,64 @@ void Allocate__(Bytecode *code, Byte count)
     push_inst_a(code, OP_ALLOCATE, count);
 }
 
-void Return__(Bytecode *code, Byte id)
+void Return__(struct code_bytecode *code, Byte id)
 {
     push_inst_a(code, OP_RETURN, id);
 }
 
 /* branch */
-void BeginIf__(struct Bytecode *code)
+void BeginIf__(struct code_bytecode *code)
 {
     data_intstack_push(&code->ors, -1);
 }
 
-void code_begin_switch(struct Bytecode *code)
+void code_begin_switch(struct code_bytecode *code)
 {
     data_intstack_push(&code->casecloses, -1);
 }
 
-void PushElseEnd__(struct Bytecode *code, Int addr)
+void PushElseEnd__(struct code_bytecode *code, Int addr)
 {
     data_intstack_push(&code->ors, addr);
 }
 
-void PushBreak__(struct Bytecode *code, Int addr)
+void PushBreak__(struct code_bytecode *code, Int addr)
 {
     data_intstack_push(&code->breaks, addr);
 }
 
-void PushContinue__(struct Bytecode *code, Int addr)
+void PushContinue__(struct code_bytecode *code, Int addr)
 {
     data_intstack_push(&code->continues, addr);
 }
 
-void PushCaseEnd__(struct Bytecode *code, Int addr)
+void PushCaseEnd__(struct code_bytecode *code, Int addr)
 {
     data_intstack_push(&code->casecloses, addr);
 }
 
-void code_push_continue(struct Bytecode *code, Int addr)
+void code_push_continue(struct code_bytecode *code, Int addr)
 {
     data_intstack_push(&code->continues, addr);
 }
 
 /* jump instructions return the address */
 /* where the destination address is stored. */
-Int Jump__(struct Bytecode *code, Int addr)
+Int Jump__(struct code_bytecode *code, Int addr)
 {
     Int operand_addr = NextAddr__(code);
     push_inst_abb(code, OP_JUMP, 0, addr);
     return operand_addr;
 }
 
-Int JumpIfZero__(struct Bytecode *code, uint8_t id, Int addr)
+Int JumpIfZero__(struct code_bytecode *code, uint8_t id, Int addr)
 {
     Int operand_addr = NextAddr__(code);
     push_inst_abb(code, OP_JUMPIFZERO, id, addr);
     return operand_addr;
 }
 
-Int JumpIfNotZero__(struct Bytecode *code, uint8_t id, Int addr)
+Int JumpIfNotZero__(struct code_bytecode *code, uint8_t id, Int addr)
 {
     Int operand_addr = NextAddr__(code);
     push_inst_abb(code, OP_JUMPIFNOTZ, id, addr);
@@ -675,52 +675,52 @@ Int JumpIfNotZero__(struct Bytecode *code, uint8_t id, Int addr)
 }
 
 /* conversion */
-int BoolToInt__(struct Bytecode *code, uint8_t dst, uint8_t src)
+int BoolToInt__(struct code_bytecode *code, uint8_t dst, uint8_t src)
 {
     push_inst_ab(code, OP_BOOLTOINT, dst, src);
     return dst;
 }
 
 /*
-void BoolToFloat__(struct Bytecode *code)
+void BoolToFloat__(struct code_bytecode *code)
 {
     push_byte(&code->bytes, OP_BTOF);
 }
 
-void IntToBool__(struct Bytecode *code)
+void IntToBool__(struct code_bytecode *code)
 {
     push_byte(&code->bytes, OP_ITOB);
 }
 
-void IntToFloat__(struct Bytecode *code)
+void IntToFloat__(struct code_bytecode *code)
 {
     push_byte(&code->bytes, OP_ITOF);
 }
 
-void FloatToBool__(struct Bytecode *code)
+void FloatToBool__(struct code_bytecode *code)
 {
     push_byte(&code->bytes, OP_FTOB);
 }
 
-void FloatToInt__(struct Bytecode *code)
+void FloatToInt__(struct code_bytecode *code)
 {
     push_byte(&code->bytes, OP_FTOI);
 }
 */
 
 /* program control */
-void Exit__(Bytecode *code)
+void Exit__(struct code_bytecode *code)
 {
     push_inst_op(code, OP_EXIT);
 }
 
-void End__(Bytecode *code)
+void End__(struct code_bytecode *code)
 {
     push_inst_op(code, OP_EOC);
 }
 
 /* Functions */
-void RegisterFunction__(Bytecode *code, Word func_index, Byte argc)
+void RegisterFunction__(struct code_bytecode *code, Word func_index, Byte argc)
 {
     const Word next_index = code->funcs.len;
 
@@ -734,7 +734,7 @@ void RegisterFunction__(Bytecode *code, Word func_index, Byte argc)
     code_push_function(&code->funcs, func_index, argc, next_addr);
 }
 
-void SetMaxRegisterCount__(Bytecode *code, Word func_index)
+void SetMaxRegisterCount__(struct code_bytecode *code, Word func_index)
 {
     if (func_index >= code->funcs.len) {
         InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
@@ -743,7 +743,7 @@ void SetMaxRegisterCount__(Bytecode *code, Word func_index)
     code->funcs.data[func_index].reg_count = code->max_reg + 1;
 }
 
-int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index)
+int GetMaxRegisterCount__(const struct code_bytecode *code, Word func_index)
 {
     if (func_index >= code->funcs.len) {
         InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
@@ -752,13 +752,13 @@ int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index)
     return code->funcs.data[func_index].reg_count;
 }
 
-void BeginFor__(struct Bytecode *code)
+void BeginFor__(struct code_bytecode *code)
 {
     data_intstack_push(&code->breaks, -1);
     data_intstack_push(&code->continues, -1);
 }
 
-void BackPatch__(struct Bytecode *code, Int operand_addr)
+void BackPatch__(struct code_bytecode *code, Int operand_addr)
 {
     Int next_addr = NextAddr__(code);
     uint32_t inst = Read__(code, operand_addr);
@@ -767,7 +767,7 @@ void BackPatch__(struct Bytecode *code, Int operand_addr)
     Write__(code, operand_addr, inst);
 }
 
-void BackPatchBreaks__(struct Bytecode *code)
+void BackPatchBreaks__(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->breaks)) {
         Int addr = data_intstack_pop(&code->breaks);
@@ -777,7 +777,7 @@ void BackPatchBreaks__(struct Bytecode *code)
     }
 }
 
-void BackPatchElseEnds__(struct Bytecode *code)
+void BackPatchElseEnds__(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->ors)) {
         Int addr = data_intstack_pop(&code->ors);
@@ -787,7 +787,7 @@ void BackPatchElseEnds__(struct Bytecode *code)
     }
 }
 
-void BackPatchContinues__(struct Bytecode *code)
+void BackPatchContinues__(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->continues)) {
         Int addr = data_intstack_pop(&code->continues);
@@ -797,7 +797,7 @@ void BackPatchContinues__(struct Bytecode *code)
     }
 }
 
-void code_backpatch_case_ends(Bytecode *code)
+void code_backpatch_case_ends(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->casecloses)) {
         Int addr = data_intstack_pop(&code->casecloses);
@@ -807,14 +807,14 @@ void code_backpatch_case_ends(Bytecode *code)
     }
 }
 
-static Int print_op__(const Bytecode *code, Int addr, const struct code_instruction *inst, int *imm_size);
-void PrintInstruction__(const struct Bytecode *code,
+static Int print_op__(const struct code_bytecode *code, Int addr, const struct code_instruction *inst, int *imm_size);
+void PrintInstruction__(const struct code_bytecode *code,
         Int addr, const struct code_instruction *inst, int *imm_size)
 {
     print_op__(code, addr, inst, imm_size);
 }
 
-uint32_t Read__(const Bytecode *code, Int addr)
+uint32_t Read__(const struct code_bytecode *code, Int addr)
 {
     if (addr < 0 || addr >= Size__(code))
         InternalError(__FILE__, __LINE__,
@@ -823,7 +823,7 @@ uint32_t Read__(const Bytecode *code, Int addr)
     return code->insts.data[addr];
 }
 
-void Write__(const Bytecode *code, Int addr, uint32_t inst)
+void Write__(const struct code_bytecode *code, Int addr, uint32_t inst)
 {
     if (addr < 0 || addr >= Size__(code))
         InternalError(__FILE__, __LINE__,
@@ -832,23 +832,23 @@ void Write__(const Bytecode *code, Int addr, uint32_t inst)
     code->insts.data[addr] = inst;
 }
 
-Int Size__(const Bytecode *code)
+Int Size__(const struct code_bytecode *code)
 {
     return code->insts.len;
 }
 
-Int NextAddr__(const struct Bytecode *code)
+Int NextAddr__(const struct code_bytecode *code)
 {
     return Size__(code);
 }
 
-Int GetFunctionAddress(const Bytecode *code, Word func_index)
+Int GetFunctionAddress(const struct code_bytecode *code, Word func_index)
 {
     assert_range(&code->funcs, func_index);
     return code->funcs.data[func_index].addr;
 }
 
-Int GetFunctionArgCount(const Bytecode *code, Word func_index)
+Int GetFunctionArgCount(const struct code_bytecode *code, Word func_index)
 {
     assert_range(&code->funcs, func_index);
     return code->funcs.data[func_index].argc;
@@ -880,7 +880,7 @@ void print_value(struct runtime_value val, int type)
     }
 }
 
-void PrintBytecode(const Bytecode *code)
+void PrintBytecode(const struct code_bytecode *code)
 {
     if (code_constant_pool_get_int_count(&code->const_pool) > 0) {
         printf("* constant int:\n");
@@ -943,7 +943,7 @@ void PrintBytecode(const Bytecode *code)
     }
 }
 
-static void print_operand__(const struct Bytecode *code,
+static void print_operand__(const struct code_bytecode *code,
         int addr, int operand, bool separator, int *imm_size)
 {
     switch (operand) {
@@ -984,12 +984,12 @@ static void print_operand__(const struct Bytecode *code,
         printf(", ");
 }
 
-static void print_operand16__(const struct Bytecode *code, int operand)
+static void print_operand16__(const struct code_bytecode *code, int operand)
 {
     printf("$%d", operand);
 }
 
-static Int print_op__(const Bytecode *code, Int addr, const struct code_instruction *inst, int *imm_size)
+static Int print_op__(const struct code_bytecode *code, Int addr, const struct code_instruction *inst, int *imm_size)
 {
     const struct code_opcode_info *info = code_lookup_opecode_info(inst->op);
 

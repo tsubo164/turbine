@@ -24,7 +24,7 @@ typedef struct CallVec {
 
 typedef struct VM {
     struct runtime_valuevec stack_;
-    const Bytecode *code_;
+    const struct code_bytecode *code_;
 
     // XXX TEST
     Int eoc; // end of code
@@ -40,7 +40,7 @@ typedef struct VM {
     GC gc_;
 } VM;
 
-void Run(VM *vm, const Bytecode *code);
+void Run(VM *vm, const struct code_bytecode *code);
 Int StackTopInt(const VM *vm);
 
 void PrintStack(const VM *vm);

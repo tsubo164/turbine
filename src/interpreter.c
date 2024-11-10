@@ -21,7 +21,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
 {
     const struct parser_token *tok = NULL;
     struct parser_scope builtin = {0};
-    Bytecode code = {{0}};
+    struct code_bytecode code = {{0}};
     VM vm = {{0}};
 
     // Builtin functions
