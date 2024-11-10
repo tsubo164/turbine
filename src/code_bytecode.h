@@ -4,37 +4,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "code_constant_pool.h"
-#include "runtime_value.h"
-#include "data_hashmap.h"
-#include "data_vec.h"
-
 #include "code_instruction.h"
-
-typedef struct ByteVec {
-    Byte *data;
-    int cap;
-    int len;
-} ByteVec;
-
-typedef struct PtrVec {
-    char **data;
-    int cap;
-    int len;
-} PtrVec;
-
-typedef struct FuncInfo {
-    Word id;
-    Byte argc;
-    Byte reg_count;
-    Int addr;
-} FuncInfo;
-
-typedef struct FuncInfoVec {
-    FuncInfo *data;
-    int cap;
-    int len;
-} FuncInfoVec;
+#include "code_constant_pool.h"
+#include "code_function.h"
+#include "runtime_value.h"
+#include "data_vec.h"
 
 typedef struct Bytecode {
     struct code_instructionvec insts;
@@ -42,20 +16,18 @@ typedef struct Bytecode {
     int curr_reg;
     int max_reg;
 
+    /* constants */
     struct data_intstack immediate_ints;
     struct code_constant_pool const_pool;
 
-    ByteVec bytes_;
-    PtrVec strings_;
-    FuncInfoVec funcs_;
-
-    struct data_hashmap funcnames;
+    /* functions */
+    struct code_functionvec funcs;
 
     /* back patches */
-    struct data_intstack ors_;
-    struct data_intstack breaks_;
-    struct data_intstack continues_;
-    struct data_intstack casecloses_;
+    struct data_intstack ors;
+    struct data_intstack breaks;
+    struct data_intstack continues;
+    struct data_intstack casecloses;
 } Bytecode;
 
 /* XXX TEST register */

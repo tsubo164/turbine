@@ -20,25 +20,7 @@ enum immediate_value_register {
     IMMEDIATE_SMALLINT_BEGIN = 192,
 };
 
-static int new_cap(int cur_cap, int min_cap)
-{
-    return cur_cap < min_cap ? min_cap : 2 * cur_cap;
-}
-
-static void push_info(FuncInfoVec *v, Word id, Byte argc, Int addr)
-{
-    if (v->len >= v->cap) {
-        v->cap = new_cap(v->cap, 8);
-        /* TODO Remove cast */
-        v->data = (FuncInfo *) realloc(v->data, v->cap * sizeof(*v->data));
-    }
-    FuncInfo *info = &v->data[v->len++];
-    info->id = id;
-    info->argc = argc;
-    info->addr = addr;
-}
-
-static void assert_range(const FuncInfoVec *v,  Word index)
+static void assert_range(const struct code_functionvec *v,  Word index)
 {
     if (index >= v->len) {
         InternalError(__FILE__, __LINE__,
@@ -636,37 +618,37 @@ void Return__(Bytecode *code, Byte id)
 /* branch */
 void BeginIf__(struct Bytecode *code)
 {
-    data_intstack_push(&code->ors_, -1);
+    data_intstack_push(&code->ors, -1);
 }
 
 void code_begin_switch(struct Bytecode *code)
 {
-    data_intstack_push(&code->casecloses_, -1);
+    data_intstack_push(&code->casecloses, -1);
 }
 
 void PushElseEnd__(struct Bytecode *code, Int addr)
 {
-    data_intstack_push(&code->ors_, addr);
+    data_intstack_push(&code->ors, addr);
 }
 
 void PushBreak__(struct Bytecode *code, Int addr)
 {
-    data_intstack_push(&code->breaks_, addr);
+    data_intstack_push(&code->breaks, addr);
 }
 
 void PushContinue__(struct Bytecode *code, Int addr)
 {
-    data_intstack_push(&code->continues_, addr);
+    data_intstack_push(&code->continues, addr);
 }
 
 void PushCaseEnd__(struct Bytecode *code, Int addr)
 {
-    data_intstack_push(&code->casecloses_, addr);
+    data_intstack_push(&code->casecloses, addr);
 }
 
 void code_push_continue(struct Bytecode *code, Int addr)
 {
-    data_intstack_push(&code->continues_, addr);
+    data_intstack_push(&code->continues, addr);
 }
 
 /* jump instructions return the address */
@@ -702,27 +684,27 @@ int BoolToInt__(struct Bytecode *code, uint8_t dst, uint8_t src)
 /*
 void BoolToFloat__(struct Bytecode *code)
 {
-    push_byte(&code->bytes_, OP_BTOF);
+    push_byte(&code->bytes, OP_BTOF);
 }
 
 void IntToBool__(struct Bytecode *code)
 {
-    push_byte(&code->bytes_, OP_ITOB);
+    push_byte(&code->bytes, OP_ITOB);
 }
 
 void IntToFloat__(struct Bytecode *code)
 {
-    push_byte(&code->bytes_, OP_ITOF);
+    push_byte(&code->bytes, OP_ITOF);
 }
 
 void FloatToBool__(struct Bytecode *code)
 {
-    push_byte(&code->bytes_, OP_FTOB);
+    push_byte(&code->bytes, OP_FTOB);
 }
 
 void FloatToInt__(struct Bytecode *code)
 {
-    push_byte(&code->bytes_, OP_FTOI);
+    push_byte(&code->bytes, OP_FTOI);
 }
 */
 
@@ -740,7 +722,7 @@ void End__(Bytecode *code)
 /* Functions */
 void RegisterFunction__(Bytecode *code, Word func_index, Byte argc)
 {
-    const Word next_index = code->funcs_.len;
+    const Word next_index = code->funcs.len;
 
     if (func_index != next_index) {
         InternalError(__FILE__, __LINE__,
@@ -749,31 +731,31 @@ void RegisterFunction__(Bytecode *code, Word func_index, Byte argc)
     }
 
     const Int next_addr = NextAddr__(code);
-    push_info(&code->funcs_, func_index, argc, next_addr);
+    code_push_function(&code->funcs, func_index, argc, next_addr);
 }
 
 void SetMaxRegisterCount__(Bytecode *code, Word func_index)
 {
-    if (func_index >= code->funcs_.len) {
+    if (func_index >= code->funcs.len) {
         InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
     }
 
-    code->funcs_.data[func_index].reg_count = code->max_reg + 1;
+    code->funcs.data[func_index].reg_count = code->max_reg + 1;
 }
 
 int GetMaxRegisterCount__(const struct Bytecode *code, Word func_index)
 {
-    if (func_index >= code->funcs_.len) {
+    if (func_index >= code->funcs.len) {
         InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
     }
 
-    return code->funcs_.data[func_index].reg_count;
+    return code->funcs.data[func_index].reg_count;
 }
 
 void BeginFor__(struct Bytecode *code)
 {
-    data_intstack_push(&code->breaks_, -1);
-    data_intstack_push(&code->continues_, -1);
+    data_intstack_push(&code->breaks, -1);
+    data_intstack_push(&code->continues, -1);
 }
 
 void BackPatch__(struct Bytecode *code, Int operand_addr)
@@ -787,8 +769,8 @@ void BackPatch__(struct Bytecode *code, Int operand_addr)
 
 void BackPatchBreaks__(struct Bytecode *code)
 {
-    while (!data_intstack_is_empty(&code->breaks_)) {
-        Int addr = data_intstack_pop(&code->breaks_);
+    while (!data_intstack_is_empty(&code->breaks)) {
+        Int addr = data_intstack_pop(&code->breaks);
         if (addr == -1)
             break;
         BackPatch__(code, addr);
@@ -797,8 +779,8 @@ void BackPatchBreaks__(struct Bytecode *code)
 
 void BackPatchElseEnds__(struct Bytecode *code)
 {
-    while (!data_intstack_is_empty(&code->ors_)) {
-        Int addr = data_intstack_pop(&code->ors_);
+    while (!data_intstack_is_empty(&code->ors)) {
+        Int addr = data_intstack_pop(&code->ors);
         if (addr == -1)
             break;
         BackPatch__(code, addr);
@@ -807,8 +789,8 @@ void BackPatchElseEnds__(struct Bytecode *code)
 
 void BackPatchContinues__(struct Bytecode *code)
 {
-    while (!data_intstack_is_empty(&code->continues_)) {
-        Int addr = data_intstack_pop(&code->continues_);
+    while (!data_intstack_is_empty(&code->continues)) {
+        Int addr = data_intstack_pop(&code->continues);
         if (addr == -1)
             break;
         BackPatch__(code, addr);
@@ -817,8 +799,8 @@ void BackPatchContinues__(struct Bytecode *code)
 
 void code_backpatch_case_ends(Bytecode *code)
 {
-    while (!data_intstack_is_empty(&code->casecloses_)) {
-        Int addr = data_intstack_pop(&code->casecloses_);
+    while (!data_intstack_is_empty(&code->casecloses)) {
+        Int addr = data_intstack_pop(&code->casecloses);
         if (addr == -1)
             break;
         BackPatch__(code, addr);
@@ -862,14 +844,14 @@ Int NextAddr__(const struct Bytecode *code)
 
 Int GetFunctionAddress(const Bytecode *code, Word func_index)
 {
-    assert_range(&code->funcs_, func_index);
-    return code->funcs_.data[func_index].addr;
+    assert_range(&code->funcs, func_index);
+    return code->funcs.data[func_index].addr;
 }
 
 Int GetFunctionArgCount(const Bytecode *code, Word func_index)
 {
-    assert_range(&code->funcs_, func_index);
-    return code->funcs_.data[func_index].argc;
+    assert_range(&code->funcs, func_index);
+    return code->funcs.data[func_index].argc;
 }
 
 /* XXX TEST */
@@ -931,8 +913,8 @@ void PrintBytecode(const Bytecode *code)
     }
 
     /* function info */
-    for (int i = 0; i < code->funcs_.len; i++) {
-        const FuncInfo *info = &code->funcs_.data[i];
+    for (int i = 0; i < code->funcs.len; i++) {
+        const struct code_function *info = &code->funcs.data[i];
         printf("* function id: %d @%lld\n", info->id, info->addr);
     }
 
