@@ -33,14 +33,12 @@ struct code_bytecode {
     struct data_intstack casecloses;
 };
 
-/* TODO remove Temp? */
 /* registers */
 void code_init_local_var_registers(struct code_bytecode *code, uint8_t lvar_count);
 void code_clear_temporary_registers(struct code_bytecode *code);
 int code_allocate_temporary_register(struct code_bytecode *code);
-int GetCurrentRegister__(const struct code_bytecode *code);
-int SetCurrentRegister__(struct code_bytecode *code, int curr);
-int GetNextRegister__(struct code_bytecode *code, int reg);
+int code_get_register_pointer(const struct code_bytecode *code);
+int code_set_register_pointer(struct code_bytecode *code, int dst);
 bool code_is_temporary_register(const struct code_bytecode *code, int id);
 
 /* immediate value */

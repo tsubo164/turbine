@@ -83,40 +83,30 @@ void code_clear_temporary_registers(struct code_bytecode *code)
 int code_allocate_temporary_register(struct code_bytecode *code)
 {
     if (is_localreg_full(code)) {
-        return -1;
+        fprintf(stderr,
+                "error: temp register overflow: keep the temp register under %d\n",
+                IMMEDIATE_SMALLINT_BEGIN);
+        exit(1);
     }
 
-    code->curr_reg++;
+    return code_set_register_pointer(code, code->curr_reg + 1);
+}
+
+int code_get_register_pointer(const struct code_bytecode *code)
+{
+    return code->curr_reg;
+}
+
+int code_set_register_pointer(struct code_bytecode *code, int dst)
+{
+    assert(dst == code->base_reg || code_is_temporary_register(code, dst));
+
+    code->curr_reg = dst;
+
     if (code->max_reg < code->curr_reg)
         code->max_reg = code->curr_reg;
 
     return code->curr_reg;
-}
-
-int GetCurrentRegister__(const struct code_bytecode *code)
-{
-    return code->curr_reg;
-}
-
-int SetCurrentRegister__(struct code_bytecode *code, int curr)
-{
-    code->curr_reg = curr;
-    return curr;
-}
-
-int GetNextRegister__(struct code_bytecode *code, int reg)
-{
-    int next = -1;
-
-    if (reg == code->max_reg) {
-        next = code_allocate_temporary_register(code);
-    }
-    else {
-        next = reg + 1;
-        code->curr_reg = next;
-    }
-
-    return next;
 }
 
 bool code_is_temporary_register(const struct code_bytecode *code, int id)
