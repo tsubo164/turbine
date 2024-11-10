@@ -342,240 +342,239 @@ int code_emit_dereference(struct code_bytecode *code, int dst, int src)
     push_inst_ab(code, OP_DEREF, dst, src);
     return dst;
 }
-/* ------------------------------ */
 
 /* array/struct */
-int NewArray__(struct code_bytecode *code, uint8_t dst, uint8_t len)
+int code_emit_new_array(struct code_bytecode *code, int dst, int len)
 {
     push_inst_ab(code, OP_NEWARRAY, dst, len);
     return dst;
 }
 
-int NewStruct__(struct code_bytecode *code, uint8_t dst, uint8_t len)
+int code_emit_new_struct(struct code_bytecode *code, int dst, int len)
 {
     push_inst_ab(code, OP_NEWSTRUCT, dst, len);
     return dst;
 }
 
 /* arithmetic */
-int AddInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_add_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_ADDINT, dst, src0, src1);
     return dst;
 }
 
-int AddFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_add_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_ADDFLOAT, dst, src0, src1);
     return dst;
 }
 
-int SubInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_sub_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_SUBINT, dst, src0, src1);
     return dst;
 }
 
-int SubFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_sub_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_SUBFLOAT, dst, src0, src1);
     return dst;
 }
 
-int MulInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_mul_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_MULINT, dst, src0, src1);
     return dst;
 }
 
-int MulFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_mul_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_MULFLOAT, dst, src0, src1);
     return dst;
 }
 
-int DivInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_div_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_DIVINT, dst, src0, src1);
     return dst;
 }
 
-int DivFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_div_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_DIVFLOAT, dst, src0, src1);
     return dst;
 }
 
-int RemInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_rem_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_REMINT, dst, src0, src1);
     return dst;
 }
 
-int RemFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_rem_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_REMFLOAT, dst, src0, src1);
     return dst;
 }
 
-int EqualInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_equal_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_EQINT, dst, src0, src1);
     return dst;
 }
 
-int EqualFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_equal_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_EQFLOAT, dst, src0, src1);
     return dst;
 }
 
-int NotEqualInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_not_equal_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_NEQINT, dst, src0, src1);
     return dst;
 }
 
-int NotEqualFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_not_equal_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_NEQFLOAT, dst, src0, src1);
     return dst;
 }
 
-int LessInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_less_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_LTINT, dst, src0, src1);
     return dst;
 }
 
-int LessFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_less_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_LTFLOAT, dst, src0, src1);
     return dst;
 }
 
-int LessEqualInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_less_equal_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_LTEINT, dst, src0, src1);
     return dst;
 }
 
-int LessEqualFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_less_equal_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_LTEFLOAT, dst, src0, src1);
     return dst;
 }
 
-int GreaterInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_greater_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_GTINT, dst, src0, src1);
     return dst;
 }
 
-int GreaterFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_greater_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_GTFLOAT, dst, src0, src1);
     return dst;
 }
 
-int GreaterEqualInt__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_greater_equal_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_GTEINT, dst, src0, src1);
     return dst;
 }
 
-int GreaterEqualFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_greater_equal_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_GTEFLOAT, dst, src0, src1);
     return dst;
 }
 
-int BitwiseAnd__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_bitwise_and(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_BITWISEAND, dst, src0, src1);
     return dst;
 }
 
-int BitwiseOr__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_bitwise_or(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_BITWISEOR, dst, src0, src1);
     return dst;
 }
 
-int BitwiseXor__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_bitwise_xor(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_BITWISEXOR, dst, src0, src1);
     return dst;
 }
 
-int BitwiseNot__(struct code_bytecode *code, uint8_t dst, uint8_t src)
+int code_emit_bitwise_not(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_BITWISENOT, dst, src);
     return dst;
 }
 
-int ShiftLeft__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_shift_left(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_SHL, dst, src0, src1);
     return dst;
 }
 
-int ShiftRight__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_shift_right(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_SHR, dst, src0, src1);
     return dst;
 }
 
-int NegateInt__(struct code_bytecode *code, uint8_t dst, uint8_t src)
+int code_emit_negate_int(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_NEGINT, dst, src);
     return dst;
 }
 
-int NegateFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src)
+int code_emit_negate_float(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_NEGFLOAT, dst, src);
     return dst;
 }
 
-int SetIfZero__(struct code_bytecode *code, uint8_t dst, uint8_t src)
+int code_emit_set_if_zero(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_SETIFZERO, dst, src);
     return dst;
 }
 
-int SetIfNotZero__(struct code_bytecode *code, uint8_t dst, uint8_t src)
+int code_emit_set_if_not_zero(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_SETIFNOTZ, dst, src);
     return dst;
 }
 
-int Inc__(struct code_bytecode *code, uint8_t src)
+int code_emit_inc(struct code_bytecode *code, int src)
 {
     push_inst_a(code, OP_INC, src);
     return src;
 }
 
-int Dec__(struct code_bytecode *code, uint8_t src)
+int code_emit_dec(struct code_bytecode *code, int src)
 {
     push_inst_a(code, OP_DEC, src);
     return src;
 }
 
 /* string */
-int ConcatString__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_concat_string(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_CATSTRING, dst, src0, src1);
     return dst;
 }
 
-int EqualString__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_equal_string(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_EQSTRING, dst, src0, src1);
     return dst;
 }
 
-int NotEqualString__(struct code_bytecode *code, uint8_t dst, uint8_t src0, uint8_t src1)
+int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_NEQSTRING, dst, src0, src1);
     return dst;

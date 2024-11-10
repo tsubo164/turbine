@@ -57,19 +57,19 @@ void SetOptimize(bool enable)
 #define BINOP__(code, ty, op, r0, r1, r2) \
     do { \
     if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
-        op##Int__((code), (r0), (r1), (r2)); \
+        code_emit_##op##_int((code), (r0), (r1), (r2)); \
     else if (parser_is_float_type((ty))) \
-        op##Float__((code), (r0), (r1), (r2)); \
+        code_emit_##op##_float((code), (r0), (r1), (r2)); \
     } while (0)
 
 #define BINOP_S__(code, ty, op, ops, r0, r1, r2) \
     do { \
     if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
-        op##Int__((code), (r0), (r1), (r2)); \
+        code_emit_##op##_int((code), (r0), (r1), (r2)); \
     else if (parser_is_float_type((ty))) \
-        op##Float__((code), (r0), (r1), (r2)); \
+        code_emit_##op##_float((code), (r0), (r1), (r2)); \
     else if (parser_is_string_type((ty))) \
-        ops##String__((code), (r0), (r1), (r2)); \
+        code_emit_##ops##_string((code), (r0), (r1), (r2)); \
     } while (0)
 
 // XXX TEST compiling to register-based machine code
@@ -134,7 +134,7 @@ static int gen_init_array__(struct code_bytecode *code, const struct parser_expr
         int addr = gen_addr__(code, e->l);
         int len = gen_expr__(code, e->r);
         int dst = gen_dst_register(code, addr, len);
-        NewArray__(code, dst, len);
+        code_emit_new_array(code, dst, len);
         code_emit_store_global(code, addr, dst);
         return addr;
     }
@@ -142,7 +142,7 @@ static int gen_init_array__(struct code_bytecode *code, const struct parser_expr
         // an init expr always has identifier on the left
         int reg0 = gen_expr__(code, e->l);
         int reg1 = code_emit_load_int(code, e->type->len);
-        NewArray__(code, reg0, reg1);
+        code_emit_new_array(code, reg0, reg1);
         dst = reg0;
     }
 
@@ -191,7 +191,7 @@ static int gen_struct_lit__(struct code_bytecode *code, const struct parser_expr
     else
         dst = dst_reg;
 
-    NewStruct__(code, dst, len);
+    code_emit_new_struct(code, dst, len);
 
     const struct parser_expr *struct_lit = e;
 
@@ -365,51 +365,51 @@ static int gen_binop__(struct code_bytecode *code, const struct parser_type *typ
     switch (kind) {
     case NOD_EXPR_ADD:
     case NOD_EXPR_ADDASSIGN:
-        BINOP_S__(code, type, Add, Concat, reg0, reg1, reg2);
+        BINOP_S__(code, type, add, concat, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_SUB:
     case NOD_EXPR_SUBASSIGN:
-        BINOP__(code, type, Sub, reg0, reg1, reg2);
+        BINOP__(code, type, sub, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_MUL:
     case NOD_EXPR_MULASSIGN:
-        BINOP__(code, type, Mul, reg0, reg1, reg2);
+        BINOP__(code, type, mul, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_DIV:
     case NOD_EXPR_DIVASSIGN:
-        BINOP__(code, type, Div, reg0, reg1, reg2);
+        BINOP__(code, type, div, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_REM:
     case NOD_EXPR_REMASSIGN:
-        BINOP__(code, type, Rem, reg0, reg1, reg2);
+        BINOP__(code, type, rem, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_EQ:
-        BINOP_S__(code, type, Equal, Equal, reg0, reg1, reg2);
+        BINOP_S__(code, type, equal, equal, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_NEQ:
-        BINOP_S__(code, type, NotEqual, NotEqual, reg0, reg1, reg2);
+        BINOP_S__(code, type, not_equal, not_equal, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_LT:
-        BINOP__(code, type, Less, reg0, reg1, reg2);
+        BINOP__(code, type, less, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_LTE:
-        BINOP__(code, type, LessEqual, reg0, reg1, reg2);
+        BINOP__(code, type, less_equal, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_GT:
-        BINOP__(code, type, Greater, reg0, reg1, reg2);
+        BINOP__(code, type, greater, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_GTE:
-        BINOP__(code, type, GreaterEqual, reg0, reg1, reg2);
+        BINOP__(code, type, greater_equal, reg0, reg1, reg2);
         break;
 
     }
@@ -752,7 +752,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
         else
             reg0 = NewRegister__(code);
 
-        BINOP_S__(code, e->type, Add, Concat, reg0, reg1, reg2);
+        BINOP_S__(code, e->type, add, concat, reg0, reg1, reg2);
         return reg0;
 
     case NOD_EXPR_SUB:
@@ -787,7 +787,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
         else
             reg0 = NewRegister__(code);
 
-        BINOP__(code, e->type, Rem, reg0, reg1, reg2);
+        BINOP__(code, e->type, rem, reg0, reg1, reg2);
         return reg0;
 
     case NOD_EXPR_EQ:
@@ -826,7 +826,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
             int reg0 = gen_dst_register(code, reg1, reg2);
-            reg0 = BitwiseAnd__(code, reg0, reg1, reg2);
+            reg0 = code_emit_bitwise_and(code, reg0, reg1, reg2);
             return reg0;
         }
 
@@ -835,7 +835,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
             int reg0 = gen_dst_register(code, reg1, reg2);
-            reg0 = BitwiseOr__(code, reg0, reg1, reg2);
+            reg0 = code_emit_bitwise_or(code, reg0, reg1, reg2);
             return reg0;
         }
 
@@ -844,7 +844,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
             int reg0 = gen_dst_register(code, reg1, reg2);
-            reg0 = BitwiseXor__(code, reg0, reg1, reg2);
+            reg0 = code_emit_bitwise_xor(code, reg0, reg1, reg2);
             return reg0;
         }
 
@@ -852,7 +852,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
         {
             int reg1 = gen_expr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
-            reg0 = BitwiseNot__(code, reg0, reg1);
+            reg0 = code_emit_bitwise_not(code, reg0, reg1);
             return reg0;
         }
 
@@ -861,7 +861,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
             int reg0 = gen_dst_register(code, reg1, reg2);
-            reg0 = ShiftLeft__(code, reg0, reg1, reg2);
+            reg0 = code_emit_shift_left(code, reg0, reg1, reg2);
             return reg0;
         }
 
@@ -870,7 +870,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
             int reg1 = gen_expr__(code, e->l);
             int reg2 = gen_expr__(code, e->r);
             int reg0 = gen_dst_register(code, reg1, reg2);
-            reg0 = ShiftRight__(code, reg0, reg1, reg2);
+            reg0 = code_emit_shift_right(code, reg0, reg1, reg2);
             return reg0;
         }
 
@@ -898,9 +898,9 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
             int reg0 = gen_dst_register2(code, reg1);
 
             if (parser_is_int_type(e->type))
-                reg0 = NegateInt__(code, reg0, reg1);
+                reg0 = code_emit_negate_int(code, reg0, reg1);
             else if (parser_is_float_type(e->type))
-                reg0 = NegateFloat__(code, reg0, reg1);
+                reg0 = code_emit_negate_float(code, reg0, reg1);
 
             return reg0;
         }
@@ -909,7 +909,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
         {
             int reg1 = gen_expr__(code, e->l);
             int reg0 = gen_dst_register2(code, reg1);
-            reg0 = SetIfZero__(code, reg0, reg1);
+            reg0 = code_emit_set_if_zero(code, reg0, reg1);
             return reg0;
         }
 
@@ -945,14 +945,14 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
             int src = gen_expr__(code, e->l);
             int dst = gen_dst_register2(code, src);
             code_emit_move(code, dst, src);
-            Inc__(code, dst);
+            code_emit_inc(code, dst);
 
             gen_store2__(code, e->l, dst);
             return dst;
         }
         else {
             int src = gen_addr__(code, e->l);
-            Inc__(code, src);
+            code_emit_inc(code, src);
             return src;
         }
 
@@ -962,14 +962,14 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
                 int src = gen_expr__(code, e->l);
                 int dst = gen_dst_register2(code, src);
                 code_emit_move(code, dst, src);
-                Dec__(code, dst);
+                code_emit_dec(code, dst);
 
                 gen_store2__(code, e->l, dst);
                 return dst;
             }
             else {
                 int src = gen_addr__(code, e->l);
-                Dec__(code, src);
+                code_emit_dec(code, src);
                 return src;
             }
         }
@@ -1199,7 +1199,7 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
                 // cond test
                 int reg2 = gen_expr__(code, cond);
                 int reg0 = GetNextRegister__(code, reg1);
-                EqualInt__(code, reg0, reg1, reg2);
+                code_emit_equal_int(code, reg0, reg1, reg2);
 
                 // jump if true otherwise fallthrough
                 Int tru = JumpIfNotZero__(code, reg0, -1);
