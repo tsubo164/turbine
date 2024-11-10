@@ -83,38 +83,52 @@ static int gen_convert__(struct code_bytecode *code, int reg0, int reg1, int fro
     switch (from) {
     case TYP_BOOL:
         switch (to) {
-        case TYP_BOOL:  break;
-        case TYP_INT:   reg = BoolToInt__(code, reg0, reg1); break;
-        /*
-        case TYP_FLOAT: BoolToFloat(code); break;
-        */
-        default: break;
+            break;
+
+        case TYP_BOOL:
+            break;
+            break;
+
+        case TYP_INT:
+            reg = code_emit_bool_to_int(code, reg0, reg1);
+            break;
+
+        case TYP_FLOAT:
+            reg = code_emit_bool_to_float(code, reg0, reg1);
+            break;
         }
         break;
 
-                       /*
     case TYP_INT:
         switch (to) {
-        case TYP_BOOL:  reg = IntToBool__(code, reg0, reg1); break;
-        case TYP_INT:   break;
-        case TYP_FLOAT: IntToFloat(code); break;
-        default: break;
+
+        case TYP_BOOL:
+            reg = code_emit_int_to_bool(code, reg0, reg1);
+            break;
+
+        case TYP_INT:
+            break;
+
+        case TYP_FLOAT:
+            reg = code_emit_int_to_float(code, reg0, reg1);
+            break;
         }
         break;
-                       */
 
-        /*
     case TYP_FLOAT:
         switch (to) {
-        case TYP_BOOL:  FloatToBool(code); break;
-        case TYP_INT:   FloatToInt(code); break;
-        case TYP_FLOAT: break;
-        default: break;
-        }
-        break;
-        */
 
-    default:
+        case TYP_BOOL:
+            reg = code_emit_float_to_bool(code, reg0, reg1);
+            break;
+
+        case TYP_INT:
+            reg = code_emit_float_to_int(code, reg0, reg1);
+            break;
+
+        case TYP_FLOAT:
+            break;
+        }
         break;
     }
 
@@ -187,7 +201,7 @@ static int gen_struct_lit__(struct code_bytecode *code, const struct parser_expr
     int dst = 0;
 
     if (dst_reg == -1)
-        dst = NewRegister__(code);
+        dst = code_allocate_temporary_register(code);
     else
         dst = dst_reg;
 
@@ -335,12 +349,12 @@ static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2)
     int reg0 = -1;
 
     // determine the destination register
-    if (IsTempRegister(code, reg1))
+    if (code_is_temporary_register(code, reg1))
         reg0 = reg1;
-    else if (IsTempRegister(code, reg2))
+    else if (code_is_temporary_register(code, reg2))
         reg0 = reg2;
     else
-        reg0 = NewRegister__(code);
+        reg0 = code_allocate_temporary_register(code);
 
     return reg0;
 }
@@ -351,10 +365,10 @@ static int gen_dst_register2(struct code_bytecode *code, int reg1)
     int reg0 = -1;
 
     // determine the destination register
-    if (IsTempRegister(code, reg1))
+    if (code_is_temporary_register(code, reg1))
         reg0 = reg1;
     else
-        reg0 = NewRegister__(code);
+        reg0 = code_allocate_temporary_register(code);
 
     return reg0;
 }
@@ -527,7 +541,7 @@ static int gen_call__(struct code_bytecode *code, const struct parser_expr *call
     const struct parser_func_type *func_type = call->l->type->func_type;
 
     // Save the current register right before evaluating args
-    //int retval_reg = NewRegister__(code);
+    //int retval_reg = code_allocate_temporary_register(code);
     int curr_reg = GetCurrentRegister__(code);
 
     if (func_type->is_variadic) {
@@ -597,12 +611,12 @@ static int gen_call__(struct code_bytecode *code, const struct parser_expr *call
     int64_t func_id = 0;
     if (parser_eval_expr(call->l, &func_id)) {
         retval_reg = GetNextRegister__(code, curr_reg);
-        CallFunction__(code, retval_reg, func_id, func_type->is_builtin);
+        code_emit_call_function(code, retval_reg, func_id, func_type->is_builtin);
     }
     else {
         int src = gen_expr__(code, call->l);
         retval_reg = GetNextRegister__(code, curr_reg);
-        CallFunctionPointer__(code, retval_reg, src);
+        code_emit_call_function_pointer(code, retval_reg, src);
     }
 
     // update current register pointer
@@ -671,7 +685,7 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_IDENT:
         if (e->var->is_global) {
             int reg1 = code_emit_load_int(code, e->var->id);
-            int reg0 = NewRegister__(code);
+            int reg0 = code_allocate_temporary_register(code);
 
             reg0 = code_emit_load_global(code, reg0, reg1);
             return reg0;
@@ -708,17 +722,17 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
         {
             // eval
             reg1 = gen_expr__(code, e->l);
-            Int els = JumpIfZero__(code, reg1, -1);
+            Int els = code_emit_jump_if_zero(code, reg1, -1);
 
             // true
             reg0 = gen_dst_register2(code, reg1);
             code_emit_move(code, reg0, reg1);
-            Int exit = Jump__(code, -1);
+            Int exit = code_emit_jump(code, -1);
 
             // false
-            BackPatch__(code, els);
+            code_back_patch(code, els);
             reg0 = gen_expr__(code, e->r);
-            BackPatch__(code, exit);
+            code_back_patch(code, exit);
         }
         return reg0;
 
@@ -726,18 +740,18 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
         {
             // eval
             reg1 = gen_expr__(code, e->l);
-            Int els = JumpIfZero__(code, reg1, -1);
+            Int els = code_emit_jump_if_zero(code, reg1, -1);
 
             // true
             reg2 = gen_expr__(code, e->r);
             reg0 = gen_dst_register(code, reg1, reg2);
             code_emit_move(code, reg0, reg2);
-            Int exit = Jump__(code, -1);
+            Int exit = code_emit_jump(code, -1);
 
             // false
-            BackPatch__(code, els);
+            code_back_patch(code, els);
             code_emit_move(code, reg0, reg1);
-            BackPatch__(code, exit);
+            code_back_patch(code, exit);
         }
         return reg0;
 
@@ -745,12 +759,12 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
 
-        if (IsTempRegister(code, reg1))
+        if (code_is_temporary_register(code, reg1))
             reg0 = reg1;
-        else if (IsTempRegister(code, reg2))
+        else if (code_is_temporary_register(code, reg2))
             reg0 = reg2;
         else
-            reg0 = NewRegister__(code);
+            reg0 = code_allocate_temporary_register(code);
 
         BINOP_S__(code, e->type, add, concat, reg0, reg1, reg2);
         return reg0;
@@ -780,12 +794,12 @@ static int gen_expr__(struct code_bytecode *code, const struct parser_expr *e)
         reg1 = gen_expr__(code, e->l);
         reg2 = gen_expr__(code, e->r);
 
-        if (IsTempRegister(code, reg1))
+        if (code_is_temporary_register(code, reg1))
             reg0 = reg1;
-        else if (IsTempRegister(code, reg2))
+        else if (code_is_temporary_register(code, reg2))
             reg0 = reg2;
         else
-            reg0 = NewRegister__(code);
+            reg0 = code_allocate_temporary_register(code);
 
         BINOP__(code, e->type, rem, reg0, reg1, reg2);
         return reg0;
@@ -1085,13 +1099,13 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
         break;
 
     case NOD_STMT_IF:
-        BeginIf__(code);
+        code_begin_if(code);
 
         for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
             gen_stmt__(code, stmt);
 
         // exit
-        BackPatchElseEnds__(code);
+        code_back_patch_else_ends(code);
         break;
 
     case NOD_STMT_ELSE:
@@ -1101,7 +1115,7 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
             if (s->cond) {
                 // cond
                 int reg0 = gen_expr__(code, s->cond);
-                next = JumpIfZero__(code, reg0, -1);
+                next = code_emit_jump_if_zero(code, reg0, -1);
             }
 
             // true
@@ -1109,9 +1123,9 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
 
             if (s->cond) {
                 // close
-                Int addr = Jump__(code, -1);
-                PushElseEnd__(code, addr);
-                BackPatch__(code, next);
+                Int addr = code_emit_jump(code, -1);
+                code_push_else_end(code, addr);
+                code_back_patch(code, next);
             }
         }
         break;
@@ -1119,38 +1133,38 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
     case NOD_STMT_FOR:
         {
             // init
-            BeginFor__(code);
+            code_begin_for(code);
             gen_stmt__(code, s->init);
 
             // cond
-            Int begin = NextAddr__(code);
+            Int begin = code_get_next_addr(code);
             int reg0 = gen_expr__(code, s->cond);
-            Int exit = JumpIfZero__(code, reg0, -1);
+            Int exit = code_emit_jump_if_zero(code, reg0, -1);
 
             // body
             gen_stmt__(code, s->body);
 
             // post
-            BackPatchContinues__(code);
+            code_back_patch_continues(code);
             gen_stmt__(code, s->post);
-            Jump__(code, begin);
+            code_emit_jump(code, begin);
 
             // exit
-            BackPatch__(code, exit);
-            BackPatchBreaks__(code);
+            code_back_patch(code, exit);
+            code_back_patch_breaks(code);
         }
         break;
 
     case NOD_STMT_BREAK:
         {
-            Int addr = Jump__(code, -1);
-            PushBreak__(code, addr);
+            Int addr = code_emit_jump(code, -1);
+            code_push_break(code, addr);
         }
         break;
 
     case NOD_STMT_CONTINUE:
         {
-            Int addr = Jump__(code, -1);
+            Int addr = code_emit_jump(code, -1);
             //PushContinue__(code, addr);
             // TODO testing new naming convention
             code_push_continue(code, addr);
@@ -1202,14 +1216,14 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
                 code_emit_equal_int(code, reg0, reg1, reg2);
 
                 // jump if true otherwise fallthrough
-                Int tru = JumpIfNotZero__(code, reg0, -1);
+                Int tru = code_emit_jump_if_not_zero(code, reg0, -1);
                 data_intvec_push(&trues, tru);
             }
             // all conds false -> close case
-            Int exit = Jump__(code, -1);
+            Int exit = code_emit_jump(code, -1);
             // one of cond true -> go to body
             for (int i = 0; i < trues.len; i++)
-                BackPatch__(code, trues.data[i]);
+                code_back_patch(code, trues.data[i]);
             data_intvec_free(&trues);
 #if TEST
             DATA_IntVecFree(&trues);
@@ -1219,9 +1233,9 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
             gen_stmt__(code, s->body);
 
             // end
-            Int addr = Jump__(code, -1);
-            PushCaseEnd__(code, addr);
-            BackPatch__(code, exit);
+            Int addr = code_emit_jump(code, -1);
+            code_push_case_end(code, addr);
+            code_back_patch(code, exit);
         }
         break;
 
@@ -1233,7 +1247,7 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
     case NOD_STMT_RETURN:
         {
             int reg0 = gen_expr__(code, s->expr);
-            Return__(code, reg0);
+            code_emit_return(code, reg0);
         }
         break;
 
@@ -1250,25 +1264,25 @@ static void gen_stmt__(struct code_bytecode *code, const struct parser_stmt *s)
         break;
     }
 
-    ResetCurrentRegister__(code);
+    code_clear_temporary_registers(code);
 }
 
 static void gen_func__(struct code_bytecode *code, const struct parser_func *func, int func_id)
 {
     // Register function
-    RegisterFunction__(code, func_id, func->params.len);
+    code_register_function(code, func_id, func->params.len);
 
     // TODO solve param count and reg count at a time
     // Local var registers
     int param_count = func->params.len;
     int lvar_count = func->scope->size;
-    InitLocalVarRegister__(code, lvar_count + param_count);
+    code_init_local_var_registers(code, lvar_count + param_count);
 
     // Function body
     gen_stmt__(code, func->body);
 
     // Back patch used registers
-    SetMaxRegisterCount__(code, func_id);
+    code_set_max_register_count(code, func_id);
 }
 
 static void gen_funcs__(struct code_bytecode *code, const struct parser_module *mod)
@@ -1318,8 +1332,8 @@ static void gen_module__(struct code_bytecode *code, const struct parser_module 
     int retval_count = 1;
 
     // Global var registers
-    InitLocalVarRegister__(code, gvar_count);
-    Allocate__(code, gvar_count + retval_count);
+    code_init_local_var_registers(code, gvar_count);
+    code_emit_allocate(code, gvar_count + retval_count);
 
     // Global vars
     gen_gvars__(code, mod);
@@ -1327,9 +1341,9 @@ static void gen_module__(struct code_bytecode *code, const struct parser_module 
     // TODO maybe better to search "main" module and "main" func in there
     // instead of holding main_func
     // Call main
-    int reg0 = NewRegister__(code);
-    CallFunction__(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
-    Exit__(code);
+    int reg0 = code_allocate_temporary_register(code);
+    code_emit_call_function(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
+    code_emit_halt(code);
 
     // Global funcs
     gen_funcs__(code, mod);
@@ -1338,7 +1352,7 @@ static void gen_module__(struct code_bytecode *code, const struct parser_module 
 void GenerateCode(struct code_bytecode *code, const struct parser_module *mod)
 {
     gen_module__(code, mod);
-    End__(code);
+    code_emit_halt(code);
 }
 
 static int resolve_func_id(struct parser_scope *scope, int start_id)

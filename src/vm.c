@@ -149,11 +149,11 @@ static void set_global(VM *vm, int addr, struct runtime_value val)
 
 static struct runtime_value fetch_register_value(struct VM *vm, int id)
 {
-    if (IsImmediateValue__(id)) {
+    if (code_is_immediate_value(id)) {
         struct runtime_value imm = {0};
         int imm_size = 0;
 
-        imm = ReadImmediateValue__(vm->code_, vm->ip_, id, &imm_size);
+        imm = code_read_immediate_value(vm->code_, vm->ip_, id, &imm_size);
         vm->ip_ += imm_size;
 
         return imm;
@@ -169,7 +169,7 @@ void Run(VM *vm, const struct code_bytecode *code)
 {
     vm->code_ = code;
     //vm->eoc_ = Size(vm->code_);
-    vm->eoc = Size__(vm->code_);
+    vm->eoc = code_get_size(vm->code_);
 
     // empty data at the bottom of stacks
     struct runtime_value val = {0};
@@ -238,14 +238,14 @@ static bool is_eoc__(const VM *vm)
 
 static uint32_t fetch__(VM *vm)
 {
-    return Read__(vm->code_, vm->ip_++);
+    return code_read(vm->code_, vm->ip_++);
 }
 
 static void run__(VM *vm)
 {
-    bool brk = false;
+    bool halt = false;
 
-    while (!is_eoc__(vm) && !brk) {
+    while (!is_eoc__(vm) && !halt) {
         const Int old_ip = vm->ip_;
         const uint32_t instcode = fetch__(vm);
 
@@ -615,10 +615,10 @@ static void run__(VM *vm)
         case OP_CALL:
             {
                 uint16_t func_index = inst.BB;
-                int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
+                int64_t func_addr = code_get_function_address(vm->code_, func_index);
 
                 Call call = {0};
-                call.argc = GetFunctionArgCount(vm->code_, func_index);
+                call.argc = code_get_function_arg_count(vm->code_, func_index);
                 call.return_ip = vm->ip_;
                 call.return_bp = vm->bp_;
                 call.return_sp = vm->sp_;
@@ -630,7 +630,7 @@ static void run__(VM *vm)
                 set_bp(vm, vm->bp_ + 1 + call.return_reg - 1);
 
                 // Register allocation (parameters + local variables)
-                int max_reg_count = GetMaxRegisterCount__(vm->code_, func_index);
+                int max_reg_count = code_get_max_register_count(vm->code_, func_index);
                 set_sp(vm, vm->bp_ + max_reg_count);
             }
             break;
@@ -641,10 +641,10 @@ static void run__(VM *vm)
                 int src = inst.B;
                 struct runtime_value src_val = fetch_register_value(vm, src);
                 int func_index = src_val.inum;
-                int64_t func_addr = GetFunctionAddress(vm->code_, func_index);
+                int64_t func_addr = code_get_function_address(vm->code_, func_index);
 
                 Call call = {0};
-                call.argc = GetFunctionArgCount(vm->code_, func_index);
+                call.argc = code_get_function_arg_count(vm->code_, func_index);
                 call.return_ip = vm->ip_;
                 call.return_bp = vm->bp_;
                 call.return_sp = vm->sp_;
@@ -656,7 +656,7 @@ static void run__(VM *vm)
                 set_bp(vm, vm->bp_ + 1 + call.return_reg - 1);
 
                 // Register allocation (parameters + local variables)
-                int max_reg_count = GetMaxRegisterCount__(vm->code_, func_index);
+                int max_reg_count = code_get_max_register_count(vm->code_, func_index);
                 set_sp(vm, vm->bp_ + max_reg_count);
             }
             break;
@@ -739,7 +739,7 @@ static void run__(VM *vm)
                     // TODO push?
                     //set_global(vm, vm->sp_, ret_code);
                     vm->stack_.data[vm->sp_] = ret_code;
-                    brk = true;
+                    halt = true;
                 }
             }
             break;
@@ -1428,9 +1428,8 @@ do { \
             break;
         */
 
-        case OP_EXIT:
-        case OP_EOC:
-            brk = true;
+        case OP_HALT:
+            halt = true;
             break;
 
         case OP_NOP:

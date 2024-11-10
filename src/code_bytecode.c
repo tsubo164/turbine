@@ -68,19 +68,19 @@ static bool is_localreg_full(const struct code_bytecode *code)
     return code->curr_reg == IMMEDIATE_SMALLINT_BEGIN - 1;
 }
 
-void InitLocalVarRegister__(struct code_bytecode *code, uint8_t lvar_count)
+void code_init_local_var_registers(struct code_bytecode *code, uint8_t lvar_count)
 {
     code->base_reg = lvar_count - 1;
     code->curr_reg = code->base_reg;
     code->max_reg = code->base_reg;
 }
 
-void ResetCurrentRegister__(struct code_bytecode *code)
+void code_clear_temporary_registers(struct code_bytecode *code)
 {
     code->curr_reg = code->base_reg;
 }
 
-int NewRegister__(struct code_bytecode *code)
+int code_allocate_temporary_register(struct code_bytecode *code)
 {
     if (is_localreg_full(code)) {
         return -1;
@@ -109,7 +109,7 @@ int GetNextRegister__(struct code_bytecode *code, int reg)
     int next = -1;
 
     if (reg == code->max_reg) {
-        next = NewRegister__(code);
+        next = code_allocate_temporary_register(code);
     }
     else {
         next = reg + 1;
@@ -119,9 +119,9 @@ int GetNextRegister__(struct code_bytecode *code, int reg)
     return next;
 }
 
-bool IsTempRegister(const struct code_bytecode *code, int id)
+bool code_is_temporary_register(const struct code_bytecode *code, int id)
 {
-    return id > code->base_reg && !IsImmediateValue__(id);
+    return id > code->base_reg && !code_is_immediate_value(id);
 }
 
 /* TODO remove and embed */
@@ -137,7 +137,7 @@ static bool can_fit_int32(int64_t val)
     return val >= INT32_MIN && val <= INT32_MAX;
 }
 
-bool IsImmediateValue__(int id)
+bool code_is_immediate_value(int id)
 {
     return id >= IMMEDIATE_SMALLINT_BEGIN;
 }
@@ -173,8 +173,8 @@ static void push_immediate_value(struct code_bytecode *code, int operand)
     code_push_immediate_value(&code->insts, id);
 }
 
-struct runtime_value ReadImmediateValue__(const struct code_bytecode *code,
-        Int addr, int id, int *imm_size)
+struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
+        int64_t addr, int id, int *imm_size)
 {
     struct runtime_value value;
 
@@ -187,7 +187,7 @@ struct runtime_value ReadImmediateValue__(const struct code_bytecode *code,
 
     case IMMEDIATE_INT32:
         {
-            int32_t imm = Read__(code, addr);
+            int32_t imm = code_read(code, addr);
             value.inum = imm;
             if (imm_size)
                 *imm_size += 1;
@@ -196,7 +196,7 @@ struct runtime_value ReadImmediateValue__(const struct code_bytecode *code,
 
     case IMMEDIATE_INT64:
         {
-            int32_t id = Read__(code, addr);
+            int32_t id = code_read(code, addr);
             value = code_constant_pool_get_int(&code->const_pool, id);
             if (imm_size)
                 *imm_size += 1;
@@ -205,7 +205,7 @@ struct runtime_value ReadImmediateValue__(const struct code_bytecode *code,
 
     case IMMEDIATE_FLOAT:
         {
-            int32_t id = Read__(code, addr);
+            int32_t id = code_read(code, addr);
             value = code_constant_pool_get_float(&code->const_pool, id);
             if (imm_size)
                 *imm_size += 1;
@@ -214,7 +214,7 @@ struct runtime_value ReadImmediateValue__(const struct code_bytecode *code,
 
     case IMMEDIATE_STRING:
         {
-            int64_t id = Read__(code, addr);
+            int64_t id = code_read(code, addr);
             value = code_constant_pool_get_string(&code->const_pool, id);
             if (imm_size)
                 *imm_size += 1;
@@ -580,8 +580,9 @@ int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, in
     return dst;
 }
 
-/* Function call */
-int CallFunction__(struct code_bytecode *code, Byte ret_reg, Word func_index, bool builtin)
+/* function call */
+int code_emit_call_function(struct code_bytecode *code, int ret_reg,
+        int func_index, bool builtin)
 {
     int reg0 = ret_reg;
 
@@ -595,13 +596,13 @@ int CallFunction__(struct code_bytecode *code, Byte ret_reg, Word func_index, bo
     return reg0;
 }
 
-int CallFunctionPointer__(struct code_bytecode *code, int ret, int src)
+int code_emit_call_function_pointer(struct code_bytecode *code, int ret, int src)
 {
     push_inst_ab(code, OP_CALLPOINTER, ret, src);
     return ret;
 }
 
-void Allocate__(struct code_bytecode *code, Byte count)
+void code_emit_allocate(struct code_bytecode *code, int count)
 {
     if (count == 0)
         return;
@@ -609,15 +610,21 @@ void Allocate__(struct code_bytecode *code, Byte count)
     push_inst_a(code, OP_ALLOCATE, count);
 }
 
-void Return__(struct code_bytecode *code, Byte id)
+void code_emit_return(struct code_bytecode *code, int id)
 {
     push_inst_a(code, OP_RETURN, id);
 }
 
 /* branch */
-void BeginIf__(struct code_bytecode *code)
+void code_begin_if(struct code_bytecode *code)
 {
     data_intstack_push(&code->ors, -1);
+}
+
+void code_begin_for(struct code_bytecode *code)
+{
+    data_intstack_push(&code->breaks, -1);
+    data_intstack_push(&code->continues, -1);
 }
 
 void code_begin_switch(struct code_bytecode *code)
@@ -625,103 +632,175 @@ void code_begin_switch(struct code_bytecode *code)
     data_intstack_push(&code->casecloses, -1);
 }
 
-void PushElseEnd__(struct code_bytecode *code, Int addr)
+void code_push_else_end(struct code_bytecode *code, int64_t addr)
 {
     data_intstack_push(&code->ors, addr);
 }
 
-void PushBreak__(struct code_bytecode *code, Int addr)
+void code_push_break(struct code_bytecode *code, int64_t addr)
 {
     data_intstack_push(&code->breaks, addr);
 }
 
-void PushContinue__(struct code_bytecode *code, Int addr)
+void code_push_continue(struct code_bytecode *code, int64_t addr)
 {
     data_intstack_push(&code->continues, addr);
 }
 
-void PushCaseEnd__(struct code_bytecode *code, Int addr)
+void code_push_case_end(struct code_bytecode *code, int64_t addr)
 {
     data_intstack_push(&code->casecloses, addr);
 }
 
-void code_push_continue(struct code_bytecode *code, Int addr)
-{
-    data_intstack_push(&code->continues, addr);
-}
-
 /* jump instructions return the address */
 /* where the destination address is stored. */
-Int Jump__(struct code_bytecode *code, Int addr)
+int64_t code_emit_jump(struct code_bytecode *code, int64_t addr)
 {
-    Int operand_addr = NextAddr__(code);
+    int64_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_JUMP, 0, addr);
     return operand_addr;
 }
 
-Int JumpIfZero__(struct code_bytecode *code, uint8_t id, Int addr)
+int64_t code_emit_jump_if_zero(struct code_bytecode *code, int id, int64_t addr)
 {
-    Int operand_addr = NextAddr__(code);
+    int64_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_JUMPIFZERO, id, addr);
     return operand_addr;
 }
 
-Int JumpIfNotZero__(struct code_bytecode *code, uint8_t id, Int addr)
+int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int id, int64_t addr)
 {
-    Int operand_addr = NextAddr__(code);
+    int64_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_JUMPIFNOTZ, id, addr);
     return operand_addr;
 }
 
 /* conversion */
-int BoolToInt__(struct code_bytecode *code, uint8_t dst, uint8_t src)
+int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_BOOLTOINT, dst, src);
     return dst;
 }
 
-/*
-void BoolToFloat__(struct code_bytecode *code)
+int code_emit_bool_to_float(struct code_bytecode *code, int dst, int src)
 {
-    push_byte(&code->bytes, OP_BTOF);
+    push_inst_ab(code, OP_BOOLTOFLOAT, dst, src);
+    return dst;
 }
 
-void IntToBool__(struct code_bytecode *code)
+int code_emit_int_to_bool(struct code_bytecode *code, int dst, int src)
 {
-    push_byte(&code->bytes, OP_ITOB);
+    push_inst_ab(code, OP_INTTOBOOL, dst, src);
+    return dst;
 }
 
-void IntToFloat__(struct code_bytecode *code)
+int code_emit_int_to_float(struct code_bytecode *code, int dst, int src)
 {
-    push_byte(&code->bytes, OP_ITOF);
+    push_inst_ab(code, OP_INTTOFLOAT, dst, src);
+    return dst;
 }
 
-void FloatToBool__(struct code_bytecode *code)
+int code_emit_float_to_bool(struct code_bytecode *code, int dst, int src)
 {
-    push_byte(&code->bytes, OP_FTOB);
+    push_inst_ab(code, OP_FLOATTOBOOL, dst, src);
+    return dst;
 }
 
-void FloatToInt__(struct code_bytecode *code)
+int code_emit_float_to_int(struct code_bytecode *code, int dst, int src)
 {
-    push_byte(&code->bytes, OP_FTOI);
+    push_inst_ab(code, OP_FLOATTOINT, dst, src);
+    return dst;
 }
-*/
 
 /* program control */
-void Exit__(struct code_bytecode *code)
+void code_emit_halt(struct code_bytecode *code)
 {
-    push_inst_op(code, OP_EXIT);
+    push_inst_op(code, OP_HALT);
 }
 
-void End__(struct code_bytecode *code)
+/* back-patches */
+void code_back_patch(struct code_bytecode *code, int64_t operand_addr)
 {
-    push_inst_op(code, OP_EOC);
+    int64_t next_addr = code_get_next_addr(code);
+    uint32_t inst = code_read(code, operand_addr);
+
+    inst = (inst & 0xFFFF0000) | (next_addr & 0x0000FFFF);
+    code_write(code, operand_addr, inst);
 }
 
-/* Functions */
-void RegisterFunction__(struct code_bytecode *code, Word func_index, Byte argc)
+void code_back_patch_breaks(struct code_bytecode *code)
 {
-    const Word next_index = code->funcs.len;
+    while (!data_intstack_is_empty(&code->breaks)) {
+        int64_t addr = data_intstack_pop(&code->breaks);
+        if (addr == -1)
+            break;
+        code_back_patch(code, addr);
+    }
+}
+
+void code_back_patch_else_ends(struct code_bytecode *code)
+{
+    while (!data_intstack_is_empty(&code->ors)) {
+        int64_t addr = data_intstack_pop(&code->ors);
+        if (addr == -1)
+            break;
+        code_back_patch(code, addr);
+    }
+}
+
+void code_back_patch_continues(struct code_bytecode *code)
+{
+    while (!data_intstack_is_empty(&code->continues)) {
+        int64_t addr = data_intstack_pop(&code->continues);
+        if (addr == -1)
+            break;
+        code_back_patch(code, addr);
+    }
+}
+
+void code_backpatch_case_ends(struct code_bytecode *code)
+{
+    while (!data_intstack_is_empty(&code->casecloses)) {
+        int64_t addr = data_intstack_pop(&code->casecloses);
+        if (addr == -1)
+            break;
+        code_back_patch(code, addr);
+    }
+}
+
+/* read/write/address */
+uint32_t code_read(const struct code_bytecode *code, Int addr)
+{
+    if (addr < 0 || addr >= code_get_size(code))
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", code_get_size(code));
+
+    return code->insts.data[addr];
+}
+
+void code_write(const struct code_bytecode *code, Int addr, uint32_t inst)
+{
+    if (addr < 0 || addr >= code_get_size(code))
+        InternalError(__FILE__, __LINE__,
+                "address out of range: %d", code_get_size(code));
+
+    code->insts.data[addr] = inst;
+}
+
+int64_t code_get_size(const struct code_bytecode *code)
+{
+    return code->insts.len;
+}
+
+int64_t code_get_next_addr(const struct code_bytecode *code)
+{
+    return code_get_size(code);
+}
+
+/* functions */
+void code_register_function(struct code_bytecode *code, int func_index, int argc)
+{
+    const int next_index = code->funcs.len;
 
     if (func_index != next_index) {
         InternalError(__FILE__, __LINE__,
@@ -729,11 +808,11 @@ void RegisterFunction__(struct code_bytecode *code, Word func_index, Byte argc)
                 func_index, next_index);
     }
 
-    const Int next_addr = NextAddr__(code);
+    const Int next_addr = code_get_next_addr(code);
     code_push_function(&code->funcs, func_index, argc, next_addr);
 }
 
-void SetMaxRegisterCount__(struct code_bytecode *code, Word func_index)
+void code_set_max_register_count(struct code_bytecode *code, int func_index)
 {
     if (func_index >= code->funcs.len) {
         InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
@@ -742,7 +821,7 @@ void SetMaxRegisterCount__(struct code_bytecode *code, Word func_index)
     code->funcs.data[func_index].reg_count = code->max_reg + 1;
 }
 
-int GetMaxRegisterCount__(const struct code_bytecode *code, Word func_index)
+int code_get_max_register_count(const struct code_bytecode *code, int func_index)
 {
     if (func_index >= code->funcs.len) {
         InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
@@ -751,106 +830,24 @@ int GetMaxRegisterCount__(const struct code_bytecode *code, Word func_index)
     return code->funcs.data[func_index].reg_count;
 }
 
-void BeginFor__(struct code_bytecode *code)
-{
-    data_intstack_push(&code->breaks, -1);
-    data_intstack_push(&code->continues, -1);
-}
-
-void BackPatch__(struct code_bytecode *code, Int operand_addr)
-{
-    Int next_addr = NextAddr__(code);
-    uint32_t inst = Read__(code, operand_addr);
-
-    inst = (inst & 0xFFFF0000) | (next_addr & 0x0000FFFF);
-    Write__(code, operand_addr, inst);
-}
-
-void BackPatchBreaks__(struct code_bytecode *code)
-{
-    while (!data_intstack_is_empty(&code->breaks)) {
-        Int addr = data_intstack_pop(&code->breaks);
-        if (addr == -1)
-            break;
-        BackPatch__(code, addr);
-    }
-}
-
-void BackPatchElseEnds__(struct code_bytecode *code)
-{
-    while (!data_intstack_is_empty(&code->ors)) {
-        Int addr = data_intstack_pop(&code->ors);
-        if (addr == -1)
-            break;
-        BackPatch__(code, addr);
-    }
-}
-
-void BackPatchContinues__(struct code_bytecode *code)
-{
-    while (!data_intstack_is_empty(&code->continues)) {
-        Int addr = data_intstack_pop(&code->continues);
-        if (addr == -1)
-            break;
-        BackPatch__(code, addr);
-    }
-}
-
-void code_backpatch_case_ends(struct code_bytecode *code)
-{
-    while (!data_intstack_is_empty(&code->casecloses)) {
-        Int addr = data_intstack_pop(&code->casecloses);
-        if (addr == -1)
-            break;
-        BackPatch__(code, addr);
-    }
-}
-
-static Int print_op__(const struct code_bytecode *code, Int addr, const struct code_instruction *inst, int *imm_size);
-void PrintInstruction__(const struct code_bytecode *code,
-        Int addr, const struct code_instruction *inst, int *imm_size)
-{
-    print_op__(code, addr, inst, imm_size);
-}
-
-uint32_t Read__(const struct code_bytecode *code, Int addr)
-{
-    if (addr < 0 || addr >= Size__(code))
-        InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size__(code));
-
-    return code->insts.data[addr];
-}
-
-void Write__(const struct code_bytecode *code, Int addr, uint32_t inst)
-{
-    if (addr < 0 || addr >= Size__(code))
-        InternalError(__FILE__, __LINE__,
-                "address out of range: %d", Size__(code));
-
-    code->insts.data[addr] = inst;
-}
-
-Int Size__(const struct code_bytecode *code)
-{
-    return code->insts.len;
-}
-
-Int NextAddr__(const struct code_bytecode *code)
-{
-    return Size__(code);
-}
-
-Int GetFunctionAddress(const struct code_bytecode *code, Word func_index)
+int64_t code_get_function_address(const struct code_bytecode *code, int func_index)
 {
     assert_range(&code->funcs, func_index);
     return code->funcs.data[func_index].addr;
 }
 
-Int GetFunctionArgCount(const struct code_bytecode *code, Word func_index)
+int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_index)
 {
     assert_range(&code->funcs, func_index);
     return code->funcs.data[func_index].argc;
+}
+
+/* print */
+static Int print_op__(const struct code_bytecode *code, Int addr, const struct code_instruction *inst, int *imm_size);
+void PrintInstruction__(const struct code_bytecode *code,
+        Int addr, const struct code_instruction *inst, int *imm_size)
+{
+    print_op__(code, addr, inst, imm_size);
 }
 
 /* XXX TEST */
@@ -919,8 +916,8 @@ void PrintBytecode(const struct code_bytecode *code)
 
     Int addr = 0;
 
-    while (addr < Size__(code)) {
-        const uint32_t instcode = Read__(code, addr);
+    while (addr < code_get_size(code)) {
+        const uint32_t instcode = code_read(code, addr);
         struct code_instruction inst = {0};
         int inc = 1;
 
@@ -928,9 +925,6 @@ void PrintBytecode(const struct code_bytecode *code)
         int imm_size = 0;
         PrintInstruction__(code, addr, &inst, &imm_size);
         inc += imm_size;
-
-        if (inst.op == OP_EOC)
-            break;
 
         //addr++;
         addr += inc;
@@ -950,21 +944,24 @@ static void print_operand__(const struct code_bytecode *code,
     case IMMEDIATE_INT32:
     case IMMEDIATE_INT64:
         {
-            struct runtime_value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
+            struct runtime_value val;
+            val = code_read_immediate_value(code, addr + 1, operand, imm_size);
             printf("$%lld", val.inum);
         }
         break;
 
     case IMMEDIATE_FLOAT:
         {
-            struct runtime_value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
+            struct runtime_value val;
+            val = code_read_immediate_value(code, addr + 1, operand, imm_size);
             printf("$%g", val.fpnum);
         }
         break;
 
     case IMMEDIATE_STRING:
         {
-            struct runtime_value val = ReadImmediateValue__(code, addr + 1, operand, imm_size);
+            struct runtime_value val;
+            val = code_read_immediate_value(code, addr + 1, operand, imm_size);
             printf("\"%s\"", runtime_string_get_cstr(val.str));
         }
         break;
@@ -1032,8 +1029,8 @@ static Int print_op__(const struct code_bytecode *code, Int addr, const struct c
     }
 
     if (info->extend) {
-        int64_t lo = Read__(code, addr + 1);
-        int64_t hi = Read__(code, addr + 2);
+        int64_t lo = code_read(code, addr + 1);
+        int64_t hi = code_read(code, addr + 2);
         int64_t immediate = (hi << 32) | lo;
         printf(" $%lld", immediate);
     }

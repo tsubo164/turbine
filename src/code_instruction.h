@@ -86,8 +86,7 @@ enum code_opcode {
     OP_FLOATTOBOOL,
     OP_FLOATTOINT,
     /* program control */
-    OP_EXIT,
-    OP_EOC,
+    OP_HALT,
     /* eoc */
     END_OF_OPCODE,
 };

@@ -82,8 +82,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_FLOATTOBOOL]    = { "floattobool", OPERAND_AB_ },
     [OP_FLOATTOINT]     = { "floattoint",  OPERAND_AB_ },
     /* program control */
-    [OP_EXIT]           = { "exit",        OPERAND____ },
-    [OP_EOC]            = { "eoc",         OPERAND____ },
+    [OP_HALT]           = { "halt",        OPERAND____ },
     [END_OF_OPCODE]     = { NULL },
 };
 

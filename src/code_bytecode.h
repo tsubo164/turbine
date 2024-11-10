@@ -34,17 +34,19 @@ struct code_bytecode {
 };
 
 /* TODO remove Temp? */
-void InitLocalVarRegister__(struct code_bytecode *code, uint8_t lvar_count);
-void ResetCurrentRegister__(struct code_bytecode *code);
-int NewRegister__(struct code_bytecode *code);
+/* registers */
+void code_init_local_var_registers(struct code_bytecode *code, uint8_t lvar_count);
+void code_clear_temporary_registers(struct code_bytecode *code);
+int code_allocate_temporary_register(struct code_bytecode *code);
 int GetCurrentRegister__(const struct code_bytecode *code);
 int SetCurrentRegister__(struct code_bytecode *code, int curr);
 int GetNextRegister__(struct code_bytecode *code, int reg);
-bool IsTempRegister(const struct code_bytecode *code, int id);
+bool code_is_temporary_register(const struct code_bytecode *code, int id);
 
-bool IsImmediateValue__(int id);
-struct runtime_value ReadImmediateValue__(const struct code_bytecode *code,
-        Int addr, int id, int *imm_size);
+/* immediate value */
+bool code_is_immediate_value(int id);
+struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
+        int64_t addr, int id, int *imm_size);
 
 /* load/store/move */
 int code_emit_move(struct code_bytecode *code, int dst, int src);
@@ -112,59 +114,63 @@ int code_emit_equal_string(struct code_bytecode *code, int dst, int src0, int sr
 int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, int src1);
 
 /* function call */
-int CallFunction__(struct code_bytecode *code, Byte ret_reg, Word func_index, bool builtin);
-int CallFunctionPointer__(struct code_bytecode *code, int ret, int src);
-void Allocate__(struct code_bytecode *code, Byte count);
-void Return__(struct code_bytecode *code, Byte id);
+int code_emit_call_function(struct code_bytecode *code, int ret_reg,
+        int func_index, bool builtin);
+int code_emit_call_function_pointer(struct code_bytecode *code, int ret, int src);
+void code_emit_allocate(struct code_bytecode *code, int count);
+void code_emit_return(struct code_bytecode *code, int id);
+
 /* branch */
-void BeginIf__(struct code_bytecode *code);
+void code_begin_if(struct code_bytecode *code);
+void code_begin_for(struct code_bytecode *code);
 void code_begin_switch(struct code_bytecode *code);
-void PushElseEnd__(struct code_bytecode *code, Int addr);
-void PushBreak__(struct code_bytecode *code, Int addr);
-void PushContinue__(struct code_bytecode *code, Int addr);
-void PushCaseEnd__(struct code_bytecode *code, Int addr);
-/* TODO testing new naming convention */
-void code_push_continue(struct code_bytecode *code, Int addr);
-/* jump instructions return the address */
-/* where the destination address is stored. */
-Int Jump__(struct code_bytecode *code, Int addr);
-Int JumpIfZero__(struct code_bytecode *code, uint8_t src, Int addr);
-Int JumpIfNotZero__(struct code_bytecode *code, uint8_t src, Int addr);
+void code_push_else_end(struct code_bytecode *code, int64_t addr);
+void code_push_break(struct code_bytecode *code, int64_t addr);
+void code_push_continue(struct code_bytecode *code, int64_t addr);
+void code_push_case_end(struct code_bytecode *code, int64_t addr);
+
+/*
+ * jump instructions return the address
+ * where the destination address is stored.
+ */
+int64_t code_emit_jump(struct code_bytecode *code, int64_t addr);
+int64_t code_emit_jump_if_zero(struct code_bytecode *code, int src, int64_t addr);
+int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int src, int64_t addr);
+
 /* conversion */
-int BoolToInt__(struct code_bytecode *code, uint8_t dst, uint8_t src);
-//void BoolToFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src);
-//void IntToBool__(struct code_bytecode *code, uint8_t dst, uint8_t src);
-//void IntToFloat__(struct code_bytecode *code, uint8_t dst, uint8_t src);
-//void FloatToBool__(struct code_bytecode *code, uint8_t dst, uint8_t src);
-//void FloatToInt__(struct code_bytecode *code, uint8_t dst, uint8_t src);
+int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src);
+int code_emit_bool_to_float(struct code_bytecode *code, int dst, int src);
+int code_emit_int_to_bool(struct code_bytecode *code, int dst, int src);
+int code_emit_int_to_float(struct code_bytecode *code, int dst, int src);
+int code_emit_float_to_bool(struct code_bytecode *code, int dst, int src);
+int code_emit_float_to_int(struct code_bytecode *code, int dst, int src);
+
 /* program control */
-void Exit__(struct code_bytecode *code);
-void End__(struct code_bytecode *code);
+void code_emit_halt(struct code_bytecode *code);
 
 /* back-patches */
-void BeginFor__(struct code_bytecode *code);
-void BackPatch__(struct code_bytecode *code, Int operand_addr);
-void BackPatchBreaks__(struct code_bytecode *code);
-void BackPatchElseEnds__(struct code_bytecode *code);
-void BackPatchContinues__(struct code_bytecode *code);
+void code_back_patch(struct code_bytecode *code, int64_t operand_addr);
+void code_back_patch_breaks(struct code_bytecode *code);
+void code_back_patch_else_ends(struct code_bytecode *code);
+void code_back_patch_continues(struct code_bytecode *code);
 void code_backpatch_case_ends(struct code_bytecode *code);
 
 /* read/write/address */
-uint32_t Read__(const struct code_bytecode *code, Int addr);
-void Write__(const struct code_bytecode *code, Int addr, uint32_t inst);
-Int Size__(const struct code_bytecode *code);
-Int NextAddr__(const struct code_bytecode *code);
+uint32_t code_read(const struct code_bytecode *code, int64_t addr);
+void code_write(const struct code_bytecode *code, int64_t addr, uint32_t inst);
+int64_t code_get_size(const struct code_bytecode *code);
+int64_t code_get_next_addr(const struct code_bytecode *code);
 
 /* functions */
-void RegisterFunction__(struct code_bytecode *code, Word func_index, Byte argc);
-void SetMaxRegisterCount__(struct code_bytecode *code, Word func_index);
-int GetMaxRegisterCount__(const struct code_bytecode *code, Word func_index);
-Int GetFunctionAddress(const struct code_bytecode *code, Word func_index);
-Int GetFunctionArgCount(const struct code_bytecode *code, Word func_index);
+void code_register_function(struct code_bytecode *code, int func_index, int argc);
+void code_set_max_register_count(struct code_bytecode *code, int func_index);
+int code_get_max_register_count(const struct code_bytecode *code, int func_index);
+int64_t code_get_function_address(const struct code_bytecode *code, int func_index);
+int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_index);
 
 /* print */
 void PrintBytecode(const struct code_bytecode *code);
 void PrintInstruction__(const struct code_bytecode *code,
-        Int addr, const struct code_instruction *inst, int *imm_size);
+        int64_t addr, const struct code_instruction *inst, int *imm_size);
 
 #endif /* _H */
