@@ -1,6 +1,7 @@
 #include "vm.h"
 #include "error.h"
 #include "objarray.h"
+#include "code_print.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -254,7 +255,7 @@ static void run__(VM *vm)
 
         if (vm->print_stack_) {
             int imm_size = 0;
-            PrintInstruction__(vm->code_, old_ip, &inst, &imm_size);
+            code_print_instruction(vm->code_, old_ip, &inst, &imm_size);
             PrintStack(vm);
         }
 
@@ -1438,7 +1439,7 @@ do { \
         default:
             {
                 fprintf(stderr, "** Unimplemented instruction: %d\n", inst.op);
-                PrintInstruction__(vm->code_, old_ip, &inst, NULL);
+                code_print_instruction(vm->code_, old_ip, &inst, NULL);
                 UNREACHABLE;
             }
             break;

@@ -1,7 +1,8 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
-#include "code_bytecode.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 typedef struct Option {
     bool print_token;
@@ -14,6 +15,6 @@ typedef struct Option {
     bool enable_optimize;
 } Option;
 
-Int Interpret(const char *src, const char *filename, const Option *opt);
+int64_t Interpret(const char *src, const char *filename, const Option *opt);
 
 #endif // _H

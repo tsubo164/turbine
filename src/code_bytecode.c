@@ -1,24 +1,9 @@
 #include "code_bytecode.h"
 #include "error.h"
-#include "data_vec.h"
-#include "mem.h"
-/* TODO can remove this? */
-#include "gc.h"
 
 #include <assert.h>
-#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
-
-enum immediate_value_register {
-    IMMEDIATE_INT32   = 255,
-    IMMEDIATE_INT64   = 254,
-    IMMEDIATE_FLOAT   = 253,
-    IMMEDIATE_STRING  = 252,
-    IMMEDIATE_SMALLINT_END   = 251,
-    IMMEDIATE_SMALLINT_BEGIN = 192,
-};
 
 static void assert_range(const struct code_functionvec *v,  Word index)
 {
@@ -31,25 +16,25 @@ static void assert_range(const struct code_functionvec *v,  Word index)
 
 static void push_immediate_value(struct code_bytecode *code, int operand);
 
-static void push_inst_op(struct code_bytecode *code, uint8_t op)
+static void push_inst_op(struct code_bytecode *code, int op)
 {
     code_push_instruction__(&code->insts, op);
 }
 
-static void push_inst_a(struct code_bytecode *code, uint8_t op, uint8_t a)
+static void push_inst_a(struct code_bytecode *code, int op, int a)
 {
     code_push_instruction_a(&code->insts, op, a);
     push_immediate_value(code, a);
 }
 
-static void push_inst_ab(struct code_bytecode *code, uint8_t op, uint8_t a, uint8_t b)
+static void push_inst_ab(struct code_bytecode *code, int op, int a, int b)
 {
     code_push_instruction_ab(&code->insts, op, a, b);
     push_immediate_value(code, a);
     push_immediate_value(code, b);
 }
 
-static void push_inst_abc(struct code_bytecode *code, uint8_t op, uint8_t a, uint8_t b, uint8_t c)
+static void push_inst_abc(struct code_bytecode *code, int op, int a, int b, int c)
 {
     code_push_instruction_abc(&code->insts, op, a, b, c);
     push_immediate_value(code, a);
@@ -57,7 +42,7 @@ static void push_inst_abc(struct code_bytecode *code, uint8_t op, uint8_t a, uin
     push_immediate_value(code, c);
 }
 
-static void push_inst_abb(struct code_bytecode *code, uint8_t op, uint8_t a, uint16_t bb)
+static void push_inst_abb(struct code_bytecode *code, int op, int a, int bb)
 {
     code_push_instruction_abb(&code->insts, op, a, bb);
     push_immediate_value(code, a);
@@ -68,7 +53,7 @@ static bool is_localreg_full(const struct code_bytecode *code)
     return code->curr_reg == IMMEDIATE_SMALLINT_BEGIN - 1;
 }
 
-void code_init_local_var_registers(struct code_bytecode *code, uint8_t lvar_count)
+void code_init_local_var_registers(struct code_bytecode *code, int lvar_count)
 {
     code->base_reg = lvar_count - 1;
     code->curr_reg = code->base_reg;
@@ -114,42 +99,30 @@ bool code_is_temporary_register(const struct code_bytecode *code, int id)
     return id > code->base_reg && !code_is_immediate_value(id);
 }
 
-/* TODO remove and embed */
+bool code_is_smallint_register(int id)
+{
+    return id >= IMMEDIATE_SMALLINT_BEGIN && id <= IMMEDIATE_SMALLINT_END;
+}
+
 static bool can_fit_smallint(int64_t val)
 {
     int SMALLINT_SIZE = IMMEDIATE_SMALLINT_END - IMMEDIATE_SMALLINT_BEGIN + 1;
     return val >= 0 && val < SMALLINT_SIZE;
 }
 
-/* TODO remove and embed */
-static bool can_fit_int32(int64_t val)
+int code_register_to_smallint(int id)
 {
-    return val >= INT32_MIN && val <= INT32_MAX;
+    return id - IMMEDIATE_SMALLINT_BEGIN;
 }
 
-bool code_is_immediate_value(int id)
+int code_smallint_to_register(int64_t val)
 {
-    return id >= IMMEDIATE_SMALLINT_BEGIN;
-}
-
-static bool is_smallint_register(int id)
-{
-    return id >= IMMEDIATE_SMALLINT_BEGIN && id <= IMMEDIATE_SMALLINT_END;
+    return val + IMMEDIATE_SMALLINT_BEGIN;
 }
 
 static bool is_constpool_register(int id)
 {
     return id > IMMEDIATE_SMALLINT_END && id <= 0xFF;
-}
-
-int register_to_smallint(int id)
-{
-    return id - IMMEDIATE_SMALLINT_BEGIN;
-}
-
-int smallint_to_register(int64_t val)
-{
-    return val + IMMEDIATE_SMALLINT_BEGIN;
 }
 
 static void push_immediate_value(struct code_bytecode *code, int operand)
@@ -168,8 +141,8 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
 {
     struct runtime_value value;
 
-    if (is_smallint_register(id)) {
-        value.inum = register_to_smallint(id);
+    if (code_is_smallint_register(id)) {
+        value.inum = code_register_to_smallint(id);
         return value;
     }
 
@@ -225,10 +198,20 @@ int code_emit_move(struct code_bytecode *code, int dst, int src)
     return dst;
 }
 
+static bool can_fit_int32(int64_t val)
+{
+    return val >= INT32_MIN && val <= INT32_MAX;
+}
+
+bool code_is_immediate_value(int id)
+{
+    return id >= IMMEDIATE_SMALLINT_BEGIN;
+}
+
 int code_emit_load_int(struct code_bytecode *code, int64_t val)
 {
     if (can_fit_smallint(val)) {
-        return smallint_to_register(val);
+        return code_smallint_to_register(val);
     }
     else if (can_fit_int32(val)) {
         data_intstack_push(&code->immediate_ints, val);
@@ -642,8 +625,10 @@ void code_push_case_end(struct code_bytecode *code, int64_t addr)
     data_intstack_push(&code->casecloses, addr);
 }
 
-/* jump instructions return the address */
-/* where the destination address is stored. */
+/*
+ * jump instructions return the address
+ * where the destination address is stored.
+ */
 int64_t code_emit_jump(struct code_bytecode *code, int64_t addr)
 {
     int64_t operand_addr = code_get_next_addr(code);
@@ -712,7 +697,7 @@ void code_emit_halt(struct code_bytecode *code)
 void code_back_patch(struct code_bytecode *code, int64_t operand_addr)
 {
     int64_t next_addr = code_get_next_addr(code);
-    uint32_t inst = code_read(code, operand_addr);
+    int32_t inst = code_read(code, operand_addr);
 
     inst = (inst & 0xFFFF0000) | (next_addr & 0x0000FFFF);
     code_write(code, operand_addr, inst);
@@ -759,7 +744,7 @@ void code_backpatch_case_ends(struct code_bytecode *code)
 }
 
 /* read/write/address */
-uint32_t code_read(const struct code_bytecode *code, Int addr)
+int32_t code_read(const struct code_bytecode *code, Int addr)
 {
     if (addr < 0 || addr >= code_get_size(code))
         InternalError(__FILE__, __LINE__,
@@ -768,7 +753,7 @@ uint32_t code_read(const struct code_bytecode *code, Int addr)
     return code->insts.data[addr];
 }
 
-void code_write(const struct code_bytecode *code, Int addr, uint32_t inst)
+void code_write(const struct code_bytecode *code, Int addr, int32_t inst)
 {
     if (addr < 0 || addr >= code_get_size(code))
         InternalError(__FILE__, __LINE__,
@@ -830,201 +815,4 @@ int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_i
 {
     assert_range(&code->funcs, func_index);
     return code->funcs.data[func_index].argc;
-}
-
-/* print */
-static Int print_op__(const struct code_bytecode *code, Int addr, const struct code_instruction *inst, int *imm_size);
-void PrintInstruction__(const struct code_bytecode *code,
-        Int addr, const struct code_instruction *inst, int *imm_size)
-{
-    print_op__(code, addr, inst, imm_size);
-}
-
-/* XXX TEST */
-void print_value(struct runtime_value val, int type)
-{
-    switch (type) {
-
-    case VAL_INT:
-        printf("%lld", val.inum);
-        break;
-
-    case VAL_FLOAT:
-        if (fmod(val.fpnum, 1.) == 0.0)
-            printf("%g.0", val.fpnum);
-        else
-            printf("%g", val.fpnum);
-        break;
-
-    case VAL_STRING:
-        printf("\"%s\"", val.str->data);
-        break;
-
-    default:
-        UNREACHABLE;
-        break;
-    }
-}
-
-void PrintBytecode(const struct code_bytecode *code)
-{
-    if (code_constant_pool_get_int_count(&code->const_pool) > 0) {
-        printf("* constant int:\n");
-        int count = code_constant_pool_get_int_count(&code->const_pool);
-
-        for (int i = 0; i < count; i++) {
-            struct runtime_value val = code_constant_pool_get_int(&code->const_pool, i);
-            printf("[%6d] %lld\n", i, val.inum);
-        }
-    }
-
-    if (code_constant_pool_get_float_count(&code->const_pool) > 0) {
-        printf("* constant float:\n");
-        int count = code_constant_pool_get_float_count(&code->const_pool);
-
-        for (int i = 0; i < count; i++) {
-            struct runtime_value val = code_constant_pool_get_float(&code->const_pool, i);
-            printf("[%6d] %g\n", i, val.fpnum);
-        }
-    }
-
-    if (code_constant_pool_get_string_count(&code->const_pool) > 0) {
-        printf("* constant string:\n");
-        int count = code_constant_pool_get_string_count(&code->const_pool);
-
-        for (int i = 0; i < count; i++) {
-            struct runtime_value val = code_constant_pool_get_string(&code->const_pool, i);
-            printf("[%6d] \"%s\"\n", i, runtime_string_get_cstr(val.str));
-        }
-    }
-
-    /* function info */
-    for (int i = 0; i < code->funcs.len; i++) {
-        const struct code_function *info = &code->funcs.data[i];
-        printf("* function id: %d @%lld\n", info->id, info->addr);
-    }
-
-    Int addr = 0;
-
-    while (addr < code_get_size(code)) {
-        const uint32_t instcode = code_read(code, addr);
-        struct code_instruction inst = {0};
-        int inc = 1;
-
-        code_decode_instruction(instcode, &inst);
-        int imm_size = 0;
-        PrintInstruction__(code, addr, &inst, &imm_size);
-        inc += imm_size;
-
-        //addr++;
-        addr += inc;
-
-        /* TODO come up with better way */
-        const struct code_opcode_info *info = code_lookup_opecode_info(inst.op);
-        if (info->extend)
-            addr += 2;
-    }
-}
-
-static void print_operand__(const struct code_bytecode *code,
-        int addr, int operand, bool separator, int *imm_size)
-{
-    switch (operand) {
-
-    case IMMEDIATE_INT32:
-    case IMMEDIATE_INT64:
-        {
-            struct runtime_value val;
-            val = code_read_immediate_value(code, addr + 1, operand, imm_size);
-            printf("$%lld", val.inum);
-        }
-        break;
-
-    case IMMEDIATE_FLOAT:
-        {
-            struct runtime_value val;
-            val = code_read_immediate_value(code, addr + 1, operand, imm_size);
-            printf("$%g", val.fpnum);
-        }
-        break;
-
-    case IMMEDIATE_STRING:
-        {
-            struct runtime_value val;
-            val = code_read_immediate_value(code, addr + 1, operand, imm_size);
-            printf("\"%s\"", runtime_string_get_cstr(val.str));
-        }
-        break;
-
-    default:
-        if (is_smallint_register(operand)) {
-            printf("$%d", register_to_smallint(operand));
-        }
-        else {
-            printf("r%d", operand);
-        }
-        break;
-    }
-
-    if (separator)
-        printf(", ");
-}
-
-static void print_operand16__(const struct code_bytecode *code, int operand)
-{
-    printf("$%d", operand);
-}
-
-static Int print_op__(const struct code_bytecode *code, Int addr, const struct code_instruction *inst, int *imm_size)
-{
-    const struct code_opcode_info *info = code_lookup_opecode_info(inst->op);
-
-    if (addr >= 0)
-        printf("[%6lld] ", addr);
-
-    /* padding spaces */
-    if (info->operand != OPERAND____)
-        printf("%-12s", info->mnemonic);
-    else
-        printf("%s", info->mnemonic);
-
-    /* append operand */
-    switch (info->operand) {
-
-    case OPERAND____:
-        break;
-
-    case OPERAND_A__:
-        if (inst->op == OP_ALLOCATE)
-            print_operand16__(code, inst->A);
-        else
-            print_operand__(code, addr, inst->A, 0, NULL);
-        break;
-
-    case OPERAND_AB_:
-        print_operand__(code, addr, inst->A, 1, NULL);
-        print_operand__(code, addr, inst->B, 0, imm_size);
-        break;
-
-    case OPERAND_ABB:
-        print_operand__(code, addr, inst->A, 1, NULL);
-        print_operand16__(code, inst->BB);
-        break;
-
-    case OPERAND_ABC:
-        print_operand__(code, addr, inst->A, 1, imm_size);
-        print_operand__(code, addr, inst->B, 1, imm_size);
-        print_operand__(code, addr, inst->C, 0, imm_size);
-        break;
-    }
-
-    if (info->extend) {
-        int64_t lo = code_read(code, addr + 1);
-        int64_t hi = code_read(code, addr + 2);
-        int64_t immediate = (hi << 32) | lo;
-        printf(" $%lld", immediate);
-    }
-
-    printf("\n");
-    return addr;
 }

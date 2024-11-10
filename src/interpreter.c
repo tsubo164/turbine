@@ -1,10 +1,12 @@
+#include "interpreter.h"
 #include "data_intern.h"
 #include "parser_parse.h"
 #include "parser_token.h"
 #include "parser_print.h"
 #include "parser_symbol.h"
 #include "parser_ast.h"
-#include "interpreter.h"
+#include "code_bytecode.h"
+#include "code_print.h"
 #include "builtin.h"
 #include "codegen.h"
 #include "vm.h"
@@ -63,7 +65,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
 
     if (opt->print_bytecode) {
         print_header("bytecode");
-        PrintBytecode(&code);
+        code_print_bytecode(&code);
     }
 
     // Run bytecode

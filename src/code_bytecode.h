@@ -10,6 +10,15 @@
 #include "runtime_value.h"
 #include "data_vec.h"
 
+enum immediate_value_register {
+    IMMEDIATE_INT32   = 255,
+    IMMEDIATE_INT64   = 254,
+    IMMEDIATE_FLOAT   = 253,
+    IMMEDIATE_STRING  = 252,
+    IMMEDIATE_SMALLINT_END   = 251,
+    IMMEDIATE_SMALLINT_BEGIN = 192,
+};
+
 struct code_bytecode {
     /* instructions */
     struct code_instructionvec insts;
@@ -34,7 +43,7 @@ struct code_bytecode {
 };
 
 /* registers */
-void code_init_local_var_registers(struct code_bytecode *code, uint8_t lvar_count);
+void code_init_local_var_registers(struct code_bytecode *code, int lvar_count);
 void code_clear_temporary_registers(struct code_bytecode *code);
 int code_allocate_temporary_register(struct code_bytecode *code);
 int code_get_register_pointer(const struct code_bytecode *code);
@@ -42,6 +51,9 @@ int code_set_register_pointer(struct code_bytecode *code, int dst);
 bool code_is_temporary_register(const struct code_bytecode *code, int id);
 
 /* immediate value */
+bool code_is_smallint_register(int id);
+int code_register_to_smallint(int id);
+int code_smallint_to_register(int64_t val);
 bool code_is_immediate_value(int id);
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
         int64_t addr, int id, int *imm_size);
@@ -154,8 +166,8 @@ void code_back_patch_continues(struct code_bytecode *code);
 void code_backpatch_case_ends(struct code_bytecode *code);
 
 /* read/write/address */
-uint32_t code_read(const struct code_bytecode *code, int64_t addr);
-void code_write(const struct code_bytecode *code, int64_t addr, uint32_t inst);
+int32_t code_read(const struct code_bytecode *code, int64_t addr);
+void code_write(const struct code_bytecode *code, int64_t addr, int32_t inst);
 int64_t code_get_size(const struct code_bytecode *code);
 int64_t code_get_next_addr(const struct code_bytecode *code);
 
@@ -165,10 +177,5 @@ void code_set_max_register_count(struct code_bytecode *code, int func_index);
 int code_get_max_register_count(const struct code_bytecode *code, int func_index);
 int64_t code_get_function_address(const struct code_bytecode *code, int func_index);
 int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_index);
-
-/* print */
-void PrintBytecode(const struct code_bytecode *code);
-void PrintInstruction__(const struct code_bytecode *code,
-        int64_t addr, const struct code_instruction *inst, int *imm_size);
 
 #endif /* _H */
