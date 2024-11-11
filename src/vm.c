@@ -1,6 +1,7 @@
 #include "vm.h"
 #include "error.h"
 #include "objarray.h"
+#include "runtime_string.h"
 #include "code_print.h"
 
 #include <string.h>
@@ -580,7 +581,7 @@ static void run__(VM *vm)
                 int len = inst.B;
 
                 struct runtime_struct *s = runtime_struct_new(len);
-                runtime_append_gc_object(&vm->gc_, (struct Obj*) s);
+                runtime_append_gc_object(&vm->gc_, (struct runtime_object*) s);
 
                 struct runtime_value val = {.strct = s};
                 set_local(vm, dst, val);
@@ -683,7 +684,7 @@ static void run__(VM *vm)
                             break;
 
                         case TID_STR:
-                            printf("%s", val.str->data);
+                            printf("%s", runtime_string_get_cstr(val.str));
                             break;
                         }
 
@@ -940,8 +941,8 @@ do { \
                 struct runtime_value val2 = fetch_register_value(vm, reg2);
                 struct runtime_value val0;
 
-                struct StringObj *s = runtime_string_concat(val1.str, val2.str);
-                runtime_append_gc_object(&vm->gc_, (struct Obj*) s);
+                struct runtime_string *s = runtime_string_concat(val1.str, val2.str);
+                runtime_append_gc_object(&vm->gc_, (struct runtime_object*) s);
 
                 val0.str = s;
                 set_local(vm, reg0, val0);

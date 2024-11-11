@@ -3,12 +3,13 @@
 #include "mem.h"
 // TODO move this
 #include "objarray.h"
+#include "runtime_string.h"
 #include "runtime_struct.h"
 
 #include <string.h>
 #include <stdio.h>
 
-static void print_obj(const Obj *obj)
+static void print_obj(const struct runtime_object *obj)
 {
     switch (obj->kind) {
     case OBJ_NIL:
@@ -16,7 +17,10 @@ static void print_obj(const Obj *obj)
         break;
 
     case OBJ_STRING:
-        printf("[StringObj] => %s\n", ((StringObj *) obj)->data);
+        {
+            const struct runtime_string *s = (struct runtime_string *) obj;
+            printf("[String] => %s\n", runtime_string_get_cstr(s));
+        }
         break;
 
     case OBJ_ARRAY_:
@@ -47,6 +51,7 @@ static void print_obj(const Obj *obj)
     }
 }
 
+/*
 StringObj *NewString(GC *gc, const char *s)
 {
     StringObj *str = CALLOC(StringObj);
@@ -54,7 +59,7 @@ StringObj *NewString(GC *gc, const char *s)
     str->data = strdup(s);
 
     str->obj.next = gc->root;
-    gc->root = (Obj*)str;
+    gc->root = (runtime_object*)str;
 
     return str;
 }
@@ -114,8 +119,9 @@ const char *runtime_string_get_cstr(const struct StringObj *s)
         return NULL;
     return s->data;
 }
+*/
 
-void runtime_append_gc_object(struct GC *gc, struct Obj *obj)
+void runtime_append_gc_object(struct GC *gc, struct runtime_object *obj)
 {
     obj->next = gc->root;
     gc->root = obj;
@@ -123,7 +129,7 @@ void runtime_append_gc_object(struct GC *gc, struct Obj *obj)
 
 void PrintObjects(const GC *gc)
 {
-    for (Obj *obj = gc->root; obj; obj = obj->next) {
+    for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         print_obj(obj);
     }
 }

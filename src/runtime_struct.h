@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 struct runtime_struct {
-    struct Obj obj;
+    struct runtime_object obj;
     struct runtime_valuevec values;
 };
 

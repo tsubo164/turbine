@@ -1,5 +1,5 @@
 #include "code_constant_pool.h"
-#include "gc.h"
+#include "runtime_string.h"
 
 void code_constant_pool_init(struct code_constant_pool *v)
 {
@@ -54,7 +54,7 @@ int code_constant_pool_push_string(struct code_constant_pool *v, const char *val
     }
 
     struct runtime_value value;
-    value.str = GCStringNew(val);
+    value.str = runtime_string_new(val);
     runtime_valuevec_push(&v->strings, value);
 
     int new_idx = v->strings.len - 1;

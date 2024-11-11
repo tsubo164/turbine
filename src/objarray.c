@@ -15,7 +15,7 @@ struct ObjArray *NewArray(struct GC *gc, int64_t len)
 
     array->obj.kind = OBJ_ARRAY_;
     array->obj.next = gc->root;
-    gc->root = (Obj*)array;
+    gc->root = (struct runtime_object*) array;
 
     return array;
 }
@@ -36,7 +36,7 @@ struct GCArray *ArrayNew(struct GC *gc, int64_t len)
 
     array->obj.kind = OBJ_ARRAY;
     array->obj.next = gc->root;
-    gc->root = (struct Obj*)array;
+    gc->root = (struct runtime_object*) array;
 
     return array;
 }

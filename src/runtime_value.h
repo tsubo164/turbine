@@ -12,7 +12,7 @@ typedef double   Float;
 typedef int64_t  value_int_t;
 typedef double   value_float_t;
 
-struct StringObj;
+struct runtime_string;
 struct ObjArray;
 struct GCArray;
 struct runtime_struct;
@@ -29,7 +29,7 @@ struct runtime_value {
     union {
         value_int_t inum;
         value_float_t fpnum;
-        struct StringObj *str;
+        struct runtime_string *str;
         struct ObjArray *array_; // TODO REMOVE OLD
         struct GCArray *array;
         struct runtime_struct *strct;

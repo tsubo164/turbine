@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 struct ObjArray {
-    Obj obj;
+    struct runtime_object obj;
     // TODO remove this
     struct runtime_value *values;
     int64_t *data;
@@ -17,7 +17,7 @@ struct ObjArray *NewArray(struct GC *gc, int64_t len);
 struct runtime_value ArrayIndex(struct ObjArray *array, int64_t index);
 
 struct GCArray {
-    struct Obj obj;
+    struct runtime_object obj;
     struct runtime_valuevec values;
 };
 

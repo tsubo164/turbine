@@ -1,6 +1,6 @@
 #include "code_print.h"
 /* TODO can remove this? */
-#include "gc.h"
+#include "runtime_string.h"
 #include <stdio.h>
 
 void code_print_bytecode(const struct code_bytecode *code)
