@@ -100,7 +100,6 @@ enum operand_format {
 struct code_opcode_info {
     const char *mnemonic;
     enum operand_format operand;
-    bool extend;
 };
 
 struct code_instruction {

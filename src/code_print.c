@@ -1,16 +1,7 @@
 #include "code_print.h"
-#include "error.h"
-#include "data_vec.h"
-#include "mem.h"
 /* TODO can remove this? */
 #include "gc.h"
-
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
-
 
 void code_print_bytecode(const struct code_bytecode *code)
 {
@@ -63,11 +54,6 @@ void code_print_bytecode(const struct code_bytecode *code)
         inc += imm_size;
 
         addr += inc;
-
-        /* TODO come up with better way */
-        const struct code_opcode_info *info = code_lookup_opecode_info(inst.op);
-        if (info->extend)
-            addr += 2;
     }
 }
 
@@ -164,13 +150,6 @@ void code_print_instruction(const struct code_bytecode *code,
         print_operand(code, addr, inst->B, 1, imm_size);
         print_operand(code, addr, inst->C, 0, imm_size);
         break;
-    }
-
-    if (info->extend) {
-        int64_t lo = code_read(code, addr + 1);
-        int64_t hi = code_read(code, addr + 2);
-        int64_t immediate = (hi << 32) | lo;
-        printf(" $%lld", immediate);
     }
 
     printf("\n");
