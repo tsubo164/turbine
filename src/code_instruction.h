@@ -8,8 +8,6 @@ enum code_opcode {
     OP_NOP,
     /* load/store/move */
     OP_MOVE,
-    OP_LOADINT,
-    OP_LOADFLOAT,
     OP_LOAD,
     OP_STORE,
     OP_LOADARRAY,

@@ -110,12 +110,12 @@ static bool can_fit_smallint(int64_t val)
     return val >= 0 && val < SMALLINT_SIZE;
 }
 
-int code_register_to_smallint(int id)
+static int register_to_smallint(int id)
 {
     return id - IMMEDIATE_SMALLINT_BEGIN;
 }
 
-int code_smallint_to_register(int64_t val)
+static int smallint_to_register(int64_t val)
 {
     return val + IMMEDIATE_SMALLINT_BEGIN;
 }
@@ -142,7 +142,7 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
     struct runtime_value value;
 
     if (code_is_smallint_register(id)) {
-        value.inum = code_register_to_smallint(id);
+        value.inum = register_to_smallint(id);
         return value;
     }
 
@@ -211,7 +211,7 @@ bool code_is_immediate_value(int id)
 int code_emit_load_int(struct code_bytecode *code, int64_t val)
 {
     if (can_fit_smallint(val)) {
-        return code_smallint_to_register(val);
+        return smallint_to_register(val);
     }
     else if (can_fit_int32(val)) {
         data_intstack_push(&code->immediate_ints, val);

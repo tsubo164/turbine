@@ -6,8 +6,6 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_NOP]            = { "nop",         OPERAND____ },
     /* load/store/move */
     [OP_MOVE]           = { "move",        OPERAND_AB_ },
-    [OP_LOADINT]        = { "loadint",     OPERAND_A__, true },
-    [OP_LOADFLOAT]      = { "loadfloat",   OPERAND_A__, true },
     [OP_LOAD]           = { "load",        OPERAND_AB_ },
     [OP_STORE]          = { "store",       OPERAND_AB_ },
     [OP_LOADARRAY]      = { "loadarray",   OPERAND_ABC },

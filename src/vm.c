@@ -387,31 +387,6 @@ static void run__(VM *vm)
             }
             break;
 
-        case OP_LOADINT:
-            {
-                uint8_t dst = inst.A;
-                int64_t lo = fetch__(vm);
-                int64_t hi = fetch__(vm);
-                struct runtime_value val;
-
-                val.inum = (hi << 32) | lo;
-                set_local(vm, dst, val);
-            }
-            break;
-
-        case OP_LOADFLOAT:
-            {
-                uint8_t dst = inst.A;
-                int64_t lo = fetch__(vm);
-                int64_t hi = fetch__(vm);
-                int64_t inum = (hi << 32) | lo;
-                struct runtime_value val;
-
-                val.fpnum = *((Float *)&inum);
-                set_local(vm, dst, val);
-            }
-            break;
-
         case OP_LOAD:
             {
                 int dst = inst.A;

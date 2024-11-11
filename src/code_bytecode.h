@@ -52,8 +52,6 @@ bool code_is_temporary_register(const struct code_bytecode *code, int id);
 
 /* immediate value */
 bool code_is_smallint_register(int id);
-int code_register_to_smallint(int id);
-int code_smallint_to_register(int64_t val);
 bool code_is_immediate_value(int id);
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
         int64_t addr, int id, int *imm_size);

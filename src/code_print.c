@@ -103,7 +103,9 @@ static void print_operand(const struct code_bytecode *code,
 
     default:
         if (code_is_smallint_register(operand)) {
-            printf("$%d", code_register_to_smallint(operand));
+            struct runtime_value val;
+            val = code_read_immediate_value(code, addr, operand, imm_size);
+            printf("$%lld", val.inum);
         }
         else {
             printf("r%d", operand);
