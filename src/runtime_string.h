@@ -1,7 +1,8 @@
 #ifndef RUNTIME_STRING_H
 #define RUNTIME_STRING_H
 
-#include "gc.h"
+#include "runtime_gc.h"
+#include "runtime_value.h"
 
 struct runtime_string {
     struct runtime_object obj;

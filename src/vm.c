@@ -229,7 +229,7 @@ void EnablePrintStack(VM *vm, bool enable)
 
 void PrintObjs(const VM *vm)
 {
-    PrintObjects(&vm->gc_);
+    runtime_print_gc_objects(&vm->gc_);
 }
 
 // XXX TEST
@@ -570,7 +570,7 @@ static void run__(VM *vm)
                 struct runtime_value len = fetch_register_value(vm, reg1);
 
                 struct runtime_array *obj = runtime_array_new(len.inum);
-                runtime_append_gc_object(&vm->gc_, (struct runtime_object*) obj);
+                runtime_push_gc_object(&vm->gc_, (struct runtime_object*) obj);
 
                 struct runtime_value val = {.array = obj};
                 set_local(vm, dst, val);
@@ -583,7 +583,7 @@ static void run__(VM *vm)
                 int len = inst.B;
 
                 struct runtime_struct *obj = runtime_struct_new(len);
-                runtime_append_gc_object(&vm->gc_, (struct runtime_object*) obj);
+                runtime_push_gc_object(&vm->gc_, (struct runtime_object*) obj);
 
                 struct runtime_value val = {.strct = obj};
                 set_local(vm, dst, val);
@@ -944,7 +944,7 @@ do { \
                 struct runtime_value val0;
 
                 struct runtime_string *s = runtime_string_concat(val1.str, val2.str);
-                runtime_append_gc_object(&vm->gc_, (struct runtime_object*) s);
+                runtime_push_gc_object(&vm->gc_, (struct runtime_object*) s);
 
                 val0.str = s;
                 set_local(vm, reg0, val0);

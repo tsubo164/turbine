@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/* TODO remove these */
 typedef uint8_t  Byte;
 typedef uint16_t Word;
 typedef int64_t  Int;

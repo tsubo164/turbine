@@ -1,7 +1,8 @@
 #ifndef RUNTIME_STRUCT_H
 #define RUNTIME_STRUCT_H
 
-#include "gc.h"
+#include "runtime_gc.h"
+#include "runtime_value.h"
 #include <stdint.h>
 
 struct runtime_struct {

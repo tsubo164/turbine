@@ -2,8 +2,7 @@
 #define VM_H
 
 #include "code_bytecode.h"
-#include "gc.h"
-// TODO remove this
+#include "runtime_gc.h"
 #include "runtime_array.h"
 #include "runtime_struct.h"
 
@@ -37,7 +36,7 @@ typedef struct VM {
     int call_sp_;
 
     bool print_stack_;
-    GC gc_;
+    struct runtime_gc gc_;
 } VM;
 
 void Run(VM *vm, const struct code_bytecode *code);

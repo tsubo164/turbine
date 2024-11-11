@@ -1,7 +1,8 @@
 #ifndef RUNTIME_ARRAY_H
 #define RUNTIME_ARRAY_H
 
-#include "gc.h"
+#include "runtime_gc.h"
+#include "runtime_value.h"
 #include <stdint.h>
 
 struct runtime_array {
