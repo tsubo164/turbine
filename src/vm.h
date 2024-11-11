@@ -4,7 +4,7 @@
 #include "code_bytecode.h"
 #include "gc.h"
 // TODO remove this
-#include "objarray.h"
+#include "runtime_array.h"
 #include "runtime_struct.h"
 
 typedef struct Call {

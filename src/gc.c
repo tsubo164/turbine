@@ -2,7 +2,7 @@
 #include "error.h"
 #include "mem.h"
 // TODO move this
-#include "objarray.h"
+#include "runtime_array.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
 
@@ -23,16 +23,18 @@ static void print_obj(const struct runtime_object *obj)
         }
         break;
 
+        /*
     case OBJ_ARRAY_:
         {
             const struct ObjArray *array = (struct ObjArray *) obj;
             printf("[Array] => len: %lld, cap: %lld\n", array->len, array->cap);
         }
         break;
+        */
 
     case OBJ_ARRAY:
         {
-            const struct GCArray *array = (struct GCArray *) obj;
+            const struct runtime_array *array = (struct runtime_array *) obj;
             printf("[Array] => len: %d, cap: %d\n",
                     array->values.len, array->values.cap);
         }

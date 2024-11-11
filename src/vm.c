@@ -1,6 +1,6 @@
 #include "vm.h"
 #include "error.h"
-#include "objarray.h"
+#include "runtime_array.h"
 #include "runtime_string.h"
 #include "code_print.h"
 
@@ -418,7 +418,7 @@ static void run__(VM *vm)
                 struct runtime_value src = fetch_register_value(vm, reg1);
                 struct runtime_value idx = fetch_register_value(vm, reg2);
 
-                struct runtime_value val = ArrayGet(src.array, idx.inum);
+                struct runtime_value val = runtime_array_get(src.array, idx.inum);
                 set_local(vm, reg0, val);
             }
             break;
@@ -432,7 +432,7 @@ static void run__(VM *vm)
                 struct runtime_value idx = fetch_register_value(vm, reg1);
                 struct runtime_value src = fetch_register_value(vm, reg2);
 
-                ArraySet(dst.array, idx.inum, src);
+                runtime_array_set(dst.array, idx.inum, src);
             }
             break;
 
@@ -568,9 +568,11 @@ static void run__(VM *vm)
                 int dst = inst.A;
                 int reg1 = inst.B;
                 struct runtime_value len = fetch_register_value(vm, reg1);
-                struct runtime_value val;
 
-                val.array = ArrayNew(&vm->gc_, len.inum);
+                struct runtime_array *obj = runtime_array_new(len.inum);
+                runtime_append_gc_object(&vm->gc_, (struct runtime_object*) obj);
+
+                struct runtime_value val = {.array = obj};
                 set_local(vm, dst, val);
             }
             break;
@@ -580,10 +582,10 @@ static void run__(VM *vm)
                 int dst = inst.A;
                 int len = inst.B;
 
-                struct runtime_struct *s = runtime_struct_new(len);
-                runtime_append_gc_object(&vm->gc_, (struct runtime_object*) s);
+                struct runtime_struct *obj = runtime_struct_new(len);
+                runtime_append_gc_object(&vm->gc_, (struct runtime_object*) obj);
 
-                struct runtime_value val = {.strct = s};
+                struct runtime_value val = {.strct = obj};
                 set_local(vm, dst, val);
             }
             break;

@@ -4,7 +4,9 @@
 
 struct runtime_struct *runtime_struct_new(int64_t len)
 {
-    struct runtime_struct *s = CALLOC(struct runtime_struct);
+    struct runtime_struct *s;
+
+    s = calloc(1, sizeof(*s));
     s->obj.kind = OBJ_STRUCT;
 
     runtime_valuevec_init(&s->values);
