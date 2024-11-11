@@ -7,7 +7,7 @@
 
 struct runtime_struct {
     struct runtime_object obj;
-    struct runtime_valuevec values;
+    struct runtime_valuevec fields;
 };
 
 struct runtime_struct *runtime_struct_new(int64_t len);

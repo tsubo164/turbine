@@ -1,6 +1,5 @@
 #include "runtime_struct.h"
-#include "mem.h"
-#include <stdio.h>
+#include <stdlib.h>
 
 struct runtime_struct *runtime_struct_new(int64_t len)
 {
@@ -9,61 +8,34 @@ struct runtime_struct *runtime_struct_new(int64_t len)
     s = calloc(1, sizeof(*s));
     s->obj.kind = OBJ_STRUCT;
 
-    runtime_valuevec_init(&s->values);
-    runtime_valuevec_resize(&s->values, len);
-    runtime_valuevec_zeroclear(&s->values);
+    runtime_valuevec_init(&s->fields);
+    runtime_valuevec_resize(&s->fields, len);
+    runtime_valuevec_zeroclear(&s->fields);
 
     return s;
 }
 
 void runtime_struct_free(struct runtime_struct *s)
 {
+    if (!s)
+        return;
+
+    runtime_valuevec_free(&s->fields);
+    free(s);
 }
 
 struct runtime_value runtime_struct_get(const struct runtime_struct *s, int64_t field_idx)
 {
-    if (field_idx < 0 || field_idx >= s->values.len) {
+    if (field_idx < 0 || field_idx >= s->fields.len) {
         // todo error
     }
-    return s->values.data[field_idx];
+    return s->fields.data[field_idx];
 }
 
 void runtime_struct_set(struct runtime_struct *s, int64_t field_idx, struct runtime_value val)
 {
-    if (field_idx < 0 || field_idx >= s->values.len) {
+    if (field_idx < 0 || field_idx >= s->fields.len) {
         // todo error
     }
-    s->values.data[field_idx] = val;
+    s->fields.data[field_idx] = val;
 }
-
-#ifdef TEST
-Runtime_Struct *runtime_struct_new(int64_t len)
-{
-    Runtime_Struct *s = CALLOC(Runtime_Struct);
-
-    value_vec_init(&s->values);
-    value_vec_resize(&s->values, len);
-
-    return s;
-}
-
-Value runtime_struct_get(const Runtime_Struct *s, int64_t field_idx)
-{
-    if (field_idx < 0 || field_idx >= s->values.len) {
-        // todo error
-    }
-    return s->values.data[field_idx];
-}
-
-void runtime_struct_set(Runtime_Struct *s, int64_t field_idx, Value val)
-{
-    if (field_idx < 0 || field_idx >= s->values.len) {
-        // todo error
-    }
-    s->values.data[field_idx] = val;
-}
-
-void runtime_struct_free(Runtime_Struct *s)
-{
-}
-#endif

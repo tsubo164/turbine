@@ -40,7 +40,7 @@ static void print_obj(const struct runtime_object *obj)
     case OBJ_STRUCT:
         {
             const struct runtime_struct *s = (struct runtime_struct *) obj;
-            printf("[struct] => len: %d, cap: %d\n", s->values.len, s->values.cap);
+            printf("[struct] => len: %d, cap: %d\n", s->fields.len, s->fields.cap);
         }
         break;
 
