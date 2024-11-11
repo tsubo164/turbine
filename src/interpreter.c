@@ -6,8 +6,8 @@
 #include "parser_symbol.h"
 #include "parser_ast.h"
 #include "code_bytecode.h"
+#include "code_generate.h"
 #include "code_print.h"
-#include "code_gen.h"
 #include "builtin.h"
 #include "vm.h"
 
