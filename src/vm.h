@@ -1,25 +1,11 @@
 #ifndef VM_H
 #define VM_H
 
+#include "vm_callstack.h"
 #include "code_bytecode.h"
 #include "runtime_gc.h"
 #include "runtime_array.h"
 #include "runtime_struct.h"
-
-typedef struct Call {
-    int func_index;
-    int argc;
-    Int return_ip;
-    Int return_bp;
-    Int return_sp;
-    int return_reg;
-} Call;
-
-typedef struct CallVec {
-    Call *data;
-    int cap;
-    int len;
-} CallVec;
 
 typedef struct VM {
     struct runtime_valuevec stack_;
@@ -32,8 +18,7 @@ typedef struct VM {
     Int sp_; // stack pointer
     Int bp_; // base pointer
 
-    CallVec callstack_;
-    int call_sp_;
+    struct vm_callstack callstack;
 
     bool print_stack_;
     struct runtime_gc gc_;

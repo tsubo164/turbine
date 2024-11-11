@@ -45,16 +45,6 @@ static void push_value(struct runtime_valuevec *v, struct runtime_value val)
     v->data[v->len++] = val;
 }
 
-static void push_callinfo(CallVec *v, const Call *call)
-{
-    if (v->len >= v->cap) {
-        v->cap = new_cap(v->cap, 32);
-        // TODO Remove cast
-        v->data = (Call *) realloc(v->data, v->cap * sizeof(*v->data));
-    }
-    v->data[v->len++] = *call;
-}
-
 static void set_ip(VM *vm, Int ip)
 {
     vm->ip_ = ip;
@@ -78,20 +68,14 @@ static struct runtime_value top(const VM *vm)
     return vm->stack_.data[vm->sp_];
 }
 
-static void push_call(VM *vm, const Call *call)
+static void push_call(VM *vm, const struct vm_call *call)
 {
-    if (vm->call_sp_ == vm->callstack_.len - 1) {
-        push_callinfo(&vm->callstack_, call);
-        vm->call_sp_++;
-    }
-    else {
-        vm->callstack_.data[++vm->call_sp_] = *call;
-    }
+    vm_callstack_push(&vm->callstack, call);
 }
 
-static Call pop_call(VM *vm)
+static void pop_call(VM *vm, struct vm_call *call)
 {
-    return vm->callstack_.data[vm->call_sp_--];
+    vm_callstack_pop(&vm->callstack, call);
 }
 
 #define SPOFFSET 1
@@ -178,9 +162,7 @@ void Run(VM *vm, const struct code_bytecode *code)
     push_value(&vm->stack_, val);
     vm->sp_ = 0;
 
-    Call call = {0};
-    push_callinfo(&vm->callstack_, &call);
-    vm->call_sp_ = 0;
+    vm_callstack_init(&vm->callstack);
 
     run__(vm);
 }
@@ -596,7 +578,7 @@ static void run__(VM *vm)
                 uint16_t func_index = inst.BB;
                 int64_t func_addr = code_get_function_address(vm->code_, func_index);
 
-                Call call = {0};
+                struct vm_call call = {0};
                 call.argc = code_get_function_arg_count(vm->code_, func_index);
                 call.return_ip = vm->ip_;
                 call.return_bp = vm->bp_;
@@ -622,7 +604,7 @@ static void run__(VM *vm)
                 int func_index = src_val.inum;
                 int64_t func_addr = code_get_function_address(vm->code_, func_index);
 
-                Call call = {0};
+                struct vm_call call = {0};
                 call.argc = code_get_function_arg_count(vm->code_, func_index);
                 call.return_ip = vm->ip_;
                 call.return_bp = vm->bp_;
@@ -727,7 +709,10 @@ static void run__(VM *vm)
             {
                 uint8_t reg_id = inst.A;
                 struct runtime_value ret_val = fetch_register_value(vm, reg_id);
-                struct Call call = pop_call(vm);
+                struct vm_call call = {0};
+
+                pop_call(vm, &call);
+
                 uint8_t ret_reg = call.return_reg;
 
                 set_ip(vm, call.return_ip);
