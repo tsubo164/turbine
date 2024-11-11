@@ -53,9 +53,6 @@ int main(int argc, char **argv)
         else if (!strcmp(arg, "--print-stack") || !strcmp(arg, "-s")) {
             opt.print_stack = true;
         }
-        else if (!strcmp(arg, "--disable-optimize") || !strcmp(arg, "-d")) {
-            opt.enable_optimize = false;
-        }
         else if (arg[0] == '-') {
             fprintf(stderr, "error: unknown option: %s\n", arg);
             exit(EXIT_FAILURE);

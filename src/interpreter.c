@@ -7,8 +7,8 @@
 #include "parser_ast.h"
 #include "code_bytecode.h"
 #include "code_print.h"
+#include "code_gen.h"
 #include "builtin.h"
-#include "codegen.h"
 #include "vm.h"
 
 #include <stdio.h>
@@ -44,7 +44,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     struct parser_module *prog;
 
     prog = parser_parse(src, filename, data_string_intern("_main"), tok, &builtin);
-    ResolveOffset(prog);
+    code_resolve_offset(prog);
 
     if (opt->print_tree) {
         print_header("tree");
@@ -60,8 +60,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     }
 
     // Generate bytecode
-    SetOptimize(opt->enable_optimize);
-    GenerateCode(&code, prog);
+    code_generate(&code, prog);
 
     if (opt->print_bytecode) {
         print_header("bytecode");

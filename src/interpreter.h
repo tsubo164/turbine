@@ -12,7 +12,6 @@ typedef struct Option {
     bool print_symbols_all;
     bool print_bytecode;
     bool print_stack;
-    bool enable_optimize;
 } Option;
 
 int64_t Interpret(const char *src, const char *filename, const Option *opt);
