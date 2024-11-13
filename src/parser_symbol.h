@@ -55,6 +55,7 @@ struct parser_func {
     struct parser_scope *scope;
     struct parser_stmt *body;
     struct parser_func_type *func_type;
+    void *native_func_ptr;
 };
 
 struct parser_funcvec {

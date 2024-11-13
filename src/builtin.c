@@ -3,6 +3,22 @@
 #include "parser_type.h"
 #include "data_intern.h"
 
+#include "runtime_function.h"
+#include "runtime_value.h"
+
+#include <stdio.h>
+
+static int builtin_exit(struct runtime_value *registers, int reg_count)
+{
+    struct runtime_value val = registers[0];
+
+    printf("builtin_exit: %lld\n", val.inum);
+
+    registers[0] = val;
+
+    return RESULT_SUCCESS;
+}
+
 void DefineBuiltinFuncs(struct parser_scope *builtin)
 {
     int func_id = 0;
@@ -23,5 +39,7 @@ void DefineBuiltinFuncs(struct parser_scope *builtin)
         func->return_type = parser_new_int_type();
         func->func_type = parser_make_func_type(func);
         func->id = func_id++;
+
+        func->native_func_ptr = (void*) builtin_exit;
     }
 }
