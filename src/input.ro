@@ -37,6 +37,7 @@
   //- f = 3.14
   //- s = "Hello!"
   //print(a, b, c, f, s)
+  exit(119)
   return a
 
   //- p = Point { x = 31, y = 79 }

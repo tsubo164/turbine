@@ -1143,9 +1143,6 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
 static void gen_func(struct code_bytecode *code, const struct parser_func *func, int func_id)
 {
-    /* Register function */
-    code_register_function(code, func_id, func->params.len);
-
     /* TODO solve param count and reg count at a time */
     /* Local var registers */
     int param_count = func->params.len;
@@ -1153,9 +1150,12 @@ static void gen_func(struct code_bytecode *code, const struct parser_func *func,
     code_init_local_var_registers(code, lvar_count + param_count);
 
     /* Function body */
+    int64_t func_addr = code_get_next_addr(code);
     gen_stmt(code, func->body);
 
     /* Back patch used registers */
+    /* TODO rename code_set_function_register_count() */
+    code_set_function_address(code, func_id, func_addr);
     code_set_max_register_count(code, func_id);
 }
 
@@ -1223,33 +1223,40 @@ static void gen_module(struct code_bytecode *code, const struct parser_module *m
     gen_funcs(code, mod);
 }
 
-void code_generate(struct code_bytecode *code, const struct parser_module *mod)
+static void register_functions(struct code_bytecode *code, struct parser_scope *scope)
 {
-    gen_module(code, mod);
-    code_emit_halt(code);
-}
-
-static int resolve_func_id(struct parser_scope *scope, int start_id)
-{
-    int next_id = start_id;
-
     for (int i = 0; i < scope->syms.len; i++) {
         struct parser_symbol *sym = scope->syms.data[i];
 
         switch (sym->kind) {
 
         case SYM_FUNC:
-            if (!sym->func->is_builtin)
-                sym->func->id = next_id++;
+            {
+                struct parser_func *func = sym->func;
+
+                func->id = code_register_function(code,
+                        func->fullname, func->params.len);
+
+                if (func->native_func_ptr) {
+                    code_set_native_function_pointer(code,
+                            func->id,
+                            (runtime_native_function_t) func->native_func_ptr);
+                }
+            }
             break;
 
         case SYM_MODULE:
-            next_id = resolve_func_id(sym->module->scope, next_id);
+            register_functions(code, sym->module->scope);
             break;
         }
     }
+}
 
-    return next_id;
+void code_generate(struct code_bytecode *code, const struct parser_module *mod)
+{
+    register_functions(code, mod->scope->parent);
+    gen_module(code, mod);
+    code_emit_halt(code);
 }
 
 static int max(int a, int b)
@@ -1323,5 +1330,4 @@ static int resolve_offset(struct parser_scope *scope, int start_offset)
 void code_resolve_offset(struct parser_module *mod)
 {
     resolve_offset(mod->scope, 0);
-    resolve_func_id(mod->scope, 0);
 }

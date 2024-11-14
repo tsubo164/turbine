@@ -35,10 +35,11 @@ void code_print_bytecode(const struct code_bytecode *code)
         }
     }
 
-    /* function info */
+    /* functions */
     for (int i = 0; i < code->funcs.len; i++) {
-        const struct code_function *info = &code->funcs.data[i];
-        printf("* function id: %d @%lld\n", info->id, info->addr);
+        /* TODO come up with better way */
+        const struct code_function *func = &code->funcs.data[i];
+        printf("* function id:%-3d @%-4lld (%s)\n", func->id, func->addr, func->fullname);
     }
 
     Int addr = 0;

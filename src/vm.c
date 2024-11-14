@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -695,12 +696,37 @@ static void run__(VM *vm)
                     set_local(vm, ret_reg, ret_val);
                 }
                 else if (func_index == 1) {
-                    int src = inst.A;
-                    struct runtime_value ret_code = fetch_register_value(vm, src);
-                    // TODO push?
-                    //set_global(vm, vm->sp_, ret_code);
-                    vm->stack_.data[vm->sp_] = ret_code;
-                    halt = true;
+                    int old_bp = vm->bp_;
+                    int old_sp = vm->sp_;
+                    int max_reg_count = 0;
+
+                    set_bp(vm, vm->bp_ + 1 + ret_reg - 1);
+                    set_sp(vm, vm->bp_ + max_reg_count);
+
+                    runtime_native_function_t native_func;
+                    native_func = code_get_native_function_pointer(vm->code_, func_index);
+                    assert(native_func);
+
+                    struct runtime_value *registers = &vm->stack_.data[vm->bp_ + 1];
+                    int reg_count = code_get_function_arg_count(vm->code_, func_index);
+                    int result = 0;
+                    struct runtime_value ret_val = {0};
+
+                    result = native_func(registers, reg_count);
+                    ret_val = get_local(vm, 0);
+
+                    set_bp(vm, old_bp);
+                    set_sp(vm, old_sp);
+
+                    set_local(vm, ret_reg, ret_val);
+
+                    if (result == RESULT_NORETURN) {
+                        /* TODO consider making push_to_stack */
+                        int64_t sp_addr = index_to_addr(vm->sp_);
+                        write_stack(vm, sp_addr, ret_val);
+
+                        halt = true;
+                    }
                 }
             }
             break;

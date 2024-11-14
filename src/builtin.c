@@ -12,11 +12,9 @@ static int builtin_exit(struct runtime_value *registers, int reg_count)
 {
     struct runtime_value val = registers[0];
 
-    printf("builtin_exit: %lld\n", val.inum);
-
     registers[0] = val;
 
-    return RESULT_SUCCESS;
+    return RESULT_NORETURN;
 }
 
 void DefineBuiltinFuncs(struct parser_scope *builtin)

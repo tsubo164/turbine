@@ -773,18 +773,11 @@ int64_t code_get_next_addr(const struct code_bytecode *code)
 }
 
 /* functions */
-void code_register_function(struct code_bytecode *code, int func_index, int argc)
+int code_register_function(struct code_bytecode *code, const char *fullname, int argc)
 {
-    const int next_index = code->funcs.len;
+    int new_id = code_push_function(&code->funcs, fullname, argc);
 
-    if (func_index != next_index) {
-        InternalError(__FILE__, __LINE__,
-                "function index %d and next index %d should match\n",
-                func_index, next_index);
-    }
-
-    const Int next_addr = code_get_next_addr(code);
-    code_push_function(&code->funcs, func_index, argc, next_addr);
+    return new_id;
 }
 
 void code_set_max_register_count(struct code_bytecode *code, int func_index)
@@ -803,6 +796,37 @@ int code_get_max_register_count(const struct code_bytecode *code, int func_index
     }
 
     return code->funcs.data[func_index].reg_count;
+}
+
+void code_set_native_function_pointer(struct code_bytecode *code,
+        int func_id, runtime_native_function_t fp)
+{
+    /* TODO remove this */
+    assert_range(&code->funcs, func_id);
+
+    struct code_function *func = code_lookup_function(&code->funcs, func_id);
+    func->native_func_ptr = fp;
+}
+
+runtime_native_function_t code_get_native_function_pointer(
+        const struct code_bytecode *code,
+        int func_id)
+{
+    const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
+
+    if (!func)
+        InternalError(__FILE__, __LINE__, "function pointer not found %d\n", func_id);
+
+    return func->native_func_ptr;
+}
+
+void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr)
+{
+    /* TODO remove this */
+    assert_range(&code->funcs, func_id);
+
+    struct code_function *func = code_lookup_function(&code->funcs, func_id);
+    func->addr = addr;
 }
 
 int64_t code_get_function_address(const struct code_bytecode *code, int func_index)

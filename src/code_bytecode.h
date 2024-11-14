@@ -8,6 +8,7 @@
 #include "code_constant_pool.h"
 #include "code_function.h"
 #include "runtime_value.h"
+#include "runtime_function.h"
 #include "data_vec.h"
 
 enum immediate_value_register {
@@ -170,9 +171,18 @@ int64_t code_get_size(const struct code_bytecode *code);
 int64_t code_get_next_addr(const struct code_bytecode *code);
 
 /* functions */
-void code_register_function(struct code_bytecode *code, int func_index, int argc);
+int code_register_function(struct code_bytecode *code, const char *fullname, int argc);
+
 void code_set_max_register_count(struct code_bytecode *code, int func_index);
 int code_get_max_register_count(const struct code_bytecode *code, int func_index);
+
+void code_set_native_function_pointer(struct code_bytecode *code,
+        int func_id, runtime_native_function_t fp);
+runtime_native_function_t code_get_native_function_pointer(
+        const struct code_bytecode *code,
+        int func_id);
+
+void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr);
 int64_t code_get_function_address(const struct code_bytecode *code, int func_index);
 int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_index);
 
