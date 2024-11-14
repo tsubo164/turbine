@@ -27,6 +27,9 @@
 //# set_point_y(p *Point, y int)
 //  p.y = y
 
+# add(x int, y int) int
+  return x + y
+
 # main() int
   - a = 42
   a = 19

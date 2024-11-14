@@ -1,6 +1,7 @@
 #include "code_print.h"
 /* TODO can remove this? */
 #include "runtime_string.h"
+#include "data_vec.h"
 #include <stdio.h>
 
 void code_print_bytecode(const struct code_bytecode *code)
@@ -36,15 +37,36 @@ void code_print_bytecode(const struct code_bytecode *code)
     }
 
     /* functions */
+    struct data_intvec labels = {0};
+    int64_t code_size = code_get_size(code);
+
+    data_intvec_resize(&labels, code_size);
+    for (int i = 0; i < labels.len; i++)
+        labels.data[i] = -1;
+
     for (int i = 0; i < code->funcs.len; i++) {
         /* TODO come up with better way */
         const struct code_function *func = &code->funcs.data[i];
         printf("* function id:%-3d @%-4lld (%s)\n", func->id, func->addr, func->fullname);
+
+        if (func->addr >= 0)
+            labels.data[func->addr] = func->id;
     }
+    printf("\n");
 
     Int addr = 0;
 
-    while (addr < code_get_size(code)) {
+    while (addr < code_size) {
+
+        int func_id = labels.data[addr];
+
+        if (func_id != -1) {
+            const struct code_function *func;
+            func = code_lookup_const_function(&code->funcs, func_id);
+            printf("\n");
+            printf("%s @%lld (id:%d)\n", func->fullname, addr, func->id);
+        }
+
         int32_t instcode = code_read(code, addr);
         struct code_instruction inst = {0};
         int inc = 1;
