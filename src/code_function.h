@@ -11,6 +11,8 @@ struct code_function {
     int64_t addr;
     const char *fullname;
     runtime_native_function_t native_func_ptr;
+
+    bool is_variadic;
 };
 
 struct code_functionvec {

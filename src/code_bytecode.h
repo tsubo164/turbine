@@ -171,6 +171,7 @@ int64_t code_get_size(const struct code_bytecode *code);
 int64_t code_get_next_addr(const struct code_bytecode *code);
 
 /* functions */
+/* TODO remove each setter/getter by exposing struct code_function? */
 int code_register_function(struct code_bytecode *code, const char *fullname, int argc);
 
 void code_set_max_register_count(struct code_bytecode *code, int func_index);
@@ -185,5 +186,6 @@ runtime_native_function_t code_get_native_function_pointer(
 void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr);
 int64_t code_get_function_address(const struct code_bytecode *code, int func_index);
 int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_index);
+bool code_is_function_variadic(const struct code_bytecode *code, int func_id);
 
 #endif /* _H */

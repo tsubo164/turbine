@@ -840,3 +840,12 @@ int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_i
     assert_range(&code->funcs, func_index);
     return code->funcs.data[func_index].argc;
 }
+
+bool code_is_function_variadic(const struct code_bytecode *code, int func_id)
+{
+    assert_range(&code->funcs, func_id);
+
+    const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
+
+    return func->is_variadic;
+}

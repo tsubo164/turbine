@@ -35,13 +35,13 @@
   a = 19
 
   //- fp = exit
-  //- b = 242301
-  //- c = 0x1234567890
-  //- f = 3.14
-  //- s = "Hello!"
-  //print(a, b, c, f, s)
-  exit(119)
+  - b = 242301
+  - c = 0x1234567890
+  - f = 3.14
+  - s = "Hello!"
+  print(a, b, c, f, s)
   return a
+  exit(111)
 
   //- p = Point { x = 31, y = 79 }
   //set_point_x(&p, 19)

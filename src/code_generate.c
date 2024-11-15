@@ -1241,6 +1241,10 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
                     code_set_native_function_pointer(code,
                             func->id,
                             (runtime_native_function_t) func->native_func_ptr);
+
+                    /* TODO consider using lookup inside code module */
+                    struct code_function *cf = code_lookup_function(&code->funcs, func->id);
+                    cf->is_variadic = func->is_variadic;
                 }
             }
             break;

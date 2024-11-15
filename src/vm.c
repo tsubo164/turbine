@@ -10,15 +10,6 @@
 #include <stdio.h>
 #include <math.h>
 
-// for variadic function
-enum TypeID {
-    TID_NIL = 0,
-    TID_BOL,
-    TID_INT,
-    TID_FLT,
-    TID_STR,
-};
-
 static int new_cap(int cur_cap, int min_cap)
 {
     return cur_cap < min_cap ? min_cap : cur_cap * 2;
@@ -500,11 +491,12 @@ static void run__(VM *vm)
             break;
             */
 
+        /* TODO consider making OP_LOADTYPE A B, instead of ones for each type */
         case OP_LOADTYPENIL:
             {
                 int dst = inst.A;
                 struct runtime_value val;
-                val.inum = TID_NIL;
+                val.inum = VAL_NIL;
                 set_local(vm, dst, val);
             }
             break;
@@ -513,7 +505,7 @@ static void run__(VM *vm)
             {
                 int dst = inst.A;
                 struct runtime_value val;
-                val.inum = TID_BOL;
+                val.inum = VAL_BOOL;
                 set_local(vm, dst, val);
             }
             break;
@@ -522,7 +514,7 @@ static void run__(VM *vm)
             {
                 int dst = inst.A;
                 struct runtime_value val;
-                val.inum = TID_INT;
+                val.inum = VAL_INT;
                 set_local(vm, dst, val);
             }
             break;
@@ -531,7 +523,7 @@ static void run__(VM *vm)
             {
                 int dst = inst.A;
                 struct runtime_value val;
-                val.inum = TID_FLT;
+                val.inum = VAL_FLOAT;
                 set_local(vm, dst, val);
             }
             break;
@@ -540,7 +532,7 @@ static void run__(VM *vm)
             {
                 int dst = inst.A;
                 struct runtime_value val;
-                val.inum = TID_STR;
+                val.inum = VAL_STRING;
                 set_local(vm, dst, val);
             }
             break;
@@ -628,105 +620,44 @@ static void run__(VM *vm)
                 int ret_reg = inst.A;
                 int func_index = inst.BB;
 
-                if (func_index == 0) {
-                    // builtin "print" function
-                    // FIXME hard coded variadic
+                /* prologue */
+                int old_bp = vm->bp_;
+                int old_sp = vm->sp_;
+                int max_reg_count = 0;
 
-                    int old_bp = vm->bp_;
-                    int old_sp = vm->sp_;
+                set_bp(vm, vm->bp_ + 1 + ret_reg - 1);
+                set_sp(vm, vm->bp_ + max_reg_count);
 
-                    set_bp(vm, vm->bp_ + 1 + ret_reg - 1);
-                    int max_reg_count = 0;
-                    set_sp(vm, vm->bp_ + max_reg_count);
+                /* call */
+                runtime_native_function_t native_func;
+                native_func = code_get_native_function_pointer(vm->code_, func_index);
+                assert(native_func);
 
+                struct runtime_value *registers = &vm->stack_.data[vm->bp_ + 1];
+                int reg_count = code_get_function_arg_count(vm->code_, func_index);
+                int result = 0;
+                struct runtime_value ret_val = {0};
+
+                if (code_is_function_variadic(vm->code_, func_index)) {
                     struct runtime_value arg_count = fetch_register_value(vm, 0);
-                    int argc = arg_count.inum;
-                    int arg_reg = 1;
-
-                    for (int i = 0; i < argc; i ++) {
-
-                        struct runtime_value val = fetch_register_value(vm, arg_reg++);
-                        struct runtime_value type = fetch_register_value(vm, arg_reg++);
-
-                        switch (type.inum) {
-
-                        case TID_NIL:
-                            continue;
-
-                        case TID_BOL:
-                            if (val.inum == 0)
-                                printf("false");
-                            else
-                                printf("true");
-                            break;
-
-                        case TID_INT:
-                            printf("%lld", val.inum);
-                            break;
-
-                        case TID_FLT:
-                            printf("%g", val.fpnum);
-                            break;
-
-                        case TID_STR:
-                            printf("%s", runtime_string_get_cstr(val.str));
-                            break;
-                        }
-
-                        // peek next arg
-                        bool skip_separator = false;
-                        if (i < argc - 1) {
-                            struct runtime_value next_type = fetch_register_value(vm, arg_reg + 1);
-                            if (next_type.inum == TID_NIL)
-                                skip_separator = true;
-                        }
-
-                        if (skip_separator)
-                            continue;
-
-                        int separator = (i == argc - 1) ? '\n' : ' ';
-                        printf("%c", separator);
-                    }
-
-                    set_bp(vm, old_bp);
-                    set_sp(vm, old_sp);
-
-                    // ret val
-                    struct runtime_value ret_val = {0};
-                    set_local(vm, ret_reg, ret_val);
+                    /* 2 registers for each argument and 1 register for argument count */
+                    reg_count = 2 * arg_count.inum + 1;
                 }
-                else if (func_index == 1) {
-                    int old_bp = vm->bp_;
-                    int old_sp = vm->sp_;
-                    int max_reg_count = 0;
 
-                    set_bp(vm, vm->bp_ + 1 + ret_reg - 1);
-                    set_sp(vm, vm->bp_ + max_reg_count);
+                result = native_func(registers, reg_count);
+                ret_val = get_local(vm, 0);
 
-                    runtime_native_function_t native_func;
-                    native_func = code_get_native_function_pointer(vm->code_, func_index);
-                    assert(native_func);
+                /* epilogue */
+                set_bp(vm, old_bp);
+                set_sp(vm, old_sp);
 
-                    struct runtime_value *registers = &vm->stack_.data[vm->bp_ + 1];
-                    int reg_count = code_get_function_arg_count(vm->code_, func_index);
-                    int result = 0;
-                    struct runtime_value ret_val = {0};
+                set_local(vm, ret_reg, ret_val);
 
-                    result = native_func(registers, reg_count);
-                    ret_val = get_local(vm, 0);
-
-                    set_bp(vm, old_bp);
-                    set_sp(vm, old_sp);
-
-                    set_local(vm, ret_reg, ret_val);
-
-                    if (result == RESULT_NORETURN) {
-                        /* TODO consider making push_to_stack */
-                        int64_t sp_addr = index_to_addr(vm->sp_);
-                        write_stack(vm, sp_addr, ret_val);
-
-                        halt = true;
-                    }
+                if (result == RESULT_NORETURN) {
+                    /* TODO consider making push_to_stack */
+                    int64_t sp_addr = index_to_addr(vm->sp_);
+                    write_stack(vm, sp_addr, ret_val);
+                    halt = true;
                 }
             }
             break;
