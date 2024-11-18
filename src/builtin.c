@@ -10,7 +10,8 @@
 #include <assert.h>
 #include <stdio.h>
 
-static int builtin_print(struct runtime_value *registers, int reg_count)
+static int builtin_print(struct runtime_gc *gc,
+        struct runtime_value *registers, int reg_count)
 {
     struct runtime_value arg_count = registers[0];
     int argc = arg_count.inum;
@@ -66,7 +67,37 @@ static int builtin_print(struct runtime_value *registers, int reg_count)
     return RESULT_SUCCESS;
 }
 
-static int builtin_exit(struct runtime_value *registers, int reg_count)
+static int builtin_input(struct runtime_gc *gc,
+        struct runtime_value *registers, int reg_count)
+{
+#define MAX_STR_LEN 1023
+    struct runtime_value val = registers[0];
+    struct runtime_value ret;
+
+    char buf[MAX_STR_LEN + 1] = {'\0'};
+    int ch = 0;
+    int i = 0;
+
+    printf("%s", runtime_string_get_cstr(val.str));
+
+    for (i = 0; i < MAX_STR_LEN; i++) {
+        ch = getchar();
+
+        if (ch == '\n')
+            break;
+
+        buf[i] = ch;
+    }
+
+    ret.str = runtime_gc_new_string(gc, buf);
+    registers[0] = ret;
+
+    return RESULT_SUCCESS;
+#undef MAX_STR_LEN
+}
+
+static int builtin_exit(struct runtime_gc *gc,
+        struct runtime_value *registers, int reg_count)
 {
     struct runtime_value val = registers[0];
 
@@ -86,6 +117,16 @@ void DefineBuiltinFuncs(struct parser_scope *builtin)
         func->return_type = parser_new_nil_type();
         func->func_type = parser_make_func_type(func);
         func->native_func_ptr = (void*) builtin_print;
+    }
+    {
+        const char *name = data_string_intern("input");
+        struct parser_func *func = parser_declare_builtin_func(builtin, name);
+
+        parser_declare_param(func, "msg", parser_new_string_type());
+
+        func->return_type = parser_new_string_type();
+        func->func_type = parser_make_func_type(func);
+        func->native_func_ptr = (void*) builtin_input;
     }
     {
         const char *name = data_string_intern("exit");

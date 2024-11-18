@@ -9,6 +9,9 @@ enum runtime_function_result {
     RESULT_FAIL,
 };
 
-typedef int (*runtime_native_function_t)(struct runtime_value *registers, int reg_count);
+struct runtime_gc;
+
+typedef int (*runtime_native_function_t)(struct runtime_gc *gc,
+        struct runtime_value *registers, int reg_count);
 
 #endif /* _H */

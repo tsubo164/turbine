@@ -6,7 +6,16 @@
 #include <assert.h>
 #include <stdio.h>
 
-void runtime_push_gc_object(struct runtime_gc *gc, struct runtime_object *obj)
+struct runtime_string *runtime_gc_new_string(struct runtime_gc *gc, const char *cstr)
+{
+    struct runtime_string *str = runtime_string_new(cstr);
+
+    runtime_gc_push_object(gc, (struct runtime_object *) str);
+
+    return str;
+}
+
+void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj)
 {
     obj->next = gc->root;
     gc->root = obj;
@@ -50,7 +59,7 @@ static void print_obj(const struct runtime_object *obj)
     }
 }
 
-void runtime_print_gc_objects(const struct runtime_gc *gc)
+void runtime_gc_print_objects(const struct runtime_gc *gc)
 {
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         print_obj(obj);
