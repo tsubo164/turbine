@@ -28,7 +28,7 @@ int64_t interpret_source(const char *src, const char *filename,
     struct vm_cpu vm = {{0}};
 
     /* builtin functions */
-    DefineBuiltinFuncs(&builtin);
+    define_builtin_functions(&builtin);
 
     /* tokenize */
     tok = parser_tokenize(src);

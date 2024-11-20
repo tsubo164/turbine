@@ -1,8 +1,7 @@
 #include "builtin.h"
+#include "data_intern.h"
 #include "parser_symbol.h"
 #include "parser_type.h"
-#include "data_intern.h"
-
 #include "runtime_function.h"
 #include "runtime_string.h"
 #include "runtime_value.h"
@@ -49,7 +48,7 @@ static int builtin_print(struct runtime_gc *gc,
             break;
         }
 
-        // peek next arg
+        /* peek next arg */
         bool skip_separator = false;
         if (i < argc - 1) {
             struct runtime_value next_type = registers[arg_reg + 1];
@@ -106,7 +105,7 @@ static int builtin_exit(struct runtime_gc *gc,
     return RESULT_NORETURN;
 }
 
-void DefineBuiltinFuncs(struct parser_scope *builtin)
+void define_builtin_functions(struct parser_scope *builtin)
 {
     {
         const char *name = data_string_intern("print");

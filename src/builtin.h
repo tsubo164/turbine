@@ -3,6 +3,6 @@
 
 struct parser_scope;
 
-void DefineBuiltinFuncs(struct parser_scope *builtin);
+void define_builtin_functions(struct parser_scope *builtin);
 
-#endif // _H
+#endif /* _H */
