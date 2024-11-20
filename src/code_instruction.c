@@ -1,5 +1,5 @@
 #include "code_instruction.h"
-#include "error.h"
+#include <assert.h>
 #include <stdlib.h>
 
 static const struct code_opcode_info opecode_table[] = {
@@ -82,10 +82,7 @@ static const struct code_opcode_info opecode_table[] = {
 
 const struct code_opcode_info *code_lookup_opecode_info(int op)
 {
-    if (op >= END_OF_OPCODE) {
-        InternalError(__FILE__, __LINE__, "opcode out of range: %d\n", op);
-    }
-
+    assert(op >= 0 && op < END_OF_OPCODE);
     return &opecode_table[op];
 }
 

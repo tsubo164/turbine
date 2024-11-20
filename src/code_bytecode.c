@@ -1,18 +1,8 @@
 #include "code_bytecode.h"
-#include "error.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-static void assert_range(const struct code_functionvec *v,  Word index)
-{
-    if (index >= v->len) {
-        InternalError(__FILE__, __LINE__,
-                "function index out of range: %d, function count: %d\n",
-                index, v->len);
-    }
-}
 
 static void push_immediate_value(struct code_bytecode *code, int operand);
 
@@ -746,18 +736,14 @@ void code_backpatch_case_ends(struct code_bytecode *code)
 /* read/write/address */
 int32_t code_read(const struct code_bytecode *code, Int addr)
 {
-    if (addr < 0 || addr >= code_get_size(code))
-        InternalError(__FILE__, __LINE__,
-                "address out of range: %d", code_get_size(code));
+    assert(addr >= 0 && addr < code_get_size(code));
 
     return code->insts.data[addr];
 }
 
 void code_write(const struct code_bytecode *code, Int addr, int32_t inst)
 {
-    if (addr < 0 || addr >= code_get_size(code))
-        InternalError(__FILE__, __LINE__,
-                "address out of range: %d", code_get_size(code));
+    assert(addr >= 0 && addr < code_get_size(code));
 
     code->insts.data[addr] = inst;
 }
@@ -780,31 +766,28 @@ int code_register_function(struct code_bytecode *code, const char *fullname, int
     return new_id;
 }
 
-void code_set_max_register_count(struct code_bytecode *code, int func_index)
+void code_set_max_register_count(struct code_bytecode *code, int func_id)
 {
-    if (func_index >= code->funcs.len) {
-        InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
-    }
+    struct code_function *func = code_lookup_function(&code->funcs, func_id);
+    assert(func);
 
-    code->funcs.data[func_index].reg_count = code->max_reg + 1;
+    func->reg_count = code->max_reg + 1;
 }
 
-int code_get_max_register_count(const struct code_bytecode *code, int func_index)
+int code_get_max_register_count(const struct code_bytecode *code, int func_id)
 {
-    if (func_index >= code->funcs.len) {
-        InternalError(__FILE__, __LINE__, "function index out of range %d\n", func_index);
-    }
+    const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
+    assert(func);
 
-    return code->funcs.data[func_index].reg_count;
+    return func->reg_count;
 }
 
 void code_set_native_function_pointer(struct code_bytecode *code,
         int func_id, runtime_native_function_t fp)
 {
-    /* TODO remove this */
-    assert_range(&code->funcs, func_id);
-
     struct code_function *func = code_lookup_function(&code->funcs, func_id);
+    assert(func);
+
     func->native_func_ptr = fp;
 }
 
@@ -813,39 +796,39 @@ runtime_native_function_t code_get_native_function_pointer(
         int func_id)
 {
     const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
-
-    if (!func)
-        InternalError(__FILE__, __LINE__, "function pointer not found %d\n", func_id);
+    assert(func);
 
     return func->native_func_ptr;
 }
 
 void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr)
 {
-    /* TODO remove this */
-    assert_range(&code->funcs, func_id);
-
     struct code_function *func = code_lookup_function(&code->funcs, func_id);
+    assert(func);
+
     func->addr = addr;
 }
 
-int64_t code_get_function_address(const struct code_bytecode *code, int func_index)
+int64_t code_get_function_address(const struct code_bytecode *code, int func_id)
 {
-    assert_range(&code->funcs, func_index);
-    return code->funcs.data[func_index].addr;
+    const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
+    assert(func);
+
+    return func->addr;
 }
 
-int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_index)
+int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_id)
 {
-    assert_range(&code->funcs, func_index);
-    return code->funcs.data[func_index].argc;
+    const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
+    assert(func);
+
+    return func->argc;
 }
 
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id)
 {
-    assert_range(&code->funcs, func_id);
-
     const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
+    assert(func);
 
     return func->is_variadic;
 }

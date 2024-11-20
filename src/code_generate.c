@@ -1,6 +1,5 @@
 #include "code_generate.h"
 #include "code_bytecode.h"
-#include "error.h"
 #include "parser_ast.h"
 #include "parser_ast_eval.h"
 #include "parser_symbol.h"

@@ -124,7 +124,7 @@ int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, in
 
 /* function call */
 int code_emit_call_function(struct code_bytecode *code, int ret_reg,
-        int func_index, bool builtin);
+        int func_id, bool builtin);
 int code_emit_call_function_pointer(struct code_bytecode *code, int ret, int src);
 void code_emit_allocate(struct code_bytecode *code, int count);
 void code_emit_return(struct code_bytecode *code, int id);
@@ -174,8 +174,8 @@ int64_t code_get_next_addr(const struct code_bytecode *code);
 /* TODO remove each setter/getter by exposing struct code_function? */
 int code_register_function(struct code_bytecode *code, const char *fullname, int argc);
 
-void code_set_max_register_count(struct code_bytecode *code, int func_index);
-int code_get_max_register_count(const struct code_bytecode *code, int func_index);
+void code_set_max_register_count(struct code_bytecode *code, int func_id);
+int code_get_max_register_count(const struct code_bytecode *code, int func_id);
 
 void code_set_native_function_pointer(struct code_bytecode *code,
         int func_id, runtime_native_function_t fp);
@@ -184,8 +184,8 @@ runtime_native_function_t code_get_native_function_pointer(
         int func_id);
 
 void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr);
-int64_t code_get_function_address(const struct code_bytecode *code, int func_index);
-int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_index);
+int64_t code_get_function_address(const struct code_bytecode *code, int func_id);
+int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_id);
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id);
 
 #endif /* _H */

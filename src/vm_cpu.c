@@ -1,5 +1,4 @@
 #include "vm_cpu.h"
-#include "error.h"
 #include "runtime_array.h"
 #include "runtime_string.h"
 #include "code_print.h"
@@ -823,11 +822,9 @@ do { \
             break;
 
         default:
-            {
-                fprintf(stderr, "** Unimplemented instruction: %d\n", inst.op);
-                code_print_instruction(vm->code, old_ip, &inst, NULL);
-                UNREACHABLE;
-            }
+            fprintf(stderr, "unexpected instruction: %d\n", inst.op);
+            code_print_instruction(vm->code, old_ip, &inst, NULL);
+            assert(!"internal error");
             break;
         }
     }

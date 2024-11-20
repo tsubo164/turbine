@@ -1,7 +1,7 @@
 #include "parser_type.h"
 #include "parser_symbol.h"
 #include "data_intern.h"
-#include "error.h"
+#include "assert.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,7 +128,7 @@ bool parser_is_any_type(const struct parser_type *t)    { return t->kind == TYP_
 
 static const char *type_kind_string(int kind)
 {
-    switch (kind) {
+    switch ((enum parser_type_kind) kind) {
     case TYP_NIL:    return "nil";
     case TYP_BOOL:   return "bool";
     case TYP_INT:    return "int";
@@ -143,7 +143,7 @@ static const char *type_kind_string(int kind)
     case TYP_ANY:    return "any";
     }
 
-    UNREACHABLE;
+    assert("unreachable");
     return NULL;
 }
 
