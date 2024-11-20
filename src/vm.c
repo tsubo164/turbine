@@ -222,9 +222,9 @@ static void run_cpu(struct vm_cpu *vm)
             {
                 int dst = inst.A;
                 int src = inst.B;
-                struct runtime_value val = fetch_register_value(vm, src);
+                struct runtime_value srcval = fetch_register_value(vm, src);
 
-                set_local(vm, dst, val);
+                set_local(vm, dst, srcval);
             }
             break;
 
@@ -326,45 +326,45 @@ static void run_cpu(struct vm_cpu *vm)
         case OP_LOADTYPENIL:
             {
                 int dst = inst.A;
-                struct runtime_value val;
-                val.inum = VAL_NIL;
-                set_local(vm, dst, val);
+                struct runtime_value dstval;
+                dstval.inum = VAL_NIL;
+                set_local(vm, dst, dstval);
             }
             break;
 
         case OP_LOADTYPEBOOL:
             {
                 int dst = inst.A;
-                struct runtime_value val;
-                val.inum = VAL_BOOL;
-                set_local(vm, dst, val);
+                struct runtime_value dstval;
+                dstval.inum = VAL_BOOL;
+                set_local(vm, dst, dstval);
             }
             break;
 
         case OP_LOADTYPEINT:
             {
                 int dst = inst.A;
-                struct runtime_value val;
-                val.inum = VAL_INT;
-                set_local(vm, dst, val);
+                struct runtime_value dstval;
+                dstval.inum = VAL_INT;
+                set_local(vm, dst, dstval);
             }
             break;
 
         case OP_LOADTYPEFLOAT:
             {
                 int dst = inst.A;
-                struct runtime_value val;
-                val.inum = VAL_FLOAT;
-                set_local(vm, dst, val);
+                struct runtime_value dstval;
+                dstval.inum = VAL_FLOAT;
+                set_local(vm, dst, dstval);
             }
             break;
 
         case OP_LOADTYPESTRING:
             {
                 int dst = inst.A;
-                struct runtime_value val;
-                val.inum = VAL_STRING;
-                set_local(vm, dst, val);
+                struct runtime_value dstval;
+                dstval.inum = VAL_STRING;
+                set_local(vm, dst, dstval);
             }
             break;
 
@@ -510,19 +510,19 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-#define DO_BINOP(r0, r1, op, r2, zerocheck) \
+#define DO_BINOP(num0, num1, op, num2, zerocheck) \
 do { \
-    int reg0 = inst.A; \
-    int reg1 = inst.B; \
-    int reg2 = inst.C; \
-    struct runtime_value val1 = fetch_register_value(vm, reg1); \
-    struct runtime_value val2 = fetch_register_value(vm, reg2); \
-    struct runtime_value val0; \
-    if ((zerocheck) && (val2.r2 == 0)) {\
+    int dst = inst.A; \
+    int src1 = inst.B; \
+    int src2 = inst.C; \
+    struct runtime_value dstval; \
+    struct runtime_value srcval1 = fetch_register_value(vm, src1); \
+    struct runtime_value srcval2 = fetch_register_value(vm, src2); \
+    if ((zerocheck) && (srcval2.num2 == 0)) {\
         /* runtime error */ \
     } \
-    val0.r0 = val1.r1 op val2.r2; \
-    set_local(vm, reg0, val0); \
+    dstval.num0 = srcval1.num1 op srcval2.num2; \
+    set_local(vm, dst, dstval); \
 } while (0)
 
 #define BINOPI(op)  DO_BINOP(inum, inum, op, inum, false)
@@ -572,38 +572,38 @@ do { \
 
         case OP_REMFLOAT:
             {
-                int reg0 = inst.A;
-                int reg1 = inst.B;
-                int reg2 = inst.C;
+                int dst = inst.A;
+                int src1 = inst.B;
+                int src2 = inst.C;
 
-                struct runtime_value val1 = fetch_register_value(vm, reg1);
-                struct runtime_value val2 = fetch_register_value(vm, reg2);
-                struct runtime_value val0;
+                struct runtime_value dstval;
+                struct runtime_value srcval1 = fetch_register_value(vm, src1);
+                struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
-                if (val2.fpnum == 0) {
+                if (srcval2.fpnum == 0) {
                     /* TODO check zero division */
                 }
-                val0.fpnum = fmod(val1.fpnum, val2.fpnum);
-                set_local(vm, reg0, val0);
+                dstval.fpnum = fmod(srcval1.fpnum, srcval2.fpnum);
+                set_local(vm, dst, dstval);
             }
             break;
 
             /* TODO move this */
         case OP_CATSTRING:
             {
-                int reg0 = inst.A;
-                int reg1 = inst.B;
-                int reg2 = inst.C;
+                int dst = inst.A;
+                int src1 = inst.B;
+                int src2 = inst.C;
 
-                struct runtime_value val1 = fetch_register_value(vm, reg1);
-                struct runtime_value val2 = fetch_register_value(vm, reg2);
-                struct runtime_value val0;
+                struct runtime_value dstval;
+                struct runtime_value srcval1 = fetch_register_value(vm, src1);
+                struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
-                struct runtime_string *s = runtime_string_concat(val1.str, val2.str);
+                struct runtime_string *s = runtime_string_concat(srcval1.str, srcval2.str);
                 runtime_gc_push_object(&vm->gc_, (struct runtime_object*) s);
 
-                val0.str = s;
-                set_local(vm, reg0, val0);
+                dstval.str = s;
+                set_local(vm, dst, dstval);
             }
             break;
 
@@ -629,12 +629,12 @@ do { \
                 int src1 = inst.B;
                 int src2 = inst.C;
 
-                struct runtime_value val1 = fetch_register_value(vm, src1);
-                struct runtime_value val2 = fetch_register_value(vm, src2);
-                struct runtime_value val0;
+                struct runtime_value dstval;
+                struct runtime_value srcval1 = fetch_register_value(vm, src1);
+                struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
-                val0.inum = runtime_string_compare(val1.str, val2.str) == 0;
-                set_local(vm, dst, val0);
+                dstval.inum = runtime_string_compare(srcval1.str, srcval2.str) == 0;
+                set_local(vm, dst, dstval);
             }
             break;
 
@@ -644,12 +644,12 @@ do { \
                 int src1 = inst.B;
                 int src2 = inst.C;
 
-                struct runtime_value val1 = fetch_register_value(vm, src1);
-                struct runtime_value val2 = fetch_register_value(vm, src2);
-                struct runtime_value val0;
+                struct runtime_value dstval;
+                struct runtime_value srcval1 = fetch_register_value(vm, src1);
+                struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
-                val0.inum = runtime_string_compare(val1.str, val2.str) != 0;
-                set_local(vm, dst, val0);
+                dstval.inum = runtime_string_compare(srcval1.str, srcval2.str) != 0;
+                set_local(vm, dst, dstval);
             }
             break;
 
@@ -701,9 +701,10 @@ do { \
             {
                 int dst = inst.A;
                 int src = inst.B;
-                struct runtime_value val = fetch_register_value(vm, src);
-                val.inum = ~val.inum;
-                set_local(vm, dst, val);
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+                dstval.inum = ~srcval.inum;
+                set_local(vm, dst, dstval);
             }
             break;
 
@@ -717,111 +718,138 @@ do { \
 
         case OP_INC:
             {
-                uint8_t src = inst.A;
-                struct runtime_value val0 = fetch_register_value(vm, src);
-                val0.inum++;
-                set_local(vm, src, val0);
+                int src = inst.A;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+                srcval.inum++;
+                set_local(vm, src, srcval);
             }
             break;
 
         case OP_DEC:
             {
-                uint8_t src = inst.A;
-                struct runtime_value val0 = fetch_register_value(vm, src);
-                val0.inum--;
-                set_local(vm, src, val0);
+                int src = inst.A;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+                srcval.inum--;
+                set_local(vm, src, srcval);
             }
             break;
 
         case OP_NEGINT:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                struct runtime_value val1 = fetch_register_value(vm, reg1);
-                val1.inum *= -1;
-                set_local(vm, reg0, val1);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+                dstval.inum = -1 * srcval.inum;
+                set_local(vm, dst, dstval);
             }
             break;
 
         case OP_NEGFLOAT:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                struct runtime_value val1 = fetch_register_value(vm, reg1);
-                val1.fpnum *= -1.;
-                set_local(vm, reg0, val1);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+                dstval.fpnum = -1. * srcval.fpnum;
+                set_local(vm, dst, dstval);
             }
             break;
 
         case OP_SETIFZERO:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                struct runtime_value val1 = fetch_register_value(vm, reg1);
-                val1.inum = val1.inum == 0;
-                set_local(vm, reg0, val1);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+                dstval.inum = srcval.inum == 0;
+                set_local(vm, dst, dstval);
             }
             break;
 
         case OP_SETIFNOTZ:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                struct runtime_value val1 = fetch_register_value(vm, reg1);
-                val1.inum = val1.inum == 0;
-                set_local(vm, reg0, val1);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+                dstval.inum = srcval.inum != 0;
+                set_local(vm, dst, dstval);
             }
             break;
 
+        /* conversion */
         case OP_BOOLTOINT:
             {
-                uint8_t reg0 = inst.A;
-                uint8_t reg1 = inst.B;
-                struct runtime_value val0;
-                struct runtime_value val1 = fetch_register_value(vm, reg1);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
 
-                val0.inum = val1.inum != 0;
-                set_local(vm, reg0, val0);
+                dstval.inum = srcval.inum != 0;
+                set_local(vm, dst, dstval);
             }
             break;
 
-            /*
-        case OP_BTOF:
+        case OP_BOOLTOFLOAT:
             {
-                const Int i = pop_int(vm);
-                push_float(vm, i);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+
+                dstval.fpnum = srcval.inum != 0;
+                set_local(vm, dst, dstval);
             }
             break;
 
-        case OP_ITOB:
+        case OP_INTTOBOOL:
             {
-                const Int i = pop_int(vm);
-                push_int(vm, i != 0);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+
+                dstval.inum = srcval.inum != 0;
+                set_local(vm, dst, dstval);
             }
             break;
 
-        case OP_ITOF:
+        case OP_INTTOFLOAT:
             {
-                const Int i = pop_int(vm);
-                push_float(vm, i);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+
+                dstval.fpnum = srcval.inum;
+                set_local(vm, dst, dstval);
             }
             break;
 
-        case OP_FTOB:
+        case OP_FLOATTOBOOL:
             {
-                const Float f = pop_float(vm);
-                push_int(vm, f != 0.f);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+
+                dstval.inum = srcval.fpnum != 0;
+                set_local(vm, dst, dstval);
             }
             break;
 
-        case OP_FTOI:
+        case OP_FLOATTOINT:
             {
-                const Float f = pop_float(vm);
-                push_int(vm, f);
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                struct runtime_value srcval = fetch_register_value(vm, src);
+
+                dstval.inum = srcval.fpnum;
+                set_local(vm, dst, dstval);
             }
             break;
-
-        */
 
         case OP_HALT:
             halt = true;
@@ -847,9 +875,9 @@ void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *code)
     vm->eoc = code_get_size(vm->code_);
 
     /* empty data at the bottom of stacks */
-    struct runtime_value val = {0};
+    struct runtime_value empty = {0};
     runtime_valuevec_resize(&vm->stack_, 256);
-    runtime_valuevec_set(&vm->stack_, 0, val);
+    runtime_valuevec_set(&vm->stack_, 0, empty);
     vm->sp_ = 0;
 
     vm_callstack_init(&vm->callstack);
