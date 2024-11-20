@@ -1,9 +1,9 @@
 #include "interpreter.h"
 #include "data_intern.h"
+#include "parser_symbol.h"
 #include "parser_parse.h"
 #include "parser_token.h"
 #include "parser_print.h"
-#include "parser_symbol.h"
 #include "parser_ast.h"
 #include "code_bytecode.h"
 #include "code_generate.h"
@@ -19,20 +19,21 @@ static void print_header(const char *title)
     printf("---\n");
 }
 
-Int Interpret(const char *src, const char *filename, const Option *opt)
+int64_t interpret_source(const char *src, const char *filename,
+        const struct interpreter_option *opt)
 {
     const struct parser_token *tok = NULL;
     struct parser_scope builtin = {0};
     struct code_bytecode code = {{0}};
     struct vm_cpu vm = {{0}};
 
-    // Builtin functions
+    /* builtin functions */
     DefineBuiltinFuncs(&builtin);
 
-    // Tokenize
+    /* tokenize */
     tok = parser_tokenize(src);
 
-    // Print token
+    /* print token */
     if (opt->print_token) {
         parser_print_token(tok, !opt->print_token_raw);
         if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
@@ -40,17 +41,19 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
         }
     }
 
-    // Compile source
+    /* compile source */
     struct parser_module *prog;
 
     prog = parser_parse(src, filename, data_string_intern("_main"), tok, &builtin);
     code_resolve_offset(prog);
 
+    /* print tree */
     if (opt->print_tree) {
         print_header("tree");
         parser_print_prog(prog);
     }
 
+    /* print symbols */
     if (opt->print_symbols) {
         print_header("symbol");
         if (opt->print_symbols_all)
@@ -59,7 +62,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
             parser_print_scope(prog->scope);
     }
 
-    // Generate bytecode
+    /* generate bytecode */
     code_generate(&code, prog);
 
     if (opt->print_bytecode) {
@@ -67,8 +70,8 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
         code_print_bytecode(&code);
     }
 
-    // Run bytecode
-    long ret = 0;
+    /* execute bytecode */
+    int64_t ret = 0;
     if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
         vm_enable_print_stack(&vm, opt->print_stack);
         bm_execute_bytecode(&vm, &code);

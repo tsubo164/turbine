@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct Option {
+struct interpreter_option {
     bool print_token;
     bool print_token_raw;
     bool print_tree;
@@ -12,8 +12,9 @@ typedef struct Option {
     bool print_symbols_all;
     bool print_bytecode;
     bool print_stack;
-} Option;
+};
 
-int64_t Interpret(const char *src, const char *filename, const Option *opt);
+int64_t interpret_source(const char *src, const char *filename,
+        const struct interpreter_option *opt);
 
-#endif // _H
+#endif /* _H */

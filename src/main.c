@@ -25,7 +25,7 @@ const char *read_file(const char *filename)
 int main(int argc, char **argv)
 {
     const char *filename = NULL;
-    Option opt;
+    struct interpreter_option opt;
 
     for (int i = 1; i < argc; i++) {
         const char *arg = argv[i];
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    int ret = Interpret(src, filename, &opt);
+    int64_t ret = interpret_source(src, filename, &opt);
     if (opt.print_token || opt.print_tree || opt.print_bytecode || opt.print_symbols)
         ret = 0;
 
