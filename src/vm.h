@@ -7,28 +7,28 @@
 #include "runtime_array.h"
 #include "runtime_struct.h"
 
-typedef struct VM {
+struct vm_cpu {
     struct runtime_valuevec stack_;
     const struct code_bytecode *code_;
 
-    // XXX TEST
-    Int eoc; // end of code
-    Int eoc_; // end of code
-    Int ip_; // instruction pointer
-    Int sp_; // stack pointer
-    Int bp_; // base pointer
+    /* XXX TEST */
+    Int eoc; /* end of code */
+    Int eoc_; /* end of code */
+    Int ip_; /* instruction pointer */
+    Int sp_; /* stack pointer */
+    Int bp_; /* base pointer */
 
     struct vm_callstack callstack;
 
     bool print_stack_;
     struct runtime_gc gc_;
-} VM;
+};
 
-void Run(VM *vm, const struct code_bytecode *code);
-Int StackTopInt(const VM *vm);
+void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *code);
 
-void PrintStack(const VM *vm);
-void EnablePrintStack(VM *vm, bool enable);
-void PrintObjs(const VM *vm);
+int64_t vm_get_stack_top(const struct vm_cpu *vm);
+void vm_print_stack(const struct vm_cpu *vm);
+void vm_enable_print_stack(struct vm_cpu *vm, bool enable);
+void vm_print_gc_objects(const struct vm_cpu *vm);
 
-#endif // _H
+#endif /* _H */

@@ -45,7 +45,8 @@ void runtime_valuevec_init(struct runtime_valuevec *v);
 bool runtime_valuevec_is_empty(const struct runtime_valuevec *v);
 void runtime_valuevec_resize(struct runtime_valuevec *v, int new_len);
 void runtime_valuevec_push(struct runtime_valuevec *v, struct runtime_value val);
-struct runtime_value runtime_valuevec_get(const struct runtime_valuevec *v, int index);
+struct runtime_value runtime_valuevec_get(const struct runtime_valuevec *v, int idx);
+void runtime_valuevec_set(struct runtime_valuevec *v, int idx, struct runtime_value val);
 void runtime_valuevec_free(struct runtime_valuevec *v);
 
 void runtime_valuevec_zeroclear(struct runtime_valuevec *v);

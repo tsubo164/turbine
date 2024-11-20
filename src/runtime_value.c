@@ -41,13 +41,21 @@ void runtime_valuevec_push(struct runtime_valuevec *v, struct runtime_value val)
     v->data[v->len++] = val;
 }
 
-struct runtime_value runtime_valuevec_get(const struct runtime_valuevec *v, int index)
+struct runtime_value runtime_valuevec_get(const struct runtime_valuevec *v, int idx)
 {
-    if (index < 0 || index >= v->len) {
+    if (idx < 0 || idx >= v->len) {
         struct runtime_value val = {0};
         return val;
     }
-    return v->data[index];
+    return v->data[idx];
+}
+
+void runtime_valuevec_set(struct runtime_valuevec *v, int idx, struct runtime_value val)
+{
+    if (idx < 0 || idx >= v->len) {
+        return;
+    }
+    v->data[idx] = val;
 }
 
 void runtime_valuevec_free(struct runtime_valuevec *v)

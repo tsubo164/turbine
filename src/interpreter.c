@@ -24,7 +24,7 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     const struct parser_token *tok = NULL;
     struct parser_scope builtin = {0};
     struct code_bytecode code = {{0}};
-    VM vm = {{0}};
+    struct vm_cpu vm = {{0}};
 
     // Builtin functions
     DefineBuiltinFuncs(&builtin);
@@ -70,9 +70,9 @@ Int Interpret(const char *src, const char *filename, const Option *opt)
     // Run bytecode
     long ret = 0;
     if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
-        EnablePrintStack(&vm, opt->print_stack);
-        Run(&vm, &code);
-        ret = StackTopInt(&vm);
+        vm_enable_print_stack(&vm, opt->print_stack);
+        bm_execute_bytecode(&vm, &code);
+        ret = vm_get_stack_top(&vm);
     }
 
     return ret;
