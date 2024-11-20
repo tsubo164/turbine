@@ -1,4 +1,4 @@
-#include "vm.h"
+#include "vm_cpu.h"
 #include "error.h"
 #include "runtime_array.h"
 #include "runtime_string.h"
@@ -12,25 +12,25 @@
 
 static void set_ip(struct vm_cpu *vm, Int ip)
 {
-    vm->ip_ = ip;
+    vm->ip = ip;
 }
 
 static void set_sp(struct vm_cpu *vm, Int sp)
 {
-    if (sp >= vm->stack_.len)
-        runtime_valuevec_resize(&vm->stack_, sp + 1);
+    if (sp >= vm->stack.len)
+        runtime_valuevec_resize(&vm->stack, sp + 1);
 
-    vm->sp_ = sp;
+    vm->sp = sp;
 }
 
 static void set_bp(struct vm_cpu *vm, Int bp)
 {
-    vm->bp_ = bp;
+    vm->bp = bp;
 }
 
 static struct runtime_value top(const struct vm_cpu *vm)
 {
-    return vm->stack_.data[vm->sp_];
+    return vm->stack.data[vm->sp];
 }
 
 static void push_call(struct vm_cpu *vm, const struct vm_call *call)
@@ -56,24 +56,24 @@ static int64_t addr_to_index(int64_t addr)
 
 static int id_to_addr(const struct vm_cpu *vm, int id)
 {
-    return index_to_addr(vm->bp_) + 1 + id;
+    return index_to_addr(vm->bp) + 1 + id;
 }
 
 static int addr_to_id(const struct vm_cpu *vm, int addr)
 {
-    return addr - (index_to_addr(vm->bp_) + 1);
+    return addr - (index_to_addr(vm->bp) + 1);
 }
 
 static struct runtime_value read_stack(const struct vm_cpu *vm, int64_t addr)
 {
     int64_t index = addr_to_index(addr);
-    return vm->stack_.data[index];
+    return vm->stack.data[index];
 }
 
 static void write_stack(struct vm_cpu *vm, int64_t addr, struct runtime_value val)
 {
     int64_t index = addr_to_index(addr);
-    vm->stack_.data[index] = val;
+    vm->stack.data[index] = val;
 }
 
 static struct runtime_value get_local(const struct vm_cpu *vm, int id)
@@ -104,8 +104,8 @@ static struct runtime_value fetch_register_value(struct vm_cpu *vm, int id)
         struct runtime_value imm = {0};
         int imm_size = 0;
 
-        imm = code_read_immediate_value(vm->code_, vm->ip_, id, &imm_size);
-        vm->ip_ += imm_size;
+        imm = code_read_immediate_value(vm->code, vm->ip, id, &imm_size);
+        vm->ip += imm_size;
 
         return imm;
     }
@@ -123,27 +123,27 @@ int64_t vm_get_stack_top(const struct vm_cpu *vm)
 void vm_print_stack(const struct vm_cpu *vm)
 {
     printf("    ------\n");
-    for (Int i = vm->sp_; i >= 0; i--) {
-        if (i <= vm->sp_ && i > 0)
+    for (Int i = vm->sp; i >= 0; i--) {
+        if (i <= vm->sp && i > 0)
             printf("[%6lld] ", index_to_addr(i));
         else if (i == 0)
             printf("[%6s] ", "*");
 
-        if (i == vm->sp_)
+        if (i == vm->sp)
             printf("SP->");
         else
             printf("    ");
 
-        printf("|%4llu|", vm->stack_.data[i].inum);
+        printf("|%4llu|", vm->stack.data[i].inum);
 
-        if (i <= vm->sp_ && i > vm->bp_)
+        if (i <= vm->sp && i > vm->bp)
         {
             int64_t addr = index_to_addr(i);
             int64_t id = addr_to_id(vm, addr);
             printf(" [%lld]", id);
         }
 
-        if (i == vm->bp_)
+        if (i == vm->bp)
             printf("<-BP");
 
         printf("\n");
@@ -153,43 +153,43 @@ void vm_print_stack(const struct vm_cpu *vm)
 
 void vm_enable_print_stack(struct vm_cpu *vm, bool enable)
 {
-    vm->print_stack_ = enable;
+    vm->print_stack = enable;
 }
 
 void vm_print_gc_objects(const struct vm_cpu *vm)
 {
-    runtime_gc_print_objects(&vm->gc_);
+    runtime_gc_print_objects(&vm->gc);
 }
 
 static void call_function(struct vm_cpu *vm, int return_reg, int func_id)
 {
-    int64_t func_addr = code_get_function_address(vm->code_, func_id);
+    int64_t func_addr = code_get_function_address(vm->code, func_id);
 
     struct vm_call call = {0};
-    call.argc = code_get_function_arg_count(vm->code_, func_id);
-    call.return_ip = vm->ip_;
-    call.return_bp = vm->bp_;
-    call.return_sp = vm->sp_;
+    call.argc = code_get_function_arg_count(vm->code, func_id);
+    call.return_ip = vm->ip;
+    call.return_bp = vm->bp;
+    call.return_sp = vm->sp;
     call.return_reg = return_reg;
     push_call(vm, &call);
 
     set_ip(vm, func_addr);
     /* TODO make reg_to_addr() */
-    set_bp(vm, vm->bp_ + 1 + call.return_reg - 1);
+    set_bp(vm, vm->bp + 1 + call.return_reg - 1);
 
     /* Register allocation (parameters + local variables) */
-    int max_reg_count = code_get_max_register_count(vm->code_, func_id);
-    set_sp(vm, vm->bp_ + max_reg_count);
+    int max_reg_count = code_get_max_register_count(vm->code, func_id);
+    set_sp(vm, vm->bp + max_reg_count);
 }
 
 static bool is_eoc(const struct vm_cpu *vm)
 {
-    return vm->ip_ == vm->eoc;
+    return vm->ip == vm->eoc;
 }
 
 static uint32_t fetch(struct vm_cpu *vm)
 {
-    return code_read(vm->code_, vm->ip_++);
+    return code_read(vm->code, vm->ip++);
 }
 
 static void run_cpu(struct vm_cpu *vm)
@@ -197,15 +197,15 @@ static void run_cpu(struct vm_cpu *vm)
     bool halt = false;
 
     while (!is_eoc(vm) && !halt) {
-        int64_t old_ip = vm->ip_;
+        int64_t old_ip = vm->ip;
         int32_t instcode = fetch(vm);
 
         struct code_instruction inst = {0};
         code_decode_instruction(instcode, &inst);
 
-        if (vm->print_stack_) {
+        if (vm->print_stack) {
             int imm_size = 0;
-            code_print_instruction(vm->code_, old_ip, &inst, &imm_size);
+            code_print_instruction(vm->code, old_ip, &inst, &imm_size);
             vm_print_stack(vm);
         }
 
@@ -214,7 +214,7 @@ static void run_cpu(struct vm_cpu *vm)
         case OP_ALLOCATE:
             {
                 int64_t size = inst.A;
-                set_sp(vm, vm->sp_ + size);
+                set_sp(vm, vm->sp + size);
             }
             break;
 
@@ -376,7 +376,7 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
                 struct runtime_array *obj = runtime_array_new(lenval.inum);
-                runtime_gc_push_object(&vm->gc_, (struct runtime_object*) obj);
+                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.array = obj};
                 set_local(vm, dst, srcobj);
@@ -389,7 +389,7 @@ static void run_cpu(struct vm_cpu *vm)
                 int len = inst.B;
 
                 struct runtime_struct *obj = runtime_struct_new(len);
-                runtime_gc_push_object(&vm->gc_, (struct runtime_object*) obj);
+                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.strct = obj};
                 set_local(vm, dst, srcobj);
@@ -423,30 +423,30 @@ static void run_cpu(struct vm_cpu *vm)
                 int func_id = inst.BB;
 
                 /* prologue */
-                int old_bp = vm->bp_;
-                int old_sp = vm->sp_;
+                int old_bp = vm->bp;
+                int old_sp = vm->sp;
                 int max_reg_count = 0;
 
-                set_bp(vm, vm->bp_ + 1 + ret_reg - 1);
-                set_sp(vm, vm->bp_ + max_reg_count);
+                set_bp(vm, vm->bp + 1 + ret_reg - 1);
+                set_sp(vm, vm->bp + max_reg_count);
 
                 /* call */
                 runtime_native_function_t native_func;
-                native_func = code_get_native_function_pointer(vm->code_, func_id);
+                native_func = code_get_native_function_pointer(vm->code, func_id);
                 assert(native_func);
 
-                struct runtime_value *registers = &vm->stack_.data[vm->bp_ + 1];
-                int reg_count = code_get_function_arg_count(vm->code_, func_id);
+                struct runtime_value *registers = &vm->stack.data[vm->bp + 1];
+                int reg_count = code_get_function_arg_count(vm->code, func_id);
                 int result = 0;
                 struct runtime_value ret_val = {0};
 
-                if (code_is_function_variadic(vm->code_, func_id)) {
+                if (code_is_function_variadic(vm->code, func_id)) {
                     struct runtime_value arg_count = fetch_register_value(vm, 0);
                     /* 2 registers for each argument and 1 register for argument count */
                     reg_count = 2 * arg_count.inum + 1;
                 }
 
-                result = native_func(&vm->gc_, registers, reg_count);
+                result = native_func(&vm->gc, registers, reg_count);
                 ret_val = get_local(vm, 0);
 
                 /* epilogue */
@@ -457,7 +457,7 @@ static void run_cpu(struct vm_cpu *vm)
 
                 if (result == RESULT_NORETURN) {
                     /* TODO consider making push_to_stack */
-                    int64_t sp_addr = index_to_addr(vm->sp_);
+                    int64_t sp_addr = index_to_addr(vm->sp);
                     write_stack(vm, sp_addr, ret_val);
                     halt = true;
                 }
@@ -600,7 +600,7 @@ do { \
                 struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
                 struct runtime_string *s = runtime_string_concat(srcval1.str, srcval2.str);
-                runtime_gc_push_object(&vm->gc_, (struct runtime_object*) s);
+                runtime_gc_push_object(&vm->gc, (struct runtime_object*) s);
 
                 dstval.str = s;
                 set_local(vm, dst, dstval);
@@ -861,7 +861,7 @@ do { \
         default:
             {
                 fprintf(stderr, "** Unimplemented instruction: %d\n", inst.op);
-                code_print_instruction(vm->code_, old_ip, &inst, NULL);
+                code_print_instruction(vm->code, old_ip, &inst, NULL);
                 UNREACHABLE;
             }
             break;
@@ -869,16 +869,16 @@ do { \
     }
 }
 
-void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *code)
+void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode)
 {
-    vm->code_ = code;
-    vm->eoc = code_get_size(vm->code_);
+    vm->code = bytecode;
+    vm->eoc = code_get_size(vm->code);
 
     /* empty data at the bottom of stacks */
     struct runtime_value empty = {0};
-    runtime_valuevec_resize(&vm->stack_, 256);
-    runtime_valuevec_set(&vm->stack_, 0, empty);
-    vm->sp_ = 0;
+    runtime_valuevec_resize(&vm->stack, 256);
+    runtime_valuevec_set(&vm->stack, 0, empty);
+    vm->sp = 0;
 
     vm_callstack_init(&vm->callstack);
 

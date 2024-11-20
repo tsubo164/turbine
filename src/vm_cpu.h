@@ -1,5 +1,5 @@
-#ifndef VM_H
-#define VM_H
+#ifndef VM_CPU_H
+#define VM_CPU_H
 
 #include "vm_callstack.h"
 #include "code_bytecode.h"
@@ -8,23 +8,21 @@
 #include "runtime_struct.h"
 
 struct vm_cpu {
-    struct runtime_valuevec stack_;
-    const struct code_bytecode *code_;
+    struct runtime_valuevec stack;
+    const struct code_bytecode *code;
 
-    /* XXX TEST */
     Int eoc; /* end of code */
-    Int eoc_; /* end of code */
-    Int ip_; /* instruction pointer */
-    Int sp_; /* stack pointer */
-    Int bp_; /* base pointer */
+    Int ip; /* instruction pointer */
+    Int sp; /* stack pointer */
+    Int bp; /* base pointer */
 
     struct vm_callstack callstack;
 
-    bool print_stack_;
-    struct runtime_gc gc_;
+    bool print_stack;
+    struct runtime_gc gc;
 };
 
-void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *code);
+void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode);
 
 int64_t vm_get_stack_top(const struct vm_cpu *vm);
 void vm_print_stack(const struct vm_cpu *vm);

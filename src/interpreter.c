@@ -9,7 +9,7 @@
 #include "code_generate.h"
 #include "code_print.h"
 #include "builtin.h"
-#include "vm.h"
+#include "vm_cpu.h"
 
 #include <stdio.h>
 
