@@ -12,11 +12,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_STOREARRAY]     = { "storearray",  OPERAND_ABC },
     [OP_LOADSTRUCT]     = { "loadstruct",  OPERAND_ABC },
     [OP_STORESTRUCT]    = { "storestruct", OPERAND_ABC },
-    [OP_LOADTYPENIL]    = { "loadtypen",   OPERAND_A__ },
-    [OP_LOADTYPEBOOL]   = { "loadtypeb",   OPERAND_A__ },
-    [OP_LOADTYPEINT]    = { "loadtypei",   OPERAND_A__ },
-    [OP_LOADTYPEFLOAT]  = { "loadtypef",   OPERAND_A__ },
-    [OP_LOADTYPESTRING] = { "loadtypes",   OPERAND_A__ },
+    [OP_LOADTYPEID]     = { "loadtypeid",  OPERAND_AB_ },
     [OP_LOADADDR]       = { "loadaddr",    OPERAND_AB_ },
     [OP_DEREF]          = { "deref",       OPERAND_AB_ },
     /* array/struct */

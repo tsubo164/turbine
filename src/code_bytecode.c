@@ -276,31 +276,31 @@ int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, i
 
 int code_emit_load_type_nil(struct code_bytecode *code, int dst)
 {
-    push_inst_a(code, OP_LOADTYPENIL, dst);
+    push_inst_ab(code, OP_LOADTYPEID, dst, VAL_NIL);
     return dst;
 }
 
 int code_emit_load_type_bool(struct code_bytecode *code, int dst)
 {
-    push_inst_a(code, OP_LOADTYPEBOOL, dst);
+    push_inst_ab(code, OP_LOADTYPEID, dst, VAL_BOOL);
     return dst;
 }
 
 int code_emit_load_type_int(struct code_bytecode *code, int dst)
 {
-    push_inst_a(code, OP_LOADTYPEINT, dst);
+    push_inst_ab(code, OP_LOADTYPEID, dst, VAL_INT);
     return dst;
 }
 
 int code_emit_load_type_float(struct code_bytecode *code, int dst)
 {
-    push_inst_a(code, OP_LOADTYPEFLOAT, dst);
+    push_inst_ab(code, OP_LOADTYPEID, dst, VAL_FLOAT);
     return dst;
 }
 
 int code_emit_load_type_string(struct code_bytecode *code, int dst)
 {
-    push_inst_a(code, OP_LOADTYPESTRING, dst);
+    push_inst_ab(code, OP_LOADTYPEID, dst, VAL_STRING);
     return dst;
 }
 

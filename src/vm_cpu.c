@@ -300,6 +300,16 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_LOADTYPEID:
+            {
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstval;
+                dstval.inum = src;
+                set_local(vm, dst, dstval);
+            }
+            break;
+
         case OP_LOADADDR:
             {
                 int dst = inst.A;
@@ -319,52 +329,6 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value srcval = get_global(vm, addrval.inum);
 
                 set_local(vm, dst, srcval);
-            }
-            break;
-
-        /* TODO consider making OP_LOADTYPE A B, instead of ones for each type */
-        case OP_LOADTYPENIL:
-            {
-                int dst = inst.A;
-                struct runtime_value dstval;
-                dstval.inum = VAL_NIL;
-                set_local(vm, dst, dstval);
-            }
-            break;
-
-        case OP_LOADTYPEBOOL:
-            {
-                int dst = inst.A;
-                struct runtime_value dstval;
-                dstval.inum = VAL_BOOL;
-                set_local(vm, dst, dstval);
-            }
-            break;
-
-        case OP_LOADTYPEINT:
-            {
-                int dst = inst.A;
-                struct runtime_value dstval;
-                dstval.inum = VAL_INT;
-                set_local(vm, dst, dstval);
-            }
-            break;
-
-        case OP_LOADTYPEFLOAT:
-            {
-                int dst = inst.A;
-                struct runtime_value dstval;
-                dstval.inum = VAL_FLOAT;
-                set_local(vm, dst, dstval);
-            }
-            break;
-
-        case OP_LOADTYPESTRING:
-            {
-                int dst = inst.A;
-                struct runtime_value dstval;
-                dstval.inum = VAL_STRING;
-                set_local(vm, dst, dstval);
             }
             break;
 

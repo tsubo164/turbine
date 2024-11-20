@@ -14,11 +14,7 @@ enum code_opcode {
     OP_STOREARRAY,
     OP_LOADSTRUCT,
     OP_STORESTRUCT,
-    OP_LOADTYPENIL,
-    OP_LOADTYPEBOOL,
-    OP_LOADTYPEINT,
-    OP_LOADTYPEFLOAT,
-    OP_LOADTYPESTRING,
+    OP_LOADTYPEID,
     /* TODO remove address operations */
     OP_LOADADDR,
     OP_DEREF,
