@@ -36,14 +36,16 @@
 
   //- answer = input("Press Enter to continue...")
   //print("Your answer is:", answer, a)
+  -s string
+  print(s)
 
   //- fp = exit
-  - b = 242301
-  - c = 0x1234567890
-  - d = true
-  - f = 3.14
-  - s = "Hello!"
-  print(a, b, c, d, f, s)
+  //- b = 242301
+  //- c = 0x1234567890
+  //- d = true
+  //- f = 3.14
+  //- s = "Hello!"
+  //print(a, b, c, d, f, s)
   return a
   //exit(111)
 

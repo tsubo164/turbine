@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <math.h>
 
-static void set_ip(struct vm_cpu *vm, Int ip)
+static void set_ip(struct vm_cpu *vm, int64_t ip)
 {
     vm->ip = ip;
 }
 
-static void set_sp(struct vm_cpu *vm, Int sp)
+static void set_sp(struct vm_cpu *vm, int64_t sp)
 {
     if (sp >= vm->stack.len)
         runtime_valuevec_resize(&vm->stack, sp + 1);
@@ -22,7 +22,7 @@ static void set_sp(struct vm_cpu *vm, Int sp)
     vm->sp = sp;
 }
 
-static void set_bp(struct vm_cpu *vm, Int bp)
+static void set_bp(struct vm_cpu *vm, int64_t bp)
 {
     vm->bp = bp;
 }
@@ -122,7 +122,7 @@ int64_t vm_get_stack_top(const struct vm_cpu *vm)
 void vm_print_stack(const struct vm_cpu *vm)
 {
     printf("    ------\n");
-    for (Int i = vm->sp; i >= 0; i--) {
+    for (int64_t i = vm->sp; i >= 0; i--) {
         if (i <= vm->sp && i > 0)
             printf("[%6lld] ", index_to_addr(i));
         else if (i == 0)

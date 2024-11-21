@@ -8,24 +8,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define EMIT(code, ty, op) \
-    do { \
-    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
-        op##Int((code)); \
-    else if (parser_is_float_type((ty))) \
-        op##Float((code)); \
-    } while (0)
-
-#define EMITS(code, ty, op, ops) \
-    do { \
-    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
-        op##Int((code)); \
-    else if (parser_is_float_type((ty))) \
-        op##Float((code)); \
-    else if (parser_is_string_type((ty))) \
-        ops##String((code)); \
-    } while (0)
-
 #define BINOP(code, ty, op, r0, r1, r2) \
     do { \
     if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
@@ -632,12 +614,12 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         {
             /* eval */
             reg1 = gen_expr(code, e->l);
-            Int els = code_emit_jump_if_zero(code, reg1, -1);
+            int64_t els = code_emit_jump_if_zero(code, reg1, -1);
 
             /* true */
             reg0 = gen_dst_register2(code, reg1);
             code_emit_move(code, reg0, reg1);
-            Int exit = code_emit_jump(code, -1);
+            int64_t exit = code_emit_jump(code, -1);
 
             /* false */
             code_back_patch(code, els);
@@ -650,13 +632,13 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         {
             /* eval */
             reg1 = gen_expr(code, e->l);
-            Int els = code_emit_jump_if_zero(code, reg1, -1);
+            int64_t els = code_emit_jump_if_zero(code, reg1, -1);
 
             /* true */
             reg2 = gen_expr(code, e->r);
             reg0 = gen_dst_register(code, reg1, reg2);
             code_emit_move(code, reg0, reg2);
-            Int exit = code_emit_jump(code, -1);
+            int64_t exit = code_emit_jump(code, -1);
 
             /* false */
             code_back_patch(code, els);
@@ -991,7 +973,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
     case NOD_STMT_ELSE:
         {
-            Int next = 0;
+            int64_t next = 0;
 
             if (s->cond) {
                 /* cond */
@@ -1004,7 +986,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
             if (s->cond) {
                 /* close */
-                Int addr = code_emit_jump(code, -1);
+                int64_t addr = code_emit_jump(code, -1);
                 code_push_else_end(code, addr);
                 code_back_patch(code, next);
             }
@@ -1018,9 +1000,9 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             gen_stmt(code, s->init);
 
             /* cond */
-            Int begin = code_get_next_addr(code);
+            int64_t begin = code_get_next_addr(code);
             int reg0 = gen_expr(code, s->cond);
-            Int exit = code_emit_jump_if_zero(code, reg0, -1);
+            int64_t exit = code_emit_jump_if_zero(code, reg0, -1);
 
             /* body */
             gen_stmt(code, s->body);
@@ -1038,14 +1020,14 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
     case NOD_STMT_BREAK:
         {
-            Int addr = code_emit_jump(code, -1);
+            int64_t addr = code_emit_jump(code, -1);
             code_push_break(code, addr);
         }
         break;
 
     case NOD_STMT_CONTINUE:
         {
-            Int addr = code_emit_jump(code, -1);
+            int64_t addr = code_emit_jump(code, -1);
             code_push_continue(code, addr);
         }
         break;
@@ -1092,11 +1074,11 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
                 code_emit_equal_int(code, reg0, reg1, reg2);
 
                 /* jump if true otherwise fallthrough */
-                Int tru = code_emit_jump_if_not_zero(code, reg0, -1);
+                int64_t tru = code_emit_jump_if_not_zero(code, reg0, -1);
                 data_intvec_push(&trues, tru);
             }
             /* all conds false -> close case */
-            Int exit = code_emit_jump(code, -1);
+            int64_t exit = code_emit_jump(code, -1);
             /* one of cond true -> go to body */
             for (int i = 0; i < trues.len; i++)
                 code_back_patch(code, trues.data[i]);
@@ -1106,7 +1088,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             gen_stmt(code, s->body);
 
             /* end */
-            Int addr = code_emit_jump(code, -1);
+            int64_t addr = code_emit_jump(code, -1);
             code_push_case_end(code, addr);
             code_back_patch(code, exit);
         }

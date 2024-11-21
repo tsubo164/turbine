@@ -4,12 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/* TODO remove these */
-typedef uint8_t  Byte;
-typedef uint16_t Word;
-typedef int64_t  Int;
-typedef double   Float;
-
 typedef int64_t  value_int_t;
 typedef double   value_float_t;
 

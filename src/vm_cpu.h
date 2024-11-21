@@ -11,10 +11,10 @@ struct vm_cpu {
     struct runtime_valuevec stack;
     const struct code_bytecode *code;
 
-    Int eoc; /* end of code */
-    Int ip; /* instruction pointer */
-    Int sp; /* stack pointer */
-    Int bp; /* base pointer */
+    int64_t eoc; /* end of code */
+    int64_t ip; /* instruction pointer */
+    int64_t sp; /* stack pointer */
+    int64_t bp; /* base pointer */
 
     struct vm_callstack callstack;
 

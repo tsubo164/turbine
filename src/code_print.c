@@ -54,7 +54,7 @@ void code_print_bytecode(const struct code_bytecode *code)
     }
     printf("\n");
 
-    Int addr = 0;
+    int64_t addr = 0;
 
     while (addr < code_size) {
 

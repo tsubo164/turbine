@@ -734,14 +734,14 @@ void code_backpatch_case_ends(struct code_bytecode *code)
 }
 
 /* read/write/address */
-int32_t code_read(const struct code_bytecode *code, Int addr)
+int32_t code_read(const struct code_bytecode *code, int64_t addr)
 {
     assert(addr >= 0 && addr < code_get_size(code));
 
     return code->insts.data[addr];
 }
 
-void code_write(const struct code_bytecode *code, Int addr, int32_t inst)
+void code_write(const struct code_bytecode *code, int64_t addr, int32_t inst)
 {
     assert(addr >= 0 && addr < code_get_size(code));
 
