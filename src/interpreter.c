@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "data_intern.h"
+#include "parser_search_path.h"
 #include "parser_symbol.h"
 #include "parser_parse.h"
 #include "parser_token.h"
@@ -10,8 +11,10 @@
 #include "code_print.h"
 #include "builtin.h"
 #include "vm_cpu.h"
+#include "os.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 static void print_header(const char *title)
 {
@@ -23,9 +26,18 @@ int64_t interpret_source(const char *src, const char *filename,
         const struct interpreter_option *opt)
 {
     const struct parser_token *tok = NULL;
+    struct parser_search_path paths = {0};
     struct parser_scope builtin = {0};
     struct code_bytecode code = {{0}};
     struct vm_cpu vm = {{0}};
+
+    parser_search_path_init(&paths, filename);
+    /*
+    printf("------------> filename: %s\n", paths.filename);
+    printf("------------> curr_dir: %s\n", paths.current_directory);
+    printf("------------> filepath: %s\n", paths.filepath);
+    printf("------------> filedir:  %s\n", paths.filedir);
+    */
 
     /* builtin functions */
     define_builtin_functions(&builtin);
@@ -77,6 +89,9 @@ int64_t interpret_source(const char *src, const char *filename,
         bm_execute_bytecode(&vm, &code);
         ret = vm_get_stack_top(&vm);
     }
+
+    /* clean */
+    parser_search_path_free(&paths);
 
     return ret;
 }

@@ -26,7 +26,7 @@ const char *read_file(const char *filename)
 int main(int argc, char **argv)
 {
     const char *filename = NULL;
-    struct interpreter_option opt;
+    struct interpreter_option opt = {0};
 
     for (int i = 1; i < argc; i++) {
         const char *arg = argv[i];
