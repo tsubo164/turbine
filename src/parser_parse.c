@@ -1,11 +1,13 @@
 #include "parser_parse.h"
-#include "parser_symbol.h"
-#include "parser_token.h"
-#include "parser_ast.h"
+#include "parser_search_path.h"
 #include "parser_ast_eval.h"
-#include "parser_type.h"
 #include "parser_escseq.h"
+#include "parser_symbol.h"
 #include "parser_error.h"
+#include "parser_token.h"
+#include "parser_type.h"
+#include "parser_ast.h"
+#include "os.h"
 
 #include <assert.h>
 #include <string.h>
@@ -43,6 +45,7 @@ struct parser {
     /* source */
     const char *src;
     const char *filename;
+    const struct parser_search_path *paths;
 
     struct parser_module *module;
 };
@@ -1411,7 +1414,7 @@ static void module_import(struct parser *p)
     expect(p, TOK_IDENT);
 
     const char *modulename = tok_str(p);
-    char filename[512] = {'\0'};
+    char module_filename[512] = {'\0'};
 
     if (strlen(modulename) > 500) {
         error(p, tok_pos(p),
@@ -1419,18 +1422,14 @@ static void module_import(struct parser *p)
     }
 
     /* TODO have search paths */
-    const char *src = NULL;
+    struct parser_search_path paths;
 
-    if (!src) {
-        sprintf(filename, "src/%s.ro", modulename);
-        src = read_file(filename);
-    }
+    sprintf(module_filename, "%s.ro", modulename);
+    parser_search_path_init(&paths, p->paths->filedir);
+    /* TODO can we remove os_? parser_search_path_search_file() */
+    char *module_filepath = os_path_join(paths.filedir, module_filename);
 
-    if (!src) {
-        sprintf(filename, "%s.ro", modulename);
-        src = read_file(filename);
-    }
-
+    const char *src = read_file(module_filepath);
     if (!src) {
         error(p, tok_pos(p),
                 "module %s.ro not found", modulename);
@@ -1438,10 +1437,14 @@ static void module_import(struct parser *p)
 
     const struct parser_token *tok = parser_tokenize(src);
     /* TODO use this style => enter_scope(p, mod->scope); */
-    parser_parse(src, filename, modulename, tok, p->scope);
+    parser_parse(src, module_filename, modulename, tok, p->scope, &paths);
 
     expect(p, TOK_RBRACK);
     expect(p, TOK_NEWLINE);
+
+    /* clean */
+    parser_search_path_free(&paths);
+    free(module_filepath);
 }
 
 static void program(struct parser *p)
@@ -1499,7 +1502,8 @@ static void program(struct parser *p)
 
 struct parser_module *parser_parse(const char *src,
         const char *filename, const char *modulename,
-        const struct parser_token *tok, struct parser_scope *scope)
+        const struct parser_token *tok, struct parser_scope *scope,
+        const struct parser_search_path *paths)
 {
     struct parser_module *mod;
     mod = parser_define_module(scope, filename, modulename);
@@ -1512,6 +1516,8 @@ struct parser_module *parser_parse(const char *src,
     p.func = NULL;
     p.filename = filename;
     p.module = mod;
+
+    p.paths = paths;
 
     program(&p);
 

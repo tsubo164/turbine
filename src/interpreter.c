@@ -31,13 +31,11 @@ int64_t interpret_source(const char *src, const char *filename,
     struct code_bytecode code = {{0}};
     struct vm_cpu vm = {{0}};
 
-    parser_search_path_init(&paths, filename);
-    /*
-    printf("------------> filename: %s\n", paths.filename);
-    printf("------------> curr_dir: %s\n", paths.current_directory);
-    printf("------------> filepath: %s\n", paths.filepath);
-    printf("------------> filedir:  %s\n", paths.filedir);
-    */
+    /* paths */
+    char *current_directory = os_get_current_directory();
+    char *filepath = os_path_join(current_directory, filename);
+    char *filedir = os_dirname(filepath);
+    parser_search_path_init(&paths, filedir);
 
     /* builtin functions */
     define_builtin_functions(&builtin);
@@ -56,7 +54,7 @@ int64_t interpret_source(const char *src, const char *filename,
     /* compile source */
     struct parser_module *prog;
 
-    prog = parser_parse(src, filename, data_string_intern("_main"), tok, &builtin);
+    prog = parser_parse(src, filename, data_string_intern("_main"), tok, &builtin, &paths);
     code_resolve_offset(prog);
 
     /* print tree */
@@ -92,6 +90,9 @@ int64_t interpret_source(const char *src, const char *filename,
 
     /* clean */
     parser_search_path_free(&paths);
+    free(current_directory);
+    free(filepath);
+    free(filedir);
 
     return ret;
 }

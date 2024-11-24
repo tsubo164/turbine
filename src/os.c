@@ -5,8 +5,9 @@
 #include <stdio.h>
 
 #include <unistd.h>
+#include <limits.h>
 
-char *get_current_directory(void)
+char *os_get_current_directory(void)
 {
     return getcwd(NULL, 0);
 }
@@ -21,37 +22,15 @@ bool os_path_exists(const char *path)
 
 char *os_path_join(const char *pathleft, const char *pathright)
 {
-    const char *p1 = pathleft;
-    const char *p2 = pathright;
-    size_t len1 = strlen(p1);
-    size_t len2 = strlen(p2);
+    char joined[PATH_MAX] = {'\0'};
+    size_t joined_max = sizeof(joined)/sizeof(joined[0]);
 
-    if (p1[len1 - 1] == '/')
-        len1--;
+    size_t written = snprintf(joined, joined_max, "%s/%s", pathleft, pathright);
 
-    if (p2[len2 - 1] == '/')
-        len2--;
+    if (written >= joined_max)
+        return NULL;
 
-    if (p2[0] == '.') {
-        p2++;
-        len2--;
-    }
-
-    if (p2[0] == '/') {
-        p2++;
-        len2--;
-    }
-
-    size_t totallen = len1 + len2 + 1; /* + 1 for '/' */
-    char *dst = calloc(totallen + 1, sizeof(char));
-    char *p;
-
-    p = stpncpy(dst, p1, len1);
-    *p++ = '/';
-    p = stpncpy(p, p2, len2);
-    assert(totallen == strlen(dst));
-
-    return dst;
+    return realpath(joined, NULL);
 }
 
 char *os_dirname(const char *path)

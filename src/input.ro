@@ -2,7 +2,7 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-//[my_calc]
+[my_calc]
 
 //## Circle
 //  - center Point
@@ -48,6 +48,7 @@
   - f = 3.14
   - s = "Hello!"
   print(a, b, c, d, f, s)
+  print(my_calc.UINT8_MAX)
   return a
   //exit(111)
 
