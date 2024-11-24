@@ -1413,6 +1413,7 @@ static void module_import(struct parser *p)
     expect(p, TOK_LBRACK);
     expect(p, TOK_IDENT);
 
+    /* module file name */
     const char *modulename = tok_str(p);
     char module_filename[512] = {'\0'};
 
@@ -1420,23 +1421,22 @@ static void module_import(struct parser *p)
         error(p, tok_pos(p),
                 "error: too long module name: '%s'", modulename);
     }
-
-    /* TODO have search paths */
-    struct parser_search_path paths;
-
     sprintf(module_filename, "%s.ro", modulename);
-    parser_search_path_init(&paths, p->paths->filedir);
-    /* TODO can we remove os_? parser_search_path_search_file() */
-    char *module_filepath = os_path_join(paths.filedir, module_filename);
 
+    /* read module file */
+    char *module_filepath = parser_search_path_find(p->paths, module_filename);
     const char *src = read_file(module_filepath);
+
     if (!src) {
         error(p, tok_pos(p),
                 "module %s.ro not found", modulename);
     }
 
+    /* parse module file */
     const struct parser_token *tok = parser_tokenize(src);
-    /* TODO use this style => enter_scope(p, mod->scope); */
+    struct parser_search_path paths;
+
+    parser_search_path_init(&paths, p->paths->filedir);
     parser_parse(src, module_filename, modulename, tok, p->scope, &paths);
 
     expect(p, TOK_RBRACK);
