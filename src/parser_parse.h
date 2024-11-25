@@ -7,9 +7,18 @@ struct parser_token;
 
 struct parser_search_path;
 
-struct parser_module *parser_parse(const char *src,
-        const char *filename, const char *modulename,
-        const struct parser_token *tok, struct parser_scope *scope,
+struct parser_source {
+    const char *text;
+    const char *filename;
+    const char *modulename;
+};
+
+struct parser_module *parser_parse(const struct parser_token *tok,
+        struct parser_scope *scope,
+        const struct parser_source *source,
         const struct parser_search_path *paths);
+
+void parser_source_init(struct parser_source *source,
+        const char *text, const char *filename, const char *modulename);
 
 #endif /* _H */

@@ -22,7 +22,7 @@ static void print_header(const char *title)
     printf("---\n");
 }
 
-int64_t interpret_source(const char *src, const char *filename,
+int64_t interpret_source(const char *text, const char *filename,
         const struct interpreter_option *opt)
 {
     const struct parser_token *tok = NULL;
@@ -41,7 +41,7 @@ int64_t interpret_source(const char *src, const char *filename,
     define_builtin_functions(&builtin);
 
     /* tokenize */
-    tok = parser_tokenize(src);
+    tok = parser_tokenize(text);
 
     /* print token */
     if (opt->print_token) {
@@ -53,8 +53,10 @@ int64_t interpret_source(const char *src, const char *filename,
 
     /* compile source */
     struct parser_module *prog;
+    struct parser_source source;
+    parser_source_init(&source, text, filename, data_string_intern(":main"));
 
-    prog = parser_parse(src, filename, data_string_intern("_main"), tok, &builtin, &paths);
+    prog = parser_parse(tok, &builtin, &source, &paths);
     code_resolve_offset(prog);
 
     /* print tree */

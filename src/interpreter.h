@@ -14,7 +14,7 @@ struct interpreter_option {
     bool print_stack;
 };
 
-int64_t interpret_source(const char *src, const char *filename,
+int64_t interpret_source(const char *text, const char *filename,
         const struct interpreter_option *opt);
 
 #endif /* _H */

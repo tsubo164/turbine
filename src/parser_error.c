@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static void print_detail(const char *src, int posx, int posy)
+static void print_detail(const char *srctext, int posx, int posy)
 {
     int x = 0;
     int y = 1;
-    const char *p = src;
+    const char *p = srctext;
 
     while (y != posy) {
         if (*p++ == '\n') {
@@ -29,13 +29,14 @@ static void print_detail(const char *src, int posx, int posy)
     printf("^\n");
 }
 
-void parser_error_va(const char *src, const char *filename,
+void parser_error_va(const char *srctext, const char *filename,
         int posx, int posy, const char *fmt, va_list args)
 {
-    fprintf(stderr, "%s:%d:%d: error: ", filename, posx, posy);
+    fprintf(stderr, "%s:%d:%d: error: ", filename, posy, posx);
     vfprintf(stderr, fmt, args);
     fprintf(stderr, "\n");
-    print_detail(src, posx, posy);
+
+    print_detail(srctext, posx, posy);
 
     exit(EXIT_FAILURE);
 }

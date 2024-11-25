@@ -17,7 +17,7 @@
 
 /* TODO move this somewhere */
 #include "data_strbuf.h"
-static const char *read_file(const char *filename)
+static char *read_file(const char *filename)
 {
     FILE *fp = fopen(filename, "r");
 
@@ -43,8 +43,8 @@ struct parser {
     const struct parser_token *curr;
 
     /* source */
-    const char *src;
-    const char *filename;
+    const struct parser_source *source;
+    /* paths */
     const struct parser_search_path *paths;
 
     struct parser_module *module;
@@ -54,7 +54,7 @@ static void error(const struct parser *p, struct parser_pos pos, const char *fmt
 {
     va_list args; 
     va_start(args, fmt);
-    parser_error_va(p->src, p->filename, pos.x, pos.y, fmt, args);
+    parser_error_va(p->source->text, p->source->filename, pos.x, pos.y, fmt, args);
     va_end(args);
 }
 
@@ -1425,19 +1425,21 @@ static void module_import(struct parser *p)
 
     /* read module file */
     char *module_filepath = parser_search_path_find(p->paths, module_filename);
-    const char *src = read_file(module_filepath);
+    char *text = read_file(module_filepath);
 
-    if (!src) {
+    if (!text) {
         error(p, tok_pos(p),
                 "module %s.ro not found", modulename);
     }
 
     /* parse module file */
-    const struct parser_token *tok = parser_tokenize(src);
+    const struct parser_token *tok = parser_tokenize(text);
+    struct parser_source source = {0};
     struct parser_search_path paths;
 
+    parser_source_init(&source, text, module_filename, modulename);
     parser_search_path_init(&paths, p->paths->filedir);
-    parser_parse(src, module_filename, modulename, tok, p->scope, &paths);
+    parser_parse(tok, p->scope, &source, &paths);
 
     expect(p, TOK_RBRACK);
     expect(p, TOK_NEWLINE);
@@ -1445,6 +1447,7 @@ static void module_import(struct parser *p)
     /* clean */
     parser_search_path_free(&paths);
     free(module_filepath);
+    free(text);
 }
 
 static void program(struct parser *p)
@@ -1500,26 +1503,32 @@ static void program(struct parser *p)
     p->module->gvars = head.next;
 }
 
-struct parser_module *parser_parse(const char *src,
-        const char *filename, const char *modulename,
-        const struct parser_token *tok, struct parser_scope *scope,
+struct parser_module *parser_parse(const struct parser_token *tok,
+        struct parser_scope *scope,
+        const struct parser_source *source,
         const struct parser_search_path *paths)
 {
     struct parser_module *mod;
-    mod = parser_define_module(scope, filename, modulename);
+    mod = parser_define_module(scope, source->filename, source->modulename);
 
     struct parser p = {0};
 
-    p.src = src;
     p.curr = tok;
     p.scope = mod->scope;
     p.func = NULL;
-    p.filename = filename;
+    p.source = source;
     p.module = mod;
-
     p.paths = paths;
 
     program(&p);
 
     return mod;
+}
+
+void parser_source_init(struct parser_source *source,
+        const char *text, const char *filename, const char *modulename)
+{
+    source->text = text;
+    source->filename = filename;
+    source->modulename = modulename;
 }
