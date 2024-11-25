@@ -7,6 +7,7 @@
 #include "parser_token.h"
 #include "parser_type.h"
 #include "parser_ast.h"
+#include "builtin_module.h"
 #include "os.h"
 
 #include <assert.h>
@@ -1423,31 +1424,42 @@ static void module_import(struct parser *p)
     }
     sprintf(module_filename, "%s.ro", modulename);
 
-    /* read module file */
-    char *module_filepath = parser_search_path_find(p->paths, module_filename);
-    char *text = read_file(module_filepath);
+    /* builtin modules */
+    const struct builtin_module *found_module;
+    found_module = builtin_find_module(p->paths->builtin_modules, modulename);
 
-    if (!text) {
-        error(p, tok_pos(p),
-                "module %s.ro not found", modulename);
+    if (found_module) {
+        builtin_import_module(found_module, p->scope);
+        parser_define_module(p->scope, "FOO", found_module->name);
     }
+    else {
+        /* TODO consider making parse_module_file() */
+        /* read module file */
+        char *module_filepath = parser_search_path_find(p->paths, module_filename);
+        char *text = read_file(module_filepath);
 
-    /* parse module file */
-    const struct parser_token *tok = parser_tokenize(text);
-    struct parser_source source = {0};
-    struct parser_search_path paths;
+        if (!text) {
+            error(p, tok_pos(p),
+                    "module %s.ro not found", modulename);
+        }
 
-    parser_source_init(&source, text, module_filename, modulename);
-    parser_search_path_init(&paths, p->paths->filedir);
-    parser_parse(tok, p->scope, &source, &paths);
+        /* parse module file */
+        const struct parser_token *tok = parser_tokenize(text);
+        struct parser_source source = {0};
+        struct parser_search_path paths;
+
+        parser_source_init(&source, text, module_filename, modulename);
+        parser_search_path_init(&paths, p->paths->filedir);
+        parser_parse(tok, p->scope, &source, &paths);
+
+        /* clean */
+        parser_search_path_free(&paths);
+        free(module_filepath);
+        free(text);
+    } /* file module end */
 
     expect(p, TOK_RBRACK);
     expect(p, TOK_NEWLINE);
-
-    /* clean */
-    parser_search_path_free(&paths);
-    free(module_filepath);
-    free(text);
 }
 
 static void program(struct parser *p)

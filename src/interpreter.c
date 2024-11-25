@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "data_intern.h"
+#include "builtin_module.h"
 #include "parser_search_path.h"
 #include "parser_symbol.h"
 #include "parser_parse.h"
@@ -31,11 +32,18 @@ int64_t interpret_source(const char *text, const char *filename,
     struct code_bytecode code = {{0}};
     struct vm_cpu vm = {{0}};
 
-    /* paths */
+    /* builtin modules */
+    struct builtin_module builtin_modules;
+    builtin_register_modules(&builtin_modules);
+
+    /* search paths */
     char *current_directory = os_get_current_directory();
     char *filepath = os_path_join(current_directory, filename);
     char *filedir = os_dirname(filepath);
     parser_search_path_init(&paths, filedir);
+    /* TODO consdier passing builtin modules to parser_parse() separately
+     * instead of holding them in struct parser_search_path */
+    parser_search_path_add_builtin_modules(&paths, &builtin_modules);
 
     /* builtin functions */
     define_builtin_functions(&builtin);
