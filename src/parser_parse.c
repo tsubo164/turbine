@@ -1429,8 +1429,7 @@ static void module_import(struct parser *p)
     found_module = builtin_find_module(p->paths->builtin_modules, modulename);
 
     if (found_module) {
-        builtin_import_module(found_module, p->scope);
-        parser_define_module(p->scope, "FOO", found_module->name);
+        builtin_import_module(p->scope, found_module);
     }
     else {
         /* TODO consider making parse_module_file() */

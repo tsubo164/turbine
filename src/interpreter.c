@@ -33,7 +33,7 @@ int64_t interpret_source(const char *text, const char *filename,
     struct vm_cpu vm = {{0}};
 
     /* builtin modules */
-    struct builtin_module builtin_modules;
+    struct builtin_module_list builtin_modules;
     builtin_register_modules(&builtin_modules);
 
     /* search paths */
