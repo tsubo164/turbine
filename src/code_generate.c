@@ -5,6 +5,7 @@
 #include "parser_symbol.h"
 #include "parser_type.h"
 
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -1189,6 +1190,46 @@ static void gen_module(struct code_bytecode *code, const struct parser_module *m
     /* Global var registers */
     code_init_local_var_registers(code, gvar_count);
     code_emit_allocate(code, gvar_count + retval_count);
+    /* TODO TEST emitting call module init functions */
+    {
+        for (int i = 0; i < mod->scope->syms.len; i++) {
+            const struct parser_symbol *sym = mod->scope->syms.data[i];
+
+            if (sym->kind == SYM_MODULE) {
+                const struct parser_module *m = sym->module;
+                int64_t init_func_id = -1;
+                int min_gvar_id = INT32_MAX;
+                int gvar_count = 0;
+
+                for (int j = 0; j < m->scope->syms.len; j++) {
+                    const struct parser_symbol *s = m->scope->syms.data[j];
+
+                    if (s->kind == SYM_FUNC) {
+                        const struct parser_func *f = s->func;
+                        if (!strncmp(f->fullname, ":builtin::init_", 15)) {
+                            init_func_id = f->id;
+                        }
+                    }
+                    else if (s->kind == SYM_VAR) {
+                        const struct parser_var *v = s->var;
+                        if (!v->is_global)
+                            continue;
+
+                        gvar_count++;
+                        if (min_gvar_id > v->id)
+                            min_gvar_id = v->id;
+                    }
+                }
+
+                if (init_func_id < 0)
+                    continue;
+
+                int ret_reg = min_gvar_id;
+                bool is_builtin = true;
+                code_emit_call_function(code, ret_reg, init_func_id, is_builtin);
+            }
+        }
+    }
 
     /* Global vars */
     gen_gvars(code, mod);

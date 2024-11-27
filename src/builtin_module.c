@@ -1,16 +1,10 @@
 #include "builtin_module.h"
-#include "parser_symbol.h"
+#include "builtin_module_math.h"
 
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-int builtin_define_module_math(struct parser_scope *scope)
-{
-    parser_define_module(scope, ":builtin", "math");
-    return 0;
-}
 
 #define MIN_CAP 16
 
@@ -25,24 +19,29 @@ static void push_module(struct builtin_module_list *v, const struct builtin_modu
 
 void builtin_register_modules(struct builtin_module_list *modules)
 {
-    static const struct builtin_module modarray[] = {
-        { .name = "math", .define_module = builtin_define_module_math },
+    static const struct builtin_module table[] = {
+/*
+        { .name = "file",  .define_module = builtin_define_module_file },
+        { .name = "path",  .define_module = builtin_define_module_path },
+        { .name = "regex", .define_module = builtin_define_module_path },
+*/
+        { .name = "math",  .define_module = builtin_define_module_math },
     };
 
-    int N = sizeof(modarray) / sizeof(modarray[0]);
+    int N = sizeof(table) / sizeof(table[0]);
 
     for (int i = 0; i < N; i++)
-        push_module(modules, &modarray[i]);
+        push_module(modules, &table[i]);
 }
 
 const struct builtin_module *builtin_find_module(
         const struct builtin_module_list *modules,
-        const char *module_name)
+        const char *key_name)
 {
     for (int i = 0; i < modules->len; i++) {
         const struct builtin_module *module = &modules->data[i];
 
-        if (!strcmp(module_name, module->name))
+        if (!strcmp(key_name, module->name))
             return module;
     }
 

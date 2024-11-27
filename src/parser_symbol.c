@@ -182,7 +182,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name)
 {
-    struct parser_func *func = parser_declare_func(parent, name, ":buitin");
+    struct parser_func *func = parser_declare_func(parent, name, ":builtin");
     func->is_builtin = true;
     return func;
 }
