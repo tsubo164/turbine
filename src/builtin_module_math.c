@@ -74,6 +74,14 @@ int builtin_define_module_math(struct parser_scope *scope)
         func->native_func_ptr = (void*) math_sqrt;
     }
     {
+        const char *name = data_string_intern("Vec3");
+        struct parser_struct *strct = parser_define_struct(mod->scope, name);
+
+        parser_add_field(strct, data_string_intern("x"), parser_new_float_type());
+        parser_add_field(strct, data_string_intern("y"), parser_new_float_type());
+        parser_add_field(strct, data_string_intern("z"), parser_new_float_type());
+    }
+    {
         const char *name = data_string_intern(":init_math");
         struct parser_func *func = parser_declare_builtin_func(mod->scope, name);
 

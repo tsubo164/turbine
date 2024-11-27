@@ -362,6 +362,12 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         code_emit_store_global(code, reg0, reg1);
         return reg0;
     }
+    else if (lval->kind == NOD_EXPR_MODULE) {
+        reg0 = gen_addr(code, lval);
+        reg1 = gen_expr(code, rval);
+        code_emit_store_global(code, reg0, reg1);
+        return reg0;
+    }
 
     /* TODO if rval is global then skip binop anyway. */
     /* Binop is one of `move` instruction (store value into register) */
@@ -610,6 +616,9 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_CALL:
         return gen_call(code, e);
+
+    case NOD_EXPR_MODULE:
+        return gen_expr(code, e->r);
 
     case NOD_EXPR_LOGOR:
         {
@@ -936,6 +945,9 @@ static int gen_addr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_INDEX:
         return;
         */
+
+    case NOD_EXPR_MODULE:
+        return gen_addr(code, e->r);
 
     case NOD_EXPR_DEREF:
         {

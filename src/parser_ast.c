@@ -71,6 +71,7 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_EXPR_INDEX]          = {"index"},
     [NOD_EXPR_CALL]           = {"call"},
     [NOD_EXPR_ELEMENT]        = {"element"},
+    [NOD_EXPR_MODULE]         = {"module"},
     /* assign */
     [NOD_EXPR_ASSIGN]         = {"="},
     [NOD_EXPR_ADDASSIGN]      = {"+="},
@@ -225,6 +226,15 @@ struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct pars
     e->type = val->type;
     e->l = key;
     e->r = val;
+    return e;
+}
+
+struct parser_expr *parser_new_module_expr(struct parser_expr *mod, struct parser_expr *member)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_MODULE);
+    e->type = member->type;
+    e->l = mod;
+    e->r = member;
     return e;
 }
 

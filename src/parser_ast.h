@@ -70,6 +70,7 @@ enum parser_node_kind {
     NOD_EXPR_INDEX,
     NOD_EXPR_CALL,
     NOD_EXPR_ELEMENT, /* TODO may not need */
+    NOD_EXPR_MODULE,
     /* assign */
     /* TODO should be NOD_EXPR */
     NOD_EXPR_ASSIGN,
@@ -132,14 +133,18 @@ struct parser_expr *parser_new_floatlit_expr(double d);
 struct parser_expr *parser_new_stringlit_expr(const char *s);
 struct parser_expr *parser_new_funclit_expr(struct parser_func *func);
 struct parser_expr *parser_new_arraylit_expr(struct parser_expr *elems, int len);
-struct parser_expr *parser_new_structlit_expr(struct parser_struct *strct, struct parser_expr *fields);
-struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct parser_type *to);
+struct parser_expr *parser_new_structlit_expr(struct parser_struct *strct,
+        struct parser_expr *fields);
+struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
+        struct parser_type *to);
 struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym);
 struct parser_expr *parser_new_field_expr(struct parser_field *f);
 struct parser_expr *parser_new_select_expr(struct parser_expr *inst, struct parser_expr *fld);
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_pos p);
 struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);
+struct parser_expr *parser_new_module_expr(struct parser_expr *mod,
+        struct parser_expr *member);
 
 /* unary expr */
 struct parser_expr *parser_new_posi_expr(struct parser_expr *l);

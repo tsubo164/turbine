@@ -381,9 +381,7 @@ static struct parser_expr *primary_expr(struct parser *p)
                 p->scope = expr->type->module->scope;
                 struct parser_expr *r = primary_expr(p);
                 p->scope = cur;
-
-                /* TODO keep module expr somewhere */
-                expr = r;
+                expr = parser_new_module_expr(expr, r);
             }
             else {
                 error(p, tok_pos(p),
@@ -1302,7 +1300,7 @@ static void ret_type(struct parser *p, struct parser_func *func)
 }
 
 /*
- * type_spec = "bool" | "int" | "float" | "string" | identifier
+ * type_spec = "bool" | "int" | "float" | "string" | identifier ("." type_spec)*
  * func_type = "#" param_list type_spec?
  */
 static struct parser_type *type_spec(struct parser *p)
@@ -1354,7 +1352,18 @@ static struct parser_type *type_spec(struct parser *p)
         type = parser_new_string_type();
     }
     else if (consume(p, TOK_IDENT)) {
-        type = parser_new_struct_type(parser_find_struct(p->scope, tok_str(p)));
+        struct parser_symbol *sym = parser_find_symbol(p->scope, tok_str(p));
+        if (parser_is_module_type(sym->type)) {
+            /* TODO consider making the type_spec a part of expression */
+            expect(p, TOK_PERIOD);
+            struct parser_scope *cur = p->scope;
+            p->scope = sym->type->module->scope;
+            type = type_spec(p);
+            p->scope = cur;
+        }
+        else {
+            type = parser_new_struct_type(parser_find_struct(p->scope, tok_str(p)));
+        }
     }
     else {
         const struct parser_token *tok = gettok(p);

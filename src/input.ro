@@ -2,7 +2,7 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-[my_calc]
+//[my_calc]
 [math]
 
 //## Circle
@@ -28,23 +28,31 @@
 //# set_point_y(p *Point, y int)
 //  p.y = y
 
-# add(x int, y int) int
-  return x + y
+//# add(x int, y int) int
+//  return x + y
 
 # main() int
-  - a = 42
+  //- a = 42
   //a = 19
 
-  - f = math.sqrt(49.0)
+  //- f = math.sqrt(49.0)
   //- answer = input("Press Enter to continue...")
   //print("Your answer is:", answer, a)
   //for i in 10
   //  print("Foo")
 
 
-  print("    >> math.PI:", math.PI)
-  print("    >> math.E: ", math.E)
-  print("    >> f =", f)
+  //print("    >> math.PI:", math.PI)
+  //print("    >> math.E: ", math.E)
+  //print("    >> f =", f)
+
+  - v math.Vec3
+
+  v.x = 12.34
+
+  print(">>>>>>>>>> v.x =", v.x)
+  //- p Point
+  return 12
 
   //- fp = exit
   //- b = 242301
@@ -54,7 +62,7 @@
   //- s = "Hello!"
   //print(a, b, c, d, f, s)
   //print(my_calc.UINT8_MAX)
-  return a
+  //return a
   //exit(111)
 
   //- p = Point { x = 31, y = 79 }
