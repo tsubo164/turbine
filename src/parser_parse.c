@@ -256,12 +256,12 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
 }
 
 /*
- * primary_expr =
- *     IntNum |
- *     FpNum |
- *     StringLit |
- *     primary_expr selector
- */
+primary_expr ::= "nil" | "true" | "false"
+    | int_lit | float_lit | string_lit | array_lit | struct_lit
+    | "(" expression ")"
+    | indentifier
+    | conv_expr
+*/
 static struct parser_expr *primary_expr(struct parser *p)
 {
     if (consume(p, TOK_NIL))
@@ -314,6 +314,24 @@ static struct parser_expr *primary_expr(struct parser *p)
         return parser_new_ident_expr(sym);
     }
 
+    if (consume(p, TOK_IDENT)) {
+        struct parser_expr *expr = NULL;
+        struct parser_symbol *sym = parser_find_symbol(p->scope, tok_str(p));
+
+        if (!sym) {
+            error(p, tok_pos(p),
+                    "undefined identifier: '%s'",
+                    tok_str(p));
+        }
+        if (sym->kind == SYM_FUNC)
+            expr = parser_new_funclit_expr(sym->func);
+        else if (sym->kind == SYM_STRUCT)
+            expr = struct_lit_expr(p, sym);
+        else
+            expr = parser_new_ident_expr(sym);
+        return expr;
+    }
+
     const int next = peek(p);
     switch (next) {
     case TOK_BOOL:
@@ -324,27 +342,25 @@ static struct parser_expr *primary_expr(struct parser *p)
         break;
     }
 
-    struct parser_expr *expr = NULL;
+    /* error */
+    return NULL;
+}
+
+/*
+postfix_expr ::= primary_expr
+    | postfix_expr "." identifier
+    | postfix_expr "[" expression "]"
+    | postfix_expr "(" arg_list ")"
+*/
+static struct parser_expr *postfix_expr(struct parser *p)
+{
+    struct parser_expr *expr = primary_expr(p);
 
     for (;;) {
+
         const struct parser_token *tok = gettok(p);
 
-        if (tok->kind == TOK_IDENT) {
-            struct parser_symbol *sym = parser_find_symbol(p->scope, tok->sval);
-            if (!sym) {
-                error(p, tok_pos(p),
-                        "undefined identifier: '%s'",
-                        tok_str(p));
-            }
-            if (sym->kind == SYM_FUNC)
-                expr = parser_new_funclit_expr(sym->func);
-            else if (sym->kind == SYM_STRUCT)
-                expr = struct_lit_expr(p, sym);
-            else
-                expr = parser_new_ident_expr(sym);
-            continue;
-        }
-        else if (tok->kind == TOK_LPAREN) {
+        if (tok->kind == TOK_LPAREN) {
             if (!expr || !parser_is_func_type(expr->type)) {
                 error(p, tok_pos(p),
                         "call operator must be used for function type");
@@ -427,9 +443,9 @@ static struct parser_expr *primary_expr(struct parser *p)
 }
 
 /*
- * unary_expr = primary_expr (unary_op primary_expr)*
- * unary_op   = "+" | "-" | "!" | "~"
- */
+unary_expr ::= primary_expr (unary_op primary_expr)*
+unary_op   ::= "+" | "-" | "!" | "~"
+*/
 static struct parser_expr *unary_expr(struct parser *p)
 {
     const struct parser_token *tok = gettok(p);
@@ -467,7 +483,7 @@ static struct parser_expr *unary_expr(struct parser *p)
 
     default:
         ungettok(p);
-        return primary_expr(p);
+        return postfix_expr(p);
     }
 }
 
