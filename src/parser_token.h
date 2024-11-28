@@ -107,7 +107,7 @@ struct parser_token {
     struct parser_token *next;
 };
 
-const struct parser_token *parser_tokenize(const char *src);
+const struct parser_token *parser_tokenize(const char *src, const char *filename);
 const char *parser_get_token_string(int kind);
 
 #endif /* _H */

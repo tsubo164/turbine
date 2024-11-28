@@ -1082,6 +1082,15 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
     struct parser_type *type = NULL;
     struct parser_expr *init = NULL;
 
+    if (isglobal && name[0] != '_')
+        error(p, ident_pos,
+                "global variable names must have exactly one leading"
+                "and one trailing underscore");
+
+    if (!isglobal && name[0] == '_')
+        error(p, ident_pos,
+                "global variable name used in local scope");
+
     /* type and init */
     if (consume(p, TOK_EQUAL)) {
         /* "- x = 42" */
@@ -1452,7 +1461,7 @@ static void module_import(struct parser *p)
         }
 
         /* parse module file */
-        const struct parser_token *tok = parser_tokenize(text);
+        const struct parser_token *tok = parser_tokenize(text, module_filename);
         struct parser_source source = {0};
         struct parser_search_path paths;
 

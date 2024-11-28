@@ -263,11 +263,11 @@ int main(int argc, char **argv)
     }
     {
         const char *input = 
-            "- gcount int\n"
-            "- gvar int\n"
+            "- _count_ int\n"
+            "- _var_ int\n"
             "\n"
             "# seven() int\n"
-            "    gvar = 119\n"
+            "    _var_ = 119\n"
             "    return 7\n"
             "\n"
             "# add(x int, y int) int\n"
@@ -281,7 +281,7 @@ int main(int argc, char **argv)
             "\n"
             "# main() int\n"
             "    seven()\n"
-            "    return gvar\n"
+            "    return _var_\n"
             "    return seven() + add(30, 5)\n"
             ;
 
@@ -318,17 +318,17 @@ int main(int argc, char **argv)
             "  - x int\n"
             "  - y int\n"
             "\n"
-            "- pt Point\n"
+            "- _pt_ Point\n"
             "\n"
             "# add(a int, b int) int\n"
             "  return a + b\n"
             "\n"
             "# main() int\n"
             "  - a int\n"
-            "  pt.x = 2\n"
-            "  pt.y = 3\n"
-            "  a = pt.y\n"
-            "  return pt.x + pt.y\n"
+            "  _pt_.x = 2\n"
+            "  _pt_.y = 3\n"
+            "  a = _pt_.y\n"
+            "  return _pt_.x + _pt_.y\n"
             ;
 
         ASSERTL(5, interpret_source(input, filename, &opt));
@@ -846,9 +846,9 @@ int main(int argc, char **argv)
     {
         // global var init
         const char *input = 
-            "- g int = 39\n"
+            "- _g_ int = 39\n"
             "# main() int\n"
-            "  return g\n"
+            "  return _g_\n"
             ;
 
         ASSERTL(39, interpret_source(input, filename, &opt));

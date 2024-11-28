@@ -49,7 +49,7 @@ int64_t interpret_source(const char *text, const char *filename,
     define_builtin_functions(&builtin);
 
     /* tokenize */
-    tok = parser_tokenize(text);
+    tok = parser_tokenize(text, filename);
 
     /* print token */
     if (opt->print_token) {

@@ -1,10 +1,10 @@
 [my_calc]
 
-- test_count int
+- _test_count_ int
 
 // asserts bool
 # AssertB(expected bool, actual bool, $caller_line)
-  test_count++
+  _test_count_++
 
   if expected != actual
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
@@ -12,7 +12,7 @@
 
 // asserts int
 # AssertI(expected int, actual int, $caller_line)
-  test_count++
+  _test_count_++
 
   if expected != actual
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
@@ -20,7 +20,7 @@
 
 // asserts float
 # AssertF(expected float, actual float, $caller_line)
-  test_count++
+  _test_count_++
 
   if expected != actual
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
@@ -65,25 +65,25 @@
 # set_point_y(p *Point, y int)
   p.y = y
 
-- pt Point
-- g_center = Point { y = 117 }
-- g_P = Point { y = -238, x = 1178 }
-- g_Q = g_P
+- _pt_ Point
+- _center_ = Point { y = 117 }
+- _P_ = Point { y = -238, x = 1178 }
+- _Q_ = _P_
 
 // global pointer to function
-- addfp = add
+- _addfp_ = add
 
 # twice(n *int)
   *n = *n * 2
 
-- g_array [4]int
+- _array_ [4]int
 
-- gcount int
-- gvar int
-- g int = 39
+- _gcount_ int
+- _gvar_ int
+- _g_ int = 39
     
 # set_gvar() int
-  gvar = 119
+  _gvar_ = 119
 
 :: Color
   | R // 0
@@ -246,19 +246,19 @@
     AssertI(42, a)
 
   ---
-    AssertI(0, gvar)
+    AssertI(0, _gvar_)
     set_gvar()
-    AssertI(119, gvar)
+    AssertI(119, _gvar_)
 
   ---
     AssertI(42, foo(10) + add(20, 3))
 
   ---
     - a int
-    pt.x = 2
-    pt.y = 3
-    a = pt.y
-    AssertI(5, pt.x + pt.y)
+    _pt_.x = 2
+    _pt_.y = 3
+    a = _pt_.y
+    AssertI(5, _pt_.x + _pt_.y)
 
   ---
     - f float
@@ -567,7 +567,7 @@
 
   ---
     // global var init
-    AssertI(39, g)
+    AssertI(39, _g_)
 
   ---
     // local var type
@@ -761,8 +761,8 @@
 
   // global array variable
   ---
-    g_array[3] = 99
-    AssertI(99, g_array[3])
+    _array_[3] = 99
+    AssertI(99, _array_[3])
 
   // table
   ---
@@ -773,9 +773,9 @@
 
   // module import
   ---
-    AssertF(3.1415, my_calc.PI)
-    my_calc.PI = 1.23
-    AssertF(1.23, my_calc.PI)
+    AssertF(3.1415, my_calc._PI_)
+    my_calc._PI_ = 1.23
+    AssertF(1.23, my_calc._PI_)
     AssertI(42, my_calc.add(31, 11))
 
   // for zero times loop
@@ -788,7 +788,7 @@
 
   // global pointer to function
   ---
-    AssertI(2222, addfp(19, 2203))
+    AssertI(2222, _addfp_(19, 2203))
 
   // local pointer to function
   ---
@@ -838,13 +838,13 @@
 
   // global struct initialization
   ---
-    AssertI(0,   g_center.x)
-    AssertI(117, g_center.y)
+    AssertI(0,   _center_.x)
+    AssertI(117, _center_.y)
 
   // global struct initialization
   ---
-    AssertI(1178, g_Q.x)
-    AssertI(-238, g_Q.y)
+    AssertI(1178, _Q_.x)
+    AssertI(-238, _Q_.y)
 
   // struct assignment
   ---
@@ -879,6 +879,6 @@
     AssertI(4299, p.y)
 
   //------------------------------
-  print(test_count, "tests done.")
+  print(_test_count_, "tests done.")
 
   return 0

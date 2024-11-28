@@ -132,6 +132,8 @@ struct lexer {
     struct parser_pos pos;
     int prevx;
 
+    const char *filename;
+
     /* indent */
     int indent_stack[MAX_INDENT];
     int sp;
@@ -144,14 +146,14 @@ static void error(const struct lexer *l, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    /* TODO print file name */
-    parser_error_va(l->src, "fixme.ro", l->pos.x, l->pos.y, fmt, args);
+    parser_error_va(l->src, l->filename, l->pos.x, l->pos.y, fmt, args);
     va_end(args);
 }
 
-static void set_input(struct lexer *l, const char *src)
+static void set_input(struct lexer *l, const char *src, const char *filename)
 {
     l->src = src;
+    l->filename = filename;
 
     /* init */
     l->itr = l->src;
@@ -325,12 +327,34 @@ static bool isword(int ch)
     return isalnum(ch) || ch == '_';
 }
 
+static void validate_underscores(struct lexer *l, const char *name)
+{
+    int leading = 0;
+    int trailing = 0;
+    const char *p = name;
+
+    for (; *p == '_'; p++)
+        leading++;
+
+    for (; *p; p++)
+        trailing = *p == '_' ? trailing + 1 : 0;
+
+    if (leading == 0 && trailing == 0)
+        return;
+
+    if (leading == 1 && trailing == 1)
+        return;
+
+    error(l, "leading and trailing underscores must be either both absent or both single");
+}
+
 static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
-    /* TODO take care of buffer overflow */
+    /* TODO consider defining LANG_MAX_IDENT_LEN */
     static char buf[128] = {'\0'};
     char *p = buf;
     int len = 0;
+    int alphas = 0;
 
     int first = get(l);
     if (first == '$' || isword(first)) {
@@ -338,16 +362,28 @@ static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_p
         len++;
     }
 
+    if (isalpha(first))
+        alphas++;
+
     for (int ch = get(l); isword(ch); ch = get(l)) {
         *p++ = ch;
         len++;
         if (len == sizeof(buf)) {
-            /* error */
+            error(l, "too long identifier name. it must have less than %d characters.",
+                    sizeof(buf) / sizeof(buf[0]));
         }
+
+        if (isalpha(ch))
+            alphas++;
     }
     *p = '\0';
 
     unget(l);
+
+    if (alphas == 0)
+        error(l, "identifier must have at least one alphabet");
+
+    validate_underscores(l, buf);
 
     int kind = keyword_or_ident(buf);
     tok->sval = data_string_intern(buf);
@@ -790,7 +826,7 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         }
 
         /* word */
-        if (isalpha(ch)) {
+        if (isalpha(ch) || ch == '_') {
             unget(l);
             scan_word(l, tok, pos);
             return;
@@ -860,10 +896,10 @@ static struct parser_token *new_token(int kind)
     return t;
 }
 
-const struct parser_token *parser_tokenize(const char *src)
+const struct parser_token *parser_tokenize(const char *src, const char *filename)
 {
     struct lexer l = {0};
-    set_input(&l, src);
+    set_input(&l, src, filename);
 
     struct parser_token *head = new_token(TOK_ROOT);
     struct parser_token *tail = head;
