@@ -175,26 +175,22 @@ static struct parser_expr *arg_list(struct parser *p, struct parser_expr *call)
     return call;
 }
 
-static struct parser_expr *conv_expr(struct parser *p, int kind)
+static struct parser_expr *conv_expr(struct parser *p)
 {
     struct parser_type *to_type = type_spec(p);
     const struct parser_pos tokpos = tok_pos(p);
 
     expect(p, TOK_LPAREN);
     struct parser_expr *expr = expression(p);
+    const struct parser_type *from_type = expr->type;
     expect(p, TOK_RPAREN);
 
-    switch (expr->type->kind) {
-    case TYP_BOOL:
-    case TYP_INT:
-    case TYP_FLOAT:
-        break;
-    default:
-        error(p, tokpos,
-                "unable to convert type from '%s' to '%s'",
-                parser_type_string(expr->type),
+    if (from_type->kind != TYP_BOOL &&
+        from_type->kind != TYP_INT &&
+        from_type->kind != TYP_FLOAT) {
+        error(p, tokpos, "unable to convert type from '%s' to '%s'",
+                parser_type_string(from_type),
                 parser_type_string(to_type));
-        break;
     }
 
     return parser_new_conversion_expr(expr, to_type);
@@ -202,10 +198,14 @@ static struct parser_expr *conv_expr(struct parser *p, int kind)
 
 static struct parser_expr *array_lit_expr(struct parser *p)
 {
-    struct parser_expr *expr = expression(p);
-    struct parser_expr *e = expr;
-    const struct parser_type *elem_type = expr->type;
+    struct parser_expr *expr, *e;
+    const struct parser_type *elem_type;
     int len = 1;
+
+    expect(p, TOK_LBRACK);
+    expr = expression(p);
+    e = expr;
+    elem_type = expr->type;
 
     while (consume(p, TOK_COMMA)) {
         e = e->next = expression(p);
@@ -217,8 +217,8 @@ static struct parser_expr *array_lit_expr(struct parser *p)
         }
         len++;
     }
-    expect(p, TOK_RBRACK);
 
+    expect(p, TOK_RBRACK);
     return parser_new_arraylit_expr(expr, len);
 }
 
@@ -255,6 +255,70 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
     return parser_new_structlit_expr(strct, elems);
 }
 
+static struct parser_expr *string_lit_expr(struct parser *p)
+{
+    struct parser_expr *expr;
+    const struct parser_token *tok;
+
+    expect(p, TOK_STRINGLIT);
+
+    expr = parser_new_stringlit_expr(tok_str(p));
+    tok = curtok(p);
+
+    if (tok->has_escseq) {
+        int errpos = parser_convert_escape_sequence(expr->sval, &expr->converted);
+
+        if (errpos != -1) {
+            printf("!! expr->val.s [%s] errpos %d\n", expr->sval, errpos);
+            struct parser_pos pos = tok->pos;
+            pos.x += errpos + 1;
+            error(p, pos, "unknown escape sequence");
+        }
+    }
+
+    return expr;
+}
+
+static struct parser_expr *caller_line_expr(struct parser *p)
+{
+    struct parser_symbol *sym;
+
+    expect(p, TOK_CALLER_LINE);
+    sym = parser_find_symbol(p->scope, tok_str(p));
+
+    if (!sym) {
+        error(p, tok_pos(p),
+                "special variable '%s' not declared in parameters",
+                tok_str(p));
+    }
+
+    return parser_new_ident_expr(sym);
+}
+
+static struct parser_expr *ident_expr(struct parser *p)
+{
+    struct parser_expr *expr;
+    struct parser_symbol *sym;
+
+    expect(p, TOK_IDENT);
+    sym = parser_find_symbol(p->scope, tok_str(p));
+
+    if (!sym) {
+        error(p, tok_pos(p),
+                "undefined identifier: '%s'",
+                tok_str(p));
+    }
+
+    if (sym->kind == SYM_FUNC)
+        expr = parser_new_funclit_expr(sym->func);
+    else if (sym->kind == SYM_STRUCT)
+        expr = struct_lit_expr(p, sym);
+    else
+        expr = parser_new_ident_expr(sym);
+
+    return expr;
+}
+
 /*
 primary_expr ::= "nil" | "true" | "false"
     | int_lit | float_lit | string_lit | array_lit | struct_lit
@@ -264,86 +328,60 @@ primary_expr ::= "nil" | "true" | "false"
 */
 static struct parser_expr *primary_expr(struct parser *p)
 {
-    if (consume(p, TOK_NIL))
+    int next = peek(p);
+
+    switch (next) {
+
+    case TOK_NIL:
+        gettok(p);
         return parser_new_nillit_expr();
 
-    if (consume(p, TOK_TRUE))
+    case TOK_TRUE:
+        gettok(p);
         return parser_new_boollit_expr(true);
 
-    if (consume(p, TOK_FALSE))
+    case TOK_FALSE:
+        gettok(p);
         return parser_new_boollit_expr(false);
 
-    if (consume(p, TOK_INTLIT))
+    case TOK_INTLIT:
+        gettok(p);
         return parser_new_intlit_expr(tok_int(p));
 
-    if (consume(p, TOK_FLOATLIT))
+    case TOK_FLOATLIT:
+        gettok(p);
         return parser_new_floatlit_expr(tok_float(p));
 
-    if (consume(p, TOK_STRINGLIT)) {
-        struct parser_expr *e = parser_new_stringlit_expr(tok_str(p));
-        const struct parser_token *tok = curtok(p);
-        if (tok->has_escseq) {
-            const int errpos = parser_convert_escape_sequence(e->sval, &e->converted);
-            if (errpos != -1) {
-                printf("!! e->val.s [%s] errpos %d\n", e->sval, errpos);
-                struct parser_pos pos = tok->pos;
-                pos.x += errpos + 1;
-                error(p, pos, "unknown escape sequence");
-            }
-        }
-        return e;
-    }
+    case TOK_STRINGLIT:
+        return string_lit_expr(p);
 
-    if (consume(p, TOK_LBRACK)) {
+    case TOK_LBRACK:
         return array_lit_expr(p);
-    }
 
-    if (consume(p, TOK_LPAREN)) {
-        struct parser_expr *e = expression(p);
-        expect(p, TOK_RPAREN);
-        return e;
-    }
-
-    if (consume(p, TOK_CALLER_LINE)) {
-        struct parser_symbol *sym = parser_find_symbol(p->scope, tok_str(p));
-        if (!sym) {
-            error(p, tok_pos(p),
-                    "special variable '%s' not declared in parameters",
-                    tok_str(p));
+    case TOK_LPAREN:
+        {
+            expect(p, TOK_LPAREN);
+            struct parser_expr *expr = expression(p);
+            expect(p, TOK_RPAREN);
+            return expr;
         }
-        return parser_new_ident_expr(sym);
-    }
 
-    if (consume(p, TOK_IDENT)) {
-        struct parser_expr *expr = NULL;
-        struct parser_symbol *sym = parser_find_symbol(p->scope, tok_str(p));
+    case TOK_IDENT:
+        return ident_expr(p);
 
-        if (!sym) {
-            error(p, tok_pos(p),
-                    "undefined identifier: '%s'",
-                    tok_str(p));
-        }
-        if (sym->kind == SYM_FUNC)
-            expr = parser_new_funclit_expr(sym->func);
-        else if (sym->kind == SYM_STRUCT)
-            expr = struct_lit_expr(p, sym);
-        else
-            expr = parser_new_ident_expr(sym);
-        return expr;
-    }
+    case TOK_CALLER_LINE:
+        return caller_line_expr(p);
 
-    const int next = peek(p);
-    switch (next) {
     case TOK_BOOL:
     case TOK_INT:
     case TOK_FLOAT:
-        return conv_expr(p, next);
-    default:
-        break;
-    }
+        return conv_expr(p);
 
-    /* error */
-    return NULL;
+    default:
+        gettok(p);
+        error(p, tok_pos(p), "unknown token");
+        return NULL;
+    }
 }
 
 /*
@@ -395,9 +433,8 @@ static struct parser_expr *postfix_expr(struct parser *p)
             else if (parser_is_module_type(expr->type)) {
                 struct parser_scope *cur = p->scope;
                 p->scope = expr->type->module->scope;
-                struct parser_expr *r = primary_expr(p);
+                expr = parser_new_module_expr(expr, ident_expr(p));
                 p->scope = cur;
-                expr = parser_new_module_expr(expr, r);
             }
             else {
                 error(p, tok_pos(p),
