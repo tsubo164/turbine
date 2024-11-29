@@ -13,6 +13,9 @@ test: all
 	@echo "[Rock tests]"
 	../rock test.ro
 	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[math module tests]"
+	../rock test_math.ro
+	@echo "\033[0;32mOK\033[0;39m"
 
 libtest: libtest.out
 	@echo "[C tests]"

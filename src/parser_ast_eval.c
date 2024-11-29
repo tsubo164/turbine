@@ -72,6 +72,9 @@ bool parser_eval_expr(const struct parser_expr *e, int64_t *result)
 {
     switch (e->kind) {
 
+    case NOD_EXPR_MODULE:
+        return parser_eval_expr(e->r, result);
+
     case NOD_EXPR_INTLIT:
         *result = e->ival;
         return true;
@@ -93,6 +96,7 @@ bool parser_eval_expr(const struct parser_expr *e, int64_t *result)
     }
 }
 
+/* TODO remove this */
 bool parser_eval_addr(const struct parser_expr *e, int *result)
 {
     switch (e->kind) {

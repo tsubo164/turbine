@@ -134,6 +134,10 @@ static int gen_struct_lit(struct code_bytecode *code, const struct parser_expr *
         const struct parser_type *type, /* XXX TEMP */
         int dst_reg)
 {
+    if (e && e->kind == NOD_EXPR_MODULE) {
+        return gen_struct_lit(code, e->r, e->r->type, dst_reg);
+    }
+
     /* XXX TEMP */
     if (e && e->kind == NOD_EXPR_IDENT) {
         /* initialized by another object */

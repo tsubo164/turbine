@@ -50,14 +50,15 @@ int builtin_define_module_math(struct parser_scope *scope)
     */
 
     {
-        const char *name = "PI";
+        /* TODO ensure global names have leading and traing underscore */
+        const char *name = "_PI_";
         const struct parser_type *type = parser_new_float_type();
         bool isglobal = true;
 
         parser_define_var(mod->scope, name, type, isglobal);
     }
     {
-        const char *name = "E";
+        const char *name = "_E_";
         const struct parser_type *type = parser_new_float_type();
         bool isglobal = true;
 

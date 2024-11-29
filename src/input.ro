@@ -41,17 +41,10 @@
   //for i in 10
   //  print("Foo")
 
+  //for i in 10
+  //  print(i)
+  //- v math.Vec3
 
-  //print("    >> math.PI:", math.PI)
-  //print("    >> math.E: ", math.E)
-  //print("    >> f =", f)
-
-  - v math.Vec3
-
-  v.x = 12.34
-
-  print(">>>>>>>>>> v.x =", v.x)
-  //- p Point
   return 12
 
   //- fp = exit
