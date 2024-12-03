@@ -39,8 +39,8 @@ struct code_bytecode {
     /* back patches */
     struct data_intstack ors;
     struct data_intstack breaks;
-    struct data_intstack continues;
     struct data_intstack casecloses;
+    struct data_intstack forrests;
 };
 
 /* registers */
@@ -135,16 +135,24 @@ void code_begin_for(struct code_bytecode *code);
 void code_begin_switch(struct code_bytecode *code);
 void code_push_else_end(struct code_bytecode *code, int64_t addr);
 void code_push_break(struct code_bytecode *code, int64_t addr);
-void code_push_continue(struct code_bytecode *code, int64_t addr);
 void code_push_case_end(struct code_bytecode *code, int64_t addr);
 
+/* push/pop/top the destination of `continue`s */
+void code_push_forrest(struct code_bytecode *code, int64_t addr);
+void code_pop_forrest(struct code_bytecode *code);
+int64_t code_top_forrest(const struct code_bytecode *code);
+
 /*
- * jump instructions return the address
+ * jump and loop instructions return the address
  * where the destination address is stored.
  */
 int64_t code_emit_jump(struct code_bytecode *code, int64_t addr);
 int64_t code_emit_jump_if_zero(struct code_bytecode *code, int src, int64_t addr);
 int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int src, int64_t addr);
+
+/* loop */
+int64_t code_emit_fornum_init(struct code_bytecode *code, int itr);
+int64_t code_emit_fornum_rest(struct code_bytecode *code, int itr);
 
 /* conversion */
 int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src);
@@ -161,7 +169,6 @@ void code_emit_halt(struct code_bytecode *code);
 void code_back_patch(struct code_bytecode *code, int64_t operand_addr);
 void code_back_patch_breaks(struct code_bytecode *code);
 void code_back_patch_else_ends(struct code_bytecode *code);
-void code_back_patch_continues(struct code_bytecode *code);
 void code_backpatch_case_ends(struct code_bytecode *code);
 
 /* read/write/address */

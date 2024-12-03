@@ -587,7 +587,6 @@ void code_begin_if(struct code_bytecode *code)
 void code_begin_for(struct code_bytecode *code)
 {
     data_intstack_push(&code->breaks, -1);
-    data_intstack_push(&code->continues, -1);
 }
 
 void code_begin_switch(struct code_bytecode *code)
@@ -605,18 +604,28 @@ void code_push_break(struct code_bytecode *code, int64_t addr)
     data_intstack_push(&code->breaks, addr);
 }
 
-void code_push_continue(struct code_bytecode *code, int64_t addr)
-{
-    data_intstack_push(&code->continues, addr);
-}
-
 void code_push_case_end(struct code_bytecode *code, int64_t addr)
 {
     data_intstack_push(&code->casecloses, addr);
 }
 
+void code_push_forrest(struct code_bytecode *code, int64_t addr)
+{
+    data_intstack_push(&code->forrests, addr);
+}
+
+void code_pop_forrest(struct code_bytecode *code)
+{
+    data_intstack_pop(&code->forrests);
+}
+
+int64_t code_top_forrest(const struct code_bytecode *code)
+{
+    return data_intstack_top(&code->forrests);
+}
+
 /*
- * jump instructions return the address
+ * jump and loop instructions return the address
  * where the destination address is stored.
  */
 int64_t code_emit_jump(struct code_bytecode *code, int64_t addr)
@@ -637,6 +646,21 @@ int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int id, int64_t a
 {
     int64_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_JUMPIFNOTZ, id, addr);
+    return operand_addr;
+}
+
+/* loop */
+int64_t code_emit_fornum_init(struct code_bytecode *code, int itr)
+{
+    int64_t operand_addr = code_get_next_addr(code);
+    push_inst_abb(code, OP_FORNUMINIT, itr, -1);
+    return operand_addr;
+}
+
+int64_t code_emit_fornum_rest(struct code_bytecode *code, int itr)
+{
+    int64_t operand_addr = code_get_next_addr(code);
+    push_inst_abb(code, OP_FORNUMREST, itr, -1);
     return operand_addr;
 }
 
@@ -707,16 +731,6 @@ void code_back_patch_else_ends(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->ors)) {
         int64_t addr = data_intstack_pop(&code->ors);
-        if (addr == -1)
-            break;
-        code_back_patch(code, addr);
-    }
-}
-
-void code_back_patch_continues(struct code_bytecode *code)
-{
-    while (!data_intstack_is_empty(&code->continues)) {
-        int64_t addr = data_intstack_pop(&code->continues);
         if (addr == -1)
             break;
         code_back_patch(code, addr);

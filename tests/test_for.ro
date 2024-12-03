@@ -1,0 +1,60 @@
+[test1]
+
+# main() int
+
+  ---
+    // "for" statment
+    - j int
+    j = 0
+    for i in 10
+        j = j + 2
+    test1.AssertI(20, j)
+
+  // TODO consider removing or implementing other way
+  //---
+  //  // "for" statment while style
+  //  - i int
+  //  i = 0
+  //  for i < 10
+  //      i++
+  //  test1.AssertI(10, i)
+
+  //---
+  //  // "for" statment infinite loop
+  //  - i int
+  //  i = 0
+  //  for
+  //    i++
+  //    if i == 8
+  //      break
+  //  test1.AssertI(8, i)
+
+  ---
+    // "break" statment
+    - i int
+    for j in 10
+      if j == 5
+        break
+      i++
+    test1.AssertI(5, i)
+
+  ---
+    // "continue" statment
+    - j int
+    j = 0
+    for i in 10
+      if i % 2 == 0
+        continue
+      j++
+    test1.AssertI(5, j)
+
+  // for zero times loop
+  ---
+    - a = 13
+    for i in 0
+      a *= 2
+    test1.AssertI(13, a)
+
+  print(test1._test_count_, "tests done.")
+
+  return 0

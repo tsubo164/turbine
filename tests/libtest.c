@@ -413,7 +413,7 @@ int main(int argc, char **argv)
         ASSERTL(11, interpret_source(input, filename, &opt));
     }
     {
-        // '-' operator and order of eval args
+        /* '-' operator and order of eval args */
         const char *input = 
             "# sub(x int, y int) int\n"
             "    return x - y\n"
@@ -424,7 +424,7 @@ int main(int argc, char **argv)
         ASSERTL(5, interpret_source(input, filename, &opt));
     }
     {
-        // '*' operator
+        /* '*' operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -437,7 +437,7 @@ int main(int argc, char **argv)
         ASSERTL(10, interpret_source(input, filename, &opt));
     }
     {
-        // '/' operator
+        /* '/' operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -450,7 +450,7 @@ int main(int argc, char **argv)
         ASSERTL(42, interpret_source(input, filename, &opt));
     }
     {
-        // '%' operator
+        /* '%' operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -463,7 +463,7 @@ int main(int argc, char **argv)
         ASSERTL(41, interpret_source(input, filename, &opt));
     }
     {
-        // '(' expr ')'
+        /* '(' expr ')' */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -476,7 +476,7 @@ int main(int argc, char **argv)
         ASSERTL(42, interpret_source(input, filename, &opt));
     }
     {
-        // "||" operator
+        /* "||" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -489,7 +489,7 @@ int main(int argc, char **argv)
         ASSERTL(1, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // "||" operator
+        /* "||" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -502,7 +502,7 @@ int main(int argc, char **argv)
         ASSERTL(0, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // "&&" operator
+        /* "&&" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -515,7 +515,7 @@ int main(int argc, char **argv)
         ASSERTL(0, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // "&&" operator
+        /* "&&" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -528,7 +528,7 @@ int main(int argc, char **argv)
         ASSERTL(1, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // "+" unary operator
+        /* "+" unary operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -539,7 +539,7 @@ int main(int argc, char **argv)
         ASSERTL(7, interpret_source(input, filename, &opt));
     }
     {
-        // "-" unary operator
+        /* "-" unary operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -550,7 +550,7 @@ int main(int argc, char **argv)
         ASSERTL(-42, interpret_source(input, filename, &opt));
     }
     {
-        // "-+" unary operator
+        /* "-+" unary operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -561,7 +561,7 @@ int main(int argc, char **argv)
         ASSERTL(-42, interpret_source(input, filename, &opt));
     }
     {
-        // "!" unary operator
+        /* "!" unary operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -572,7 +572,7 @@ int main(int argc, char **argv)
         ASSERTL(1, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // "!" unary operator
+        /* "!" unary operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -583,7 +583,7 @@ int main(int argc, char **argv)
         ASSERTL(0, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // "<" operator
+        /* "<" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -594,7 +594,7 @@ int main(int argc, char **argv)
         ASSERTL(0, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // "<=" operator
+        /* "<=" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -605,7 +605,7 @@ int main(int argc, char **argv)
         ASSERTL(1, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // ">" operator
+        /* ">" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -616,7 +616,7 @@ int main(int argc, char **argv)
         ASSERTL(1, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // ">=" operator
+        /* ">=" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -627,7 +627,7 @@ int main(int argc, char **argv)
         ASSERTL(1, interpret_source(input, filename, &opt) != 0);
     }
     {
-        // "++" operator
+        /* "++" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -639,7 +639,7 @@ int main(int argc, char **argv)
         ASSERTL(43, interpret_source(input, filename, &opt));
     }
     {
-        // "--" operator
+        /* "--" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -651,7 +651,7 @@ int main(int argc, char **argv)
         ASSERTL(41, interpret_source(input, filename, &opt));
     }
     {
-        // "&" operator
+        /* "&" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -662,7 +662,7 @@ int main(int argc, char **argv)
         ASSERTL(0xA9, interpret_source(input, filename, &opt));
     }
     {
-        // "|" operator
+        /* "|" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -673,7 +673,7 @@ int main(int argc, char **argv)
         ASSERTL(0xFFF, interpret_source(input, filename, &opt));
     }
     {
-        // "~" operator
+        /* "~" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -684,7 +684,7 @@ int main(int argc, char **argv)
         ASSERTL(0x7, interpret_source(input, filename, &opt));
     }
     {
-        // "^" operator
+        /* "^" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -695,7 +695,7 @@ int main(int argc, char **argv)
         ASSERTL(0x88, interpret_source(input, filename, &opt));
     }
     {
-        // "<<" operator
+        /* "<<" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -706,7 +706,7 @@ int main(int argc, char **argv)
         ASSERTL(0x40, interpret_source(input, filename, &opt));
     }
     {
-        // ">>" operator
+        /* ">>" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -717,21 +717,23 @@ int main(int argc, char **argv)
         ASSERTL(0x08, interpret_source(input, filename, &opt));
     }
     {
-        // "for" statment
+        /* "for" statment */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    - j int\n"
             "    j = 0\n"
-            "    for i = 0; i < 10; i++\n"
+            "    for i in 10\n"
             "        j = j + 2\n"
             "    return j\n"
             ;
 
         ASSERTL(20, interpret_source(input, filename, &opt));
     }
+    /* TODO consider removing or implementing other way */
+#if 0
     {
-        // "for" statment while style
+        /* "for" statment while style */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
@@ -744,7 +746,7 @@ int main(int argc, char **argv)
         ASSERTL(10, interpret_source(input, filename, &opt));
     }
     {
-        // "for" statment infinite loop
+        /* "for" statment infinite loop */
         const char *input = 
             "# main() int\n"
             "  - i int\n"
@@ -758,27 +760,28 @@ int main(int argc, char **argv)
 
         ASSERTL(8, interpret_source(input, filename, &opt));
     }
+#endif
     {
-        // "break" statment
+        /* "break" statment */
         const char *input = 
             "# main() int\n"
             "  - i int\n"
-            "  for i = 0; i < 10; i++\n"
-            "    if i == 5\n"
+            "  for j in 10\n"
+            "    if j == 5\n"
             "      break\n"
+            "    i++\n"
             "  return i\n"
             ;
 
         ASSERTL(5, interpret_source(input, filename, &opt));
     }
     {
-        // "continue" statment
+        /* "continue" statment */
         const char *input = 
             "# main() int\n"
-            "  - i int\n"
             "  - j int\n"
             "  j = 0\n"
-            "  for i = 0; i < 10; i++\n"
+            "  for i in 10\n"
             "    if i % 2 == 0\n"
             "      continue\n"
             "    j++\n"
@@ -788,7 +791,7 @@ int main(int argc, char **argv)
         ASSERTL(5, interpret_source(input, filename, &opt));
     }
     {
-        // "switch" statment
+        /* "switch" statment */
         const char *input = 
             "# main() int\n"
             "  - i int\n"
@@ -810,7 +813,7 @@ int main(int argc, char **argv)
         ASSERTL(34, interpret_source(input, filename, &opt));
     }
     {
-        // "default" statment
+        /* "default" statment */
         const char *input = 
             "# main() int\n"
             "  - i int\n"
@@ -834,7 +837,7 @@ int main(int argc, char **argv)
         ASSERTL(99, interpret_source(input, filename, &opt));
     }
     {
-        // local var init
+        /* local var init */
         const char *input = 
             "# main() int\n"
             "  - i int = 42\n"
@@ -844,7 +847,7 @@ int main(int argc, char **argv)
         ASSERTL(42, interpret_source(input, filename, &opt));
     }
     {
-        // global var init
+        /* global var init */
         const char *input = 
             "- _g_ int = 39\n"
             "# main() int\n"
@@ -854,7 +857,7 @@ int main(int argc, char **argv)
         ASSERTL(39, interpret_source(input, filename, &opt));
     }
     {
-        // local var type
+        /* local var type */
         const char *input = 
             "# main() int\n"
             "  - i = 41\n"
@@ -864,7 +867,7 @@ int main(int argc, char **argv)
         ASSERTL(41, interpret_source(input, filename, &opt));
     }
     {
-        // local var type
+        /* local var type */
         const char *input = 
             "# main() int\n"
             "  - i = 41\n"
@@ -878,7 +881,7 @@ int main(int argc, char **argv)
         ASSERTL(9, interpret_source(input, filename, &opt));
     }
     {
-        // "+=" operator
+        /* "+=" operator */
         const char *input = 
             "# main() int\n"
             "  - i = 42\n"
@@ -889,7 +892,7 @@ int main(int argc, char **argv)
         ASSERTL(46, interpret_source(input, filename, &opt));
     }
     {
-        // "-=" operator
+        /* "-=" operator */
         const char *input = 
             "# main() int\n"
             "  - i = 42\n"
@@ -900,7 +903,7 @@ int main(int argc, char **argv)
         ASSERTL(38, interpret_source(input, filename, &opt));
     }
     {
-        // "*=" operator
+        /* "*=" operator */
         const char *input = 
             "# main() int\n"
             "  - i = 42\n"
@@ -911,7 +914,7 @@ int main(int argc, char **argv)
         ASSERTL(168, interpret_source(input, filename, &opt));
     }
     {
-        // "/=" operator
+        /* "/=" operator */
         const char *input = 
             "# main() int\n"
             "  - i = 42\n"
@@ -922,7 +925,7 @@ int main(int argc, char **argv)
         ASSERTL(10, interpret_source(input, filename, &opt));
     }
     {
-        // "%=" operator
+        /* "%=" operator */
         const char *input = 
             "# main() int\n"
             "  - i = 42\n"
@@ -933,7 +936,7 @@ int main(int argc, char **argv)
         ASSERTL(2, interpret_source(input, filename, &opt));
     }
     {
-        // bool type
+        /* bool type */
         const char *input = 
             "# main() int\n"
             "  - i = 42\n"
@@ -946,7 +949,7 @@ int main(int argc, char **argv)
         ASSERTL(19, interpret_source(input, filename, &opt));
     }
     {
-        // bool type
+        /* bool type */
         const char *input = 
             "# main() int\n"
             "  - i = 42\n"
@@ -960,19 +963,20 @@ int main(int argc, char **argv)
         ASSERTL(42, interpret_source(input, filename, &opt));
     }
     {
-        // nop statement
+        /* nop statement */
         const char *input = 
             "# main() int\n"
             "  - i int\n"
-            "  for i = 0; i < 7; i++\n"
+            "  for j in 7\n"
             "    nop\n"
+            "    i++\n"
             "  return i\n"
             ;
 
         ASSERTL(7, interpret_source(input, filename, &opt));
     }
     {
-        // block comment
+        /* block comment */
         const char *input = 
             "# main() int\n"
             "  - i = 42   // int\n"
@@ -990,7 +994,7 @@ int main(int argc, char **argv)
         ASSERTL(42, interpret_source(input, filename, &opt));
     }
     {
-        // char literal
+        /* char literal */
         const char *input = 
             "# main() int\n"
             "  - i = 'a'\n"
@@ -1000,7 +1004,7 @@ int main(int argc, char **argv)
         ASSERTL(97, interpret_source(input, filename, &opt));
     }
     {
-        // char literal
+        /* char literal */
         const char *input = 
             "# main() int\n"
             "  - i = '\n'\n"
@@ -1010,7 +1014,7 @@ int main(int argc, char **argv)
         ASSERTL(10, interpret_source(input, filename, &opt));
     }
     {
-        // slash at the end of string literal
+        /* slash at the end of string literal */
         const char *input = 
             "# main() int\n"
             "  - i int\n"
@@ -1023,7 +1027,7 @@ int main(int argc, char **argv)
         ASSERTL(13, interpret_source(input, filename, &opt));
     }
     {
-        // nil return type
+        /* nil return type */
         const char *input = 
             "# foo()\n"
             "  return\n"
@@ -1035,7 +1039,7 @@ int main(int argc, char **argv)
         ASSERTL(11, interpret_source(input, filename, &opt));
     }
     {
-        // scope statement
+        /* scope statement */
         const char *input = 
             "# main() int\n"
             "  - i = 17\n"

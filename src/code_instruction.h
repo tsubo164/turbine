@@ -70,6 +70,9 @@ enum code_opcode {
     OP_JUMP,
     OP_JUMPIFZERO,
     OP_JUMPIFNOTZ,
+    /* loop */
+    OP_FORNUMINIT,
+    OP_FORNUMREST,
     /* stack operation TODO move to right place */
     OP_ALLOCATE,
     /* conversion */

@@ -67,6 +67,13 @@ int64_t data_intstack_pop(struct data_intstack *v)
     return v->data[--v->len];
 }
 
+int64_t data_intstack_top(const struct data_intstack *v)
+{
+    if (!v->data)
+        return 0;
+    return v->data[v->len - 1];
+}
+
 bool data_intstack_is_empty(const struct data_intstack *v)
 {
     return v->len == 0;

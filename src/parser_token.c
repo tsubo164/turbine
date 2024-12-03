@@ -24,8 +24,9 @@ const char *parser_get_token_string(int kind)
     [TOK_FLOAT]         = "float",
     [TOK_STRING]        = "string",
     [TOK_IF]            = "if",
-    [TOK_FOR]           = "for",
     [TOK_ELSE]          = "or",
+    [TOK_FOR]           = "for",
+    [TOK_IN]            = "in",
     [TOK_BREAK]         = "break",
     [TOK_CONTINUE]      = "continue",
     [TOK_SWITCH]        = "switch",
@@ -98,9 +99,7 @@ const char *parser_get_token_string(int kind)
     };
 
     int count = sizeof(table) / sizeof(table[0]);
-    
-    if (kind < 0 || kind >= count)
-        return NULL;
+    assert(kind >= 0 && kind < count);
 
     return table[kind];
 }

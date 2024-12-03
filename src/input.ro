@@ -3,11 +3,7 @@
 //[json]
 //[opengl] (github.com/...)
 //[my_calc]
-[math]
-
-//## Circle
-//  - center Point
-//  - radius int
+//[math]
 
 //:: token
 //  | enum  | name
@@ -17,36 +13,26 @@
 //  | T_ELS | "or"
 //  | T_BRK | "break"
 
-//## Point
-//  - x int
-//  - y int
-
-//- g_center = Point { y = 117 }
-//# set_point_x(p *Point, x int)
-//  p.x = x
-//
-//# set_point_y(p *Point, y int)
-//  p.y = y
-
-//# add(x int, y int) int
-//  return x + y
+//## Circle
+//  - center Point
+//  - radius int
 
 # main() int
-  //- a = 42
-  //a = 19
+  /*
+  - i = 42
+  - j = 3
+  ---
+    - a = 11
+  ---
+    - b = 22
+  */
 
-  //- f = math.sqrt(49.0)
-  //- answer = input("Press Enter to continue...")
-  //print("Your answer is:", answer, a)
-  //for i in 10
-  //  print("Foo")
-
-  //for i in 10
-  //  print(i)
-  //- v math.Vec3
+  for i in 10
+    print(i, "Foo")
 
   return 12
 
+  //- a = 42
   //- fp = exit
   //- b = 242301
   //- c = 0x1234567890
@@ -54,13 +40,4 @@
   //- f = 3.14
   //- s = "Hello!"
   //print(a, b, c, d, f, s)
-  //print(my_calc.UINT8_MAX)
   //return a
-  //exit(111)
-
-  //- p = Point { x = 31, y = 79 }
-  //set_point_x(&p, 19)
-  //set_point_y(&p, 42)
-
-  //return p.y
-  //return g_center.y

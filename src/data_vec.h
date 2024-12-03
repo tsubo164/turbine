@@ -26,6 +26,7 @@ struct data_intstack {
 void data_intstack_push(struct data_intstack *v, int64_t val);
 /* Does not check empty */
 int64_t data_intstack_pop(struct data_intstack *v);
+int64_t data_intstack_top(const struct data_intstack *v);
 bool data_intstack_is_empty(const struct data_intstack *v);
 
 #endif /* _H */

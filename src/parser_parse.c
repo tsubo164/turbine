@@ -924,35 +924,66 @@ static struct parser_stmt *for_stmt(struct parser *p)
         init = NULL;
         cond = parser_new_intlit_expr(1);
         post = NULL;
+
+        struct parser_stmt *body = block_stmt(p, new_child_scope(p));
+        return parser_new_for_stmt(NULL, NULL, body);
     }
     else {
-        struct parser_stmt *stmt = assign_stmt(p);
+        /* enter new scope */
+        struct parser_scope *block_scope = new_child_scope(p);
 
-        if (consume(p, TOK_SEMICOLON)) {
-            /* traditional for */
-            init = stmt;
-            cond = expression(p);
-            expect(p, TOK_SEMICOLON);
-            post = assign_stmt(p);
-            expect(p, TOK_NEWLINE);
+        expect(p, TOK_IDENT);
+
+        /* var anme */
+        const char *name = tok_str(p);
+
+        expect(p, TOK_IN);
+
+        struct parser_expr *beg = parser_new_intlit_expr(0);
+        struct parser_expr *end = expression(p);
+        struct parser_expr *inc = parser_new_intlit_expr(1);
+
+        beg->next = end;
+        end->next = inc;
+
+        expect(p, TOK_NEWLINE);
+
+        struct parser_symbol *sym;
+        {
+            bool isglobal = false;
+            struct parser_type *type = parser_new_int_type();
+            sym = parser_define_var(block_scope, name, type, isglobal);
+            assert(sym);
         }
-        else if (consume(p, TOK_NEWLINE)) {
-            /* while style */
-            init = NULL;
-            cond = stmt->expr;
-            post = NULL;
-            /* TODO need mem pool? */
-            free(stmt);
+        {
+            bool isglobal = false;
+            const char *name = ":beg";
+            const struct parser_type *type = parser_new_int_type();
+            struct parser_symbol *sym;
+            sym = parser_define_var(block_scope, name, type, isglobal);
+            assert(sym);
         }
-        else {
-            const struct parser_token *tok = gettok(p);
-            error(p, tok->pos, "unknown token");
+        {
+            bool isglobal = false;
+            const char *name = ":end";
+            const struct parser_type *type = parser_new_int_type();
+            struct parser_symbol *sym;
+            sym = parser_define_var(block_scope, name, type, isglobal);
+            assert(sym);
         }
+        {
+            bool isglobal = false;
+            const char *name = ":inc";
+            const struct parser_type *type = parser_new_int_type();
+            struct parser_symbol *sym;
+            sym = parser_define_var(block_scope, name, type, isglobal);
+            assert(sym);
+        }
+
+        struct parser_expr *iter = parser_new_ident_expr(sym);
+        struct parser_stmt *body = block_stmt(p, block_scope);
+        return parser_new_for_stmt(iter, beg, body);
     }
-
-    /* body */
-    struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    return parser_new_for_stmt(init, cond, post, body);
 }
 
 static struct parser_stmt *break_stmt(struct parser *p)

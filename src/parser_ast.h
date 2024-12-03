@@ -183,8 +183,8 @@ struct parser_stmt *parser_new_nop_stmt(void);
 struct parser_stmt *parser_new_block_stmt(struct parser_stmt *children);
 struct parser_stmt *parser_new_if_stmt(struct parser_stmt *or_list);
 struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser_stmt *body);
-struct parser_stmt *parser_new_for_stmt(struct parser_stmt *init, struct parser_expr *cond,
-        struct parser_stmt *post, struct parser_stmt *body);
+struct parser_stmt *parser_new_for_stmt(struct parser_expr *iter,
+        struct parser_expr *collection, struct parser_stmt *body);
 struct parser_stmt *parser_new_break_stmt(void);
 struct parser_stmt *parser_new_continue_stmt(void);
 struct parser_stmt *parser_new_switch_stmt(struct parser_expr *cond, struct parser_stmt *cases);

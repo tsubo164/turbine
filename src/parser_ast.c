@@ -418,13 +418,12 @@ struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser
     return s;
 }
 
-struct parser_stmt *parser_new_for_stmt(struct parser_stmt *init, struct parser_expr *cond,
-        struct parser_stmt *post, struct parser_stmt *body)
+struct parser_stmt *parser_new_for_stmt(struct parser_expr *iter,
+        struct parser_expr *collection, struct parser_stmt *body)
 {
     struct parser_stmt *s = new_stmt(NOD_STMT_FOR);
-    s->init = init;
-    s->cond = cond;
-    s->post = post;
+    s->expr = iter;
+    s->cond = collection;
     s->body = body;
     return s;
 }

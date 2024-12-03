@@ -473,6 +473,40 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_FORNUMINIT:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value beg = fetch_register_value(vm, src + 1);
+                struct runtime_value end = fetch_register_value(vm, src + 2);
+
+                set_local(vm, src, beg);
+
+                if (beg.inum >= end.inum)
+                    set_ip(vm, dst);
+                else
+                    /* skip fornum rest */
+                    set_ip(vm, vm->ip + 1);
+            }
+            break;
+
+        case OP_FORNUMREST:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value itr = fetch_register_value(vm, src);
+                struct runtime_value end = fetch_register_value(vm, src + 2);
+                struct runtime_value inc = fetch_register_value(vm, src + 3);
+
+                /* update iterator */
+                itr.inum += inc.inum;
+                set_local(vm, src, itr);
+
+                if (itr.inum >= end.inum)
+                    set_ip(vm, dst);
+            }
+            break;
+
 #define DO_BINOP(num0, num1, op, num2, zerocheck) \
 do { \
     int dst = inst.A; \
