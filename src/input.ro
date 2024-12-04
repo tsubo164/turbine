@@ -27,7 +27,7 @@
     - b = 22
   */
 
-  for i in 10
+  for i in 1..10, 2
     print(i, "Foo")
 
   return 12

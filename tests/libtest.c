@@ -723,7 +723,7 @@ int main(int argc, char **argv)
             "    - i int\n"
             "    - j int\n"
             "    j = 0\n"
-            "    for i in 10\n"
+            "    for i in 0..10\n"
             "        j = j + 2\n"
             "    return j\n"
             ;
@@ -766,7 +766,7 @@ int main(int argc, char **argv)
         const char *input = 
             "# main() int\n"
             "  - i int\n"
-            "  for j in 10\n"
+            "  for j in 0..10\n"
             "    if j == 5\n"
             "      break\n"
             "    i++\n"
@@ -781,7 +781,7 @@ int main(int argc, char **argv)
             "# main() int\n"
             "  - j int\n"
             "  j = 0\n"
-            "  for i in 10\n"
+            "  for i in 0..10\n"
             "    if i % 2 == 0\n"
             "      continue\n"
             "    j++\n"
@@ -967,7 +967,7 @@ int main(int argc, char **argv)
         const char *input = 
             "# main() int\n"
             "  - i int\n"
-            "  for j in 7\n"
+            "  for j in 0..7\n"
             "    nop\n"
             "    i++\n"
             "  return i\n"

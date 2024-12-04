@@ -929,6 +929,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         return parser_new_for_stmt(NULL, NULL, body);
     }
     else {
+        struct parser_expr *start, *stop, *step;
         /* enter new scope */
         struct parser_scope *block_scope = new_child_scope(p);
 
@@ -939,13 +940,21 @@ static struct parser_stmt *for_stmt(struct parser *p)
 
         expect(p, TOK_IN);
 
-        struct parser_expr *beg = parser_new_intlit_expr(0);
-        struct parser_expr *end = expression(p);
-        struct parser_expr *inc = parser_new_intlit_expr(1);
+        /* start */
+        start = expression(p);
+        expect(p, TOK_PERIOD2);
 
-        beg->next = end;
-        end->next = inc;
+        /* stop */
+        stop = expression(p);
 
+        /* step */
+        if (consume(p, TOK_COMMA))
+            step = expression(p);
+        else
+            step = parser_new_intlit_expr(1);
+
+        start->next = stop;
+        stop->next = step;
         expect(p, TOK_NEWLINE);
 
         struct parser_symbol *sym;
@@ -957,7 +966,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         }
         {
             bool isglobal = false;
-            const char *name = ":beg";
+            const char *name = ":start";
             const struct parser_type *type = parser_new_int_type();
             struct parser_symbol *sym;
             sym = parser_define_var(block_scope, name, type, isglobal);
@@ -965,7 +974,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         }
         {
             bool isglobal = false;
-            const char *name = ":end";
+            const char *name = ":stop";
             const struct parser_type *type = parser_new_int_type();
             struct parser_symbol *sym;
             sym = parser_define_var(block_scope, name, type, isglobal);
@@ -973,7 +982,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         }
         {
             bool isglobal = false;
-            const char *name = ":inc";
+            const char *name = ":step";
             const struct parser_type *type = parser_new_int_type();
             struct parser_symbol *sym;
             sym = parser_define_var(block_scope, name, type, isglobal);
@@ -982,7 +991,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
 
         struct parser_expr *iter = parser_new_ident_expr(sym);
         struct parser_stmt *body = block_stmt(p, block_scope);
-        return parser_new_for_stmt(iter, beg, body);
+        return parser_new_for_stmt(iter, start, body);
     }
 }
 

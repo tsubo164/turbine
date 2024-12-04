@@ -48,6 +48,7 @@ enum parser_token_kind {
     TOK_BLOCKEND,
     TOK_MINUS3,
     TOK_PERIOD,
+    TOK_PERIOD2,
     TOK_COMMA,
     TOK_HASH,
     TOK_HASH2,

@@ -6,7 +6,7 @@
     // "for" statment
     - j int
     j = 0
-    for i in 10
+    for i in 0..10
         j = j + 2
     test1.AssertI(20, j)
 
@@ -32,7 +32,7 @@
   ---
     // "break" statment
     - i int
-    for j in 10
+    for j in 0..10
       if j == 5
         break
       i++
@@ -42,7 +42,7 @@
     // "continue" statment
     - j int
     j = 0
-    for i in 10
+    for i in 0..10
       if i % 2 == 0
         continue
       j++
@@ -51,7 +51,7 @@
   // for zero times loop
   ---
     - a = 13
-    for i in 0
+    for i in 0..0
       a *= 2
     test1.AssertI(13, a)
 

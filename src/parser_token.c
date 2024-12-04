@@ -57,6 +57,7 @@ const char *parser_get_token_string(int kind)
     [TOK_BLOCKEND]      = "block_end",
     [TOK_MINUS3]        = "---",
     [TOK_PERIOD]        = ".",
+    [TOK_PERIOD2]       = "..",
     [TOK_COMMA]         = ",",
     [TOK_HASH]          = "#",
     [TOK_HASH2]         = "##",
@@ -217,9 +218,7 @@ static bool eof(const struct lexer *l)
 
 static bool isfp(int ch)
 {
-    int c = tolower(ch);
-
-    return c == '.' || c == 'e';
+    return ch == '.' || ch == 'e' || ch == 'E';
 }
 
 static bool ishex(int ch)
@@ -254,48 +253,59 @@ static int top(const struct lexer *l)
     return l->indent_stack[l->sp];
 }
 
+/*
+ * floating point number literals
+ *   5.3876e4
+ *   4e-11
+ *   1e+5
+ *   7.321E-3
+ *   3.2E+4
+ *   0.5e-6
+ *   0.45
+ *   6.e10
+ */
 static void scan_number(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
     const char *start = l->itr;
+    char *end = NULL;
     bool fpnum = false;
     int base = 10;
     int len = 0;
 
     for (int ch = get(l); isnum(ch); ch = get(l)) {
+
         if (ishex(ch))
             base = 16;
 
-        if (isfp(ch))
-            fpnum = true;
-
-        if (ch == 'e' || ch == 'E') {
-            if (peek(l) == '-' || peek(l) == '+') {
-                continue;
-            }
-            else {
-                /* reject 'e'/'E' */
-                unget(l);
+        if (ch == '.') {
+            if (isdigit(peek(l)))
+                fpnum = true;
+            else
                 break;
-            }
         }
 
+        if (ch == 'e' || ch == 'E') {
+            char next = peek(l);
+            if (next == '-' || next == '+' || isdigit(next))
+                fpnum = true;
+            else
+                break;
+        }
         len++;
     }
 
     unget(l);
 
-    char *end = NULL;
-
     if (fpnum) {
-        tok->fval = strtod(&(*start), &end);
+        tok->fval = strtod(start, &end);
         set(tok, TOK_FLOATLIT, pos);
     }
     else {
-        tok->ival = strtol(&(*start), &end, base);
+        tok->ival = strtol(start, &end, base);
         set(tok, TOK_INTLIT, pos);
     }
 
-    assert(end && (len == (end - &(*start))));
+    assert(end && (len == end - start));
 }
 
 static void scan_char_literal(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
@@ -762,7 +772,14 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         }
 
         if (ch == '.') {
-            set(tok, TOK_PERIOD, pos);
+            ch = get(l);
+            if (ch == '.') {
+                set(tok, TOK_PERIOD2, pos);
+            }
+            else {
+                unget(l);
+                set(tok, TOK_PERIOD, pos);
+            }
             return;
         }
 
