@@ -1,30 +1,31 @@
+[test]
 [my_calc]
 
-- _test_count_ int
-
-// asserts bool
-# AssertB(expected bool, actual bool, $caller_line)
-  _test_count_++
-
-  if expected != actual
-    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
-    exit(1)
-
-// asserts int
-# AssertI(expected int, actual int, $caller_line)
-  _test_count_++
-
-  if expected != actual
-    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
-    exit(1)
-
-// asserts float
-# AssertF(expected float, actual float, $caller_line)
-  _test_count_++
-
-  if expected != actual
-    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
-    exit(1)
+//- _test_count_ int
+//
+//// asserts bool
+//# AssertB(expected bool, actual bool, $caller_line)
+//  _test_count_++
+//
+//  if expected != actual
+//    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+//    exit(1)
+//
+//// asserts int
+//# AssertI(expected int, actual int, $caller_line)
+//  _test_count_++
+//
+//  if expected != actual
+//    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+//    exit(1)
+//
+//// asserts float
+//# AssertF(expected float, actual float, $caller_line)
+//  _test_count_++
+//
+//  if expected != actual
+//    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+//    exit(1)
 
 //-----------------------------------------------------------------------------
 # seven() int
@@ -95,63 +96,63 @@
   ---
     - id int
     id = 114
-    AssertI(125, id + 11)
+    test.AssertI(125, id + 11)
 
   ---
     - i int = 19
-    AssertI(19, i)
+    test.AssertI(19, i)
 
   ---
-    AssertI(42, 39 + 3)
+    test.AssertI(42, 39 + 3)
 
   ---
     - id int
     id = 0
-    AssertI(114, id + 114)
+    test.AssertI(114, id + 114)
 
   ---
-    AssertI(4422, 3129 + 1293)
+    test.AssertI(4422, 3129 + 1293)
 
   ---
-    AssertI(5533, 3129 + 1293+1111)
+    test.AssertI(5533, 3129 + 1293+1111)
 
   ---
-    AssertI(42, 20+22)
+    test.AssertI(42, 20+22)
 
   ---
     - a int
     a = 12
-    AssertI(12, a)
+    test.AssertI(12, a)
 
   ---
     - a int
     a = 11
-    AssertI(11, a)
+    test.AssertI(11, a)
 
   ---
-    AssertB(false, 12 == 11)
+    test.AssertB(false, 12 == 11)
 
   ---
-    AssertB(true, 42 == 42)
-
-  ---
-    - a int
-    a = 39
-    AssertB(true, a == 39)
+    test.AssertB(true, 42 == 42)
 
   ---
     - a int
     a = 39
-    AssertB(true, a == 39)
+    test.AssertB(true, a == 39)
 
   ---
-    AssertI(7, seven())
+    - a int
+    a = 39
+    test.AssertB(true, a == 39)
 
   ---
-    AssertI(42, seven() + 35)
+    test.AssertI(7, seven())
 
   ---
-    AssertI(42, seven() + add(30, 5))
+    test.AssertI(42, seven() + 35)
+
+  ---
+    test.AssertI(42, seven() + add(30, 5))
 
   ---
     - a int
@@ -161,7 +162,7 @@
       b = 11
     or
       b = 22
-    AssertI(22, b)
+    test.AssertI(22, b)
 
   ---
     - a int
@@ -171,7 +172,7 @@
       b = 11
     or
       b = 22
-    AssertI(11, b)
+    test.AssertI(11, b)
 
   ---
     - a int
@@ -181,7 +182,7 @@
       b = 1
     or
       b = 0
-    AssertI(1, b)
+    test.AssertI(1, b)
 
   ---
     - a int
@@ -191,7 +192,7 @@
       b = 1
     or
       b = 0
-    AssertI(0, b)
+    test.AssertI(0, b)
 
   // if statement
   // line comment at beginning of line
@@ -205,7 +206,7 @@
     or
       b = 0
     // comment with the same indetation
-    AssertI(1, b)
+    test.AssertI(1, b)
 
   ---
     // if statement
@@ -219,12 +220,12 @@
     or
       b = 0
     // comment with the same indetation
-    AssertI(7, b)
+    test.AssertI(7, b)
 
   ---
     - s string
     - a = 33
-    AssertI(33, a)
+    test.AssertI(33, a)
 
   ---
     - a int
@@ -239,41 +240,41 @@
    
     //b = 4 // error
     a = 31
-    AssertI(31, a)
+    test.AssertI(31, a)
 
   ---
     - a = seven() + add(30, 5)
-    AssertI(42, a)
+    test.AssertI(42, a)
 
   ---
-    AssertI(0, _gvar_)
+    test.AssertI(0, _gvar_)
     set_gvar()
-    AssertI(119, _gvar_)
+    test.AssertI(119, _gvar_)
 
   ---
-    AssertI(42, foo(10) + add(20, 3))
+    test.AssertI(42, foo(10) + add(20, 3))
 
   ---
     - a int
     _pt_.x = 2
     _pt_.y = 3
     a = _pt_.y
-    AssertI(5, _pt_.x + _pt_.y)
+    test.AssertI(5, _pt_.x + _pt_.y)
 
   ---
     - f float
     f = 3.14
-    AssertF(3.14, f)
+    test.AssertF(3.14, f)
 
   ---
-    AssertI(25, 0xF + 0Xa)
+    test.AssertI(25, 0xF + 0Xa)
 
   ---
     - f float
     - g float
     f = 3.14
     g = 0.86
-    AssertF(4.0, f + g)
+    test.AssertF(4.0, f + g)
 
   ---
     - i int
@@ -281,7 +282,7 @@
       i = 42
     or
       i = 99
-    AssertI(42, i)
+    test.AssertI(42, i)
 
   ---
     - s0 string
@@ -295,7 +296,7 @@
       i = 42
     or
       i = 0
-    AssertI(42, i)
+    test.AssertI(42, i)
 
   ---
     - i int
@@ -303,12 +304,12 @@
       i = 0
     or
       i = 11
-    AssertI(11, i)
+    test.AssertI(11, i)
 
   ---
     // '-' operator and order of eval args
     - i = sub(12, 7)
-    AssertI(5, i)
+    test.AssertI(5, i)
 
   ---
     // '*' operator
@@ -316,7 +317,7 @@
     - j int
     i = 12
     j = 3
-    AssertI(10, 46 - i * j)
+    test.AssertI(10, 46 - i * j)
 
   ---
     // '/' operator
@@ -324,7 +325,7 @@
     - j int
     i = 12
     j = 3
-    AssertI(42, 46 - i / j)
+    test.AssertI(42, 46 - i / j)
 
   ---
     // '%' operator
@@ -332,7 +333,7 @@
     - j int
     i = 19
     j = 7
-    AssertI(41, 46 - i % j)
+    test.AssertI(41, 46 - i % j)
 
   ---
     // '(' expr ')'
@@ -340,7 +341,7 @@
     - j int
     i = 19
     j = 17
-    AssertI(42, 21 * (i - j))
+    test.AssertI(42, 21 * (i - j))
 
   ---
     // "||" operator
@@ -348,7 +349,7 @@
     - j int
     i = 0
     j = 7
-    AssertI(1, int((i || j) != 0))
+    test.AssertI(1, int((i || j) != 0))
 
   ---
     // "||" operator
@@ -356,7 +357,7 @@
     - j int
     i = 0
     j = 0
-    AssertI(0, int((i || j) != 0))
+    test.AssertI(0, int((i || j) != 0))
 
   ---
     // "&&" operator
@@ -364,7 +365,7 @@
     - j int
     i = 0
     j = 7
-    AssertI(0, int((i && j) != 0))
+    test.AssertI(0, int((i && j) != 0))
 
   ---
     // "&&" operator
@@ -372,111 +373,111 @@
     - j int
     i = 1
     j = 7
-    AssertI(1, int((i && j) != 0))
+    test.AssertI(1, int((i && j) != 0))
 
   ---
     // "+" unary operator
     - i int
     i = 7
-    AssertI(7, +i)
+    test.AssertI(7, +i)
 
   ---
     // "-" unary operator
     - i int
     i = 42
-    AssertI(-42, -i)
+    test.AssertI(-42, -i)
 
   ---
     // "-+" unary operator
     - i int
     i = 42
-    AssertI(-42, -+-+-+- -+-+ +-i)
+    test.AssertI(-42, -+-+-+- -+-+ +-i)
 
   ---
     // "!" unary operator
     - i int
     i = 42
-    AssertI(1, int(int(!(42 != i)) != 0))
+    test.AssertI(1, int(int(!(42 != i)) != 0))
 
   ---
     // "!" unary operator
     - i int
     i = 42
-    AssertI(0, int((!i) != 0))
+    test.AssertI(0, int((!i) != 0))
 
   ---
     // "<" operator
     - i int
     i = 42
-    AssertI(0, int(int(i < 5) != 0))
+    test.AssertI(0, int(int(i < 5) != 0))
 
   ---
     // "<=" operator
     - i int
     i = 42
-    AssertI(1, int(int(i <= 42) != 0))
+    test.AssertI(1, int(int(i <= 42) != 0))
 
   ---
     // ">" operator
     - i int
     i = 42
-    AssertI(1, int(int(i > 5) != 0))
+    test.AssertI(1, int(int(i > 5) != 0))
 
   ---
     // ">=" operator
     - i int
     i = 42
-    AssertI(1, int(int(i >= 42) != 0))
+    test.AssertI(1, int(int(i >= 42) != 0))
 
   ---
     // "++" operator
     - i int
     i = 42
     i++
-    AssertI(43, i)
+    test.AssertI(43, i)
 
   ---
     // "--" operator
     - i int
     i = 42
     i--
-    AssertI(41, i)
+    test.AssertI(41, i)
 
   ---
     // "&" operator
     - i int
     i = 0x3A9
-    AssertI(0xA9, i & 0xFF)
+    test.AssertI(0xA9, i & 0xFF)
 
   ---
     // "|" operator
     - i int
     i = 0x3A9
-    AssertI(0xFFF, i | 0xFFF)
+    test.AssertI(0xFFF, i | 0xFFF)
 
   ---
     // "~" operator
     - i int
     i = 0x8
-    AssertI(0x7, ~i & 0xF)
+    test.AssertI(0x7, ~i & 0xF)
 
   ---
     // "^" operator
     - i int
     i = 0x78
-    AssertI(0x88, i ^ 0xF0)
+    test.AssertI(0x88, i ^ 0xF0)
 
   ---
     // "<<" operator
     - i int
     i = 0x8
-    AssertI(0x40, i << 3)
+    test.AssertI(0x40, i << 3)
 
   ---
     // ">>" operator
     - i int
     i = 0x8F
-    AssertI(0x08, i >> 4)
+    test.AssertI(0x08, i >> 4)
 
   ---
     // "for" statment
@@ -484,7 +485,7 @@
     j = 0
     for i in 0..10
         j = j + 2
-    AssertI(20, j)
+    test.AssertI(20, j)
 
   // TODO consider removing or implementing other way
   /*
@@ -494,7 +495,7 @@
     i = 0
     for i < 10
         i++
-    AssertI(10, i)
+    test.AssertI(10, i)
 
   ---
     // "for" statment infinite loop
@@ -504,7 +505,7 @@
       i++
       if i == 8
         break
-    AssertI(8, i)
+    test.AssertI(8, i)
   */
 
   ---
@@ -514,7 +515,7 @@
       if j == 5
         break
       i++
-    AssertI(5, i)
+    test.AssertI(5, i)
 
   ---
     // "continue" statment
@@ -524,7 +525,7 @@
       if i % 2 == 0
         continue
       j++
-    AssertI(5, j)
+    test.AssertI(5, j)
 
   ---
     // "switch" statment
@@ -541,7 +542,7 @@
       j = 34
     case 3
       j = 77
-    AssertI(34, j)
+    test.AssertI(34, j)
 
   ---
     // "default" statment
@@ -560,21 +561,21 @@
       j = 77
     default
       j = 99
-    AssertI(99, j)
+    test.AssertI(99, j)
 
   ---
     // local var init
     - i int = 42
-    AssertI(42, i)
+    test.AssertI(42, i)
 
   ---
     // global var init
-    AssertI(39, _g_)
+    test.AssertI(39, _g_)
 
   ---
     // local var type
     - i = 41
-    AssertI(41, i)
+    test.AssertI(41, i)
 
   ---
     // local var type
@@ -583,37 +584,37 @@
     - g float = 3.1
     if f == g + 0.0415
       i = 9
-    AssertI(9, i)
+    test.AssertI(9, i)
 
   ---
     // "+=" operator
     - i = 42
     i += 4
-    AssertI(46, i)
+    test.AssertI(46, i)
 
   ---
     // "-=" operator
     - i = 42
     i -= 4
-    AssertI(38, i)
+    test.AssertI(38, i)
 
   ---
     // "*=" operator
     - i = 42
     i *= 4
-    AssertI(168, i)
+    test.AssertI(168, i)
 
   ---
     // "/=" operator
     - i = 42
     i /= 4
-    AssertI(10, i)
+    test.AssertI(10, i)
 
   ---
     // "%=" operator
     - i = 42
     i %= 4
-    AssertI(2, i)
+    test.AssertI(2, i)
 
   ---
     // bool type
@@ -621,7 +622,7 @@
     - b = true
     if b
       i = 19
-    AssertI(19, i)
+    test.AssertI(19, i)
 
   ---
     // bool type
@@ -630,7 +631,7 @@
     - c = false
     if b != !c
       i = 19
-    AssertI(42, i)
+    test.AssertI(42, i)
 
   ---
     // nop statement
@@ -638,7 +639,7 @@
     for j in 0..7
       nop
       i++
-    AssertI(7, i)
+    test.AssertI(7, i)
 
   ---
     // block comment
@@ -651,17 +652,17 @@
     */
     this is another line in block comment.
     */
-    AssertI(42, i)
+    test.AssertI(42, i)
 
   ---
     // char literal
     - i = 'a'
-    AssertI(97, i)
+    test.AssertI(97, i)
 
   ---
     // char literal
     - i = '\n'
-    AssertI(10, i)
+    test.AssertI(10, i)
 
   ---
     // slash at the end of string literal
@@ -669,13 +670,13 @@
     - s = "Hello\\\\"
     if s == "Hello\\\\"
       i = 13
-    AssertI(13, i)
+    test.AssertI(13, i)
 
   ---
     // nil return type
     - i = 11
     bar()
-    AssertI(11, i)
+    test.AssertI(11, i)
 
   ---
     // scope statement
@@ -683,7 +684,7 @@
     ---
       - i int
       i = 9
-    AssertI(17, i)
+    test.AssertI(17, i)
 
   // C++ test
   // ==========================================================================
@@ -702,7 +703,7 @@
       x = 99
     default
       x = 255
-    AssertI(99, x)
+    test.AssertI(99, x)
 
   // switch with multi case values
   ---
@@ -718,169 +719,169 @@
       x = 99
     default
       x = 255
-    AssertI(22, x)
+    test.AssertI(22, x)
 
   // bool default
   ---
     - b bool
     - c = true
-    AssertB(true, b == false)
-    AssertB(true, c != false)
+    test.AssertB(true, b == false)
+    test.AssertB(true, c != false)
 
   // pointer variable
   ---
     - i int = 42
     - p *int
     p = &i
-    AssertI(42, *p)
+    test.AssertI(42, *p)
 
   // pointer argument
   ---
     - i int = 13
     twice(&i)
-    AssertI(26, i)
+    test.AssertI(26, i)
 
   // array variable
   ---
     - a [8]int
     - i = 9
     a[2] = 87
-    AssertI(87, a[2])
+    test.AssertI(87, a[2])
     a[5] = 92
-    AssertI(92, a[5])
+    test.AssertI(92, a[5])
     i = a[2] + a[5]
-    AssertI(179, i)
+    test.AssertI(179, i)
 
   // array variable with const expression
   ---
     - a [2 + 8]int
     - i = 7
     a[2] = 8
-    AssertI(8, a[2])
+    test.AssertI(8, a[2])
     a[5] = 2
-    AssertI(2, a[5])
+    test.AssertI(2, a[5])
     i = a[2] + a[5]
-    AssertI(10, i)
+    test.AssertI(10, i)
 
   // global array variable
   ---
     _array_[3] = 99
-    AssertI(99, _array_[3])
+    test.AssertI(99, _array_[3])
 
   // table
   ---
     - a = Color.R
-    AssertI(0, a)
-    AssertI(1, Color.G)
-    AssertI(3, a + Color.G + Color.B)
+    test.AssertI(0, a)
+    test.AssertI(1, Color.G)
+    test.AssertI(3, a + Color.G + Color.B)
 
   // module import
   ---
-    AssertF(3.1415, my_calc._PI_)
+    test.AssertF(3.1415, my_calc._PI_)
     my_calc._PI_ = 1.23
-    AssertF(1.23, my_calc._PI_)
-    AssertI(42, my_calc.add(31, 11))
+    test.AssertF(1.23, my_calc._PI_)
+    test.AssertI(42, my_calc.add(31, 11))
 
   // for zero times loop
   ---
     - a = 13
     for i in 0..0
       a *= 2
-    AssertI(13, a)
+    test.AssertI(13, a)
 
   // global pointer to function
   ---
-    AssertI(2222, _addfp_(19, 2203))
+    test.AssertI(2222, _addfp_(19, 2203))
 
   // local pointer to function
   ---
     - twicefp = twice
     - xxxxxxxxxxxxxxxxxxxxxxxxxxxx = -128
     twicefp(&xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-    AssertI(-256, xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+    test.AssertI(-256, xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
 
   // array initialization
   ---
     - a = [99, 11, 22, 33 + 9]
-    AssertI(64, a[2] + a[3])
+    test.AssertI(64, a[2] + a[3])
 
   // struct initialization
   ---
     - p = Point { x = 99, y = 11 }
-    AssertI(99, p.x)
-    AssertI(11, p.y)
+    test.AssertI(99, p.x)
+    test.AssertI(11, p.y)
 
     - q = Point { y = p.x - 49, x = p.y * 2 }
-    AssertI(22, q.x)
-    AssertI(50, q.y)
+    test.AssertI(22, q.x)
+    test.AssertI(50, q.y)
 
     - r = Point {
       x = q.x - 9,
       y = q.y / 2
     }
-    AssertI(13, r.x)
-    AssertI(25, r.y)
+    test.AssertI(13, r.x)
+    test.AssertI(25, r.y)
 
     - s = Point { y = 49 }
-    AssertI(0, s.x)
-    AssertI(49, s.y)
+    test.AssertI(0, s.x)
+    test.AssertI(49, s.y)
 
   // struct default initialization
   ---
     - p Point
-    AssertI(0, p.x)
-    AssertI(0, p.y)
+    test.AssertI(0, p.x)
+    test.AssertI(0, p.y)
 
   // struct initialization with another struct
   ---
     - p = Point { x = 31, y = 79 }
     - q = p
-    AssertI(31, q.x)
-    AssertI(79, q.y)
+    test.AssertI(31, q.x)
+    test.AssertI(79, q.y)
 
   // global struct initialization
   ---
-    AssertI(0,   _center_.x)
-    AssertI(117, _center_.y)
+    test.AssertI(0,   _center_.x)
+    test.AssertI(117, _center_.y)
 
   // global struct initialization
   ---
-    AssertI(1178, _Q_.x)
-    AssertI(-238, _Q_.y)
+    test.AssertI(1178, _Q_.x)
+    test.AssertI(-238, _Q_.y)
 
   // struct assignment
   ---
     - p = Point { x = -3, y = 1090 }
-    AssertI(-3, p.x)
-    AssertI(1090, p.y)
+    test.AssertI(-3, p.x)
+    test.AssertI(1090, p.y)
 
     - q = Point { y = 613 }
-    AssertI(0, q.x)
-    AssertI(613, q.y)
+    test.AssertI(0, q.x)
+    test.AssertI(613, q.y)
 
     q = p
-    AssertI(-3, q.x)
-    AssertI(1090, q.y)
+    test.AssertI(-3, q.x)
+    test.AssertI(1090, q.y)
 
   // struct parameter
   ---
     - p = Point { x = 319, y = -123 }
-    AssertI(319, p.x)
-    AssertI(-123, p.y)
-    AssertI(-123, get_point_y(p))
+    test.AssertI(319, p.x)
+    test.AssertI(-123, p.y)
+    test.AssertI(-123, get_point_y(p))
 
   // struct reference parameter
   ---
     - p = Point { x = 37, y = 79 }
-    AssertI(37, p.x)
-    AssertI(79, p.y)
+    test.AssertI(37, p.x)
+    test.AssertI(79, p.y)
 
     set_point_x(&p, 19)
-    AssertI(19, p.x)
+    test.AssertI(19, p.x)
     set_point_y(&p, 4299)
-    AssertI(4299, p.y)
+    test.AssertI(4299, p.y)
 
   //------------------------------
-  print(_test_count_, "tests done.")
+  print(test._test_count_, "tests done.")
 
   return 0

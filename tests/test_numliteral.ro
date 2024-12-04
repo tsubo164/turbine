@@ -1,25 +1,25 @@
-[test1]
+[test]
 
 # main() int
 
   ---
     - f = 5.3876e4
-    test1.AssertF(53876.0, f)
+    test.AssertF(53876.0, f)
     f = 4e-11
-    test1.AssertF(0.00000000004, f)
+    test.AssertF(0.00000000004, f)
     f = 1e+5
-    test1.AssertF(100000.0, f)
+    test.AssertF(100000.0, f)
     f = 7.321E-3
-    test1.AssertF(0.007321, f)
+    test.AssertF(0.007321, f)
     f = 3.2E+4
-    test1.AssertF(32000.0, f)
+    test.AssertF(32000.0, f)
     f = 0.5e-6
-    test1.AssertF(0.0000005, f)
+    test.AssertF(0.0000005, f)
     f = 0.45
-    test1.AssertF(0.45, f)
+    test.AssertF(0.45, f)
     f = 6.e10
-    test1.AssertF(60000000000.0, f)
+    test.AssertF(60000000000.0, f)
 
-  print(test1._test_count_, "tests done.")
+  print(test._test_count_, "tests done.")
 
   return 0
