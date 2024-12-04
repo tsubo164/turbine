@@ -278,18 +278,26 @@ static void scan_number(struct lexer *l, struct parser_token *tok, struct parser
             base = 16;
 
         if (ch == '.') {
-            if (isdigit(peek(l)))
+            char next = peek(l);
+            if (isdigit(next) || next == 'e' || next == 'E') {
                 fpnum = true;
-            else
+            }
+            else {
                 break;
+            }
         }
 
         if (ch == 'e' || ch == 'E') {
             char next = peek(l);
-            if (next == '-' || next == '+' || isdigit(next))
+            if (next == '+' || next == '-' || isdigit(next)) {
                 fpnum = true;
-            else
+                /* consume next */
+                get(l);
+                len++;
+            }
+            else {
                 break;
+            }
         }
         len++;
     }
