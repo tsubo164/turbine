@@ -153,6 +153,8 @@ int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int src, int64_t 
 /* loop */
 int64_t code_emit_fornum_init(struct code_bytecode *code, int itr);
 int64_t code_emit_fornum_rest(struct code_bytecode *code, int itr);
+int64_t code_emit_forarray_init(struct code_bytecode *code, int itr);
+int64_t code_emit_forarray_rest(struct code_bytecode *code, int itr);
 
 /* conversion */
 int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src);

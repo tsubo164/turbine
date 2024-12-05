@@ -141,7 +141,7 @@ void code_print_instruction(const struct code_bytecode *code,
 
     /* padding spaces */
     if (info->operand != OPERAND____)
-        printf("%-12s", info->mnemonic);
+        printf("%-14s", info->mnemonic);
     else
         printf("%s", info->mnemonic);
 

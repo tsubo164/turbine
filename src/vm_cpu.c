@@ -507,6 +507,48 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_FORARRAYINIT:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value idx = {.inum = 0};
+                struct runtime_value obj = fetch_register_value(vm, src + 2);
+
+                /* update index */
+                set_local(vm, src, idx);
+
+                if (idx.inum >= runtime_array_len(obj.array))
+                    set_ip(vm, dst);
+                else
+                    /* skip fornum rest */
+                    set_ip(vm, vm->ip + 1);
+
+                /* update value */
+                struct runtime_value val = runtime_array_get(obj.array, idx.inum);
+                set_local(vm, src + 1, val);
+            }
+            break;
+
+        case OP_FORARRAYREST:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value idx = fetch_register_value(vm, src);
+                struct runtime_value obj = fetch_register_value(vm, src + 2);
+
+                /* update index */
+                idx.inum++;
+                set_local(vm, src, idx);
+
+                if (idx.inum >= runtime_array_len(obj.array))
+                    set_ip(vm, dst);
+
+                /* update value */
+                struct runtime_value val = runtime_array_get(obj.array, idx.inum);
+                set_local(vm, src + 1, val);
+            }
+            break;
+
 #define DO_BINOP(num0, num1, op, num2, zerocheck) \
 do { \
     int dst = inst.A; \

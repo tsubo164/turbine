@@ -219,7 +219,7 @@ static struct parser_expr *array_lit_expr(struct parser *p)
     }
 
     expect(p, TOK_RBRACK);
-    return parser_new_arraylit_expr(expr, len);
+    return parser_new_arraylit_expr(elem_type, expr, len);
 }
 
 static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbol *sym)
@@ -926,10 +926,12 @@ static struct parser_stmt *for_stmt(struct parser *p)
         post = NULL;
 
         struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-        return parser_new_for_stmt(NULL, NULL, body);
+        return parser_new_fornum_stmt(NULL, NULL, body);
     }
     else {
         struct parser_expr *start, *stop, *step;
+        struct parser_expr *iter = NULL;
+
         /* enter new scope */
         struct parser_scope *block_scope = new_child_scope(p);
 
@@ -942,57 +944,100 @@ static struct parser_stmt *for_stmt(struct parser *p)
 
         /* start */
         start = expression(p);
-        expect(p, TOK_PERIOD2);
 
-        /* stop */
-        stop = expression(p);
+        if (parser_is_int_type(start->type)) {
+            expect(p, TOK_PERIOD2);
 
-        /* step */
-        if (consume(p, TOK_COMMA))
-            step = expression(p);
-        else
-            step = parser_new_intlit_expr(1);
+            /* stop */
+            stop = expression(p);
 
-        start->next = stop;
-        stop->next = step;
-        expect(p, TOK_NEWLINE);
+            /* step */
+            if (consume(p, TOK_COMMA))
+                step = expression(p);
+            else
+                step = parser_new_intlit_expr(1);
 
-        struct parser_symbol *sym;
-        {
-            bool isglobal = false;
-            struct parser_type *type = parser_new_int_type();
-            sym = parser_define_var(block_scope, name, type, isglobal);
-            assert(sym);
-        }
-        {
-            bool isglobal = false;
-            const char *name = ":start";
-            const struct parser_type *type = parser_new_int_type();
+            start->next = stop;
+            stop->next = step;
+            expect(p, TOK_NEWLINE);
+
             struct parser_symbol *sym;
-            sym = parser_define_var(block_scope, name, type, isglobal);
-            assert(sym);
+            {
+                bool isglobal = false;
+                const struct parser_type *type = parser_new_int_type();
+                sym = parser_define_var(block_scope, name, type, isglobal);
+                assert(sym);
+            }
+            {
+                bool isglobal = false;
+                const char *name = ":start";
+                const struct parser_type *type = parser_new_int_type();
+                struct parser_symbol *sym;
+                sym = parser_define_var(block_scope, name, type, isglobal);
+                assert(sym);
+            }
+            {
+                bool isglobal = false;
+                const char *name = ":stop";
+                const struct parser_type *type = parser_new_int_type();
+                struct parser_symbol *sym;
+                sym = parser_define_var(block_scope, name, type, isglobal);
+                assert(sym);
+            }
+            {
+                bool isglobal = false;
+                const char *name = ":step";
+                const struct parser_type *type = parser_new_int_type();
+                struct parser_symbol *sym;
+                sym = parser_define_var(block_scope, name, type, isglobal);
+                assert(sym);
+            }
+
+            iter = parser_new_ident_expr(sym);
+
+            struct parser_stmt *body = block_stmt(p, block_scope);
+            return parser_new_fornum_stmt(iter, start, body);
         }
-        {
-            bool isglobal = false;
-            const char *name = ":stop";
-            const struct parser_type *type = parser_new_int_type();
+        else if (parser_is_array_type(start->type)) {
+            expect(p, TOK_NEWLINE);
+
             struct parser_symbol *sym;
-            sym = parser_define_var(block_scope, name, type, isglobal);
-            assert(sym);
-        }
-        {
-            bool isglobal = false;
-            const char *name = ":step";
-            const struct parser_type *type = parser_new_int_type();
-            struct parser_symbol *sym;
-            sym = parser_define_var(block_scope, name, type, isglobal);
-            assert(sym);
+            {
+                bool isglobal = false;
+                const char *name = ":index";
+                const struct parser_type *type = parser_new_int_type();
+                sym = parser_define_var(block_scope, name, type, isglobal);
+                assert(sym);
+            }
+            {
+                bool isglobal = false;
+                const struct parser_type *type = start->type->underlying;
+                struct parser_symbol *sym;
+                sym = parser_define_var(block_scope, name, type, isglobal);
+                assert(sym);
+            }
+            {
+                bool isglobal = false;
+                const char *name = ":array";
+                const struct parser_type *type = parser_new_int_type();
+                struct parser_symbol *sym;
+                sym = parser_define_var(block_scope, name, type, isglobal);
+                assert(sym);
+            }
+
+            iter = parser_new_ident_expr(sym);
+
+            struct parser_stmt *body = block_stmt(p, block_scope);
+            return parser_new_forarray_stmt(iter, start, body);
         }
 
-        struct parser_expr *iter = parser_new_ident_expr(sym);
+        /*
         struct parser_stmt *body = block_stmt(p, block_scope);
-        return parser_new_for_stmt(iter, start, body);
+        return parser_new_fornum_stmt(iter, start, body);
+        */
     }
+    /* TODO */
+    return NULL;
 }
 
 static struct parser_stmt *break_stmt(struct parser *p)
@@ -1140,6 +1185,11 @@ static struct parser_expr *default_value(const struct parser_type *type)
         return parser_new_nillit_expr();
 
     case TYP_ARRAY:
+        /* TODO TEST new array */
+        if (type->len == 0) {
+            return parser_new_arraylit_expr(type->underlying, NULL, 0);
+        }
+        /* ------------------- */
         /* TODO fill with zero values */
         /* put len at base addr */
         return parser_new_intlit_expr(type->len);
@@ -1414,6 +1464,12 @@ static struct parser_type *type_spec(struct parser *p)
     }
 
     if (consume(p, TOK_LBRACK)) {
+        /* TODO TEST new array */
+        if (consume(p, TOK_RBRACK)) {
+            return parser_new_array_type(0, type_spec(p));
+        }
+        /* ------------------- */
+
         int64_t len = 0;
         if (peek(p) != TOK_RBRACK) {
             struct parser_expr *e = expression(p);

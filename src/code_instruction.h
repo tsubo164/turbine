@@ -73,6 +73,8 @@ enum code_opcode {
     /* loop */
     OP_FORNUMINIT,
     OP_FORNUMREST,
+    OP_FORARRAYINIT,
+    OP_FORARRAYREST,
     /* stack operation TODO move to right place */
     OP_ALLOCATE,
     /* conversion */

@@ -9,7 +9,8 @@ enum parser_node_kind {
     /* stmt */
     NOD_STMT_NOP,
     NOD_STMT_IF,
-    NOD_STMT_FOR,
+    NOD_STMT_FORNUM,
+    NOD_STMT_FORARRAY,
     NOD_STMT_ELSE,
     NOD_STMT_BREAK,
     NOD_STMT_CONTINUE,
@@ -132,7 +133,8 @@ struct parser_expr *parser_new_intlit_expr(long l);
 struct parser_expr *parser_new_floatlit_expr(double d);
 struct parser_expr *parser_new_stringlit_expr(const char *s);
 struct parser_expr *parser_new_funclit_expr(struct parser_func *func);
-struct parser_expr *parser_new_arraylit_expr(struct parser_expr *elems, int len);
+struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type,
+        struct parser_expr *elems, int len);
 struct parser_expr *parser_new_structlit_expr(struct parser_struct *strct,
         struct parser_expr *fields);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
@@ -183,7 +185,9 @@ struct parser_stmt *parser_new_nop_stmt(void);
 struct parser_stmt *parser_new_block_stmt(struct parser_stmt *children);
 struct parser_stmt *parser_new_if_stmt(struct parser_stmt *or_list);
 struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser_stmt *body);
-struct parser_stmt *parser_new_for_stmt(struct parser_expr *iter,
+struct parser_stmt *parser_new_fornum_stmt(struct parser_expr *iter,
+        struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_forarray_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);
 struct parser_stmt *parser_new_break_stmt(void);
 struct parser_stmt *parser_new_continue_stmt(void);

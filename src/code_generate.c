@@ -120,7 +120,7 @@ static int gen_init_array(struct code_bytecode *code, const struct parser_expr *
     struct parser_expr *array_lit = e->r;
     int index = 0;
 
-    for (struct parser_expr *expr = array_lit->l; expr; expr = expr->next) {
+    for (struct parser_expr *expr = array_lit->r; expr; expr = expr->next) {
         int src = gen_expr(code, expr);
         int idx = code_emit_load_int(code, index);
         code_emit_store_array(code, dst, idx, src);
@@ -1010,24 +1010,55 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
         }
         break;
 
-    case NOD_STMT_FOR:
+    case NOD_STMT_FORNUM:
         {
             code_begin_for(code);
 
-            int itr = gen_addr(code, s->expr);
-            int beg = gen_expr(code, s->cond);
-            int end = gen_expr(code, s->cond->next);
-            int inc = gen_expr(code, s->cond->next->next);
+            int iter = gen_addr(code, s->expr);
+            int start = gen_expr(code, s->cond);
+            int stop = gen_expr(code, s->cond->next);
+            int step = gen_expr(code, s->cond->next->next);
 
-            code_emit_move(code, itr + 1, beg);
-            code_emit_move(code, itr + 2, end);
-            code_emit_move(code, itr + 3, inc);
+            code_emit_move(code, iter + 1, start);
+            code_emit_move(code, iter + 2, stop);
+            code_emit_move(code, iter + 3, step);
 
             /* init */
-            int64_t init = code_emit_fornum_init(code, itr);
+            int64_t init = code_emit_fornum_init(code, iter);
 
             /* rest */
-            int64_t rest = code_emit_fornum_rest(code, itr);
+            int64_t rest = code_emit_fornum_rest(code, iter);
+            code_push_forrest(code, rest);
+
+            /* body */
+            gen_stmt(code, s->body);
+
+            /* jump */
+            code_emit_jump(code, rest);
+
+            /* exit */
+            code_back_patch(code, init);
+            code_back_patch(code, rest);
+            code_back_patch_breaks(code);
+            code_pop_forrest(code);
+        }
+        break;
+
+    case NOD_STMT_FORARRAY:
+        {
+            code_begin_for(code);
+
+            int idx = gen_addr(code, s->expr);
+            int obj = gen_expr(code, s->cond);
+
+            /* idx + 1 hold value */
+            code_emit_move(code, idx + 2, obj);
+
+            /* init */
+            int64_t init = code_emit_forarray_init(code, idx);
+
+            /* rest */
+            int64_t rest = code_emit_forarray_rest(code, idx);
             code_push_forrest(code, rest);
 
             /* body */

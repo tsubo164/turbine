@@ -18,20 +18,11 @@
 //  - radius int
 
 # main() int
-  /*
-  - i = 42
-  - j = 3
-  ---
-    - a = 11
-  ---
-    - b = 22
-  */
-  //- f = 4e-11
-  //- f = 5.3876e4
-  - f = 53876.0
+  //- br []int
+  - array = [11, 23, 204, 2]
 
-  for i in 1..10, 2
-    print(i, "Foo")
+  for val in array
+    print("val =>", val)
 
   return 12
 

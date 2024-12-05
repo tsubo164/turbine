@@ -10,7 +10,8 @@ const struct parser_node_info *parser_get_node_info(int kind)
     /* stmt */
     [NOD_STMT_NOP]            = {"nop"},
     [NOD_STMT_IF]             = {"if"},
-    [NOD_STMT_FOR]            = {"for"},
+    [NOD_STMT_FORNUM]         = {"for (num)"},
+    [NOD_STMT_FORARRAY]       = {"for (array)"},
     [NOD_STMT_ELSE]           = {"else"},
     [NOD_STMT_BREAK]          = {"break"},
     [NOD_STMT_CONTINUE]       = {"continue"},
@@ -152,11 +153,13 @@ struct parser_expr *parser_new_funclit_expr(struct parser_func *func)
     return e;
 }
 
-struct parser_expr *parser_new_arraylit_expr(struct parser_expr *elems, int len)
+struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type,
+        struct parser_expr *elems, int len)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_ARRAYLIT);
-    e->type = parser_new_array_type(len, elems->type);
-    e->l = elems;
+    e->type = parser_new_array_type(len, elem_type);
+    e->l = parser_new_intlit_expr(len);
+    e->r = elems;
     return e;
 }
 
@@ -418,10 +421,20 @@ struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser
     return s;
 }
 
-struct parser_stmt *parser_new_for_stmt(struct parser_expr *iter,
+struct parser_stmt *parser_new_fornum_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FOR);
+    struct parser_stmt *s = new_stmt(NOD_STMT_FORNUM);
+    s->expr = iter;
+    s->cond = collection;
+    s->body = body;
+    return s;
+}
+
+struct parser_stmt *parser_new_forarray_stmt(struct parser_expr *iter,
+        struct parser_expr *collection, struct parser_stmt *body)
+{
+    struct parser_stmt *s = new_stmt(NOD_STMT_FORARRAY);
     s->expr = iter;
     s->cond = collection;
     s->body = body;
