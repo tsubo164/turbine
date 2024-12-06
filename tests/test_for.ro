@@ -62,6 +62,13 @@
       sum += i
     test.AssertI(20, sum)
 
+  ---
+    - array = [11, 23, 204, 2]
+    - sum = 0
+    for val in array
+      sum += val
+    test.AssertI(240, sum)
+
   print(test._test_count_, "tests done.")
 
   return 0

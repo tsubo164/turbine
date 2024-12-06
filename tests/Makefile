@@ -15,6 +15,9 @@ test: all
 	@echo "[number literal tests]"
 	../rock test_numliteral.ro
 	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[array tests]"
+	../rock test_array.ro
+	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[for statement tests]"
 	../rock test_for.ro
 	@echo "\033[0;32mOK\033[0;39m"
