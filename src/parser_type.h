@@ -32,7 +32,6 @@ struct parser_type {
         const struct parser_struct *strct;
         const struct parser_table *table;
         const struct parser_module *module;
-        int len;
     };
 };
 
@@ -46,7 +45,7 @@ struct parser_type *parser_new_struct_type(struct parser_struct *s);
 struct parser_type *parser_new_table_type(struct parser_table *t);
 struct parser_type *parser_new_module_type(struct parser_module *m);
 struct parser_type *parser_new_ptr_type(const struct parser_type *underlying);
-struct parser_type *parser_new_array_type(int len, const struct parser_type *underlying);
+struct parser_type *parser_new_array_type(const struct parser_type *underlying);
 struct parser_type *parser_new_any_type(void);
 
 bool parser_is_nil_type(const struct parser_type *t);

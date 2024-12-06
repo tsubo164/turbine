@@ -87,10 +87,9 @@ struct parser_type *parser_new_ptr_type(const struct parser_type *underlying)
     return t;
 }
 
-struct parser_type *parser_new_array_type(int len, const struct parser_type *underlying)
+struct parser_type *parser_new_array_type(const struct parser_type *underlying)
 {
     struct parser_type *t = new_type(TYP_ARRAY);
-    t->len = len;
     t->underlying = underlying;
     return t;
 }
@@ -105,8 +104,7 @@ struct parser_type *parser_new_any_type(void)
 int parser_sizeof_type(const struct parser_type *t)
 {
     if (parser_is_array_type(t))
-        // use one value for length info
-        return t->len + 1;
+        return 1;
     else if (parser_is_struct_type(t))
         return t->strct->size;
     else
@@ -156,7 +154,7 @@ const char *parser_type_string(const struct parser_type *t)
         char buf[128] = {'\0'};
 
         if (type->kind == TYP_ARRAY) {
-            sprintf(buf, "%s[%d]", interned, type->len);
+            sprintf(buf, "[]%s", interned);
         }
         else if (type->kind == TYP_PTR) {
             sprintf(buf, "%s*", interned);

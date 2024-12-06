@@ -94,34 +94,28 @@ static int gen_convert(struct code_bytecode *code, int reg0, int reg1, int from,
 static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2);
 static int gen_dst_register2(struct code_bytecode *code, int reg1);
 static int gen_store2(struct code_bytecode *code, const struct parser_expr *lval, int src_reg);
-static int gen_init_array(struct code_bytecode *code, const struct parser_expr *e)
+
+static int gen_array_lit(struct code_bytecode *code,
+        const struct parser_expr *e, int dst_reg)
 {
+    const struct parser_expr *elem;
+    int index = 0;
+    int len = 0;
     int dst = 0;
 
-    /* TODO testing dynamic array */
-    if (parser_ast_is_global(e->l)) {
-        int addr = gen_addr(code, e->l);
-        int len = gen_expr(code, e->r);
-        int dst = gen_dst_register(code, addr, len);
-        code_emit_new_array(code, dst, len);
-        code_emit_store_global(code, addr, dst);
-        return addr;
-    }
-    else {
-        /* an init expr always has identifier on the left */
-        int reg0 = gen_expr(code, e->l);
-        int reg1 = code_emit_load_int(code, e->type->len);
-        code_emit_new_array(code, reg0, reg1);
-        dst = reg0;
-    }
+    /* dst register */
+    if (dst_reg == -1)
+        dst = code_allocate_temporary_register(code);
+    else
+        dst = dst_reg;
 
-    /* TODO eval array lit expr and return an array object */
-    /* array lit */
-    struct parser_expr *array_lit = e->r;
-    int index = 0;
+    /* make array */
+    len = gen_expr(code, e->l);
+    code_emit_new_array(code, dst, len);
 
-    for (struct parser_expr *expr = array_lit->r; expr; expr = expr->next) {
-        int src = gen_expr(code, expr);
+    /* set elements */
+    for (elem = e->r; elem; elem = elem->next) {
+        int src = gen_expr(code, elem);
         int idx = code_emit_load_int(code, index);
         code_emit_store_array(code, dst, idx, src);
         index++;
@@ -178,11 +172,26 @@ static int gen_struct_lit(struct code_bytecode *code, const struct parser_expr *
     return dst;
 }
 
+static int gen_init_array(struct code_bytecode *code, const struct parser_expr *e)
+{
+    if (parser_ast_is_global(e->l)) {
+        int dst = gen_addr(code, e->l);
+        int tmp = gen_array_lit(code, e->r, -1);
+        code_emit_store_global(code, dst, tmp);
+        return dst;
+    }
+    else {
+        int dst = gen_expr(code, e->l);
+        gen_array_lit(code, e->r, dst);
+        return dst;
+    }
+}
+
 static int gen_init_struct(struct code_bytecode *code, const struct parser_expr *e)
 {
     if (parser_ast_is_global(e->l)) {
-        int tmp = gen_struct_lit(code, e->r, e->type, -1);
         int dst = gen_addr(code, e->l);
+        int tmp = gen_struct_lit(code, e->r, e->type, -1);
         code_emit_store_global(code, dst, tmp);
         return dst;
     }

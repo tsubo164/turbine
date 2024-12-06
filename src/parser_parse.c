@@ -452,15 +452,6 @@ static struct parser_expr *postfix_expr(struct parser *p)
                 error(p, tok_pos(p),
                         "index expression must be integer type");
             }
-            int64_t index = 0;
-            if (parser_eval_expr(idx, &index)) {
-                const int64_t len = expr->type->len;
-                if (index >= len) {
-                    error(p, tok_pos(p),
-                            "index out of range[%d] with length %d",
-                            index, len);
-                }
-            }
             expect(p, TOK_RBRACK);
             return parser_new_index_expr(expr, idx);
         }
@@ -1174,10 +1165,13 @@ static struct parser_expr *default_value(const struct parser_type *type)
     switch (type->kind) {
     case TYP_BOOL:
         return parser_new_boollit_expr(false);
+
     case TYP_INT:
         return parser_new_intlit_expr(0);
+
     case TYP_FLOAT:
         return parser_new_floatlit_expr(0.0);
+
     case TYP_STRING:
         return parser_new_stringlit_expr("");
 
@@ -1185,14 +1179,7 @@ static struct parser_expr *default_value(const struct parser_type *type)
         return parser_new_nillit_expr();
 
     case TYP_ARRAY:
-        /* TODO TEST new array */
-        if (type->len == 0) {
-            return parser_new_arraylit_expr(type->underlying, NULL, 0);
-        }
-        /* ------------------- */
-        /* TODO fill with zero values */
-        /* put len at base addr */
-        return parser_new_intlit_expr(type->len);
+        return parser_new_arraylit_expr(type->underlying, NULL, 0);
 
     case TYP_FUNC:
     case TYP_STRUCT:
@@ -1464,26 +1451,8 @@ static struct parser_type *type_spec(struct parser *p)
     }
 
     if (consume(p, TOK_LBRACK)) {
-        /* TODO TEST new array */
-        if (consume(p, TOK_RBRACK)) {
-            return parser_new_array_type(0, type_spec(p));
-        }
-        /* ------------------- */
-
-        int64_t len = 0;
-        if (peek(p) != TOK_RBRACK) {
-            struct parser_expr *e = expression(p);
-            if (!parser_is_int_type(e->type)) {
-                error(p, tok_pos(p),
-                        "array length expression must be integer type");
-            }
-            if (!parser_eval_expr(e, &len)) {
-                error(p, tok_pos(p),
-                        "array length expression must be compile time constant");
-            }
-        }
         expect(p, TOK_RBRACK);
-        return parser_new_array_type(len, type_spec(p));
+        return parser_new_array_type(type_spec(p));
     }
 
     if (consume(p, TOK_HASH)) {

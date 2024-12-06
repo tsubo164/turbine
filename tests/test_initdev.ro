@@ -77,7 +77,7 @@
 # twice(n *int)
   *n = *n * 2
 
-- _array_ [4]int
+- _array_ []int = [0, 0, 0, 0]
 
 - _gcount_ int
 - _gvar_ int
@@ -743,7 +743,7 @@
 
   // array variable
   ---
-    - a [8]int
+    - a []int = [0, 0, 0, 0, 0, 0, 0, 0]
     - i = 9
     a[2] = 87
     test.AssertI(87, a[2])
@@ -754,7 +754,7 @@
 
   // array variable with const expression
   ---
-    - a [2 + 8]int
+    - a []int = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     - i = 7
     a[2] = 8
     test.AssertI(8, a[2])
