@@ -902,15 +902,42 @@ static struct parser_stmt *if_stmt(struct parser *p)
     return parser_new_if_stmt(head.next);
 }
 
+static struct parser_symbol *define_loop_var(struct parser_scope *scope,
+        const char *name, const struct parser_type *type)
+{
+    bool isglobal = false;
+    struct parser_symbol *sym = parser_define_var(scope, name, type, isglobal);
+    assert(sym);
+
+    return sym;
+}
+
+static int iter_list(struct parser *p, const char **names, int max_names)
+{
+    int index = 0;
+
+    do {
+        if (index >= max_names)
+            error(p, tok_pos(p), "too many iterators");
+
+        expect(p, TOK_IDENT);
+        names[index++] = tok_str(p);
+
+    } while (consume(p, TOK_COMMA));
+
+    return index;
+}
+
 static struct parser_stmt *for_stmt(struct parser *p)
 {
     expect(p, TOK_FOR);
 
-    struct parser_stmt *init = NULL;
-    struct parser_expr *cond = NULL;
-    struct parser_stmt *post = NULL;
-
     if (consume(p, TOK_NEWLINE)) {
+        /* TODO consider adding while loop and remove this */
+        struct parser_stmt *init = NULL;
+        struct parser_expr *cond = NULL;
+        struct parser_stmt *post = NULL;
+
         /* infinite loop */
         init = NULL;
         cond = parser_new_intlit_expr(1);
@@ -920,112 +947,79 @@ static struct parser_stmt *for_stmt(struct parser *p)
         return parser_new_fornum_stmt(NULL, NULL, body);
     }
     else {
-        struct parser_expr *start, *stop, *step;
+        struct parser_expr *collection = NULL;
         struct parser_expr *iter = NULL;
 
         /* enter new scope */
         struct parser_scope *block_scope = new_child_scope(p);
+        struct parser_pos iter_pos = tok_pos(p);
 
-        expect(p, TOK_IDENT);
-
-        /* var anme */
-        const char *name = tok_str(p);
+        /* iterators */
+        const char *iter_names[4] = {NULL};
+        int iter_count = iter_list(p, iter_names, sizeof(iter_names)/sizeof(iter_names[0]));
 
         expect(p, TOK_IN);
 
-        /* start */
-        start = expression(p);
+        /* collection */
+        collection = expression(p);
 
-        if (parser_is_int_type(start->type)) {
+        if (parser_is_int_type(collection->type)) {
+            struct parser_expr *start, *stop, *step;
             expect(p, TOK_PERIOD2);
 
-            /* stop */
+            start = collection;
             stop = expression(p);
-
-            /* step */
             if (consume(p, TOK_COMMA))
                 step = expression(p);
             else
                 step = parser_new_intlit_expr(1);
 
-            start->next = stop;
+            collection->next = stop;
             stop->next = step;
             expect(p, TOK_NEWLINE);
 
+            if (iter_count != 1) {
+                /* TODO consider having more accurate pos */
+                error(p, iter_pos, "too many iterators");
+            }
             struct parser_symbol *sym;
-            {
-                bool isglobal = false;
-                const struct parser_type *type = parser_new_int_type();
-                sym = parser_define_var(block_scope, name, type, isglobal);
-                assert(sym);
-            }
-            {
-                bool isglobal = false;
-                const char *name = ":start";
-                const struct parser_type *type = parser_new_int_type();
-                struct parser_symbol *sym;
-                sym = parser_define_var(block_scope, name, type, isglobal);
-                assert(sym);
-            }
-            {
-                bool isglobal = false;
-                const char *name = ":stop";
-                const struct parser_type *type = parser_new_int_type();
-                struct parser_symbol *sym;
-                sym = parser_define_var(block_scope, name, type, isglobal);
-                assert(sym);
-            }
-            {
-                bool isglobal = false;
-                const char *name = ":step";
-                const struct parser_type *type = parser_new_int_type();
-                struct parser_symbol *sym;
-                sym = parser_define_var(block_scope, name, type, isglobal);
-                assert(sym);
-            }
+            sym = define_loop_var(block_scope, iter_names[0], parser_new_int_type());
+            define_loop_var(block_scope, ":start", parser_new_int_type());
+            define_loop_var(block_scope, ":stop", parser_new_int_type());
+            define_loop_var(block_scope, ":step", parser_new_int_type());
 
             iter = parser_new_ident_expr(sym);
 
             struct parser_stmt *body = block_stmt(p, block_scope);
-            return parser_new_fornum_stmt(iter, start, body);
+            return parser_new_fornum_stmt(iter, collection, body);
         }
-        else if (parser_is_array_type(start->type)) {
+        else if (parser_is_array_type(collection->type)) {
+
             expect(p, TOK_NEWLINE);
 
-            struct parser_symbol *sym;
-            {
-                bool isglobal = false;
-                const char *name = ":index";
-                const struct parser_type *type = parser_new_int_type();
-                sym = parser_define_var(block_scope, name, type, isglobal);
-                assert(sym);
+            struct parser_symbol *sym = NULL;
+
+            if (iter_count == 1) {
+                const char *name = iter_names[0];
+                sym = define_loop_var(block_scope, ":index", parser_new_int_type());
+                define_loop_var(block_scope, name, collection->type->underlying);
+                define_loop_var(block_scope, ":array", collection->type);
             }
-            {
-                bool isglobal = false;
-                const struct parser_type *type = start->type->underlying;
-                struct parser_symbol *sym;
-                sym = parser_define_var(block_scope, name, type, isglobal);
-                assert(sym);
+            else if (iter_count == 2) {
+                sym = define_loop_var(block_scope, iter_names[0], parser_new_int_type());
+                define_loop_var(block_scope, iter_names[1], collection->type->underlying);
+                define_loop_var(block_scope, ":array", collection->type);
             }
-            {
-                bool isglobal = false;
-                const char *name = ":array";
-                const struct parser_type *type = parser_new_int_type();
-                struct parser_symbol *sym;
-                sym = parser_define_var(block_scope, name, type, isglobal);
-                assert(sym);
+            else {
+                /* TODO consider having more accurate pos */
+                error(p, iter_pos, "too many iterators");
             }
 
             iter = parser_new_ident_expr(sym);
 
             struct parser_stmt *body = block_stmt(p, block_scope);
-            return parser_new_forarray_stmt(iter, start, body);
+            return parser_new_forarray_stmt(iter, collection, body);
         }
-
-        /*
-        struct parser_stmt *body = block_stmt(p, block_scope);
-        return parser_new_fornum_stmt(iter, start, body);
-        */
     }
     /* TODO */
     return NULL;

@@ -21,8 +21,8 @@
   //- br []int
   - array = [11, 23, 204, 2]
 
-  for val in array
-    print("val =>", val)
+  for i, val in array
+    print(i, "=>", val)
 
   return 12
 

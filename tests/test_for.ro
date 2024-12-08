@@ -63,11 +63,20 @@
     test.AssertI(20, sum)
 
   ---
+    // for array value
     - array = [11, 23, 204, 2]
     - sum = 0
     for val in array
       sum += val
     test.AssertI(240, sum)
+
+  ---
+    // for array value and index
+    - array = [11, 23, 204, 2]
+    - sum = 0
+    for i, val in array
+      sum += i * val
+    test.AssertI(437, sum)
 
   print(test._test_count_, "tests done.")
 
