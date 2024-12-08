@@ -912,16 +912,16 @@ static struct parser_symbol *define_loop_var(struct parser_scope *scope,
     return sym;
 }
 
-static int iter_list(struct parser *p, const char **names, int max_names)
+static int iter_list(struct parser *p, const struct parser_token **iters, int max_iters)
 {
     int index = 0;
 
     do {
-        if (index >= max_names)
+        if (index >= max_iters)
             error(p, tok_pos(p), "too many iterators");
 
         expect(p, TOK_IDENT);
-        names[index++] = tok_str(p);
+        iters[index++] = curtok(p);
 
     } while (consume(p, TOK_COMMA));
 
@@ -952,11 +952,10 @@ static struct parser_stmt *for_stmt(struct parser *p)
 
         /* enter new scope */
         struct parser_scope *block_scope = new_child_scope(p);
-        struct parser_pos iter_pos = tok_pos(p);
 
         /* iterators */
-        const char *iter_names[4] = {NULL};
-        int iter_count = iter_list(p, iter_names, sizeof(iter_names)/sizeof(iter_names[0]));
+        const struct parser_token *iters[3] = {NULL};
+        int iter_count = iter_list(p, iters, sizeof(iters)/sizeof(iters[0]));
 
         expect(p, TOK_IN);
 
@@ -978,12 +977,12 @@ static struct parser_stmt *for_stmt(struct parser *p)
             stop->next = step;
             expect(p, TOK_NEWLINE);
 
-            if (iter_count != 1) {
-                /* TODO consider having more accurate pos */
-                error(p, iter_pos, "too many iterators");
+            if (iter_count > 1) {
+                error(p, iters[1]->pos, "too many iterators");
             }
             struct parser_symbol *sym;
-            sym = define_loop_var(block_scope, iter_names[0], parser_new_int_type());
+
+            sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
             define_loop_var(block_scope, ":start", parser_new_int_type());
             define_loop_var(block_scope, ":stop", parser_new_int_type());
             define_loop_var(block_scope, ":step", parser_new_int_type());
@@ -1000,19 +999,17 @@ static struct parser_stmt *for_stmt(struct parser *p)
             struct parser_symbol *sym = NULL;
 
             if (iter_count == 1) {
-                const char *name = iter_names[0];
                 sym = define_loop_var(block_scope, ":index", parser_new_int_type());
-                define_loop_var(block_scope, name, collection->type->underlying);
+                define_loop_var(block_scope, iters[0]->sval, collection->type->underlying);
                 define_loop_var(block_scope, ":array", collection->type);
             }
             else if (iter_count == 2) {
-                sym = define_loop_var(block_scope, iter_names[0], parser_new_int_type());
-                define_loop_var(block_scope, iter_names[1], collection->type->underlying);
+                sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
+                define_loop_var(block_scope, iters[1]->sval, collection->type->underlying);
                 define_loop_var(block_scope, ":array", collection->type);
             }
             else {
-                /* TODO consider having more accurate pos */
-                error(p, iter_pos, "too many iterators");
+                error(p, iters[2]->pos, "too many iterators");
             }
 
             iter = parser_new_ident_expr(sym);
