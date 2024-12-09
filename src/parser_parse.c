@@ -928,102 +928,92 @@ static int iter_list(struct parser *p, const struct parser_token **iters, int ma
     return index;
 }
 
+/*
+for_stmt  ::= "for" iter_list "in" expression "\n" block_stmt
+iter_list ::= ident { "," ident }
+*/
 static struct parser_stmt *for_stmt(struct parser *p)
 {
     expect(p, TOK_FOR);
 
-    if (consume(p, TOK_NEWLINE)) {
-        /* TODO consider adding while loop and remove this */
-        struct parser_stmt *init = NULL;
-        struct parser_expr *cond = NULL;
-        struct parser_stmt *post = NULL;
+    struct parser_expr *collection = NULL;
+    struct parser_expr *iter = NULL;
 
-        /* infinite loop */
-        init = NULL;
-        cond = parser_new_intlit_expr(1);
-        post = NULL;
+    /* enter new scope */
+    struct parser_scope *block_scope = new_child_scope(p);
 
-        struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-        return parser_new_fornum_stmt(NULL, NULL, body);
+    /* iterators */
+    const struct parser_token *iters[3] = {NULL};
+    int iter_count = iter_list(p, iters, sizeof(iters)/sizeof(iters[0]));
+
+    expect(p, TOK_IN);
+
+    /* collection */
+    collection = expression(p);
+
+    if (parser_is_int_type(collection->type)) {
+        struct parser_expr *start, *stop, *step;
+        expect(p, TOK_PERIOD2);
+
+        start = collection;
+        stop = expression(p);
+        if (consume(p, TOK_COMMA))
+            step = expression(p);
+        else
+            step = parser_new_intlit_expr(1);
+
+        collection->next = stop;
+        stop->next = step;
+        expect(p, TOK_NEWLINE);
+
+        if (iter_count > 1) {
+            error(p, iters[1]->pos, "too many iterators");
+        }
+        struct parser_symbol *sym;
+
+        sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
+        define_loop_var(block_scope, ":start", parser_new_int_type());
+        define_loop_var(block_scope, ":stop", parser_new_int_type());
+        define_loop_var(block_scope, ":step", parser_new_int_type());
+
+        iter = parser_new_ident_expr(sym);
+
+        struct parser_stmt *body = block_stmt(p, block_scope);
+        return parser_new_fornum_stmt(iter, collection, body);
+    }
+    else if (parser_is_array_type(collection->type)) {
+
+        expect(p, TOK_NEWLINE);
+
+        struct parser_symbol *sym = NULL;
+
+        if (iter_count == 1) {
+            sym = define_loop_var(block_scope, ":index", parser_new_int_type());
+            define_loop_var(block_scope, iters[0]->sval, collection->type->underlying);
+            define_loop_var(block_scope, ":array", collection->type);
+        }
+        else if (iter_count == 2) {
+            sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
+            define_loop_var(block_scope, iters[1]->sval, collection->type->underlying);
+            define_loop_var(block_scope, ":array", collection->type);
+        }
+        else {
+            error(p, iters[2]->pos, "too many iterators");
+        }
+
+        iter = parser_new_ident_expr(sym);
+
+        struct parser_stmt *body = block_stmt(p, block_scope);
+        return parser_new_forarray_stmt(iter, collection, body);
     }
     else {
-        struct parser_expr *collection = NULL;
-        struct parser_expr *iter = NULL;
-
-        /* enter new scope */
-        struct parser_scope *block_scope = new_child_scope(p);
-
-        /* iterators */
-        const struct parser_token *iters[3] = {NULL};
-        int iter_count = iter_list(p, iters, sizeof(iters)/sizeof(iters[0]));
-
-        expect(p, TOK_IN);
-
-        /* collection */
-        collection = expression(p);
-
-        if (parser_is_int_type(collection->type)) {
-            struct parser_expr *start, *stop, *step;
-            expect(p, TOK_PERIOD2);
-
-            start = collection;
-            stop = expression(p);
-            if (consume(p, TOK_COMMA))
-                step = expression(p);
-            else
-                step = parser_new_intlit_expr(1);
-
-            collection->next = stop;
-            stop->next = step;
-            expect(p, TOK_NEWLINE);
-
-            if (iter_count > 1) {
-                error(p, iters[1]->pos, "too many iterators");
-            }
-            struct parser_symbol *sym;
-
-            sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
-            define_loop_var(block_scope, ":start", parser_new_int_type());
-            define_loop_var(block_scope, ":stop", parser_new_int_type());
-            define_loop_var(block_scope, ":step", parser_new_int_type());
-
-            iter = parser_new_ident_expr(sym);
-
-            struct parser_stmt *body = block_stmt(p, block_scope);
-            return parser_new_fornum_stmt(iter, collection, body);
-        }
-        else if (parser_is_array_type(collection->type)) {
-
-            expect(p, TOK_NEWLINE);
-
-            struct parser_symbol *sym = NULL;
-
-            if (iter_count == 1) {
-                sym = define_loop_var(block_scope, ":index", parser_new_int_type());
-                define_loop_var(block_scope, iters[0]->sval, collection->type->underlying);
-                define_loop_var(block_scope, ":array", collection->type);
-            }
-            else if (iter_count == 2) {
-                sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
-                define_loop_var(block_scope, iters[1]->sval, collection->type->underlying);
-                define_loop_var(block_scope, ":array", collection->type);
-            }
-            else {
-                error(p, iters[2]->pos, "too many iterators");
-            }
-
-            iter = parser_new_ident_expr(sym);
-
-            struct parser_stmt *body = block_stmt(p, block_scope);
-            return parser_new_forarray_stmt(iter, collection, body);
-        }
+        error(p, tok_pos(p), "not an iteratable object");
+        return NULL;
     }
-    /* TODO */
-    return NULL;
 }
 
 /*
-while_stmt = "while" expression "\n" block_stmt
+while_stmt ::= "while" expression "\n" block_stmt
 */
 static struct parser_stmt *while_stmt(struct parser *p)
 {
