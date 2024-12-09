@@ -9,6 +9,7 @@ enum parser_node_kind {
     /* stmt */
     NOD_STMT_NOP,
     NOD_STMT_IF,
+    NOD_STMT_WHILE,
     NOD_STMT_FORNUM,
     NOD_STMT_FORARRAY,
     NOD_STMT_ELSE,
@@ -185,6 +186,7 @@ struct parser_stmt *parser_new_nop_stmt(void);
 struct parser_stmt *parser_new_block_stmt(struct parser_stmt *children);
 struct parser_stmt *parser_new_if_stmt(struct parser_stmt *or_list);
 struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser_stmt *body);
+struct parser_stmt *parser_new_while_stmt(struct parser_expr *cond, struct parser_stmt *body);
 struct parser_stmt *parser_new_fornum_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);
 struct parser_stmt *parser_new_forarray_stmt(struct parser_expr *iter,

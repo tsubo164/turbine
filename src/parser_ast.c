@@ -10,6 +10,7 @@ const struct parser_node_info *parser_get_node_info(int kind)
     /* stmt */
     [NOD_STMT_NOP]            = {"nop"},
     [NOD_STMT_IF]             = {"if"},
+    [NOD_STMT_WHILE]          = {"while"},
     [NOD_STMT_FORNUM]         = {"for (num)"},
     [NOD_STMT_FORARRAY]       = {"for (array)"},
     [NOD_STMT_ELSE]           = {"else"},
@@ -416,6 +417,14 @@ struct parser_stmt *parser_new_if_stmt(struct parser_stmt *or_list)
 struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser_stmt *body)
 {
     struct parser_stmt *s = new_stmt(NOD_STMT_ELSE);
+    s->cond = cond;
+    s->body = body;
+    return s;
+}
+
+struct parser_stmt *parser_new_while_stmt(struct parser_expr *cond, struct parser_stmt *body)
+{
+    struct parser_stmt *s = new_stmt(NOD_STMT_WHILE);
     s->cond = cond;
     s->body = body;
     return s;

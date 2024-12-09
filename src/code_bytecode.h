@@ -132,6 +132,7 @@ void code_emit_return(struct code_bytecode *code, int id);
 /* branch */
 void code_begin_if(struct code_bytecode *code);
 void code_begin_for(struct code_bytecode *code);
+void code_begin_while(struct code_bytecode *code);
 void code_begin_switch(struct code_bytecode *code);
 void code_push_else_end(struct code_bytecode *code, int64_t addr);
 void code_push_break(struct code_bytecode *code, int64_t addr);

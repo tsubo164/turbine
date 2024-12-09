@@ -589,6 +589,11 @@ void code_begin_for(struct code_bytecode *code)
     data_intstack_push(&code->breaks, -1);
 }
 
+void code_begin_while(struct code_bytecode *code)
+{
+    data_intstack_push(&code->breaks, -1);
+}
+
 void code_begin_switch(struct code_bytecode *code)
 {
     data_intstack_push(&code->casecloses, -1);

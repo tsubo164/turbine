@@ -1022,6 +1022,24 @@ static struct parser_stmt *for_stmt(struct parser *p)
     return NULL;
 }
 
+/*
+while_stmt = "while" expression "\n" block_stmt
+*/
+static struct parser_stmt *while_stmt(struct parser *p)
+{
+    struct parser_expr *cond;
+    struct parser_stmt *body;
+
+    expect(p, TOK_WHILE);
+
+    cond = expression(p);
+
+    expect(p, TOK_NEWLINE);
+
+    body = block_stmt(p, new_child_scope(p));
+    return parser_new_while_stmt(cond, body);
+}
+
 static struct parser_stmt *break_stmt(struct parser *p)
 {
     gettok(p);
@@ -1344,6 +1362,10 @@ static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *blo
 
         case TOK_FOR:
             tail = tail->next = for_stmt(p);
+            break;
+
+        case TOK_WHILE:
+            tail = tail->next = while_stmt(p);
             break;
 
         case TOK_BREAK:

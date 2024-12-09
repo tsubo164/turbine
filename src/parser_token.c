@@ -25,6 +25,7 @@ const char *parser_get_token_string(int kind)
     [TOK_STRING]        = "string",
     [TOK_IF]            = "if",
     [TOK_ELSE]          = "or",
+    [TOK_WHILE]         = "while",
     [TOK_FOR]           = "for",
     [TOK_IN]            = "in",
     [TOK_BREAK]         = "break",

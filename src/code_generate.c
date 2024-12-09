@@ -1019,6 +1019,36 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
         }
         break;
 
+    case NOD_STMT_WHILE:
+        {
+            bool infinite_loop = false;
+            int64_t result = 0;
+            if (parser_eval_expr(s->cond, &result))
+                infinite_loop = result != 0;
+
+            code_begin_while(code);
+
+            /* cond */
+            int begin;
+            int jump;
+
+            begin = code_get_next_addr(code);
+            if (!infinite_loop) {
+                int cond = gen_expr(code, s->cond);
+                jump = code_emit_jump_if_zero(code, cond, -1);
+            }
+
+            /* true */
+            gen_stmt(code, s->body);
+
+            /* exit */
+            code_emit_jump(code, begin);
+            code_back_patch_breaks(code);
+            if (!infinite_loop)
+                code_back_patch(code, jump);
+        }
+        break;
+
     case NOD_STMT_FORNUM:
         {
             code_begin_for(code);

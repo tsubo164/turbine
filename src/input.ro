@@ -19,10 +19,16 @@
 
 # main() int
   //- br []int
-  - array = [11, 23, 204, 2]
+  //- array = [11, 23, 204, 2]
 
-  for i, val in array
-    print(i, "=>", val)
+  //for i, val in array
+  //  print(i, "=>", val)
+
+  - i = 0
+
+  while i < 10
+    print(i)
+    i++
 
   return 12
 

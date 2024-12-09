@@ -78,6 +78,24 @@
       sum += i * val
     test.AssertI(437, sum)
 
+  ---
+    - sum = 0
+    - i = 0
+    while i < 10
+      sum += i
+      i++
+    test.AssertI(45, sum)
+
+  ---
+    - sum = 0
+    - i = 0
+    while true
+      sum += i
+      i++
+      if i >= 10
+        break
+    test.AssertI(45, sum)
+
   print(test._test_count_, "tests done.")
 
   return 0
