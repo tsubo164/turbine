@@ -39,6 +39,7 @@ struct code_bytecode {
     /* back patches */
     struct data_intstack ors;
     struct data_intstack breaks;
+    struct data_intstack continues;
     struct data_intstack casecloses;
     struct data_intstack forrests;
 };
@@ -136,6 +137,7 @@ void code_begin_while(struct code_bytecode *code);
 void code_begin_switch(struct code_bytecode *code);
 void code_push_else_end(struct code_bytecode *code, int64_t addr);
 void code_push_break(struct code_bytecode *code, int64_t addr);
+void code_push_continue(struct code_bytecode *code, int64_t addr);
 void code_push_case_end(struct code_bytecode *code, int64_t addr);
 
 /* push/pop/top the destination of `continue`s */
@@ -152,8 +154,8 @@ int64_t code_emit_jump_if_zero(struct code_bytecode *code, int src, int64_t addr
 int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int src, int64_t addr);
 
 /* loop */
-int64_t code_emit_fornum_init(struct code_bytecode *code, int itr);
-int64_t code_emit_fornum_rest(struct code_bytecode *code, int itr);
+int64_t code_emit_fornum_begin(struct code_bytecode *code, int itr);
+int64_t code_emit_fornum_end(struct code_bytecode *code, int itr, int64_t begin);
 int64_t code_emit_forarray_init(struct code_bytecode *code, int itr);
 int64_t code_emit_forarray_rest(struct code_bytecode *code, int itr);
 
@@ -171,6 +173,7 @@ void code_emit_halt(struct code_bytecode *code);
 /* back-patches */
 void code_back_patch(struct code_bytecode *code, int64_t operand_addr);
 void code_back_patch_breaks(struct code_bytecode *code);
+void code_back_patch_continues(struct code_bytecode *code);
 void code_back_patch_else_ends(struct code_bytecode *code);
 void code_backpatch_case_ends(struct code_bytecode *code);
 

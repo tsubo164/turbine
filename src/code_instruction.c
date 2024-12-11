@@ -67,8 +67,8 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_JUMPIFZERO]     = { "jumpifzero",   OPERAND_ABB },
     [OP_JUMPIFNOTZ]     = { "jumpifnotz",   OPERAND_ABB },
     /* loop */
-    [OP_FORNUMINIT]     = { "fornuminit",   OPERAND_ABB },
-    [OP_FORNUMREST]     = { "fornumrest",   OPERAND_ABB },
+    [OP_FORNUMBEGIN]    = { "fornumbegin",  OPERAND_ABB },
+    [OP_FORNUMEND]      = { "fornumend",    OPERAND_ABB },
     [OP_FORARRAYINIT]   = { "forarrayinit", OPERAND_ABB },
     [OP_FORARRAYREST]   = { "forarrayrest", OPERAND_ABB },
     /* stack operation */

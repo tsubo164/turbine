@@ -71,8 +71,8 @@ enum code_opcode {
     OP_JUMPIFZERO,
     OP_JUMPIFNOTZ,
     /* loop */
-    OP_FORNUMINIT,
-    OP_FORNUMREST,
+    OP_FORNUMBEGIN,
+    OP_FORNUMEND,
     OP_FORARRAYINIT,
     OP_FORARRAYREST,
     /* stack operation TODO move to right place */

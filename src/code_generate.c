@@ -1062,24 +1062,19 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, iter + 2, stop);
             code_emit_move(code, iter + 3, step);
 
-            /* init */
-            int64_t init = code_emit_fornum_init(code, iter);
-
-            /* rest */
-            int64_t rest = code_emit_fornum_rest(code, iter);
-            code_push_forrest(code, rest);
+            /* begin */
+            int64_t init = code_emit_fornum_begin(code, iter);
+            int64_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
 
-            /* jump */
-            code_emit_jump(code, rest);
+            /* end */
+            code_back_patch_continues(code);
+            code_emit_fornum_end(code, iter, begin);
 
-            /* exit */
             code_back_patch(code, init);
-            code_back_patch(code, rest);
             code_back_patch_breaks(code);
-            code_pop_forrest(code);
         }
         break;
 
@@ -1123,8 +1118,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
     case NOD_STMT_CONTINUE:
         {
-            int64_t addr = code_top_forrest(code);
-            code_emit_jump(code, addr);
+            int64_t addr = code_emit_jump(code, -1);
+            code_push_continue(code, addr);
         }
         break;
 

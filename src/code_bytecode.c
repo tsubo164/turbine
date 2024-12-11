@@ -587,6 +587,7 @@ void code_begin_if(struct code_bytecode *code)
 void code_begin_for(struct code_bytecode *code)
 {
     data_intstack_push(&code->breaks, -1);
+    data_intstack_push(&code->continues, -1);
 }
 
 void code_begin_while(struct code_bytecode *code)
@@ -607,6 +608,11 @@ void code_push_else_end(struct code_bytecode *code, int64_t addr)
 void code_push_break(struct code_bytecode *code, int64_t addr)
 {
     data_intstack_push(&code->breaks, addr);
+}
+
+void code_push_continue(struct code_bytecode *code, int64_t addr)
+{
+    data_intstack_push(&code->continues, addr);
 }
 
 void code_push_case_end(struct code_bytecode *code, int64_t addr)
@@ -655,17 +661,17 @@ int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int id, int64_t a
 }
 
 /* loop */
-int64_t code_emit_fornum_init(struct code_bytecode *code, int itr)
+int64_t code_emit_fornum_begin(struct code_bytecode *code, int itr)
 {
     int64_t operand_addr = code_get_next_addr(code);
-    push_inst_abb(code, OP_FORNUMINIT, itr, -1);
+    push_inst_abb(code, OP_FORNUMBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_fornum_rest(struct code_bytecode *code, int itr)
+int64_t code_emit_fornum_end(struct code_bytecode *code, int itr, int64_t begin)
 {
     int64_t operand_addr = code_get_next_addr(code);
-    push_inst_abb(code, OP_FORNUMREST, itr, -1);
+    push_inst_abb(code, OP_FORNUMEND, itr, begin);
     return operand_addr;
 }
 
@@ -740,6 +746,16 @@ void code_back_patch_breaks(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->breaks)) {
         int64_t addr = data_intstack_pop(&code->breaks);
+        if (addr == -1)
+            break;
+        code_back_patch(code, addr);
+    }
+}
+
+void code_back_patch_continues(struct code_bytecode *code)
+{
+    while (!data_intstack_is_empty(&code->continues)) {
+        int64_t addr = data_intstack_pop(&code->continues);
         if (addr == -1)
             break;
         code_back_patch(code, addr);

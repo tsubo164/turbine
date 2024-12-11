@@ -473,7 +473,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_FORNUMINIT:
+        case OP_FORNUMBEGIN:
             {
                 int src = inst.A;
                 int dst = inst.BB;
@@ -484,13 +484,10 @@ static void run_cpu(struct vm_cpu *vm)
 
                 if (beg.inum >= end.inum)
                     set_ip(vm, dst);
-                else
-                    /* skip fornum rest */
-                    set_ip(vm, vm->ip + 1);
             }
             break;
 
-        case OP_FORNUMREST:
+        case OP_FORNUMEND:
             {
                 int src = inst.A;
                 int dst = inst.BB;
@@ -502,7 +499,7 @@ static void run_cpu(struct vm_cpu *vm)
                 itr.inum += inc.inum;
                 set_local(vm, src, itr);
 
-                if (itr.inum >= end.inum)
+                if (itr.inum < end.inum)
                     set_ip(vm, dst);
             }
             break;
