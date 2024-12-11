@@ -477,12 +477,12 @@ static void run_cpu(struct vm_cpu *vm)
             {
                 int src = inst.A;
                 int dst = inst.BB;
-                struct runtime_value beg = fetch_register_value(vm, src + 1);
-                struct runtime_value end = fetch_register_value(vm, src + 2);
+                struct runtime_value start = fetch_register_value(vm, src + 1);
+                struct runtime_value stop = fetch_register_value(vm, src + 2);
 
-                set_local(vm, src, beg);
-
-                if (beg.inum >= end.inum)
+                if (start.inum < stop.inum)
+                    set_local(vm, src, start);
+                else
                     set_ip(vm, dst);
             }
             break;
@@ -491,58 +491,52 @@ static void run_cpu(struct vm_cpu *vm)
             {
                 int src = inst.A;
                 int dst = inst.BB;
-                struct runtime_value itr = fetch_register_value(vm, src);
-                struct runtime_value end = fetch_register_value(vm, src + 2);
-                struct runtime_value inc = fetch_register_value(vm, src + 3);
+                struct runtime_value iter = fetch_register_value(vm, src);
+                struct runtime_value stop = fetch_register_value(vm, src + 2);
+                struct runtime_value step = fetch_register_value(vm, src + 3);
 
-                /* update iterator */
-                itr.inum += inc.inum;
-                set_local(vm, src, itr);
+                iter.inum += step.inum;
 
-                if (itr.inum < end.inum)
+                if (iter.inum < stop.inum) {
+                    set_local(vm, src, iter);
                     set_ip(vm, dst);
+                }
             }
             break;
 
-        case OP_FORARRAYINIT:
+        case OP_FORARRAYBEGIN:
             {
                 int src = inst.A;
                 int dst = inst.BB;
                 struct runtime_value idx = {.inum = 0};
                 struct runtime_value obj = fetch_register_value(vm, src + 2);
 
-                /* update index */
-                set_local(vm, src, idx);
-
-                if (idx.inum >= runtime_array_len(obj.array))
+                if (idx.inum < runtime_array_len(obj.array)) {
+                    struct runtime_value val = runtime_array_get(obj.array, idx.inum);
+                    set_local(vm, src + 1, val);
+                    set_local(vm, src, idx);
+                }
+                else {
                     set_ip(vm, dst);
-                else
-                    /* skip fornum rest */
-                    set_ip(vm, vm->ip + 1);
-
-                /* update value */
-                struct runtime_value val = runtime_array_get(obj.array, idx.inum);
-                set_local(vm, src + 1, val);
+                }
             }
             break;
 
-        case OP_FORARRAYREST:
+        case OP_FORARRAYEND:
             {
                 int src = inst.A;
                 int dst = inst.BB;
                 struct runtime_value idx = fetch_register_value(vm, src);
                 struct runtime_value obj = fetch_register_value(vm, src + 2);
 
-                /* update index */
                 idx.inum++;
-                set_local(vm, src, idx);
 
-                if (idx.inum >= runtime_array_len(obj.array))
+                if (idx.inum < runtime_array_len(obj.array)) {
+                    struct runtime_value val = runtime_array_get(obj.array, idx.inum);
+                    set_local(vm, src + 1, val);
+                    set_local(vm, src, idx);
                     set_ip(vm, dst);
-
-                /* update value */
-                struct runtime_value val = runtime_array_get(obj.array, idx.inum);
-                set_local(vm, src + 1, val);
+                }
             }
             break;
 

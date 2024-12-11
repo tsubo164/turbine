@@ -1088,24 +1088,19 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             /* idx + 1 hold value */
             code_emit_move(code, idx + 2, obj);
 
-            /* init */
-            int64_t init = code_emit_forarray_init(code, idx);
-
-            /* rest */
-            int64_t rest = code_emit_forarray_rest(code, idx);
-            code_push_forrest(code, rest);
+            /* begin */
+            int64_t init = code_emit_forarray_begin(code, idx);
+            int64_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
 
-            /* jump */
-            code_emit_jump(code, rest);
+            /* end */
+            code_back_patch_continues(code);
+            code_emit_forarray_end(code, idx, begin);
 
-            /* exit */
             code_back_patch(code, init);
-            code_back_patch(code, rest);
             code_back_patch_breaks(code);
-            code_pop_forrest(code);
         }
         break;
 

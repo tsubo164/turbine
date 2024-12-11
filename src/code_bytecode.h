@@ -140,11 +140,6 @@ void code_push_break(struct code_bytecode *code, int64_t addr);
 void code_push_continue(struct code_bytecode *code, int64_t addr);
 void code_push_case_end(struct code_bytecode *code, int64_t addr);
 
-/* push/pop/top the destination of `continue`s */
-void code_push_forrest(struct code_bytecode *code, int64_t addr);
-void code_pop_forrest(struct code_bytecode *code);
-int64_t code_top_forrest(const struct code_bytecode *code);
-
 /*
  * jump and loop instructions return the address
  * where the destination address is stored.
@@ -156,8 +151,8 @@ int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int src, int64_t 
 /* loop */
 int64_t code_emit_fornum_begin(struct code_bytecode *code, int itr);
 int64_t code_emit_fornum_end(struct code_bytecode *code, int itr, int64_t begin);
-int64_t code_emit_forarray_init(struct code_bytecode *code, int itr);
-int64_t code_emit_forarray_rest(struct code_bytecode *code, int itr);
+int64_t code_emit_forarray_begin(struct code_bytecode *code, int itr);
+int64_t code_emit_forarray_end(struct code_bytecode *code, int itr, int64_t begin);
 
 /* conversion */
 int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src);

@@ -19,17 +19,19 @@
 
 # main() int
   //- br []int
-  //- array = [11, 23, 204, 2]
+  - array = [11, 23, 204, 2]
 
-  //for val in array
-  //  print(val)
+  for i, val in array
+    if i % 2 == 0
+      continue
+    print(i, val)
   //for y in 0..3
   //  for x in 0..3
   //    print("(", nil, x, nil, ",", y, nil, ")")
-  for i in 0..10
-    if (i % 2 == 0)
-      continue
-    print(i)
+  //for i in 0..10
+  //  if (i % 2 == 0)
+  //    continue
+  //  print(i)
 
   //- args = ["hello", "world"]
 

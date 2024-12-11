@@ -620,21 +620,6 @@ void code_push_case_end(struct code_bytecode *code, int64_t addr)
     data_intstack_push(&code->casecloses, addr);
 }
 
-void code_push_forrest(struct code_bytecode *code, int64_t addr)
-{
-    data_intstack_push(&code->forrests, addr);
-}
-
-void code_pop_forrest(struct code_bytecode *code)
-{
-    data_intstack_pop(&code->forrests);
-}
-
-int64_t code_top_forrest(const struct code_bytecode *code)
-{
-    return data_intstack_top(&code->forrests);
-}
-
 /*
  * jump and loop instructions return the address
  * where the destination address is stored.
@@ -675,17 +660,17 @@ int64_t code_emit_fornum_end(struct code_bytecode *code, int itr, int64_t begin)
     return operand_addr;
 }
 
-int64_t code_emit_forarray_init(struct code_bytecode *code, int itr)
+int64_t code_emit_forarray_begin(struct code_bytecode *code, int itr)
 {
     int64_t operand_addr = code_get_next_addr(code);
-    push_inst_abb(code, OP_FORARRAYINIT, itr, -1);
+    push_inst_abb(code, OP_FORARRAYBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_forarray_rest(struct code_bytecode *code, int itr)
+int64_t code_emit_forarray_end(struct code_bytecode *code, int itr, int64_t begin)
 {
     int64_t operand_addr = code_get_next_addr(code);
-    push_inst_abb(code, OP_FORARRAYREST, itr, -1);
+    push_inst_abb(code, OP_FORARRAYEND, itr, begin);
     return operand_addr;
 }
 
