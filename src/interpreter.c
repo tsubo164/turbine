@@ -23,7 +23,7 @@ static void print_header(const char *title)
     printf("---\n");
 }
 
-int64_t interpret_source(const char *text, const char *filename,
+int64_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
     const struct parser_token *tok = NULL;
@@ -38,7 +38,7 @@ int64_t interpret_source(const char *text, const char *filename,
 
     /* search paths */
     char *current_directory = os_get_current_directory();
-    char *filepath = os_path_join(current_directory, filename);
+    char *filepath = os_path_join(current_directory, args->filename);
     char *filedir = os_dirname(filepath);
     parser_search_path_init(&paths, filedir);
     /* TODO consdier passing builtin modules to parser_parse() separately
@@ -49,7 +49,7 @@ int64_t interpret_source(const char *text, const char *filename,
     define_builtin_functions(&builtin);
 
     /* tokenize */
-    tok = parser_tokenize(text, filename);
+    tok = parser_tokenize(text, args->filename);
 
     /* print token */
     if (opt->print_token) {
@@ -62,7 +62,7 @@ int64_t interpret_source(const char *text, const char *filename,
     /* compile source */
     struct parser_module *prog;
     struct parser_source source;
-    parser_source_init(&source, text, filename, data_string_intern(":main"));
+    parser_source_init(&source, text, args->filename, data_string_intern(":main"));
 
     prog = parser_parse(tok, &builtin, &source, &paths);
     code_resolve_offset(prog);
@@ -93,8 +93,12 @@ int64_t interpret_source(const char *text, const char *filename,
     /* execute bytecode */
     int64_t ret = 0;
     if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
+        struct vm_args vargs;
+        vargs.values = args->values;
+        vargs.count = args->count;
+
         vm_enable_print_stack(&vm, opt->print_stack);
-        bm_execute_bytecode(&vm, &code);
+        vm_execute_bytecode(&vm, &code, &vargs);
         ret = vm_get_stack_top(&vm);
     }
 

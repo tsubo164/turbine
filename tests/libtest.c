@@ -5,72 +5,73 @@
 int main(int argc, char **argv)
 {
     struct interpreter_option opt = {0};
-    const char *filename = "libtest.c";
+    struct interpreter_args args = {0};
+    args.filename = "libtest.c";
 
     {
         const char *input = "# main() int\n - id int\n id = 114 \n return id + 11\n";
 
-        ASSERTL(125, interpret_source(input, filename, &opt));
+        ASSERTL(125, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n 42 \n return 19\n";
 
-        ASSERTL(19, interpret_source(input, filename, &opt));
+        ASSERTL(19, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n return 12 \n";
 
-        ASSERTL(12, interpret_source(input, filename, &opt));
+        ASSERTL(12, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n return 39 + 3 \n";
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n - id int\n id = 0 \n return id + 114\n";
 
-        ASSERTL(114, interpret_source(input, filename, &opt));
+        ASSERTL(114, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n return 3129 + 1293 \n";
 
-        ASSERTL(4422, interpret_source(input, filename, &opt));
+        ASSERTL(4422, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n return 3129 + 1293+1111\n";
 
-        ASSERTL(5533, interpret_source(input, filename, &opt));
+        ASSERTL(5533, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n return 20+22\n";
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n - a int\n a = 12 \n return a\n";
 
-        ASSERTL(12, interpret_source(input, filename, &opt));
+        ASSERTL(12, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n - a int\n a = 11\n return a\n";
 
-        ASSERTL(11, interpret_source(input, filename, &opt));
+        ASSERTL(11, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n return int(12 == 11)\n";
 
-        ASSERTL(0, interpret_source(input, filename, &opt));
+        ASSERTL(0, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int\n return int(42 == 42)\n";
 
-        ASSERTL(1, interpret_source(input, filename, &opt));
+        ASSERTL(1, interpret_source(input, &args, &opt));
     }
     {
         const char *input = "# main() int  \n - a int\n a = 39\n return int(a == 39)\n";
 
-        ASSERTL(1, interpret_source(input, filename, &opt));
+        ASSERTL(1, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -81,7 +82,7 @@ int main(int argc, char **argv)
             ;
 
 
-        ASSERTL(1, interpret_source(input, filename, &opt));
+        ASSERTL(1, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
             "    return seven()\n"
             ;
 
-        ASSERTL(7, interpret_source(input, filename, &opt));
+        ASSERTL(7, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -105,7 +106,7 @@ int main(int argc, char **argv)
             "    return seven() + 35\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -119,7 +120,7 @@ int main(int argc, char **argv)
             "    return seven() + add(30, 5)\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -131,7 +132,7 @@ int main(int argc, char **argv)
             "    return 22\n"
             ;
 
-        ASSERTL(22, interpret_source(input, filename, &opt));
+        ASSERTL(22, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -143,7 +144,7 @@ int main(int argc, char **argv)
             "    return 22\n"
             ;
 
-        ASSERTL(11, interpret_source(input, filename, &opt));
+        ASSERTL(11, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -157,7 +158,7 @@ int main(int argc, char **argv)
             "    return 33\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt));
+        ASSERTL(1, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -171,7 +172,7 @@ int main(int argc, char **argv)
             "    return 33\n"
             ;
 
-        ASSERTL(0, interpret_source(input, filename, &opt));
+        ASSERTL(0, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -190,7 +191,7 @@ int main(int argc, char **argv)
             "    return 33\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt));
+        ASSERTL(1, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -211,7 +212,7 @@ int main(int argc, char **argv)
             "    return 33\n"
             ;
 
-        ASSERTL(7, interpret_source(input, filename, &opt));
+        ASSERTL(7, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -223,7 +224,7 @@ int main(int argc, char **argv)
             "    return 33\n"
             ;
 
-        ASSERTL(33, interpret_source(input, filename, &opt));
+        ASSERTL(33, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -245,7 +246,7 @@ int main(int argc, char **argv)
             "    return 31\n"
             ;
 
-        ASSERTL(31, interpret_source(input, filename, &opt));
+        ASSERTL(31, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -259,7 +260,7 @@ int main(int argc, char **argv)
             "    return seven() + add(30, 5)\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -285,7 +286,7 @@ int main(int argc, char **argv)
             "    return seven() + add(30, 5)\n"
             ;
 
-        ASSERTL(119, interpret_source(input, filename, &opt));
+        ASSERTL(119, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -310,7 +311,7 @@ int main(int argc, char **argv)
             "    return foo(10) + add(20, 3)\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -331,7 +332,7 @@ int main(int argc, char **argv)
             "  return _pt_.x + _pt_.y\n"
             ;
 
-        ASSERTL(5, interpret_source(input, filename, &opt));
+        ASSERTL(5, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -344,7 +345,7 @@ int main(int argc, char **argv)
             "    return 0\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt));
+        ASSERTL(1, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -352,7 +353,7 @@ int main(int argc, char **argv)
             "  return 0xF + 0Xa\n"
             ;
 
-        ASSERTL(25, interpret_source(input, filename, &opt));
+        ASSERTL(25, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -367,7 +368,7 @@ int main(int argc, char **argv)
             "    return 0\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt));
+        ASSERTL(1, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -380,7 +381,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -397,7 +398,7 @@ int main(int argc, char **argv)
             "    return 0\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         const char *input = 
@@ -410,7 +411,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(11, interpret_source(input, filename, &opt));
+        ASSERTL(11, interpret_source(input, &args, &opt));
     }
     {
         /* '-' operator and order of eval args */
@@ -421,7 +422,7 @@ int main(int argc, char **argv)
             "    return sub(12, 7)\n"
             ;
 
-        ASSERTL(5, interpret_source(input, filename, &opt));
+        ASSERTL(5, interpret_source(input, &args, &opt));
     }
     {
         /* '*' operator */
@@ -434,7 +435,7 @@ int main(int argc, char **argv)
             "    return 46 - i * j\n"
             ;
 
-        ASSERTL(10, interpret_source(input, filename, &opt));
+        ASSERTL(10, interpret_source(input, &args, &opt));
     }
     {
         /* '/' operator */
@@ -447,7 +448,7 @@ int main(int argc, char **argv)
             "    return 46 - i / j\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         /* '%' operator */
@@ -460,7 +461,7 @@ int main(int argc, char **argv)
             "    return 46 - i % j\n"
             ;
 
-        ASSERTL(41, interpret_source(input, filename, &opt));
+        ASSERTL(41, interpret_source(input, &args, &opt));
     }
     {
         /* '(' expr ')' */
@@ -473,7 +474,7 @@ int main(int argc, char **argv)
             "    return 21 * (i - j)\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         /* "||" operator */
@@ -486,7 +487,7 @@ int main(int argc, char **argv)
             "    return i || j\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(1, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* "||" operator */
@@ -499,7 +500,7 @@ int main(int argc, char **argv)
             "    return i || j\n"
             ;
 
-        ASSERTL(0, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(0, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* "&&" operator */
@@ -512,7 +513,7 @@ int main(int argc, char **argv)
             "    return i && j\n"
             ;
 
-        ASSERTL(0, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(0, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* "&&" operator */
@@ -525,7 +526,7 @@ int main(int argc, char **argv)
             "    return i && j\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(1, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* "+" unary operator */
@@ -536,7 +537,7 @@ int main(int argc, char **argv)
             "    return +i\n"
             ;
 
-        ASSERTL(7, interpret_source(input, filename, &opt));
+        ASSERTL(7, interpret_source(input, &args, &opt));
     }
     {
         /* "-" unary operator */
@@ -547,7 +548,7 @@ int main(int argc, char **argv)
             "    return -i\n"
             ;
 
-        ASSERTL(-42, interpret_source(input, filename, &opt));
+        ASSERTL(-42, interpret_source(input, &args, &opt));
     }
     {
         /* "-+" unary operator */
@@ -558,7 +559,7 @@ int main(int argc, char **argv)
             "    return -+-+-+- -+-+ +-i\n"
             ;
 
-        ASSERTL(-42, interpret_source(input, filename, &opt));
+        ASSERTL(-42, interpret_source(input, &args, &opt));
     }
     {
         /* "!" unary operator */
@@ -569,7 +570,7 @@ int main(int argc, char **argv)
             "    return int(!(42 != i))\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(1, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* "!" unary operator */
@@ -580,7 +581,7 @@ int main(int argc, char **argv)
             "    return !i\n"
             ;
 
-        ASSERTL(0, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(0, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* "<" operator */
@@ -591,7 +592,7 @@ int main(int argc, char **argv)
             "    return int(i < 5)\n"
             ;
 
-        ASSERTL(0, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(0, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* "<=" operator */
@@ -602,7 +603,7 @@ int main(int argc, char **argv)
             "    return int(i <= 42)\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(1, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* ">" operator */
@@ -613,7 +614,7 @@ int main(int argc, char **argv)
             "    return int(i > 5)\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(1, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* ">=" operator */
@@ -624,7 +625,7 @@ int main(int argc, char **argv)
             "    return int(i >= 42)\n"
             ;
 
-        ASSERTL(1, interpret_source(input, filename, &opt) != 0);
+        ASSERTL(1, interpret_source(input, &args, &opt) != 0);
     }
     {
         /* "++" operator */
@@ -636,7 +637,7 @@ int main(int argc, char **argv)
             "    return i\n"
             ;
 
-        ASSERTL(43, interpret_source(input, filename, &opt));
+        ASSERTL(43, interpret_source(input, &args, &opt));
     }
     {
         /* "--" operator */
@@ -648,7 +649,7 @@ int main(int argc, char **argv)
             "    return i\n"
             ;
 
-        ASSERTL(41, interpret_source(input, filename, &opt));
+        ASSERTL(41, interpret_source(input, &args, &opt));
     }
     {
         /* "&" operator */
@@ -659,7 +660,7 @@ int main(int argc, char **argv)
             "    return i & 0xFF\n"
             ;
 
-        ASSERTL(0xA9, interpret_source(input, filename, &opt));
+        ASSERTL(0xA9, interpret_source(input, &args, &opt));
     }
     {
         /* "|" operator */
@@ -670,7 +671,7 @@ int main(int argc, char **argv)
             "    return i | 0xFFF\n"
             ;
 
-        ASSERTL(0xFFF, interpret_source(input, filename, &opt));
+        ASSERTL(0xFFF, interpret_source(input, &args, &opt));
     }
     {
         /* "~" operator */
@@ -681,7 +682,7 @@ int main(int argc, char **argv)
             "    return ~i & 0xF\n"
             ;
 
-        ASSERTL(0x7, interpret_source(input, filename, &opt));
+        ASSERTL(0x7, interpret_source(input, &args, &opt));
     }
     {
         /* "^" operator */
@@ -692,7 +693,7 @@ int main(int argc, char **argv)
             "    return i ^ 0xF0\n"
             ;
 
-        ASSERTL(0x88, interpret_source(input, filename, &opt));
+        ASSERTL(0x88, interpret_source(input, &args, &opt));
     }
     {
         /* "<<" operator */
@@ -703,7 +704,7 @@ int main(int argc, char **argv)
             "    return i << 3\n"
             ;
 
-        ASSERTL(0x40, interpret_source(input, filename, &opt));
+        ASSERTL(0x40, interpret_source(input, &args, &opt));
     }
     {
         /* ">>" operator */
@@ -714,7 +715,7 @@ int main(int argc, char **argv)
             "    return i >> 4\n"
             ;
 
-        ASSERTL(0x08, interpret_source(input, filename, &opt));
+        ASSERTL(0x08, interpret_source(input, &args, &opt));
     }
     {
         /* "for" statment */
@@ -728,7 +729,7 @@ int main(int argc, char **argv)
             "    return j\n"
             ;
 
-        ASSERTL(20, interpret_source(input, filename, &opt));
+        ASSERTL(20, interpret_source(input, &args, &opt));
     }
     /* TODO consider removing or implementing other way */
 #if 0
@@ -743,7 +744,7 @@ int main(int argc, char **argv)
             "    return i\n"
             ;
 
-        ASSERTL(10, interpret_source(input, filename, &opt));
+        ASSERTL(10, interpret_source(input, &args, &opt));
     }
     {
         /* "for" statment infinite loop */
@@ -758,7 +759,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(8, interpret_source(input, filename, &opt));
+        ASSERTL(8, interpret_source(input, &args, &opt));
     }
 #endif
     {
@@ -773,7 +774,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(5, interpret_source(input, filename, &opt));
+        ASSERTL(5, interpret_source(input, &args, &opt));
     }
     {
         /* "continue" statment */
@@ -788,7 +789,7 @@ int main(int argc, char **argv)
             "  return j\n"
             ;
 
-        ASSERTL(5, interpret_source(input, filename, &opt));
+        ASSERTL(5, interpret_source(input, &args, &opt));
     }
     {
         /* "switch" statment */
@@ -810,7 +811,7 @@ int main(int argc, char **argv)
             "  return j\n"
             ;
 
-        ASSERTL(34, interpret_source(input, filename, &opt));
+        ASSERTL(34, interpret_source(input, &args, &opt));
     }
     {
         /* "default" statment */
@@ -834,7 +835,7 @@ int main(int argc, char **argv)
             "  return j\n"
             ;
 
-        ASSERTL(99, interpret_source(input, filename, &opt));
+        ASSERTL(99, interpret_source(input, &args, &opt));
     }
     {
         /* local var init */
@@ -844,7 +845,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         /* global var init */
@@ -854,7 +855,7 @@ int main(int argc, char **argv)
             "  return _g_\n"
             ;
 
-        ASSERTL(39, interpret_source(input, filename, &opt));
+        ASSERTL(39, interpret_source(input, &args, &opt));
     }
     {
         /* local var type */
@@ -864,7 +865,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(41, interpret_source(input, filename, &opt));
+        ASSERTL(41, interpret_source(input, &args, &opt));
     }
     {
         /* local var type */
@@ -878,7 +879,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(9, interpret_source(input, filename, &opt));
+        ASSERTL(9, interpret_source(input, &args, &opt));
     }
     {
         /* "+=" operator */
@@ -889,7 +890,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(46, interpret_source(input, filename, &opt));
+        ASSERTL(46, interpret_source(input, &args, &opt));
     }
     {
         /* "-=" operator */
@@ -900,7 +901,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(38, interpret_source(input, filename, &opt));
+        ASSERTL(38, interpret_source(input, &args, &opt));
     }
     {
         /* "*=" operator */
@@ -911,7 +912,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(168, interpret_source(input, filename, &opt));
+        ASSERTL(168, interpret_source(input, &args, &opt));
     }
     {
         /* "/=" operator */
@@ -922,7 +923,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(10, interpret_source(input, filename, &opt));
+        ASSERTL(10, interpret_source(input, &args, &opt));
     }
     {
         /* "%=" operator */
@@ -933,7 +934,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(2, interpret_source(input, filename, &opt));
+        ASSERTL(2, interpret_source(input, &args, &opt));
     }
     {
         /* bool type */
@@ -946,7 +947,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(19, interpret_source(input, filename, &opt));
+        ASSERTL(19, interpret_source(input, &args, &opt));
     }
     {
         /* bool type */
@@ -960,7 +961,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         /* nop statement */
@@ -973,7 +974,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(7, interpret_source(input, filename, &opt));
+        ASSERTL(7, interpret_source(input, &args, &opt));
     }
     {
         /* block comment */
@@ -991,7 +992,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(42, interpret_source(input, filename, &opt));
+        ASSERTL(42, interpret_source(input, &args, &opt));
     }
     {
         /* char literal */
@@ -1001,7 +1002,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(97, interpret_source(input, filename, &opt));
+        ASSERTL(97, interpret_source(input, &args, &opt));
     }
     {
         /* char literal */
@@ -1011,7 +1012,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(10, interpret_source(input, filename, &opt));
+        ASSERTL(10, interpret_source(input, &args, &opt));
     }
     {
         /* slash at the end of string literal */
@@ -1024,7 +1025,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(13, interpret_source(input, filename, &opt));
+        ASSERTL(13, interpret_source(input, &args, &opt));
     }
     {
         /* nil return type */
@@ -1036,7 +1037,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(11, interpret_source(input, filename, &opt));
+        ASSERTL(11, interpret_source(input, &args, &opt));
     }
     {
         /* scope statement */
@@ -1049,7 +1050,7 @@ int main(int argc, char **argv)
             "  return i\n"
             ;
 
-        ASSERTL(17, interpret_source(input, filename, &opt));
+        ASSERTL(17, interpret_source(input, &args, &opt));
     }
 
     if (GetTestCount() <= 1)

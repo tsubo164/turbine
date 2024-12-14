@@ -17,14 +17,17 @@
 //  - center Point
 //  - radius int
 
-# main() int
-  //- br []int
-  - array = [11, 23, 204, 2]
+//- _g_ = 22
+//- _f_ = 1.2345
 
-  for i, val in array
-    if i % 2 == 0
-      continue
-    print(i, val)
+# main(args []string) int
+  //- br []int
+  //- array = [11, 23, 204, 2]
+
+  //for i, val in array
+  //  if i % 2 == 0
+  //    continue
+  //  print(i, val)
   //for y in 0..3
   //  for x in 0..3
   //    print("(", nil, x, nil, ",", y, nil, ")")
@@ -38,6 +41,8 @@
   //for arg in args
   //  print(arg)
 
+  for i, a in args
+    print(i, "=>", a)
   return 12
 
   //- a = 42

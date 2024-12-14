@@ -1,6 +1,7 @@
 #include "vm_cpu.h"
 #include "runtime_array.h"
 #include "runtime_string.h"
+#include "runtime_struct.h"
 #include "code_print.h"
 
 #include <string.h>
@@ -897,7 +898,27 @@ do { \
     }
 }
 
-void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode)
+static struct runtime_value make_args_value(struct runtime_gc *gc, const struct vm_args *args)
+{
+    struct runtime_array *array;
+
+    array = runtime_array_new(args->count);
+    runtime_gc_push_object(gc, (struct runtime_object *) array);
+
+    for (int i = 0; i < args->count; i++) {
+        struct runtime_string *str = runtime_string_new(args->values[i]);
+        struct runtime_value elem = {.str = str};
+
+        runtime_gc_push_object(gc, (struct runtime_object *) str);
+        runtime_array_set(array, i, elem);
+    }
+
+    struct runtime_value val = {.array = array};
+    return val;
+}
+
+void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode,
+        const struct vm_args *args)
 {
     vm->code = bytecode;
     vm->eoc = code_get_size(vm->code);
@@ -907,6 +928,12 @@ void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
     runtime_valuevec_resize(&vm->stack, 256);
     runtime_valuevec_set(&vm->stack, 0, empty);
     vm->sp = 0;
+
+    /* args */
+    struct runtime_value argsval = make_args_value(&vm->gc, args);
+    /* TODO consider separating global area or reading the first allocate instruction
+     * to detect the args slot */
+    set_local(vm, 0, argsval);
 
     vm_callstack_init(&vm->callstack);
 

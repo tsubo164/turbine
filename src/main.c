@@ -25,8 +25,8 @@ const char *read_file(const char *filename)
 
 int main(int argc, char **argv)
 {
-    const char *filename = NULL;
     struct interpreter_option opt = {0};
+    struct interpreter_args args = {0};
 
     for (int i = 1; i < argc; i++) {
         const char *arg = argv[i];
@@ -59,23 +59,21 @@ int main(int argc, char **argv)
             exit(EXIT_FAILURE);
         }
         else {
-            filename = arg;
-
-            if (i != argc - 1) {
-                fprintf(stderr, "error: unknown argument after filename\n");
-                exit(EXIT_FAILURE);
-            }
+            args.filename = arg;
+            args.values = (const char **)(argv + i);
+            args.count = argc - i;
+            break;
         }
     }
 
-    const char *src = read_file(filename);
+    const char *src = read_file(args.filename);
 
     if (!src) {
-        fprintf(stderr, "error: no such file: %s\n", filename);
+        fprintf(stderr, "error: no such file: %s\n", args.filename);
         exit(EXIT_FAILURE);
     }
 
-    int64_t ret = interpret_source(src, filename, &opt);
+    int64_t ret = interpret_source(src, &args, &opt);
     if (opt.print_token || opt.print_tree || opt.print_bytecode || opt.print_symbols)
         ret = 0;
 

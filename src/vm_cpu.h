@@ -3,9 +3,13 @@
 
 #include "vm_callstack.h"
 #include "code_bytecode.h"
+#include "runtime_value.h"
 #include "runtime_gc.h"
-#include "runtime_array.h"
-#include "runtime_struct.h"
+
+struct vm_args {
+    const char **values;
+    int count;
+};
 
 struct vm_cpu {
     struct runtime_valuevec stack;
@@ -22,7 +26,8 @@ struct vm_cpu {
     struct runtime_gc gc;
 };
 
-void bm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode);
+void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode,
+        const struct vm_args *args);
 
 int64_t vm_get_stack_top(const struct vm_cpu *vm);
 void vm_print_stack(const struct vm_cpu *vm);
