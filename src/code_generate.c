@@ -1214,6 +1214,7 @@ static void gen_func(struct code_bytecode *code, const struct parser_func *func,
     /* Local var registers */
     int param_count = func->params.len;
     int lvar_count = func->scope->size;
+    /* TODO rename code_reset_register_pointer() */
     code_init_local_var_registers(code, lvar_count + param_count);
 
     /* Function body */
@@ -1263,18 +1264,13 @@ static void gen_gvars(struct code_bytecode *code, const struct parser_module *mo
         gen_stmt(code, gvar);
 }
 
-static void gen_module(struct code_bytecode *code, const struct parser_module *mod)
+static void gen_start_func_body(struct code_bytecode *code, const struct parser_module *mod)
 {
-    if (!mod->main_func) {
-        fprintf(stderr, "error: 'main' function not found");
-    }
-
     int gvar_count = mod->scope->size;
-    int retval_count = 1;
 
     /* Global var registers */
     code_init_local_var_registers(code, gvar_count);
-    code_emit_allocate(code, gvar_count + retval_count);
+
     /* TODO TEST emitting call module init functions */
     {
         for (int i = 0; i < mod->scope->syms.len; i++) {
@@ -1324,7 +1320,39 @@ static void gen_module(struct code_bytecode *code, const struct parser_module *m
     /* Call main */
     int reg0 = code_allocate_temporary_register(code);
     code_emit_call_function(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
+    code_emit_return(code, reg0);
+}
+
+static void gen_start_func(struct code_bytecode *code, const struct parser_module *mod,
+        int func_id)
+{
+    /* TODO solve param count and reg count at a time */
+    /* Local var registers for args []string */
+    int lvar_count = 1;
+    code_init_local_var_registers(code, lvar_count);
+
+    /* Function body */
+    int64_t func_addr = code_get_next_addr(code);
+    gen_start_func_body(code, mod);
+
+    /* Back patch used registers */
+    /* TODO rename code_set_function_register_count() */
+    code_set_function_address(code, func_id, func_addr);
+    code_set_max_register_count(code, func_id);
+}
+
+static void gen_module(struct code_bytecode *code, const struct parser_module *mod)
+{
+    if (!mod->main_func) {
+        fprintf(stderr, "error: 'main' function not found");
+    }
+
+    /* start func */
+    int start_id = code_register_function(code, ":start", 0);
+    code_emit_call_function(code, 0, start_id, false);
     code_emit_halt(code);
+
+    gen_start_func(code, mod, start_id);
 
     /* Global funcs */
     gen_funcs(code, mod);

@@ -17,6 +17,7 @@
 //  - center Point
 //  - radius int
 
+- _g_ = 22 + 33 * 44 + 55 * 66
 //- _g_ = 22
 //- _f_ = 1.2345
 
@@ -41,8 +42,9 @@
   //for arg in args
   //  print(arg)
 
-  for i, a in args
-    print(i, "=>", a)
+  - a = 42
+  //for i, a in args
+  //  print(i, "=>", a)
   return 12
 
   //- a = 42

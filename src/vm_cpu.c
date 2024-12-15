@@ -923,6 +923,8 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
     vm->code = bytecode;
     vm->eoc = code_get_size(vm->code);
 
+    vm->globals = &vm->globals__;
+
     /* empty data at the bottom of stacks */
     struct runtime_value empty = {0};
     runtime_valuevec_resize(&vm->stack, 256);
@@ -934,6 +936,7 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
     /* TODO consider separating global area or reading the first allocate instruction
      * to detect the args slot */
     set_local(vm, 0, argsval);
+    vm->sp = 1;
 
     vm_callstack_init(&vm->callstack);
 

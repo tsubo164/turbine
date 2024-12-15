@@ -717,6 +717,11 @@ void code_emit_halt(struct code_bytecode *code)
     push_inst_op(code, OP_HALT);
 }
 
+void code_emit_nop(struct code_bytecode *code)
+{
+    push_inst_op(code, OP_NOP);
+}
+
 /* back-patches */
 void code_back_patch(struct code_bytecode *code, int64_t operand_addr)
 {

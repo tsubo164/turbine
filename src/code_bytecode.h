@@ -164,6 +164,7 @@ int code_emit_float_to_int(struct code_bytecode *code, int dst, int src);
 
 /* program control */
 void code_emit_halt(struct code_bytecode *code);
+void code_emit_nop(struct code_bytecode *code);
 
 /* back-patches */
 void code_back_patch(struct code_bytecode *code, int64_t operand_addr);

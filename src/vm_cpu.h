@@ -14,6 +14,9 @@ struct vm_args {
 struct vm_cpu {
     struct runtime_valuevec stack;
     const struct code_bytecode *code;
+    /* TODO move outside of vm_cpu so multiple vm_cpus can share */
+    struct runtime_valuevec globals__;
+    struct runtime_valuevec *globals;
 
     int64_t eoc; /* end of code */
     int64_t ip; /* instruction pointer */
