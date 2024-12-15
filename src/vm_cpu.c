@@ -178,7 +178,7 @@ static void call_function(struct vm_cpu *vm, int return_reg, int func_id)
     set_bp(vm, vm->bp + 1 + call.return_reg - 1);
 
     /* Register allocation (parameters + local variables) */
-    int max_reg_count = code_get_max_register_count(vm->code, func_id);
+    int max_reg_count = code_get_function_register_count(vm->code, func_id);
     set_sp(vm, vm->bp + max_reg_count);
 }
 

@@ -43,7 +43,7 @@ static bool is_localreg_full(const struct code_bytecode *code)
     return code->curr_reg == IMMEDIATE_SMALLINT_BEGIN - 1;
 }
 
-void code_init_local_var_registers(struct code_bytecode *code, int lvar_count)
+void code_init_registers(struct code_bytecode *code, int lvar_count)
 {
     code->base_reg = lvar_count - 1;
     code->curr_reg = code->base_reg;
@@ -805,7 +805,7 @@ int code_register_function(struct code_bytecode *code, const char *fullname, int
     return new_id;
 }
 
-void code_set_max_register_count(struct code_bytecode *code, int func_id)
+void code_set_function_register_count(struct code_bytecode *code, int func_id)
 {
     struct code_function *func = code_lookup_function(&code->funcs, func_id);
     assert(func);
@@ -813,7 +813,7 @@ void code_set_max_register_count(struct code_bytecode *code, int func_id)
     func->reg_count = code->max_reg + 1;
 }
 
-int code_get_max_register_count(const struct code_bytecode *code, int func_id)
+int code_get_function_register_count(const struct code_bytecode *code, int func_id)
 {
     const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
     assert(func);
@@ -862,6 +862,14 @@ int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_i
     assert(func);
 
     return func->argc;
+}
+
+void code_set_function_variadic(struct code_bytecode *code, int func_id, bool is_variadic)
+{
+    struct code_function *func = code_lookup_function(&code->funcs, func_id);
+    assert(func);
+
+    func->is_variadic = is_variadic;
 }
 
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id)

@@ -45,7 +45,7 @@ struct code_bytecode {
 };
 
 /* registers */
-void code_init_local_var_registers(struct code_bytecode *code, int lvar_count);
+void code_init_registers(struct code_bytecode *code, int lvar_count);
 void code_clear_temporary_registers(struct code_bytecode *code);
 int code_allocate_temporary_register(struct code_bytecode *code);
 int code_get_register_pointer(const struct code_bytecode *code);
@@ -183,8 +183,8 @@ int64_t code_get_next_addr(const struct code_bytecode *code);
 /* TODO remove each setter/getter by exposing struct code_function? */
 int code_register_function(struct code_bytecode *code, const char *fullname, int argc);
 
-void code_set_max_register_count(struct code_bytecode *code, int func_id);
-int code_get_max_register_count(const struct code_bytecode *code, int func_id);
+void code_set_function_register_count(struct code_bytecode *code, int func_id);
+int code_get_function_register_count(const struct code_bytecode *code, int func_id);
 
 void code_set_native_function_pointer(struct code_bytecode *code,
         int func_id, runtime_native_function_t fp);
@@ -195,6 +195,7 @@ runtime_native_function_t code_get_native_function_pointer(
 void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr);
 int64_t code_get_function_address(const struct code_bytecode *code, int func_id);
 int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_id);
+void code_set_function_variadic(struct code_bytecode *code, int func_id, bool is_variadic);
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id);
 
 #endif /* _H */
