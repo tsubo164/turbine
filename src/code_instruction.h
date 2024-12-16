@@ -11,8 +11,8 @@ enum code_opcode {
     OP_ALLOCGLOBAL,
     /* load/store/move */
     OP_MOVE,
-    OP_LOAD,
-    OP_STORE,
+    OP_LOADGLOBAL,
+    OP_STOREGLOBAL,
     OP_LOADARRAY,
     OP_STOREARRAY,
     OP_LOADSTRUCT,

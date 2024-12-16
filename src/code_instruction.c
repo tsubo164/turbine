@@ -9,8 +9,8 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_ALLOCGLOBAL]    = { "allocglobal",    OPERAND_ABB },
     /* load/store/move */
     [OP_MOVE]           = { "move",           OPERAND_AB_ },
-    [OP_LOAD]           = { "load",           OPERAND_AB_ },
-    [OP_STORE]          = { "store",          OPERAND_AB_ },
+    [OP_LOADGLOBAL]     = { "loadglobal",     OPERAND_AB_ },
+    [OP_STOREGLOBAL]    = { "storeglobal",    OPERAND_AB_ },
     [OP_LOADARRAY]      = { "loadarray",      OPERAND_ABC },
     [OP_STOREARRAY]     = { "storearray",     OPERAND_ABC },
     [OP_LOADSTRUCT]     = { "loadstruct",     OPERAND_ABC },

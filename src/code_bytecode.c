@@ -247,13 +247,13 @@ int code_emit_load_string(struct code_bytecode *code, const char *cstr)
 
 int code_emit_load_global(struct code_bytecode *code, int dst, int src)
 {
-    push_inst_ab(code, OP_LOAD, dst, src);
+    push_inst_ab(code, OP_LOADGLOBAL, dst, src);
     return dst;
 }
 
 int code_emit_store_global(struct code_bytecode *code, int dst, int src)
 {
-    push_inst_ab(code, OP_STORE, dst, src);
+    push_inst_ab(code, OP_STOREGLOBAL, dst, src);
     return dst;
 }
 

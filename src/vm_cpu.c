@@ -243,7 +243,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_LOAD:
+        case OP_LOADGLOBAL:
             {
                 int dst = inst.A;
                 int src = inst.B;
@@ -254,7 +254,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_STORE:
+        case OP_STOREGLOBAL:
             {
                 int dst = inst.A;
                 int src = inst.B;
