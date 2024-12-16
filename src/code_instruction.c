@@ -4,6 +4,9 @@
 
 static const struct code_opcode_info opecode_table[] = {
     [OP_NOP]            = { "nop",            OPERAND____ },
+    /* allocate */
+    [OP_ALLOCATE]       = { "allocate",       OPERAND_A__ },
+    [OP_ALLOCGLOBAL]    = { "allocglobal",    OPERAND_ABB },
     /* load/store/move */
     [OP_MOVE]           = { "move",           OPERAND_AB_ },
     [OP_LOAD]           = { "load",           OPERAND_AB_ },
@@ -12,7 +15,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_STOREARRAY]     = { "storearray",     OPERAND_ABC },
     [OP_LOADSTRUCT]     = { "loadstruct",     OPERAND_ABC },
     [OP_STORESTRUCT]    = { "storestruct",    OPERAND_ABC },
-    [OP_LOADTYPEID]     = { "loadtypeid",     OPERAND_AB_ },
+    [OP_LOADTYPEID]     = { "loadtypeid",     OPERAND_ABB },
     [OP_LOADADDR]       = { "loadaddr",       OPERAND_AB_ },
     [OP_DEREF]          = { "deref",          OPERAND_AB_ },
     /* array/struct */
@@ -71,8 +74,6 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_FORNUMEND]      = { "fornumend",      OPERAND_ABB },
     [OP_FORARRAYBEGIN]  = { "forarraybegin",  OPERAND_ABB },
     [OP_FORARRAYEND]    = { "forarrayend",    OPERAND_ABB },
-    /* stack operation */
-    [OP_ALLOCATE]       = { "allocate",       OPERAND_A__ },
     /* conversion */
     [OP_BOOLTOINT]      = { "booltoint",      OPERAND_AB_ },
     [OP_BOOLTOFLOAT]    = { "booltofloat",    OPERAND_AB_ },

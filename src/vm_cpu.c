@@ -88,14 +88,14 @@ static void set_local(struct vm_cpu *vm, int id, struct runtime_value val)
     write_stack(vm, addr, val);
 }
 
-static struct runtime_value get_global(const struct vm_cpu *vm, int addr)
+static struct runtime_value get_global(const struct vm_cpu *vm, int id)
 {
-    return read_stack(vm, addr);
+    return runtime_valuevec_get(vm->globals, id);
 }
 
-static void set_global(struct vm_cpu *vm, int addr, struct runtime_value val)
+static void set_global(struct vm_cpu *vm, int id, struct runtime_value val)
 {
-    write_stack(vm, addr, val);
+    runtime_valuevec_set(vm->globals, id, val);
 }
 
 static struct runtime_value fetch_register_value(struct vm_cpu *vm, int id)
@@ -122,7 +122,7 @@ int64_t vm_get_stack_top(const struct vm_cpu *vm)
 
 void vm_print_stack(const struct vm_cpu *vm)
 {
-    printf("    ------\n");
+    printf("-----------------------\n");
     for (int64_t i = vm->sp; i >= 0; i--) {
         if (i <= vm->sp && i > 0)
             printf("[%6lld] ", index_to_addr(i));
@@ -148,7 +148,15 @@ void vm_print_stack(const struct vm_cpu *vm)
 
         printf("\n");
     }
-    printf("--------------\n\n");
+    printf("-----------------------\n");
+    for (int i = vm->globals->len - 1; i >= 0; i--) {
+        printf("[%6d] ", i);
+        printf("    ");
+        const struct runtime_value gvar = get_global(vm, i);
+        printf("|%4llu|", gvar.inum);
+        printf("\n");
+    }
+    printf("=======================\n\n");
 }
 
 void vm_enable_print_stack(struct vm_cpu *vm, bool enable)
@@ -215,6 +223,13 @@ static void run_cpu(struct vm_cpu *vm)
             {
                 int64_t size = inst.A;
                 set_sp(vm, vm->sp + size);
+            }
+            break;
+
+        case OP_ALLOCGLOBAL:
+            {
+                int count = inst.BB;
+                runtime_valuevec_resize(vm->globals, count);
             }
             break;
 
@@ -303,7 +318,7 @@ static void run_cpu(struct vm_cpu *vm)
         case OP_LOADTYPEID:
             {
                 int dst = inst.A;
-                int src = inst.B;
+                int src = inst.BB;
                 struct runtime_value dstval;
                 dstval.inum = src;
                 set_local(vm, dst, dstval);
@@ -326,7 +341,7 @@ static void run_cpu(struct vm_cpu *vm)
                 int dst = inst.A;
                 int src = inst.B;
                 struct runtime_value addrval = fetch_register_value(vm, src);
-                struct runtime_value srcval = get_global(vm, addrval.inum);
+                struct runtime_value srcval = read_stack(vm, addrval.inum);
 
                 set_local(vm, dst, srcval);
             }
@@ -402,11 +417,8 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_registers regs = {0};
                 regs.locals = &vm->stack.data[vm->bp + 1];
                 regs.local_count = code_get_function_arg_count(vm->code, func_id);
-                regs.globals = &vm->stack.data[vm->bp + 1];
-                regs.global_count = code_get_function_arg_count(vm->code, func_id);
-
-                int result = 0;
-                struct runtime_value ret_val = {0};
+                regs.globals = &vm->globals->data[0];
+                regs.global_count = runtime_valuevec_len(vm->globals);
 
                 if (code_is_function_variadic(vm->code, func_id)) {
                     struct runtime_value arg_count = fetch_register_value(vm, 0);
@@ -414,8 +426,8 @@ static void run_cpu(struct vm_cpu *vm)
                     regs.local_count = 2 * arg_count.inum + 1;
                 }
 
-                result = native_func(&vm->gc, &regs);
-                ret_val = get_local(vm, 0);
+                int result = native_func(&vm->gc, &regs);
+                struct runtime_value ret_val = get_local(vm, 0);
 
                 /* epilogue */
                 set_bp(vm, old_bp);
@@ -924,9 +936,11 @@ static struct runtime_value make_args_value(struct runtime_gc *gc, const struct 
 void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode,
         const struct vm_args *args)
 {
+    /* bytecode */
     vm->code = bytecode;
     vm->eoc = code_get_size(vm->code);
 
+    /* global vars */
     vm->globals = &vm->globals__;
 
     /* empty data at the bottom of stacks */
@@ -937,11 +951,10 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
 
     /* args */
     struct runtime_value argsval = make_args_value(&vm->gc, args);
-    /* TODO consider separating global area or reading the first allocate instruction
-     * to detect the args slot */
+    set_sp(vm, 1);
     set_local(vm, 0, argsval);
-    vm->sp = 1;
 
+    /* call stack */
     vm_callstack_init(&vm->callstack);
 
     run_cpu(vm);

@@ -16,6 +16,11 @@ bool runtime_valuevec_is_empty(const struct runtime_valuevec *v)
     return v->len == 0;
 }
 
+int runtime_valuevec_len(const struct runtime_valuevec *v)
+{
+    return v->len;
+}
+
 void runtime_valuevec_resize(struct runtime_valuevec *v, int new_len)
 {
     if (new_len <= v->cap) {

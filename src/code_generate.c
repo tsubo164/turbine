@@ -1266,10 +1266,9 @@ static void gen_gvars(struct code_bytecode *code, const struct parser_module *mo
 
 static void gen_start_func_body(struct code_bytecode *code, const struct parser_module *mod)
 {
+    /* allocate global vars */
     int gvar_count = mod->scope->size;
-
-    /* Global var registers */
-    code_init_registers(code, gvar_count);
+    code_emit_allocate_global(code, gvar_count);
 
     /* TODO TEST emitting call module init functions */
     {
@@ -1312,13 +1311,15 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
         }
     }
 
-    /* Global vars */
+    /* emit global vars */
     gen_gvars(code, mod);
 
     /* TODO maybe better to search "main" module and "main" func in there */
     /* instead of holding main_func */
     /* Call main */
     int reg0 = code_allocate_temporary_register(code);
+    /* push args for main() */
+    code_emit_move(code, reg0, 0);
     code_emit_call_function(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
     code_emit_return(code, reg0);
 }

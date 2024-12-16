@@ -58,6 +58,10 @@ bool code_is_immediate_value(int id);
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
         int64_t addr, int id, int *imm_size);
 
+/* allocate */
+void code_emit_allocate(struct code_bytecode *code, int count);
+void code_emit_allocate_global(struct code_bytecode *code, int count);
+
 /* load/store/move */
 int code_emit_move(struct code_bytecode *code, int dst, int src);
 int code_emit_load_int(struct code_bytecode *code, int64_t val);
@@ -127,7 +131,6 @@ int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, in
 int code_emit_call_function(struct code_bytecode *code, int ret_reg,
         int func_id, bool builtin);
 int code_emit_call_function_pointer(struct code_bytecode *code, int ret, int src);
-void code_emit_allocate(struct code_bytecode *code, int count);
 void code_emit_return(struct code_bytecode *code, int id);
 
 /* branch */

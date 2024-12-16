@@ -6,6 +6,9 @@
 
 enum code_opcode {
     OP_NOP,
+    /* allocate */
+    OP_ALLOCATE,
+    OP_ALLOCGLOBAL,
     /* load/store/move */
     OP_MOVE,
     OP_LOAD,
@@ -75,8 +78,6 @@ enum code_opcode {
     OP_FORNUMEND,
     OP_FORARRAYBEGIN,
     OP_FORARRAYEND,
-    /* stack operation TODO move to right place */
-    OP_ALLOCATE,
     /* conversion */
     OP_BOOLTOINT,
     OP_BOOLTOFLOAT,
