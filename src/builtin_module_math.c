@@ -15,26 +15,24 @@
 /* TODO anotehr way is to call designated function to init module,
  * in that case we might need to have dedicated instruction to init modules,
  * which might couple vm and module */
-static int init(struct runtime_gc *gc,
-        struct runtime_value *registers, int reg_count)
+static int init(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    if (registers) {
+    if (regs->globals) {
         struct runtime_value pi = { .fpnum = 3.141592653589793 };
         struct runtime_value e  = { .fpnum = 2.718281828459045 };
-        registers[0] = pi;
-        registers[1] = e;
+        regs->globals[0] = pi;
+        regs->globals[1] = e;
     }
 
     return RESULT_SUCCESS;
 }
 
-static int math_sqrt(struct runtime_gc *gc,
-        struct runtime_value *registers, int reg_count)
+static int math_sqrt(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    struct runtime_value x = registers[0];
+    struct runtime_value x = regs->locals[0];
 
     x.fpnum = sqrt(x.fpnum);
-    registers[0] = x;
+    regs->locals[0] = x;
 
     return RESULT_SUCCESS;
 }
@@ -72,7 +70,7 @@ int builtin_define_module_math(struct parser_scope *scope)
 
         func->return_type = parser_new_float_type();
         func->func_type = parser_make_func_type(func);
-        func->native_func_ptr = (void*) math_sqrt;
+        func->native_func_ptr = math_sqrt;
     }
     {
         const char *name = data_string_intern("Vec3");
@@ -88,7 +86,7 @@ int builtin_define_module_math(struct parser_scope *scope)
 
         func->return_type = parser_new_int_type();
         func->func_type = parser_make_func_type(func);
-        func->native_func_ptr = (void*) init;
+        func->native_func_ptr = init;
     }
 
     return 0;

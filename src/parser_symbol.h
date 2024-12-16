@@ -6,6 +6,7 @@
 
 #include "data_hashmap.h"
 #include "data_vec.h"
+#include "runtime_function.h"
 
 struct parser_type;
 
@@ -55,7 +56,7 @@ struct parser_func {
     struct parser_scope *scope;
     struct parser_stmt *body;
     struct parser_func_type *func_type;
-    void *native_func_ptr;
+    runtime_native_function_t native_func_ptr;
 };
 
 struct parser_funcvec {

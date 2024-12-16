@@ -9,19 +9,18 @@
 #include <assert.h>
 #include <stdio.h>
 
-static int builtin_print(struct runtime_gc *gc,
-        struct runtime_value *registers, int reg_count)
+static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    struct runtime_value arg_count = registers[0];
+    struct runtime_value arg_count = regs->locals[0];
     int argc = arg_count.inum;
     int arg_reg = 1;
 
-    assert(reg_count == 2 * argc + 1);
+    assert(regs->local_count == 2 * argc + 1);
 
     for (int i = 0; i < argc; i ++) {
 
-        struct runtime_value val = registers[arg_reg++];
-        struct runtime_value type = registers[arg_reg++];
+        struct runtime_value val = regs->locals[arg_reg++];
+        struct runtime_value type = regs->locals[arg_reg++];
 
         switch (type.inum) {
 
@@ -51,7 +50,7 @@ static int builtin_print(struct runtime_gc *gc,
         /* peek next arg */
         bool skip_separator = false;
         if (i < argc - 1) {
-            struct runtime_value next_type = registers[arg_reg + 1];
+            struct runtime_value next_type = regs->locals[arg_reg + 1];
             if (next_type.inum == VAL_NIL)
                 skip_separator = true;
         }
@@ -66,11 +65,10 @@ static int builtin_print(struct runtime_gc *gc,
     return RESULT_SUCCESS;
 }
 
-static int builtin_input(struct runtime_gc *gc,
-        struct runtime_value *registers, int reg_count)
+static int builtin_input(struct runtime_gc *gc, struct runtime_registers *regs)
 {
 #define MAX_STR_LEN 1023
-    struct runtime_value val = registers[0];
+    struct runtime_value val = regs->locals[0];
     struct runtime_value ret;
 
     char buf[MAX_STR_LEN + 1] = {'\0'};
@@ -89,18 +87,17 @@ static int builtin_input(struct runtime_gc *gc,
     }
 
     ret.str = runtime_gc_new_string(gc, buf);
-    registers[0] = ret;
+    regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
 #undef MAX_STR_LEN
 }
 
-static int builtin_exit(struct runtime_gc *gc,
-        struct runtime_value *registers, int reg_count)
+static int builtin_exit(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    struct runtime_value val = registers[0];
+    struct runtime_value val = regs->locals[0];
 
-    registers[0] = val;
+    regs->locals[0] = val;
 
     return RESULT_NORETURN;
 }
@@ -115,7 +112,7 @@ void define_builtin_functions(struct parser_scope *builtin)
 
         func->return_type = parser_new_nil_type();
         func->func_type = parser_make_func_type(func);
-        func->native_func_ptr = (void*) builtin_print;
+        func->native_func_ptr = builtin_print;
     }
     {
         const char *name = data_string_intern("input");
@@ -125,7 +122,7 @@ void define_builtin_functions(struct parser_scope *builtin)
 
         func->return_type = parser_new_string_type();
         func->func_type = parser_make_func_type(func);
-        func->native_func_ptr = (void*) builtin_input;
+        func->native_func_ptr = builtin_input;
     }
     {
         const char *name = data_string_intern("exit");
@@ -135,6 +132,6 @@ void define_builtin_functions(struct parser_scope *builtin)
 
         func->return_type = parser_new_int_type();
         func->func_type = parser_make_func_type(func);
-        func->native_func_ptr = (void*) builtin_exit;
+        func->native_func_ptr = builtin_exit;
     }
 }

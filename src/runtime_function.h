@@ -11,7 +11,14 @@ enum runtime_function_result {
 
 struct runtime_gc;
 
+struct runtime_registers {
+    struct runtime_value *locals;
+    struct runtime_value *globals;
+    int local_count;
+    int global_count;
+};
+
 typedef int (*runtime_native_function_t)(struct runtime_gc *gc,
-        struct runtime_value *registers, int reg_count);
+        struct runtime_registers *regs);
 
 #endif /* _H */

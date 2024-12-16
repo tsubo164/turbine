@@ -3,7 +3,7 @@
 //[json]
 //[opengl] (github.com/...)
 //[my_calc]
-//[math]
+[math]
 
 //:: token
 //  | enum  | name
@@ -19,7 +19,7 @@
 
 - _g_ = 22 + 33 * 44 + 55 * 66
 //- _g_ = 22
-//- _f_ = 1.2345
+- _f_ = 1.2345
 
 # main(args []string) int
   //- br []int

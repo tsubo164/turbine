@@ -399,18 +399,22 @@ static void run_cpu(struct vm_cpu *vm)
                 native_func = code_get_native_function_pointer(vm->code, func_id);
                 assert(native_func);
 
-                struct runtime_value *registers = &vm->stack.data[vm->bp + 1];
-                int reg_count = code_get_function_arg_count(vm->code, func_id);
+                struct runtime_registers regs = {0};
+                regs.locals = &vm->stack.data[vm->bp + 1];
+                regs.local_count = code_get_function_arg_count(vm->code, func_id);
+                regs.globals = &vm->stack.data[vm->bp + 1];
+                regs.global_count = code_get_function_arg_count(vm->code, func_id);
+
                 int result = 0;
                 struct runtime_value ret_val = {0};
 
                 if (code_is_function_variadic(vm->code, func_id)) {
                     struct runtime_value arg_count = fetch_register_value(vm, 0);
                     /* 2 registers for each argument and 1 register for argument count */
-                    reg_count = 2 * arg_count.inum + 1;
+                    regs.local_count = 2 * arg_count.inum + 1;
                 }
 
-                result = native_func(&vm->gc, registers, reg_count);
+                result = native_func(&vm->gc, &regs);
                 ret_val = get_local(vm, 0);
 
                 /* epilogue */
