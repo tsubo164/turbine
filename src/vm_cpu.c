@@ -922,10 +922,9 @@ static struct runtime_value make_args_value(struct runtime_gc *gc, const struct 
     runtime_gc_push_object(gc, (struct runtime_object *) array);
 
     for (int i = 0; i < args->count; i++) {
-        struct runtime_string *str = runtime_string_new(args->values[i]);
+        struct runtime_string *str = runtime_gc_string_new(gc, args->values[i]);
         struct runtime_value elem = {.str = str};
 
-        runtime_gc_push_object(gc, (struct runtime_object *) str);
         runtime_array_set(array, i, elem);
     }
 

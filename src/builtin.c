@@ -86,7 +86,7 @@ static int builtin_input(struct runtime_gc *gc, struct runtime_registers *regs)
         buf[i] = ch;
     }
 
-    ret.str = runtime_gc_new_string(gc, buf);
+    ret.str = runtime_gc_string_new(gc, buf);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;

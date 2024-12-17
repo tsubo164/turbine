@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-struct runtime_string *runtime_gc_new_string(struct runtime_gc *gc, const char *cstr)
+struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *cstr)
 {
     struct runtime_string *str = runtime_string_new(cstr);
 
