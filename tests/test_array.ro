@@ -2,7 +2,12 @@
 
 - _array_ []int = [0, 0, 0, 0]
 
-# main() int
+# main(args []string) int
+
+  ---
+    test.AssertS("foo", args[1])
+    test.AssertS("bar", args[2])
+    test.AssertS("baz", args[3])
 
   ---
     - a []int = [0, 0, 0, 0, 0, 0, 0, 0]

@@ -23,3 +23,11 @@
   if expected != actual
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
     exit(1)
+
+// asserts string
+# AssertS(expected string, actual string, $caller_line)
+  _test_count_++
+
+  if expected != actual
+    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+    exit(1)
