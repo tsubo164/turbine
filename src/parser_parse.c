@@ -103,6 +103,16 @@ static int peek(const struct parser *p)
         return p->curr->next->kind;
 }
 
+static struct parser_pos peek_pos(const struct parser *p)
+{
+    if (p->curr->kind == TOK_EOF) {
+        struct parser_pos pos = {-1, -1};
+        return pos;
+    }
+    else
+        return p->curr->next->pos;
+}
+
 static void expect(struct parser *p, int kind)
 {
     const struct parser_token *tok = gettok(p);
@@ -128,46 +138,46 @@ static struct parser_expr *expression(struct parser *p);
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
 
 static struct parser_expr *arg_list(struct parser *p,
-        const struct parser_func_type *func_type, int caller_line)
+        const struct parser_func_sig *func_sig, int caller_line)
 {
-    struct parser_expr head = {0};
-    struct parser_expr *tail = &head;
+    struct parser_expr arghead = {0};
+    struct parser_expr *arg = &arghead;
     int arg_count = 0;
 
     if (peek(p) != TOK_RPAREN) {
         do {
             int param_idx = arg_count;
             const struct parser_type *param_type;
-            const struct parser_token *tok = curtok(p);
+            const struct parser_pos param_pos = peek_pos(p);
 
-            tail = tail->next = expression(p);
+            arg = arg->next = expression(p);
             arg_count++;
 
-            param_type = parser_get_param_type(func_type, param_idx);
+            param_type = parser_get_param_type(func_sig, param_idx);
             if (!param_type)
-                error(p, tok->next->pos, "too many arguments");
+                error(p, param_pos, "too many arguments");
 
-            if (!parser_match_type(tail->type, param_type)) {
-                error(p, tok->next->pos,
+            if (!parser_match_type(arg->type, param_type)) {
+                error(p, param_pos,
                         "type mismatch: parameter '%s': argument '%s'",
                         parser_type_string(param_type),
-                        parser_type_string(tail->type));
+                        parser_type_string(arg->type));
             }
         }
         while (consume(p, TOK_COMMA));
     }
 
-    if (func_type->has_special_var) {
-        tail = tail->next = parser_new_intlit_expr(caller_line);
+    if (func_sig->has_special_var) {
+        arg = arg->next = parser_new_intlit_expr(caller_line);
         arg_count++;
     }
 
-    const int param_count = parser_required_param_count(func_type);
+    int param_count = parser_required_param_count(func_sig);
     if (arg_count < param_count)
         error(p, tok_pos(p), "too few arguments");
 
     expect(p, TOK_RPAREN);
-    return head.next;
+    return arghead.next;
 }
 
 static struct parser_expr *conv_expr(struct parser *p)
@@ -398,10 +408,10 @@ static struct parser_expr *postfix_expr(struct parser *p)
                 error(p, tok_pos(p),
                         "call operator must be used for function type");
             }
-            const struct parser_func_type *func_type = expr->type->func_type;
+            const struct parser_func_sig *func_sig = expr->type->func_sig;
             int caller_line = tok->pos.y;
             expr = parser_new_call_expr(expr);
-            expr->r = arg_list(p, func_type, caller_line);
+            expr->r = arg_list(p, func_sig, caller_line);
             continue;
         }
         else if (tok->kind == TOK_PERIOD) {
@@ -755,7 +765,7 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
                 parser_type_string(lval->type), parser_type_string(rval->type));
     }
     /* TODO make new_assign_stmt() */
-    if (parser_is_func_type(rval->type) && rval->type->func_type->is_builtin) {
+    if (parser_is_func_type(rval->type) && rval->type->func_sig->is_builtin) {
         assert(rval->kind == NOD_EXPR_FUNCLIT);
         struct parser_func *func = rval->func;
         error(p, pos, "builtin function can not be assigned: '%s'",
@@ -1245,7 +1255,7 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
     }
     struct parser_expr *ident = parser_new_ident_expr(sym);
     /* TODO make new_assign_stmt() */
-    if (init && parser_is_func_type(init->type) && init->type->func_type->is_builtin) {
+    if (init && parser_is_func_type(init->type) && init->type->func_sig->is_builtin) {
         assert(init->kind == NOD_EXPR_FUNCLIT);
         struct parser_func *func = init->func;
         error(p, init_pos,
@@ -1439,7 +1449,7 @@ static void ret_type(struct parser *p, struct parser_func *func)
 
 /*
  * type_spec = "bool" | "int" | "float" | "string" | identifier ("." type_spec)*
- * func_type = "#" param_list type_spec?
+ * func_sig = "#" param_list type_spec?
  */
 static struct parser_type *type_spec(struct parser *p)
 {
@@ -1460,9 +1470,9 @@ static struct parser_type *type_spec(struct parser *p)
         parser_module_add_func(p->module, func);
         param_list(p, func);
         ret_type(p, func);
-        /* func type */
-        func->func_type = parser_make_func_type(func);
-        return parser_new_func_type(func->func_type);
+        /* func sig */
+        func->func_sig = parser_make_func_sig(func);
+        return parser_new_func_type(func->func_sig);
     }
 
     if (consume(p, TOK_BOOL)) {
@@ -1523,8 +1533,8 @@ static void func_def(struct parser *p)
     ret_type(p, func);
     expect(p, TOK_NEWLINE);
 
-    /* func type */
-    func->func_type = parser_make_func_type(func);
+    /* func sig */
+    func->func_sig = parser_make_func_sig(func);
 
     /* func body */
     p->func = func;

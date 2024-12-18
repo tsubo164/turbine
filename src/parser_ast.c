@@ -149,7 +149,7 @@ struct parser_expr *parser_new_stringlit_expr(const char *s)
 struct parser_expr *parser_new_funclit_expr(struct parser_func *func)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_FUNCLIT);
-    e->type = parser_new_func_type(func->func_type);
+    e->type = parser_new_func_type(func->func_sig);
     e->func = func;
     return e;
 }
@@ -218,7 +218,7 @@ struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_CALL);
-    e->type = callee->type->func_type->return_type;
+    e->type = callee->type->func_sig->return_type;
     e->l = callee;
     return e;
 }

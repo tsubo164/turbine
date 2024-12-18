@@ -31,9 +31,7 @@ struct parser_typevec {
     int len;
 };
 
-/* func type */
-/* TODO consider parser_func_signature */
-struct parser_func_type {
+struct parser_func_sig {
     const struct parser_type *return_type;
     struct parser_typevec param_types;
     bool is_builtin;
@@ -55,7 +53,7 @@ struct parser_func {
 
     struct parser_scope *scope;
     struct parser_stmt *body;
-    struct parser_func_type *func_type;
+    struct parser_func_sig *func_sig;
     runtime_native_function_t native_func_ptr;
 };
 
@@ -173,12 +171,12 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
         const char *name, const char *modulefile);
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name);
-struct parser_func_type *parser_make_func_type(struct parser_func *func);
+struct parser_func_sig *parser_make_func_sig(struct parser_func *func);
 void parser_declare_param(struct parser_func *f, const char *name,
         const struct parser_type *type);
-const struct parser_type *parser_get_param_type(const struct parser_func_type *func_type,
+const struct parser_type *parser_get_param_type(const struct parser_func_sig *func_sig,
         int index);
-int parser_required_param_count(const struct parser_func_type *func_type);
+int parser_required_param_count(const struct parser_func_sig *func_sig);
 
 /* struct */
 struct parser_struct *parser_define_struct(struct parser_scope *sc,

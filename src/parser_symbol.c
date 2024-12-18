@@ -169,7 +169,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 
     /* add func itself to symbol table */
     struct parser_symbol *sym = parser_new_symbol(SYM_FUNC,
-            func->name, parser_new_func_type(func->func_type));
+            func->name, parser_new_func_type(func->func_sig));
     sym->func = func;
 
     if (!data_hashmap_insert(&parent->symbols, func->name, sym))
@@ -189,23 +189,23 @@ struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
 
 static const struct parser_var *parser_get_param(const struct parser_func *f, int index);
 
-struct parser_func_type *parser_make_func_type(struct parser_func *func)
+struct parser_func_sig *parser_make_func_sig(struct parser_func *func)
 {
-    struct parser_func_type *func_type;
+    struct parser_func_sig *func_sig;
 
-    func_type = calloc(1, sizeof(*func_type));
-    func_type->return_type = func->return_type;
+    func_sig = calloc(1, sizeof(*func_sig));
+    func_sig->return_type = func->return_type;
 
     for (int i = 0; i < func->params.len; i++) {
         const struct parser_var *var = parser_get_param(func, i);
-        push_type(&func_type->param_types, var->type);
+        push_type(&func_sig->param_types, var->type);
     }
 
-    func_type->is_builtin = func->is_builtin;
-    func_type->is_variadic = func->is_variadic;
-    func_type->has_special_var = func->has_special_var;
+    func_sig->is_builtin = func->is_builtin;
+    func_sig->is_variadic = func->is_variadic;
+    func_sig->has_special_var = func->has_special_var;
 
-    return func_type;
+    return func_sig;
 }
 
 void parser_declare_param(struct parser_func *f,
@@ -239,13 +239,13 @@ static const struct parser_var *parser_get_param(const struct parser_func *f,
     return f->params.data[idx];
 }
 
-const struct parser_type *parser_get_param_type(const struct parser_func_type *func_type,
+const struct parser_type *parser_get_param_type(const struct parser_func_sig *func_sig,
         int index)
 {
     int idx = 0;
-    int param_count = func_type->param_types.len;
+    int param_count = func_sig->param_types.len;
 
-    if (func_type->is_variadic && index >= param_count)
+    if (func_sig->is_variadic && index >= param_count)
         idx = param_count - 1;
     else
         idx = index;
@@ -253,14 +253,14 @@ const struct parser_type *parser_get_param_type(const struct parser_func_type *f
     if (idx < 0 || idx >= param_count)
         return NULL;
 
-    return func_type->param_types.data[idx];
+    return func_sig->param_types.data[idx];
 }
 
-int parser_required_param_count(const struct parser_func_type *func_type)
+int parser_required_param_count(const struct parser_func_sig *func_sig)
 {
-    int param_count = func_type->param_types.len;
+    int param_count = func_sig->param_types.len;
 
-    if (func_type->is_variadic)
+    if (func_sig->is_variadic)
         return param_count - 1;
     else
         return param_count;

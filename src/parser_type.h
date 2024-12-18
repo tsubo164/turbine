@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-struct parser_func_type;
+struct parser_func_sig;
 struct parser_struct;
 struct parser_table;
 struct parser_module;
@@ -28,7 +28,7 @@ struct parser_type {
     const struct parser_type *underlying;
 
     union {
-        const struct parser_func_type *func_type;
+        const struct parser_func_sig *func_sig;
         const struct parser_struct *strct;
         const struct parser_table *table;
         const struct parser_module *module;
@@ -40,7 +40,7 @@ struct parser_type *parser_new_bool_type(void);
 struct parser_type *parser_new_int_type(void);
 struct parser_type *parser_new_float_type(void);
 struct parser_type *parser_new_string_type(void);
-struct parser_type *parser_new_func_type(struct parser_func_type *func_type);
+struct parser_type *parser_new_func_type(struct parser_func_sig *func_sig);
 struct parser_type *parser_new_struct_type(struct parser_struct *s);
 struct parser_type *parser_new_table_type(struct parser_table *t);
 struct parser_type *parser_new_module_type(struct parser_module *m);

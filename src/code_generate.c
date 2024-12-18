@@ -457,13 +457,13 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
 
 static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
 {
-    const struct parser_func_type *func_type = call->l->type->func_type;
+    const struct parser_func_sig *func_sig = call->l->type->func_sig;
 
     /* save the current register right before evaluating args */
     int curr_reg = code_get_register_pointer(code);
     int retval_reg = code_set_register_pointer(code, curr_reg + 1);
 
-    if (func_type->is_variadic) {
+    if (func_sig->is_variadic) {
         int reg_ptr = curr_reg;
 
         int argc = 0;
@@ -528,7 +528,7 @@ static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
     /* call */
     int64_t func_id = 0;
     if (parser_eval_expr(call->l, &func_id)) {
-        code_emit_call_function(code, retval_reg, func_id, func_type->is_builtin);
+        code_emit_call_function(code, retval_reg, func_id, func_sig->is_builtin);
     }
     else {
         int src = gen_expr(code, call->l);

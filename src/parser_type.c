@@ -52,10 +52,10 @@ static struct parser_type *new_type(int kind)
     return t;
 }
 
-struct parser_type *parser_new_func_type(struct parser_func_type *func_type)
+struct parser_type *parser_new_func_type(struct parser_func_sig *func_sig)
 {
     struct parser_type *t = new_type(TYP_FUNC);
-    t->func_type = func_type;
+    t->func_sig = func_sig;
     return t;
 }
 
