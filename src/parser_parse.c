@@ -131,47 +131,47 @@ static struct parser_expr *arg_list(struct parser *p, struct parser_expr *call)
 {
     struct parser_expr head = {0};
     struct parser_expr *tail = &head;
-    int count = 0;
+    const struct parser_func_type *func_type;
+    int arg_count = 0;
+
+    func_type = call->l->type->func_type;
 
     if (peek(p) != TOK_RPAREN) {
+
         do {
+            int param_idx = arg_count;
+            const struct parser_type *param_type;
+            const struct parser_token *tok = curtok(p);
+
             tail = tail->next = expression(p);
-            count++;
+            arg_count++;
+
+            param_type = parser_get_param_type(func_type, param_idx);
+            if (!param_type)
+                error(p, tok->next->pos, "too many arguments");
+
+            if (!parser_match_type(tail->type, param_type)) {
+                error(p, tok->next->pos,
+                        "type mismatch: parameter '%s': argument '%s'",
+                        parser_type_string(param_type),
+                        parser_type_string(tail->type));
+            }
         }
         while (consume(p, TOK_COMMA));
     }
 
-    const struct parser_func_type *func_type = call->l->type->func_type;
     if (func_type->has_special_var) {
         tail = tail->next = parser_new_intlit_expr(call->pos.y);
-        count++;
+        arg_count++;
     }
+
+    const int param_count = parser_required_param_count(func_type);
+    if (arg_count < param_count)
+        error(p, tok_pos(p), "too few arguments");
 
     call->r = head.next;
 
-    const int argc = count;
-    const int paramc = parser_required_param_count(func_type);
-    if (argc < paramc)
-        error(p, tok_pos(p), "too few arguments");
-
-    const struct parser_expr *arg = call->r;
-    for (int i = 0; i < argc; i++, arg = arg->next) {
-        const struct parser_type *param_type = parser_get_param_type(func_type, i);
-
-        if (!param_type)
-            error(p, tok_pos(p), "too many arguments");
-
-        /* TODO arg needs to know its pos */
-        if (!parser_match_type(arg->type, param_type)) {
-            error(p, tok_pos(p),
-                    "type mismatch: parameter type '%s': argument type '%s'",
-                    parser_type_string(param_type),
-                    parser_type_string(arg->type));
-        }
-    }
-
     expect(p, TOK_RPAREN);
-
     return call;
 }
 
