@@ -127,17 +127,14 @@ static struct parser_type *type_spec(struct parser *p);
 static struct parser_expr *expression(struct parser *p);
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
 
-static struct parser_expr *arg_list(struct parser *p, struct parser_expr *call)
+static struct parser_expr *arg_list(struct parser *p,
+        const struct parser_func_type *func_type, int caller_line)
 {
     struct parser_expr head = {0};
     struct parser_expr *tail = &head;
-    const struct parser_func_type *func_type;
     int arg_count = 0;
 
-    func_type = call->l->type->func_type;
-
     if (peek(p) != TOK_RPAREN) {
-
         do {
             int param_idx = arg_count;
             const struct parser_type *param_type;
@@ -161,7 +158,7 @@ static struct parser_expr *arg_list(struct parser *p, struct parser_expr *call)
     }
 
     if (func_type->has_special_var) {
-        tail = tail->next = parser_new_intlit_expr(call->pos.y);
+        tail = tail->next = parser_new_intlit_expr(caller_line);
         arg_count++;
     }
 
@@ -169,10 +166,8 @@ static struct parser_expr *arg_list(struct parser *p, struct parser_expr *call)
     if (arg_count < param_count)
         error(p, tok_pos(p), "too few arguments");
 
-    call->r = head.next;
-
     expect(p, TOK_RPAREN);
-    return call;
+    return head.next;
 }
 
 static struct parser_expr *conv_expr(struct parser *p)
@@ -403,9 +398,10 @@ static struct parser_expr *postfix_expr(struct parser *p)
                 error(p, tok_pos(p),
                         "call operator must be used for function type");
             }
-            /* TODO func signature check */
-            struct parser_expr *call = parser_new_call_expr(expr, tok->pos);
-            expr = arg_list(p, call);
+            const struct parser_func_type *func_type = expr->type->func_type;
+            int caller_line = tok->pos.y;
+            expr = parser_new_call_expr(expr);
+            expr->r = arg_list(p, func_type, caller_line);
             continue;
         }
         else if (tok->kind == TOK_PERIOD) {

@@ -17,13 +17,14 @@
 //  - center Point
 //  - radius int
 
-# foo(f float, i int) float
+# foo(f float, i int, $caller_line) float
+  print($caller_line)
   return f * 2.0
 
 # main(args []string) int
   print("args:", len(args))
 
-  //foo(2 + 3, 3)
+  foo(2.0 + 3.0, 3)
 
   for a in args
     print("  ->", a)

@@ -1,5 +1,6 @@
 #include "parser_print.h"
 #include "parser_symbol.h"
+#include "parser_token.h"
 #include "parser_type.h"
 #include "parser_ast.h"
 

@@ -1,7 +1,6 @@
 #ifndef PARSER_AST_H
 #define PARSER_AST_H
 
-#include "parser_token.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -94,7 +93,6 @@ struct parser_struct;
 struct parser_expr {
     int kind;
     const struct parser_type *type;
-    struct parser_pos pos;
 
     struct parser_expr *l;
     struct parser_expr *r;
@@ -144,7 +142,7 @@ struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym);
 struct parser_expr *parser_new_field_expr(struct parser_field *f);
 struct parser_expr *parser_new_select_expr(struct parser_expr *inst, struct parser_expr *fld);
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
-struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_pos p);
+struct parser_expr *parser_new_call_expr(struct parser_expr *callee);
 struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);
 struct parser_expr *parser_new_module_expr(struct parser_expr *mod,
         struct parser_expr *member);
