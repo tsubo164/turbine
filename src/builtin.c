@@ -4,6 +4,7 @@
 #include "parser_type.h"
 #include "runtime_function.h"
 #include "runtime_string.h"
+#include "runtime_array.h"
 #include "runtime_value.h"
 
 #include <assert.h>
@@ -43,7 +44,7 @@ static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
             break;
 
         case VAL_STRING:
-            printf("%s", runtime_string_get_cstr(val.str));
+            printf("%s", runtime_string_get_cstr(val.string));
             break;
         }
 
@@ -75,7 +76,7 @@ static int builtin_input(struct runtime_gc *gc, struct runtime_registers *regs)
     int ch = 0;
     int i = 0;
 
-    printf("%s", runtime_string_get_cstr(val.str));
+    printf("%s", runtime_string_get_cstr(val.string));
 
     for (i = 0; i < MAX_STR_LEN; i++) {
         ch = getchar();
@@ -86,7 +87,7 @@ static int builtin_input(struct runtime_gc *gc, struct runtime_registers *regs)
         buf[i] = ch;
     }
 
-    ret.str = runtime_gc_string_new(gc, buf);
+    ret.string = runtime_gc_string_new(gc, buf);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
@@ -100,6 +101,16 @@ static int builtin_exit(struct runtime_gc *gc, struct runtime_registers *regs)
     regs->locals[0] = val;
 
     return RESULT_NORETURN;
+}
+
+static int builtin_len(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value val = regs->locals[0];
+
+    val.inum = runtime_array_len(val.array);
+    regs->locals[0] = val;
+
+    return RESULT_SUCCESS;
 }
 
 void define_builtin_functions(struct parser_scope *builtin)
@@ -133,5 +144,15 @@ void define_builtin_functions(struct parser_scope *builtin)
         func->return_type = parser_new_int_type();
         func->func_type = parser_make_func_type(func);
         func->native_func_ptr = builtin_exit;
+    }
+    {
+        struct parser_func *func;
+
+        func = parser_declare_builtin_func(builtin, "len");
+        parser_declare_param(func, "array", parser_new_array_type(parser_new_any_type()));
+
+        func->return_type = parser_new_int_type();
+        func->func_type = parser_make_func_type(func);
+        func->native_func_ptr = builtin_len;
     }
 }

@@ -49,12 +49,12 @@ int code_constant_pool_push_string(struct code_constant_pool *v, const char *val
 {
     for (int i = 0; i < v->strings.len; i++) {
         struct runtime_value s = runtime_valuevec_get(&v->strings, i);
-        if (runtime_string_compare_cstr(s.str, val) == 0)
+        if (runtime_string_compare_cstr(s.string, val) == 0)
             return i;
     }
 
     struct runtime_value value;
-    value.str = runtime_string_new(val);
+    value.string = runtime_string_new(val);
     runtime_valuevec_push(&v->strings, value);
 
     int new_idx = v->strings.len - 1;

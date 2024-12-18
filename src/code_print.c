@@ -32,7 +32,7 @@ void code_print_bytecode(const struct code_bytecode *code)
 
         for (int i = 0; i < count; i++) {
             struct runtime_value val = code_constant_pool_get_string(&code->const_pool, i);
-            printf("[%6d] \"%s\"\n", i, runtime_string_get_cstr(val.str));
+            printf("[%6d] \"%s\"\n", i, runtime_string_get_cstr(val.string));
         }
     }
 
@@ -106,7 +106,7 @@ static void print_operand(const struct code_bytecode *code,
         {
             struct runtime_value val;
             val = code_read_immediate_value(code, addr + 1, operand, imm_size);
-            printf("\"%s\"", runtime_string_get_cstr(val.str));
+            printf("\"%s\"", runtime_string_get_cstr(val.string));
         }
         break;
 

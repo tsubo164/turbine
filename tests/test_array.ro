@@ -5,6 +5,7 @@
 # main(args []string) int
 
   ---
+    test.AssertI(4, len(args))
     test.AssertS("foo", args[1])
     test.AssertS("bar", args[2])
     test.AssertS("baz", args[3])
@@ -32,6 +33,7 @@
   ---
     _array_[3] = 99
     test.AssertI(99, _array_[3])
+    test.AssertI(4, len(_array_))
 
   ---
     - a = [99, 11, 22, 33 + 9]

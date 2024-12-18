@@ -646,10 +646,11 @@ do { \
                 struct runtime_value srcval1 = fetch_register_value(vm, src1);
                 struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
-                struct runtime_string *s = runtime_string_concat(srcval1.str, srcval2.str);
+                struct runtime_string *s;
+                s = runtime_string_concat(srcval1.string, srcval2.string);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) s);
 
-                dstval.str = s;
+                dstval.string = s;
                 set_local(vm, dst, dstval);
             }
             break;
@@ -680,7 +681,8 @@ do { \
                 struct runtime_value srcval1 = fetch_register_value(vm, src1);
                 struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
-                dstval.inum = runtime_string_compare(srcval1.str, srcval2.str) == 0;
+                int cmp = runtime_string_compare(srcval1.string, srcval2.string) == 0;
+                dstval.inum = cmp;
                 set_local(vm, dst, dstval);
             }
             break;
@@ -695,7 +697,8 @@ do { \
                 struct runtime_value srcval1 = fetch_register_value(vm, src1);
                 struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
-                dstval.inum = runtime_string_compare(srcval1.str, srcval2.str) != 0;
+                int cmp = runtime_string_compare(srcval1.string, srcval2.string) != 0;
+                dstval.inum = cmp;
                 set_local(vm, dst, dstval);
             }
             break;
@@ -922,8 +925,8 @@ static struct runtime_value make_args_value(struct runtime_gc *gc, const struct 
     runtime_gc_push_object(gc, (struct runtime_object *) array);
 
     for (int i = 0; i < args->count; i++) {
-        struct runtime_string *str = runtime_gc_string_new(gc, args->values[i]);
-        struct runtime_value elem = {.str = str};
+        struct runtime_string *s = runtime_gc_string_new(gc, args->values[i]);
+        struct runtime_value elem = {.string = s};
 
         runtime_array_set(array, i, elem);
     }

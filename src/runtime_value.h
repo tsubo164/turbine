@@ -24,7 +24,7 @@ struct runtime_value {
         value_int_t inum;
         value_float_t fpnum;
         struct runtime_array *array;
-        struct runtime_string *str;
+        struct runtime_string *string;
         struct runtime_struct *strct;
     };
 };
