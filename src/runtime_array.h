@@ -18,6 +18,7 @@ struct runtime_value runtime_array_get(const struct runtime_array *a, int64_t id
 void runtime_array_set(struct runtime_array *a, int64_t idx, struct runtime_value val);
 
 int64_t runtime_array_len(const struct runtime_array *a);
+void runtime_array_resize(struct runtime_array *a, int64_t new_len);
 bool runtime_array_is_valid_index(const struct runtime_array *a, int64_t idx);
 
 #endif // _H

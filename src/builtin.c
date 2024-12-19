@@ -113,6 +113,31 @@ static int builtin_len(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int builtin_resize(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value val = regs->locals[0];
+    struct runtime_value len = regs->locals[1];
+
+    runtime_array_resize(val.array, len.inum);
+
+    return RESULT_SUCCESS;
+}
+
+/*
+#include <string.h>
+#define NATIVE_RETVAL "_retval"
+*/
+struct native_func_param {
+    const char *name;
+    const struct parser_type *type;
+};
+
+void native_declare_func(struct parser_scope *scope,
+        const char *name,
+        const struct native_func_param *params,
+        const struct parser_type *return_type,
+        runtime_native_function_t native_func);
+
 void define_builtin_functions(struct parser_scope *builtin)
 {
     {
@@ -155,4 +180,46 @@ void define_builtin_functions(struct parser_scope *builtin)
         func->func_sig = parser_make_func_sig(func);
         func->native_func_ptr = builtin_len;
     }
+    {
+        struct parser_type *return_type = parser_new_array_type(parser_new_any_type());
+        struct native_func_param params[] = {
+            { "array",    parser_new_array_type(parser_new_any_type()) },
+            { "new_len",  parser_new_int_type() },
+            /*
+            { NATIVE_RETVAL,  parser_new_array_type(parser_new_any_type()) },
+            */
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                "resize",
+                params,
+                return_type,
+                builtin_resize);
+    }
+}
+
+void native_declare_func(struct parser_scope *scope,
+        const char *name,
+        const struct native_func_param *params,
+        const struct parser_type *return_type,
+        runtime_native_function_t native_func)
+{
+    const struct native_func_param *param;
+    struct parser_func *func;
+
+    func = parser_declare_builtin_func(scope, name);
+
+    for (param = params; param->name; param++) {
+    /*
+        if (!strcmp(param->name, NATIVE_RETVAL))
+            func->return_type = return_type;
+        else
+    */
+        parser_declare_param(func, param->name, param->type);
+    }
+
+    func->return_type = return_type;
+    func->func_sig = parser_make_func_sig(func);
+    func->native_func_ptr = native_func;
 }

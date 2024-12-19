@@ -39,6 +39,10 @@
     - a = [99, 11, 22, 33 + 9]
     test.AssertI(64, a[2] + a[3])
 
+    test.AssertI(4, len(a))
+    resize(a, 8)
+    test.AssertI(8, len(a))
+
   print(test._test_count_, "tests done.")
 
   return 0
