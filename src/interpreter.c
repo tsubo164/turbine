@@ -62,7 +62,7 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     /* compile source */
     struct parser_module *prog;
     struct parser_source source;
-    parser_source_init(&source, text, args->filename, data_string_intern(":main"));
+    parser_source_init(&source, text, args->filename, data_string_intern("_main"));
 
     prog = parser_parse(tok, &builtin, &source, &paths);
     code_resolve_offset(prog);

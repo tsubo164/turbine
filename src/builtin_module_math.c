@@ -39,7 +39,7 @@ static int math_sqrt(struct runtime_gc *gc, struct runtime_registers *regs)
 
 int builtin_define_module_math(struct parser_scope *scope)
 {
-    struct parser_module *mod = parser_define_module(scope, ":builtin", "math");
+    struct parser_module *mod = parser_define_module(scope, "_builtin", "math");
     /* TODO consider passing this to `parser_define_module()`
      * or making wrapper function named `builtin_define_module()`
      * Making wrappers seems better */
@@ -81,7 +81,7 @@ int builtin_define_module_math(struct parser_scope *scope)
         parser_add_field(strct, data_string_intern("z"), parser_new_float_type());
     }
     {
-        const char *name = data_string_intern(":init_math");
+        const char *name = data_string_intern("_init_math");
         struct parser_func *func = parser_declare_builtin_func(mod->scope, name);
 
         func->return_type = parser_new_int_type();

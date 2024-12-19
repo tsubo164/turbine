@@ -1286,7 +1286,7 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
 
                     if (s->kind == SYM_FUNC) {
                         const struct parser_func *f = s->func;
-                        if (!strncmp(f->fullname, ":builtin::init_", 15)) {
+                        if (!strncmp(f->fullname, "_builtin:_init", 14)) {
                             init_func_id = f->id;
                         }
                     }
@@ -1347,7 +1347,7 @@ static void gen_module(struct code_bytecode *code, const struct parser_module *m
     }
 
     /* start func */
-    int start_id = code_register_function(code, ":start", 0);
+    int start_id = code_register_function(code, "_start", 0);
     code_emit_call_function(code, 0, start_id, false);
     code_emit_halt(code);
 

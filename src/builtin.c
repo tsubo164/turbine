@@ -123,10 +123,6 @@ static int builtin_resize(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
-/*
-#include <string.h>
-#define NATIVE_RETVAL "_retval"
-*/
 struct native_func_param {
     const char *name;
     const struct parser_type *type;
@@ -181,20 +177,18 @@ void define_builtin_functions(struct parser_scope *builtin)
         func->native_func_ptr = builtin_len;
     }
     {
-        struct parser_type *return_type = parser_new_array_type(parser_new_any_type());
+        const char *name = "resize";
         struct native_func_param params[] = {
             { "array",    parser_new_array_type(parser_new_any_type()) },
             { "new_len",  parser_new_int_type() },
-            /*
-            { NATIVE_RETVAL,  parser_new_array_type(parser_new_any_type()) },
-            */
             { NULL },
         };
+        struct parser_type *ret_type = parser_new_array_type(parser_new_any_type());
 
         native_declare_func(builtin,
-                "resize",
+                name,
                 params,
-                return_type,
+                ret_type,
                 builtin_resize);
     }
 }
@@ -211,11 +205,6 @@ void native_declare_func(struct parser_scope *scope,
     func = parser_declare_builtin_func(scope, name);
 
     for (param = params; param->name; param++) {
-    /*
-        if (!strcmp(param->name, NATIVE_RETVAL))
-            func->return_type = return_type;
-        else
-    */
         parser_declare_param(func, param->name, param->type);
     }
 

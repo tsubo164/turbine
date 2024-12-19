@@ -134,25 +134,25 @@ struct parser_symbol *parser_define_var(struct parser_scope *sc,
     return sym;
 }
 
-static const char *func_fullname(const char *modulefile, const char *funcname)
+static const char *func_fullname(const char *modulename, const char *funcname)
 {
     /* unique func name */
     static char fullname[1024] = {'\0'};
     static const size_t size = sizeof(fullname) / sizeof(fullname[0]);
 
-    snprintf(fullname, size, "%s:%s", modulefile, funcname);
+    snprintf(fullname, size, "%s:%s", modulename, funcname);
     return data_string_intern(fullname);
 }
 
 /* func */
 static struct parser_func *new_func(struct parser_scope *parent,
-        const char *modulefile, const char *name)
+        const char *modulename, const char *name)
 {
     struct parser_func *f;
 
     f = calloc(1, sizeof(*f));
     f->name = name;
-    f->fullname = func_fullname(modulefile, name);
+    f->fullname = func_fullname(modulename, name);
     f->scope = parser_new_scope(parent);
     f->is_builtin = false;
 
@@ -160,9 +160,9 @@ static struct parser_func *new_func(struct parser_scope *parent,
 }
 
 struct parser_func *parser_declare_func(struct parser_scope *parent,
-        const char *name, const char *modulefile)
+        const char *name, const char *modulename)
 {
-    struct parser_func *func = new_func(parent, modulefile, name);
+    struct parser_func *func = new_func(parent, modulename, name);
 
     if (parser_find_symbol(parent, func->name))
         return NULL;
@@ -182,7 +182,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name)
 {
-    struct parser_func *func = parser_declare_func(parent, name, ":builtin");
+    struct parser_func *func = parser_declare_func(parent, name, "_builtin");
     func->is_builtin = true;
     return func;
 }
