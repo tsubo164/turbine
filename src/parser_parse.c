@@ -144,6 +144,8 @@ static struct parser_expr *arg_list(struct parser *p,
     struct parser_expr *arg = &arghead;
     int arg_count = 0;
 
+    expect(p, TOK_LPAREN);
+
     if (peek(p) != TOK_RPAREN) {
         do {
             int param_idx = arg_count;
@@ -183,7 +185,7 @@ static struct parser_expr *arg_list(struct parser *p,
 static struct parser_expr *conv_expr(struct parser *p)
 {
     struct parser_type *to_type = type_spec(p);
-    const struct parser_pos tokpos = tok_pos(p);
+    struct parser_pos tokpos = tok_pos(p);
 
     expect(p, TOK_LPAREN);
     struct parser_expr *expr = expression(p);
@@ -450,18 +452,18 @@ static const struct parser_type *fill_template_type(const struct parser_func_sig
     return NULL;
 }
 
-static struct parser_expr *call_expr(struct parser *p, struct parser_expr *callee,
+static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base,
         int caller_line)
 {
-    if (!callee || !parser_is_func_type(callee->type))
-        error(p, tok_pos(p), "() must be used for function type");
+    if (!base || !parser_is_func_type(base->type))
+        error(p, tok_pos(p), "'()' must be used for function type");
 
-    const struct parser_func_sig *func_sig = callee->type->func_sig;
+    const struct parser_func_sig *func_sig = base->type->func_sig;
     struct parser_expr *call;
     struct parser_expr *args;
 
     args = arg_list(p, func_sig, caller_line);
-    call = parser_new_call_expr(callee, args);
+    call = parser_new_call_expr(base, args);
 
     if (func_sig->has_template_return_type) {
         const struct parser_type *filled_type;
@@ -472,6 +474,65 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *calle
     }
 
     return call;
+}
+
+static struct parser_expr *select_expr(struct parser *p, struct parser_expr *base)
+{
+    expect(p, TOK_PERIOD);
+
+    if (parser_is_struct_type(base->type)) {
+        expect(p, TOK_IDENT);
+        struct parser_field *f = parser_find_field(base->type->strct, tok_str(p));
+        return parser_new_select_expr(base, parser_new_field_expr(f));
+    }
+
+    if (parser_is_ptr_type(base->type) &&
+            parser_is_struct_type(base->type->underlying)) {
+        expect(p, TOK_IDENT);
+        struct parser_field *f;
+        f = parser_find_field(base->type->underlying->strct, tok_str(p));
+        return parser_new_select_expr(base, parser_new_field_expr(f));
+    }
+
+    if (parser_is_table_type(base->type)) {
+        expect(p, TOK_IDENT);
+        struct data_hashmap_entry *ent =
+            data_hashmap_lookup(&base->type->table->rows, tok_str(p));
+        struct parser_table_row *r = ent->val;
+        struct parser_expr *expr;
+        expr = parser_new_intlit_expr(r->ival);
+        /* TODO come up with better idea rather than keeping it in intlit */
+        expr->l = base;
+        return expr;
+    }
+
+    if (parser_is_module_type(base->type)) {
+        struct parser_scope *cur = p->scope;
+        struct parser_expr *expr;
+        p->scope = base->type->module->scope;
+        expr = parser_new_module_expr(base, ident_expr(p));
+        p->scope = cur;
+        return expr;
+    }
+
+    error(p, tok_pos(p), "'.' must be used for struct, table or modlue type");
+    return NULL;
+}
+
+static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *base)
+{
+    expect(p, TOK_LBRACK);
+
+    if (!parser_is_array_type(base->type))
+        error(p, tok_pos(p), "`[]` must be used for array type");
+
+    struct parser_expr *idx = expression(p);
+
+    if (!parser_is_int_type(idx->type))
+        error(p, tok_pos(p), "index expression must be integer type");
+
+    expect(p, TOK_RBRACK);
+    return parser_new_index_expr(base, idx);
 }
 
 /*
@@ -485,69 +546,30 @@ static struct parser_expr *postfix_expr(struct parser *p)
     struct parser_expr *expr = primary_expr(p);
 
     for (;;) {
+        int next = peek(p);
 
-        const struct parser_token *tok = gettok(p);
+        switch (next) {
 
-        if (tok->kind == TOK_LPAREN) {
-            int caller_line = tok->pos.y;
-            expr = call_expr(p, expr, caller_line);
-            continue;
-        }
-        else if (tok->kind == TOK_PERIOD) {
-            if (parser_is_struct_type(expr->type)) {
-                expect(p, TOK_IDENT);
-                struct parser_field *f = parser_find_field(expr->type->strct, tok_str(p));
-                expr = parser_new_select_expr(expr, parser_new_field_expr(f));
-            }
-            else if (parser_is_ptr_type(expr->type) &&
-                    parser_is_struct_type(expr->type->underlying)) {
-                expect(p, TOK_IDENT);
-                struct parser_field *f;
-                f = parser_find_field(expr->type->underlying->strct, tok_str(p));
-                expr = parser_new_select_expr(expr, parser_new_field_expr(f));
-            }
-            else if (parser_is_table_type(expr->type)) {
-                expect(p, TOK_IDENT);
-                struct data_hashmap_entry *ent =
-                    data_hashmap_lookup(&expr->type->table->rows, tok_str(p));
-                struct parser_table_row *r = ent->val;
-                struct parser_expr *tmp = expr;
-                expr = parser_new_intlit_expr(r->ival);
-                expr->l = tmp;
-            }
-            else if (parser_is_module_type(expr->type)) {
-                struct parser_scope *cur = p->scope;
-                p->scope = expr->type->module->scope;
-                expr = parser_new_module_expr(expr, ident_expr(p));
-                p->scope = cur;
-            }
-            else {
-                error(p, tok_pos(p),
-                        "dot operator must be used for struct or table type");
+        case TOK_LPAREN:
+            {
+                struct parser_pos caller_pos = tok_pos(p);
+                expr = call_expr(p, expr, caller_pos.y);
             }
             continue;
-        }
-        else if (tok->kind == TOK_LBRACK) {
-            if (!parser_is_array_type(expr->type)) {
-                error(p, tok_pos(p),
-                        "index operator must be used for array type");
-            }
-            struct parser_expr *idx = expression(p);
-            if (!parser_is_int_type(idx->type)) {
-                error(p, tok_pos(p),
-                        "index expression must be integer type");
-            }
-            expect(p, TOK_RBRACK);
-            return parser_new_index_expr(expr, idx);
-        }
-        else {
+
+        case TOK_PERIOD:
+            expr = select_expr(p, expr);
+            continue;
+
+        case TOK_LBRACK:
+            expr = indexing_expr(p, expr);
+            continue;
+
+        default:
             if (!expr) {
-                error(p, tok->pos,
-                        "unknown token for primary expression: \"%s\"",
-                        parser_get_token_string(tok->kind));
+                const struct parser_token *tok = gettok(p);
+                error(p, tok->pos, "unknown token in postfix expression");
             }
-
-            ungettok(p);
             return expr;
         }
     }
@@ -1423,7 +1445,7 @@ static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *blo
     expect(p, TOK_BLOCKBEGIN);
 
     while (has_stmts) {
-        const int next = peek(p);
+        int next = peek(p);
 
         switch (next) {
 
@@ -1518,7 +1540,7 @@ static void param_list(struct parser *p, struct parser_func *func)
 
 static void ret_type(struct parser *p, struct parser_func *func)
 {
-    const int next = peek(p);
+    int next = peek(p);
 
     if (next == TOK_NEWLINE)
         func->return_type = parser_new_nil_type();
