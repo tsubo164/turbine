@@ -196,6 +196,9 @@ struct parser_func_sig *parser_make_func_sig(struct parser_func *func)
     func_sig = calloc(1, sizeof(*func_sig));
     func_sig->return_type = func->return_type;
 
+    if (parser_has_template_type(func_sig->return_type))
+        func_sig->has_template_return_type = true;
+
     for (int i = 0; i < func->params.len; i++) {
         const struct parser_var *var = parser_get_param(func, i);
         push_type(&func_sig->param_types, var->type);

@@ -132,6 +132,14 @@ bool parser_is_array_type(const struct parser_type *t)    { return t->kind == TY
 bool parser_is_any_type(const struct parser_type *t)      { return t->kind == TYP_ANY; }
 bool parser_is_template_type(const struct parser_type *t) { return t->kind == TYP_TEMPLATE; }
 
+bool parser_has_template_type(const struct parser_type *t)
+{
+    if (parser_is_array_type(t))
+        return parser_has_template_type(t->underlying);
+    else
+        return parser_is_template_type(t);
+}
+
 static const char *type_kind_string(int kind)
 {
     switch ((enum parser_type_kind) kind) {
@@ -170,6 +178,9 @@ const char *parser_type_string(const struct parser_type *t)
         }
         else if (type->kind == TYP_STRUCT) {
             sprintf(buf, "%s%s", interned, type->strct->name);
+        }
+        else if (type->kind == TYP_TEMPLATE) {
+            sprintf(buf, "%stype%d", interned, type->template_id);
         }
         else {
             sprintf(buf, "%s%s", interned, type_kind_string(type->kind));

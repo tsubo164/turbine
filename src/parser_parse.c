@@ -401,7 +401,7 @@ static const struct parser_type *replace_template_type(
         else
             return NULL;
     }
-    else if (parser_is_any_type(target_type)) {
+    else if (parser_is_template_type(target_type)) {
         return replacement_type;
     }
     else {
@@ -409,26 +409,21 @@ static const struct parser_type *replace_template_type(
     }
 }
 
-static const struct parser_type *find_template_replacement(
+static const struct parser_type *find_template_type(
         const struct parser_type *param_type, const struct parser_type *arg_type,
-        int *found_id)
+        int target_id)
 {
-    /*
     if (parser_is_template_type(param_type)) {
-    */
-    if (parser_is_any_type(param_type)) {
-        /*
-        *found_id = param_type->template_id;
-        */
-        *found_id = 0;
-        return arg_type;
+        if (param_type->template_id == target_id)
+            return arg_type;
+        else
+            return NULL;
     }
     else if (parser_is_array_type(param_type)) {
-        return find_template_replacement(
-                param_type->underlying, arg_type->underlying, found_id);
+        return find_template_type(
+                param_type->underlying, arg_type->underlying, target_id);
     }
     else {
-        *found_id = -1;
         return NULL;
     }
 }
@@ -438,24 +433,45 @@ static const struct parser_type *fill_template_type(const struct parser_func_sig
 {
     const struct parser_typevec *param_types = &func_sig->param_types;
     const struct parser_expr *arg = args;
-    /*
-    int target_id = func_sig->return_type->template_id;
-    */
-    int target_id = 0;
 
+    assert(parser_has_template_type(func_sig->return_type));
+    int target_id = func_sig->return_type->template_id;
 
     for (int i = 0; i < param_types->len; i++, arg = arg->next) {
         const struct parser_type *param_type = param_types->data[i];
-        const struct parser_type *replacement;
-        int found_id = -1;
+        const struct parser_type *found_type;
 
-        replacement = find_template_replacement(param_type, arg->type, &found_id);
-        if (replacement && target_id == found_id) {
-            return replace_template_type(func_sig->return_type, replacement);
+        found_type = find_template_type(param_type, arg->type, target_id);
+        if (found_type) {
+            return replace_template_type(func_sig->return_type, found_type);
         }
     }
 
     return NULL;
+}
+
+static struct parser_expr *call_expr(struct parser *p, struct parser_expr *callee,
+        int caller_line)
+{
+    if (!callee || !parser_is_func_type(callee->type))
+        error(p, tok_pos(p), "() must be used for function type");
+
+    const struct parser_func_sig *func_sig = callee->type->func_sig;
+    struct parser_expr *call;
+    struct parser_expr *args;
+
+    args = arg_list(p, func_sig, caller_line);
+    call = parser_new_call_expr(callee, args);
+
+    if (func_sig->has_template_return_type) {
+        const struct parser_type *filled_type;
+        filled_type = fill_template_type(func_sig, args);
+
+        if (filled_type)
+            call->type = filled_type;
+    }
+
+    return call;
 }
 
 /*
@@ -473,22 +489,8 @@ static struct parser_expr *postfix_expr(struct parser *p)
         const struct parser_token *tok = gettok(p);
 
         if (tok->kind == TOK_LPAREN) {
-            if (!expr || !parser_is_func_type(expr->type)) {
-                error(p, tok_pos(p),
-                        "call operator must be used for function type");
-            }
-            const struct parser_func_sig *func_sig = expr->type->func_sig;
             int caller_line = tok->pos.y;
-            struct parser_expr *args = arg_list(p, func_sig, caller_line);
-
-            const struct parser_type *filled_type;
-            filled_type = fill_template_type(expr->type->func_sig, args);
-
-            expr = parser_new_call_expr(expr, args);
-
-            if (filled_type) {
-                expr->type = filled_type;
-            }
+            expr = call_expr(p, expr, caller_line);
             continue;
         }
         else if (tok->kind == TOK_PERIOD) {

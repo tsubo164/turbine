@@ -37,6 +37,7 @@ struct parser_func_sig {
     bool is_builtin;
     bool is_variadic;
     bool has_special_var;
+    bool has_template_return_type;
 };
 
 struct parser_func {

@@ -64,6 +64,7 @@ bool parser_is_ptr_type(const struct parser_type *t);
 bool parser_is_array_type(const struct parser_type *t);
 bool parser_is_any_type(const struct parser_type *t);
 bool parser_is_template_type(const struct parser_type *t);
+bool parser_has_template_type(const struct parser_type *t);
 
 int parser_sizeof_type(const struct parser_type *t);
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2);
