@@ -21,6 +21,7 @@ enum parser_type_kind {
     TYP_PTR,
     TYP_ARRAY,
     TYP_ANY,
+    TYP_TEMPLATE,
 };
 
 struct parser_type {
@@ -32,6 +33,7 @@ struct parser_type {
         const struct parser_struct *strct;
         const struct parser_table *table;
         const struct parser_module *module;
+        int template_id;
     };
 };
 
@@ -47,6 +49,7 @@ struct parser_type *parser_new_module_type(struct parser_module *m);
 struct parser_type *parser_new_ptr_type(const struct parser_type *underlying);
 struct parser_type *parser_new_array_type(const struct parser_type *underlying);
 struct parser_type *parser_new_any_type(void);
+struct parser_type *parser_new_template_type(int id);
 
 bool parser_is_nil_type(const struct parser_type *t);
 bool parser_is_bool_type(const struct parser_type *t);
@@ -60,6 +63,7 @@ bool parser_is_module_type(const struct parser_type *t);
 bool parser_is_ptr_type(const struct parser_type *t);
 bool parser_is_array_type(const struct parser_type *t);
 bool parser_is_any_type(const struct parser_type *t);
+bool parser_is_template_type(const struct parser_type *t);
 
 int parser_sizeof_type(const struct parser_type *t);
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2);

@@ -389,6 +389,75 @@ static struct parser_expr *primary_expr(struct parser *p)
     }
 }
 
+static const struct parser_type *replace_template_type(
+        const struct parser_type *target_type,
+        const struct parser_type *replacement_type)
+{
+    if (parser_is_array_type(target_type)) {
+        const struct parser_type *replaced;
+        replaced = replace_template_type(target_type->underlying, replacement_type);
+        if (replaced)
+            return parser_new_array_type(replaced);
+        else
+            return NULL;
+    }
+    else if (parser_is_any_type(target_type)) {
+        return replacement_type;
+    }
+    else {
+        return NULL;
+    }
+}
+
+static const struct parser_type *find_template_replacement(
+        const struct parser_type *param_type, const struct parser_type *arg_type,
+        int *found_id)
+{
+    /*
+    if (parser_is_template_type(param_type)) {
+    */
+    if (parser_is_any_type(param_type)) {
+        /*
+        *found_id = param_type->template_id;
+        */
+        *found_id = 0;
+        return arg_type;
+    }
+    else if (parser_is_array_type(param_type)) {
+        return find_template_replacement(
+                param_type->underlying, arg_type->underlying, found_id);
+    }
+    else {
+        *found_id = -1;
+        return NULL;
+    }
+}
+
+static const struct parser_type *fill_template_type(const struct parser_func_sig *func_sig,
+        const struct parser_expr *args)
+{
+    const struct parser_typevec *param_types = &func_sig->param_types;
+    const struct parser_expr *arg = args;
+    /*
+    int target_id = func_sig->return_type->template_id;
+    */
+    int target_id = 0;
+
+
+    for (int i = 0; i < param_types->len; i++, arg = arg->next) {
+        const struct parser_type *param_type = param_types->data[i];
+        const struct parser_type *replacement;
+        int found_id = -1;
+
+        replacement = find_template_replacement(param_type, arg->type, &found_id);
+        if (replacement && target_id == found_id) {
+            return replace_template_type(func_sig->return_type, replacement);
+        }
+    }
+
+    return NULL;
+}
+
 /*
 postfix_expr ::= primary_expr
     | postfix_expr "." identifier
@@ -410,8 +479,16 @@ static struct parser_expr *postfix_expr(struct parser *p)
             }
             const struct parser_func_sig *func_sig = expr->type->func_sig;
             int caller_line = tok->pos.y;
-            expr = parser_new_call_expr(expr);
-            expr->r = arg_list(p, func_sig, caller_line);
+            struct parser_expr *args = arg_list(p, func_sig, caller_line);
+
+            const struct parser_type *filled_type;
+            filled_type = fill_template_type(expr->type->func_sig, args);
+
+            expr = parser_new_call_expr(expr, args);
+
+            if (filled_type) {
+                expr->type = filled_type;
+            }
             continue;
         }
         else if (tok->kind == TOK_PERIOD) {

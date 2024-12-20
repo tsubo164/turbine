@@ -4,6 +4,7 @@
 
 # main(args []string) int
 
+  // args
   ---
     test.AssertI(4, len(args))
     test.AssertS("foo", args[1])
@@ -30,11 +31,13 @@
     i = a[2] + a[5]
     test.AssertI(10, i)
 
+  // global var
   ---
     _array_[3] = 99
     test.AssertI(99, _array_[3])
     test.AssertI(4, len(_array_))
 
+  // resize
   ---
     - a = [99, 11, 22, 33 + 9]
     test.AssertI(64, a[2] + a[3])
@@ -43,6 +46,15 @@
     resize(a, 8)
     test.AssertI(8, len(a))
 
-  print(test._test_count_, "tests done.")
+  // resize in for
+  ---
+    - a = [11, 22, 33, 44]
+
+    for i, x in resize(a, 8)
+      if (i == 2)
+        test.AssertI(33, x)
+    test.AssertI(8, len(a))
+
+    print(test._test_count_, "tests done.")
 
   return 0

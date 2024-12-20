@@ -101,6 +101,13 @@ struct parser_type *parser_new_any_type(void)
     return &t;
 }
 
+struct parser_type *parser_new_template_type(int id)
+{
+    struct parser_type *t = new_type(TYP_TEMPLATE);
+    t->template_id = id;
+    return t;
+}
+
 int parser_sizeof_type(const struct parser_type *t)
 {
     if (parser_is_array_type(t))
@@ -111,34 +118,36 @@ int parser_sizeof_type(const struct parser_type *t)
         return 1;
 }
 
-bool parser_is_nil_type(const struct parser_type *t)    { return t->kind == TYP_NIL; }
-bool parser_is_bool_type(const struct parser_type *t)   { return t->kind == TYP_BOOL; }
-bool parser_is_int_type(const struct parser_type *t)    { return t->kind == TYP_INT; }
-bool parser_is_float_type(const struct parser_type *t)  { return t->kind == TYP_FLOAT; }
-bool parser_is_string_type(const struct parser_type *t) { return t->kind == TYP_STRING; }
-bool parser_is_func_type(const struct parser_type *t)   { return t->kind == TYP_FUNC; }
-bool parser_is_struct_type(const struct parser_type *t) { return t->kind == TYP_STRUCT; }
-bool parser_is_table_type(const struct parser_type *t)  { return t->kind == TYP_TABLE; }
-bool parser_is_module_type(const struct parser_type *t) { return t->kind == TYP_MODULE; }
-bool parser_is_ptr_type(const struct parser_type *t)    { return t->kind == TYP_PTR; }
-bool parser_is_array_type(const struct parser_type *t)  { return t->kind == TYP_ARRAY; }
-bool parser_is_any_type(const struct parser_type *t)    { return t->kind == TYP_ANY; }
+bool parser_is_nil_type(const struct parser_type *t)      { return t->kind == TYP_NIL; }
+bool parser_is_bool_type(const struct parser_type *t)     { return t->kind == TYP_BOOL; }
+bool parser_is_int_type(const struct parser_type *t)      { return t->kind == TYP_INT; }
+bool parser_is_float_type(const struct parser_type *t)    { return t->kind == TYP_FLOAT; }
+bool parser_is_string_type(const struct parser_type *t)   { return t->kind == TYP_STRING; }
+bool parser_is_func_type(const struct parser_type *t)     { return t->kind == TYP_FUNC; }
+bool parser_is_struct_type(const struct parser_type *t)   { return t->kind == TYP_STRUCT; }
+bool parser_is_table_type(const struct parser_type *t)    { return t->kind == TYP_TABLE; }
+bool parser_is_module_type(const struct parser_type *t)   { return t->kind == TYP_MODULE; }
+bool parser_is_ptr_type(const struct parser_type *t)      { return t->kind == TYP_PTR; }
+bool parser_is_array_type(const struct parser_type *t)    { return t->kind == TYP_ARRAY; }
+bool parser_is_any_type(const struct parser_type *t)      { return t->kind == TYP_ANY; }
+bool parser_is_template_type(const struct parser_type *t) { return t->kind == TYP_TEMPLATE; }
 
 static const char *type_kind_string(int kind)
 {
     switch ((enum parser_type_kind) kind) {
-    case TYP_NIL:    return "nil";
-    case TYP_BOOL:   return "bool";
-    case TYP_INT:    return "int";
-    case TYP_FLOAT:  return "float";
-    case TYP_STRING: return "string";
-    case TYP_FUNC:   return "func";
-    case TYP_STRUCT: return "struct";
-    case TYP_TABLE:  return "table";
-    case TYP_MODULE: return "module";
-    case TYP_PTR:    return "*";
-    case TYP_ARRAY:  return "[]";
-    case TYP_ANY:    return "any";
+    case TYP_NIL:      return "nil";
+    case TYP_BOOL:     return "bool";
+    case TYP_INT:      return "int";
+    case TYP_FLOAT:    return "float";
+    case TYP_STRING:   return "string";
+    case TYP_FUNC:     return "func";
+    case TYP_STRUCT:   return "struct";
+    case TYP_TABLE:    return "table";
+    case TYP_MODULE:   return "module";
+    case TYP_PTR:      return "*";
+    case TYP_ARRAY:    return "[]";
+    case TYP_ANY:      return "any";
+    case TYP_TEMPLATE: return "template";
     }
 
     assert("unreachable");
@@ -176,6 +185,9 @@ bool parser_match_type(const struct parser_type *t1, const struct parser_type *t
 {
     if (parser_is_any_type(t1) || parser_is_any_type(t2))
         return true;
+
+    if (parser_is_template_type(t1) && parser_is_template_type(t2))
+        return t1->template_id == t2->template_id;
 
     return t1->kind == t2->kind;
 }

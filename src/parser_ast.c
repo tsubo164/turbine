@@ -215,11 +215,12 @@ struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser
     return e;
 }
 
-struct parser_expr *parser_new_call_expr(struct parser_expr *callee)
+struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_CALL);
     e->type = callee->type->func_sig->return_type;
     e->l = callee;
+    e->r = args;
     return e;
 }
 
