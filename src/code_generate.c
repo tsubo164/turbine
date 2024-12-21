@@ -324,22 +324,27 @@ static int gen_binop(struct code_bytecode *code, const struct parser_type *type,
         break;
 
     case NOD_EXPR_AND:
+    case NOD_EXPR_ANDASSIGN:
         code_emit_bitwise_and(code, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_OR:
+    case NOD_EXPR_ORASSIGN:
         code_emit_bitwise_or(code, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_XOR:
+    case NOD_EXPR_XORASSIGN:
         code_emit_bitwise_xor(code, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_SHL:
+    case NOD_EXPR_SHLASSIGN:
         code_emit_shift_left(code, reg0, reg1, reg2);
         break;
 
     case NOD_EXPR_SHR:
+    case NOD_EXPR_SHRASSIGN:
         code_emit_shift_right(code, reg0, reg1, reg2);
         break;
 
@@ -418,27 +423,21 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
     /*            ^ here */
     switch (rval->kind) {
     case NOD_EXPR_ADD:
-        reg0 = gen_addr(code, lval);
-        reg1 = gen_expr(code, rval->l);
-        reg2 = gen_expr(code, rval->r);
-        gen_binop(code, e->type, rval->kind, reg0, reg1, reg2);
-        break;
-
+    case NOD_EXPR_SUB:
     case NOD_EXPR_MUL:
-        reg0 = gen_addr(code, lval);
-        reg1 = gen_expr(code, rval->l);
-        reg2 = gen_expr(code, rval->r);
-        gen_binop(code, e->type, rval->kind, reg0, reg1, reg2);
-        break;
-
+    case NOD_EXPR_DIV:
     case NOD_EXPR_REM:
-        reg0 = gen_addr(code, lval);
-        reg1 = gen_expr(code, rval->l);
-        reg2 = gen_expr(code, rval->r);
-        gen_binop(code, e->type, rval->kind, reg0, reg1, reg2);
-        break;
-
+    case NOD_EXPR_AND:
+    case NOD_EXPR_OR:
+    case NOD_EXPR_XOR:
+    case NOD_EXPR_SHL:
+    case NOD_EXPR_SHR:
+    case NOD_EXPR_EQ:
+    case NOD_EXPR_NEQ:
     case NOD_EXPR_LT:
+    case NOD_EXPR_LTE:
+    case NOD_EXPR_GT:
+    case NOD_EXPR_GTE:
         reg0 = gen_addr(code, lval);
         reg1 = gen_expr(code, rval->l);
         reg2 = gen_expr(code, rval->r);
@@ -457,17 +456,16 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
 {
     if (e->l->kind == NOD_EXPR_INDEX) {
         /* lval */
-        int reg0 = gen_addr(code, e->l->l);
-        int reg1 = gen_expr(code, e->l->r);
+        int dst = gen_addr(code, e->l->l);
+        int src1 = gen_expr(code, e->l->r);
         /* rval */
         int tmp1 = gen_expr(code, e->l);
         int tmp2 = gen_expr(code, e->r);
-        /* binop */
-        int reg2 = gen_dst_register(code, tmp1, tmp2);
-        gen_binop(code, e->type, e->kind, reg2, tmp1, tmp2);
+        int src2 = gen_dst_register(code, tmp1, tmp2);
+        gen_binop(code, e->type, e->kind, src2, tmp1, tmp2);
         /* store */
-        code_emit_store_array(code, reg0, reg1, reg2);
-        return reg0;
+        code_emit_store_array(code, dst, src1, src2);
+        return dst;
     }
     else {
         /* primitives */
@@ -796,6 +794,11 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_MULASSIGN:
     case NOD_EXPR_DIVASSIGN:
     case NOD_EXPR_REMASSIGN:
+    case NOD_EXPR_ANDASSIGN:
+    case NOD_EXPR_ORASSIGN:
+    case NOD_EXPR_XORASSIGN:
+    case NOD_EXPR_SHLASSIGN:
+    case NOD_EXPR_SHRASSIGN:
         return gen_binop_assign(code, e);
 
     case NOD_EXPR_INIT:
