@@ -55,6 +55,14 @@
         test.AssertI(33, x)
     test.AssertI(8, len(a))
 
-    print(test._test_count_, "tests done.")
+  ---
+    // array init with resize
+    - x = resize([1.1], 4)
+    test.AssertI(4, len(x))
+    test.AssertF(1.1, x[0])
+    x[1] = 3.9
+    test.AssertF(3.9, x[1])
+
+  print(test._test_count_, "tests done.")
 
   return 0

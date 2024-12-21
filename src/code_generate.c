@@ -176,13 +176,21 @@ static int gen_init_array(struct code_bytecode *code, const struct parser_expr *
 {
     if (parser_ast_is_global(e->l)) {
         int dst = gen_addr(code, e->l);
-        int tmp = gen_array_lit(code, e->r, -1);
+        int tmp = gen_expr(code, e->r);
         code_emit_store_global(code, dst, tmp);
         return dst;
     }
     else {
-        int dst = gen_expr(code, e->l);
-        gen_array_lit(code, e->r, dst);
+        /* TODO consider use this logic for all types init */
+        if (e->r->kind == NOD_EXPR_ARRAYLIT) {
+            int dst = gen_addr(code, e->l);
+            gen_array_lit(code, e->r, dst);
+            return dst;
+        }
+
+        int dst = gen_addr(code, e->l);
+        int src = gen_expr(code, e->r);
+        code_emit_move(code, dst, src);
         return dst;
     }
 }
@@ -447,9 +455,9 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
     }
     else {
         /* primitives */
-        int reg0 = reg0 = gen_addr(code, e->l);
-        int reg1 = reg1 = gen_expr(code, e->l);
-        int reg2 = reg2 = gen_expr(code, e->r);
+        int reg0 = gen_addr(code, e->l);
+        int reg1 = gen_expr(code, e->l);
+        int reg2 = gen_expr(code, e->r);
 
         return gen_binop(code, e->type, e->kind, reg0, reg1, reg2);
     }
@@ -579,6 +587,12 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
                 s = e->converted;
 
             reg0 = code_emit_load_string(code, s);
+            return reg0;
+        }
+
+    case NOD_EXPR_ARRAYLIT:
+        {
+            int reg0 = gen_array_lit(code, e, -1);
             return reg0;
         }
 

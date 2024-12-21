@@ -19,11 +19,16 @@
 
 # main(args []string) int
   - a = [2, 3, 4]
+  - b = 111
+  - x = resize([7], 4)
 
-  print(len(a))
-  for b in resize(a, 8)
-    print("  ->", b)
-  print(len(a))
+  for e in x
+    print(e)
+
+  //print(len(a))
+  //for b in resize(a, 8)
+  //  print("  ->", b)
+  //print(len(a))
 
   return 12
 
