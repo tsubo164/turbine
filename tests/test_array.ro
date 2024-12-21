@@ -2,6 +2,9 @@
 
 - _array_ []int = [0, 0, 0, 0]
 
+- _a_ []int
+- _b_ []int
+
 # main(args []string) int
 
   // args
@@ -224,6 +227,73 @@
     q[2] = float(int(q[2] / 2.0))
     test.AssertF(15.0, q[2])
   
+  ---
+    // global variable array of ints with addition
+    _a_ = [1, 2, 3]
+    _a_[0] += 5
+    test.AssertI(6, _a_[0])
+
+    // global variable array of ints with subtraction
+    _b_ = [10, 20, 30]
+    _b_[2] -= 15
+    test.AssertI(15, _b_[2])
+
+    // global variable array of ints with multiplication
+    _a_ = [2, 3, 4]  // reusing _a_
+    _a_[1] *= 3
+    test.AssertI(9, _a_[1])
+
+    // global variable array of ints with division
+    _b_ = [8, 16, 32]  // reusing _b_
+    _b_[0] /= 2
+    test.AssertI(4, _b_[0])
+
+    // global variable array of ints with modulo
+    _a_ = [10, 15, 20]  // reusing _a_
+    _a_[1] %= 4
+    test.AssertI(3, _a_[1])
+
+    // global variable array with a new array literal
+    _b_ = [100, 200, 300]  // reusing _b_
+    _b_[0] -= 50
+    test.AssertI(50, _b_[0])
+
+    // global variable array combined arithmetic operations
+    _a_ = [1, 2, 3]  // reusing _a_
+    _a_[0] = (_a_[1] * _a_[2]) + _a_[0]
+    test.AssertI(7, _a_[0])
+
+    // nested global variable arrays (using subscript with _a_ and _b_)
+    //_a_ = [[1, 2], [3, 4], [5, 6]]
+    //_a_[2][1] += _a_[1][0] * _a_[0][1]
+    //test.AssertI(11, _a_[2][1])
+
+    // updating global variable array elements with a function
+    _b_ = [10, 20, 30]  // reusing _b_
+    _b_[1] = _b_[0] + _b_[2] - 5
+    test.AssertI(35, _b_[1])
+
+    // global variable array index based on another global array element
+    _a_ = [0, 1, 2, 3]  // reusing _a_
+    _b_ = [10, 20, 30, 40]  // reusing _b_
+    _a_[2] = _b_[_a_[1]]
+    test.AssertI(20, _a_[2])
+
+    // global variable array length-based operations
+    _a_ = [10, 20, 30, 40]  // reusing _a_
+    _a_[3] += len(_a_)
+    test.AssertI(44, _a_[3])
+
+    // global variable float mixed with int operation
+    _b_ = [5, 10, 15]  // reusing _b_
+    _b_[2] += int(2.5 * float(_b_[0]))
+    test.AssertI(27, _b_[2])
+
+    // global variable with new array literal
+    _a_ = [50, 60, 70]  // reusing _a_
+    _a_[0] = 100
+    test.AssertI(100, _a_[0])
+
   print(test._test_count_, "tests done.")
 
   return 0

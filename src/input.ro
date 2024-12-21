@@ -17,12 +17,18 @@
 //  - center Point
 //  - radius int
 
+- _g_ = 3
+- _a_ = [1, 2, 3]
+
 # main(args []string) int
-  - a = [2, 3, 4]
+  //- a = [2, 3, 4]
+  //a[1] <<= 1
+  //print(a[1])
+  _g_ += 3
+  print(_g_)
 
-  a[1] <<= 1
-
-  print(a[1])
+  _a_[0] += 9
+  print(_a_[0])
 
   //print(len(a))
   //for b in resize(a, 8)
