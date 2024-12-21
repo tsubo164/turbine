@@ -87,6 +87,11 @@ enum parser_token_kind {
     TOK_ASTEREQ,
     TOK_SLASHEQ,
     TOK_PERCENTEQ,
+    TOK_LT2EQ,
+    TOK_GT2EQ,
+    TOK_CARETEQ,
+    TOK_VBAREQ,
+    TOK_AMPERSANDEQ,
     /* eof */
     TOK_EOF
 };

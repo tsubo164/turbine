@@ -889,11 +889,12 @@ static void semantic_check_incdec_stmt(struct parser *p, struct parser_pos pos,
 }
 
 /*
- * assign_stmt = logand_expr assing_op expression
- *             | logand_expr incdec_op
- * assign_op   = "=" | "+=" | "-=" | "*=" | "/=" | "%="
- * incdec_op   = "++" | "--"
- */
+assign_stmt ::= logand_expr assing_op expression
+            | logand_expr incdec_op
+assign_op   ::= "=" | "+=" | "-=" | "*=" | "/=" | "%="
+            | "<<=" | ">>=" | "|=" | "^=" | "&="
+incdec_op   ::= "++" | "--"
+*/
 static struct parser_stmt *assign_stmt(struct parser *p)
 {
     struct parser_expr *lval = expression(p);
@@ -932,6 +933,31 @@ static struct parser_stmt *assign_stmt(struct parser *p)
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
         return parser_new_remassign_stmt(lval, rval);
+
+    case TOK_LT2EQ:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return parser_new_shlassign_stmt(lval, rval);
+
+    case TOK_GT2EQ:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return parser_new_shrassign_stmt(lval, rval);
+
+    case TOK_VBAREQ:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return parser_new_orassign_stmt(lval, rval);
+
+    case TOK_CARETEQ:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return parser_new_xorassign_stmt(lval, rval);
+
+    case TOK_AMPERSANDEQ:
+        rval = expression(p);
+        semantic_check_assign_stmt(p, pos, lval, rval);
+        return parser_new_andassign_stmt(lval, rval);
 
     case TOK_PLUS2:
         semantic_check_incdec_stmt(p, pos, lval);

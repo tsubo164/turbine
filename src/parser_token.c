@@ -96,6 +96,11 @@ const char *parser_get_token_string(int kind)
     [TOK_ASTEREQ]       = "*=",
     [TOK_SLASHEQ]       = "/=",
     [TOK_PERCENTEQ]     = "%=",
+    [TOK_LT2EQ]         = "<<=",
+    [TOK_GT2EQ]         = ">>=",
+    [TOK_CARETEQ]       = "^=",
+    [TOK_VBAREQ]        = "|=",
+    [TOK_AMPERSANDEQ]   = "&=",
     /* eof */
     [TOK_EOF]           = "EOF",
     };
@@ -611,7 +616,6 @@ static void get_token(struct lexer *l, struct parser_token *tok)
 
         if (ch == '=') {
             ch = get(l);
-
             if (ch == '=') {
                 set(tok, TOK_EQUAL2, pos);
             }
@@ -624,7 +628,6 @@ static void get_token(struct lexer *l, struct parser_token *tok)
 
         if (ch == '!') {
             ch = get(l);
-
             if (ch == '=') {
                 set(tok, TOK_EXCLAMEQ, pos);
             }
@@ -636,7 +639,14 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         }
 
         if (ch == '^') {
-            set(tok, TOK_CARET, pos);
+            ch = get(l);
+            if (ch == '=') {
+                set(tok, TOK_CARETEQ, pos);
+            }
+            else {
+                unget(l);
+                set(tok, TOK_CARET, pos);
+            }
             return;
         }
 
@@ -648,7 +658,14 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         if (ch == '<') {
             ch = get(l);
             if (ch == '<') {
-                set(tok, TOK_LT2, pos);
+                ch = get(l);
+                if (ch == '=') {
+                    set(tok, TOK_LT2EQ, pos);
+                }
+                else {
+                    unget(l);
+                    set(tok, TOK_LT2, pos);
+                }
             }
             else if (ch == '=') {
                 set(tok, TOK_LTE, pos);
@@ -663,7 +680,14 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         if (ch == '>') {
             ch = get(l);
             if (ch == '>') {
-                set(tok, TOK_GT2, pos);
+                ch = get(l);
+                if (ch == '=') {
+                    set(tok, TOK_GT2EQ, pos);
+                }
+                else {
+                    unget(l);
+                    set(tok, TOK_GT2, pos);
+                }
             }
             else if (ch == '=') {
                 set(tok, TOK_GTE, pos);
@@ -761,6 +785,9 @@ static void get_token(struct lexer *l, struct parser_token *tok)
             if (ch == '|') {
                 set(tok, TOK_VBAR2, pos);
             }
+            else if (ch == '=') {
+                set(tok, TOK_VBAREQ, pos);
+            }
             else {
                 unget(l);
                 set(tok, TOK_VBAR, pos);
@@ -772,6 +799,9 @@ static void get_token(struct lexer *l, struct parser_token *tok)
             ch = get(l);
             if (ch == '&') {
                 set(tok, TOK_AMPERSAND2, pos);
+            }
+            else if (ch == '=') {
+                set(tok, TOK_AMPERSANDEQ, pos);
             }
             else {
                 unget(l);

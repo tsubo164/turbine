@@ -81,7 +81,12 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_EXPR_MULASSIGN]      = {"*="},
     [NOD_EXPR_DIVASSIGN]      = {"/="},
     [NOD_EXPR_REMASSIGN]      = {"%="},
-    [NOD_EXPR_INIT]           = {"init"},           
+    [NOD_EXPR_SHLASSIGN]      = {"<<="},
+    [NOD_EXPR_SHRASSIGN]      = {">>="},
+    [NOD_EXPR_ORASSIGN]       = {"|="},
+    [NOD_EXPR_XORASSIGN]      = {"^="},
+    [NOD_EXPR_ANDASSIGN]      = {"&="},
+    [NOD_EXPR_INIT]           = {"init"},
     };
 
     int count = sizeof(table) / sizeof(table[0]);
@@ -510,7 +515,8 @@ struct parser_stmt *parser_new_init_stmt(struct parser_expr *l, struct parser_ex
     return s;
 }
 
-static struct parser_stmt *new_assign_stmt(struct parser_expr *l, struct parser_expr *r, int kind)
+static struct parser_stmt *new_assign_stmt(struct parser_expr *l, struct parser_expr *r,
+        int kind)
 {
     struct parser_expr *e = new_expr(kind);
     e->type = l->type;
@@ -551,6 +557,31 @@ struct parser_stmt *parser_new_divassign_stmt(struct parser_expr *l, struct pars
 struct parser_stmt *parser_new_remassign_stmt(struct parser_expr *l, struct parser_expr *r)
 {
     return new_assign_stmt(l, r, NOD_EXPR_REMASSIGN);
+}
+
+struct parser_stmt *parser_new_shlassign_stmt(struct parser_expr *l, struct parser_expr *r)
+{
+    return new_assign_stmt(l, r, NOD_EXPR_SHLASSIGN);
+}
+
+struct parser_stmt *parser_new_shrassign_stmt(struct parser_expr *l, struct parser_expr *r)
+{
+    return new_assign_stmt(l, r, NOD_EXPR_SHRASSIGN);
+}
+
+struct parser_stmt *parser_new_andassign_stmt(struct parser_expr *l, struct parser_expr *r)
+{
+    return new_assign_stmt(l, r, NOD_EXPR_ANDASSIGN);
+}
+
+struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parser_expr *r)
+{
+    return new_assign_stmt(l, r, NOD_EXPR_ORASSIGN);
+}
+
+struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r)
+{
+    return new_assign_stmt(l, r, NOD_EXPR_XORASSIGN);
 }
 
 static struct parser_stmt *new_incdec_stmt(struct parser_expr *l, int kind)

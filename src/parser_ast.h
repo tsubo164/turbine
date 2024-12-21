@@ -73,13 +73,17 @@ enum parser_node_kind {
     NOD_EXPR_ELEMENT, /* TODO may not need */
     NOD_EXPR_MODULE,
     /* assign */
-    /* TODO should be NOD_EXPR */
     NOD_EXPR_ASSIGN,
     NOD_EXPR_ADDASSIGN,
     NOD_EXPR_SUBASSIGN,
     NOD_EXPR_MULASSIGN,
     NOD_EXPR_DIVASSIGN,
     NOD_EXPR_REMASSIGN,
+    NOD_EXPR_SHLASSIGN,
+    NOD_EXPR_SHRASSIGN,
+    NOD_EXPR_ORASSIGN,
+    NOD_EXPR_XORASSIGN,
+    NOD_EXPR_ANDASSIGN,
     NOD_EXPR_INIT,
 };
 
@@ -205,6 +209,13 @@ struct parser_stmt *parser_new_subassign_stmt(struct parser_expr *l, struct pars
 struct parser_stmt *parser_new_mulassign_stmt(struct parser_expr *l, struct parser_expr *r);
 struct parser_stmt *parser_new_divassign_stmt(struct parser_expr *l, struct parser_expr *r);
 struct parser_stmt *parser_new_remassign_stmt(struct parser_expr *l, struct parser_expr *r);
+
+struct parser_stmt *parser_new_shlassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_shrassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_andassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r);
+
 struct parser_stmt *parser_new_inc_stmt(struct parser_expr *l);
 struct parser_stmt *parser_new_dec_stmt(struct parser_expr *l);
 
