@@ -4,6 +4,7 @@
 
 - _a_ []int
 - _b_ []int
+- _c_ [][]int
 
 # main(args []string) int
 
@@ -128,9 +129,9 @@
     test.AssertI(7, l[0])
 
     // nested arrays and operations
-    //- m = [[1, 2], [3, 4], [5, 6]]
-    //m[2][1] += m[1][0] * m[0][1]
-    //test.AssertI(11, m[2][1])
+    - m = [[1, 2], [3, 4], [5, 6]]
+    m[2][1] += m[1][0] * m[0][1]
+    test.AssertI(12, m[2][1])
 
     // updating array elements with a function
     - n = [10, 20, 30]
@@ -181,9 +182,9 @@
     test.AssertF(8.36, f[0])
 
     // nested arrays and operations
-    //- g = [[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]
-    //g[2][1] += g[1][0] * g[0][1]
-    //test.AssertF(13.86, g[2][1])
+    - g = [[1.1, 2.2], [3.3, 4.4], [5.5, 6.6]]
+    g[2][1] += g[1][0] * g[0][1]
+    test.AssertF(13.86, g[2][1])
 
     // updating array elements with a function
     - h = [10.7, 20.3, 30.6]
@@ -264,9 +265,9 @@
     test.AssertI(7, _a_[0])
 
     // nested global variable arrays (using subscript with _a_ and _b_)
-    //_a_ = [[1, 2], [3, 4], [5, 6]]
-    //_a_[2][1] += _a_[1][0] * _a_[0][1]
-    //test.AssertI(11, _a_[2][1])
+    _c_ = [[1, 2], [3, 4], [5, 6]]
+    _c_[2][1] += _c_[1][0] * _c_[0][1]
+    test.AssertI(12, _c_[2][1])
 
     // updating global variable array elements with a function
     _b_ = [10, 20, 30]  // reusing _b_
