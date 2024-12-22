@@ -2,7 +2,7 @@
 
 // asserts bool
 # AssertB(expected bool, actual bool, $caller_line)
-  _test_count_++
+  _test_count_ += 1
 
   if expected != actual
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
@@ -10,7 +10,7 @@
 
 // asserts int
 # AssertI(expected int, actual int, $caller_line)
-  _test_count_++
+  _test_count_ += 1
 
   if expected != actual
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
@@ -18,7 +18,7 @@
 
 // asserts float
 # AssertF(expected float, actual float, $caller_line)
-  _test_count_++
+  _test_count_ += 1
 
   if expected != actual
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
@@ -26,7 +26,7 @@
 
 // asserts string
 # AssertS(expected string, actual string, $caller_line)
-  _test_count_++
+  _test_count_ += 1
 
   if expected != actual
     print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)

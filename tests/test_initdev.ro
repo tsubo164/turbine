@@ -1,32 +1,6 @@
 [test]
 [my_calc]
 
-//- _test_count_ int
-//
-//// asserts bool
-//# AssertB(expected bool, actual bool, $caller_line)
-//  _test_count_++
-//
-//  if expected != actual
-//    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
-//    exit(1)
-//
-//// asserts int
-//# AssertI(expected int, actual int, $caller_line)
-//  _test_count_++
-//
-//  if expected != actual
-//    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
-//    exit(1)
-//
-//// asserts float
-//# AssertF(expected float, actual float, $caller_line)
-//  _test_count_++
-//
-//  if expected != actual
-//    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
-//    exit(1)
-
 //-----------------------------------------------------------------------------
 # seven() int
   return 7
@@ -430,17 +404,17 @@
     test.AssertI(1, int(int(i >= 42) != 0))
 
   ---
-    // "++" operator
+    // " += 1" operator
     - i int
     i = 42
-    i++
+    i += 1
     test.AssertI(43, i)
 
   ---
-    // "--" operator
+    // "-= 1" operator
     - i int
     i = 42
-    i--
+    i -= 1
     test.AssertI(41, i)
 
   ---
@@ -487,26 +461,23 @@
         j = j + 2
     test.AssertI(20, j)
 
-  // TODO consider removing or implementing other way
-  /*
   ---
-    // "for" statment while style
+    // "while" statment
     - i int
     i = 0
-    for i < 10
-        i++
+    while i < 10
+        i += 1
     test.AssertI(10, i)
 
   ---
-    // "for" statment infinite loop
+    // "while" statment infinite loop
     - i int
     i = 0
-    for
-      i++
+    while true
+      i += 1
       if i == 8
         break
     test.AssertI(8, i)
-  */
 
   ---
     // "break" statment
@@ -514,7 +485,7 @@
     for j in 0..10
       if j == 5
         break
-      i++
+      i += 1
     test.AssertI(5, i)
 
   ---
@@ -524,7 +495,7 @@
     for i in 0..10
       if i % 2 == 0
         continue
-      j++
+      j += 1
     test.AssertI(5, j)
 
   ---
@@ -638,7 +609,7 @@
     - i int
     for j in 0..7
       nop
-      i++
+      i += 1
     test.AssertI(7, i)
 
   ---

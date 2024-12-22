@@ -93,7 +93,6 @@ static int gen_convert(struct code_bytecode *code, int reg0, int reg1, int from,
 /* TODO remove forward decls */
 static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2);
 static int gen_dst_register2(struct code_bytecode *code, int reg1);
-static int gen_store2(struct code_bytecode *code, const struct parser_expr *lval, int src_reg);
 
 static int gen_array_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
@@ -208,23 +207,6 @@ static int gen_init_struct(struct code_bytecode *code, const struct parser_expr 
         gen_struct_lit(code, e->r, e->type, dst);
         return dst;
     }
-}
-
-static int gen_store2(struct code_bytecode *code, const struct parser_expr *lval, int src_reg)
-{
-    int dst_reg = -1;
-
-    if (parser_ast_is_global(lval)) {
-        dst_reg = gen_addr(code, lval);
-        code_emit_store_global(code, dst_reg, src_reg);
-    }
-    else {
-        /* TODO handle case where lhs is not addressable */
-        dst_reg = gen_addr(code, lval);
-        code_emit_move(code, dst_reg, src_reg);
-    }
-
-    return dst_reg;
 }
 
 static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
@@ -472,6 +454,28 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         int src1 = gen_expr(code, e->l);
         int src2 = gen_expr(code, e->r);
         return gen_binop(code, e->type, e->kind, dst, src1, src2);
+    }
+}
+
+/* TODO consider remove ++/-- from language */
+static int gen_inc_dec(struct code_bytecode *code, const struct parser_expr *e, bool inc)
+{
+    int kind = inc ? NOD_EXPR_ADD : NOD_EXPR_SUB;
+    int one = code_emit_load_int(code, 1);
+
+    if (parser_ast_is_global(e->l)) {
+        /* _a_++ */
+        int tmp = gen_expr(code, e->l);
+        int src = gen_dst_register2(code, tmp);
+        int dst = gen_addr(code, e->l);
+        gen_binop(code, e->type, kind, src, tmp, one);
+        return code_emit_store_global(code, dst, src);
+    }
+    {
+        /* a++ */
+        int dst = gen_addr(code, e->l);
+        int src = gen_expr(code, e->l);
+        return gen_binop(code, e->type, kind, dst, src, one);
     }
 }
 
@@ -809,36 +813,10 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         return 0;
 
     case NOD_EXPR_INC:
-        if (parser_ast_is_global(e->l)) {
-            int src = gen_expr(code, e->l);
-            int dst = gen_dst_register2(code, src);
-            code_emit_move(code, dst, src);
-            code_emit_inc(code, dst);
-
-            gen_store2(code, e->l, dst);
-            return dst;
-        }
-        else {
-            int src = gen_addr(code, e->l);
-            code_emit_inc(code, src);
-            return src;
-        }
+        return gen_inc_dec(code, e, true);
 
     case NOD_EXPR_DEC:
-        if (parser_ast_is_global(e->l)) {
-            int src = gen_expr(code, e->l);
-            int dst = gen_dst_register2(code, src);
-            code_emit_move(code, dst, src);
-            code_emit_dec(code, dst);
-
-            gen_store2(code, e->l, dst);
-            return dst;
-        }
-        else {
-            int src = gen_addr(code, e->l);
-            code_emit_dec(code, src);
-            return src;
-        }
+        return gen_inc_dec(code, e, false);
     }
 
     return -1;

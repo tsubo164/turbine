@@ -628,24 +628,24 @@ int main(int argc, char **argv)
         ASSERTL(1, interpret_source(input, &args, &opt) != 0);
     }
     {
-        /* "++" operator */
+        /* "+= 1" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
-            "    i++\n"
+            "    i += 1\n"
             "    return i\n"
             ;
 
         ASSERTL(43, interpret_source(input, &args, &opt));
     }
     {
-        /* "--" operator */
+        /* "-= 1" operator */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 42\n"
-            "    i--\n"
+            "    i -= 1\n"
             "    return i\n"
             ;
 
@@ -731,29 +731,27 @@ int main(int argc, char **argv)
 
         ASSERTL(20, interpret_source(input, &args, &opt));
     }
-    /* TODO consider removing or implementing other way */
-#if 0
     {
-        /* "for" statment while style */
+        /* "while" statment */
         const char *input = 
             "# main() int\n"
             "    - i int\n"
             "    i = 0\n"
-            "    for i < 10\n"
-            "        i++\n"
+            "    while i < 10\n"
+            "        i += 1\n"
             "    return i\n"
             ;
 
         ASSERTL(10, interpret_source(input, &args, &opt));
     }
     {
-        /* "for" statment infinite loop */
+        /* "while" statment infinite loop */
         const char *input = 
             "# main() int\n"
             "  - i int\n"
             "  i = 0\n"
-            "  for\n"
-            "    i++\n"
+            "  while true\n"
+            "    i += 1\n"
             "    if i == 8\n"
             "      break\n"
             "  return i\n"
@@ -761,7 +759,6 @@ int main(int argc, char **argv)
 
         ASSERTL(8, interpret_source(input, &args, &opt));
     }
-#endif
     {
         /* "break" statment */
         const char *input = 
@@ -770,7 +767,7 @@ int main(int argc, char **argv)
             "  for j in 0..10\n"
             "    if j == 5\n"
             "      break\n"
-            "    i++\n"
+            "    i += 1\n"
             "  return i\n"
             ;
 
@@ -785,7 +782,7 @@ int main(int argc, char **argv)
             "  for i in 0..10\n"
             "    if i % 2 == 0\n"
             "      continue\n"
-            "    j++\n"
+            "    j += 1\n"
             "  return j\n"
             ;
 
@@ -970,7 +967,7 @@ int main(int argc, char **argv)
             "  - i int\n"
             "  for j in 0..7\n"
             "    nop\n"
-            "    i++\n"
+            "    i += 1\n"
             "  return i\n"
             ;
 
