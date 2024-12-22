@@ -78,8 +78,6 @@ enum parser_token_kind {
     /* unary */
     TOK_EXCLAM,
     TOK_TILDE,
-    TOK_PLUS2,
-    TOK_MINUS2,
     /* assign */
     TOK_EQUAL,
     TOK_PLUSEQ,

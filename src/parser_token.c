@@ -87,8 +87,6 @@ const char *parser_get_token_string(int kind)
     /* unary */
     [TOK_EXCLAM]        = "!",
     [TOK_TILDE]         = "~",
-    [TOK_PLUS2]         = "++",
-    [TOK_MINUS2]        = "--",
     /* assign */
     [TOK_EQUAL]         = "=",
     [TOK_PLUSEQ]        = "+=",
@@ -701,10 +699,7 @@ static void get_token(struct lexer *l, struct parser_token *tok)
 
         if (ch == '+') {
             ch = get(l);
-            if (ch == '+') {
-                set(tok, TOK_PLUS2, pos);
-            }
-            else if (ch == '=') {
+            if (ch == '=') {
                 set(tok, TOK_PLUSEQ, pos);
             }
             else {
@@ -717,13 +712,14 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         if (ch == '-') {
             ch = get(l);
             if (ch == '-') {
-                ch = get(l);
+                ch = peek(l);
                 if (ch == '-') {
+                    get(l);
                     set(tok, TOK_MINUS3, pos);
                 }
                 else {
                     unget(l);
-                    set(tok, TOK_MINUS2, pos);
+                    set(tok, TOK_MINUS, pos);
                 }
             }
             else if (ch == '=') {

@@ -457,28 +457,6 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
     }
 }
 
-/* TODO consider remove ++/-- from language */
-static int gen_inc_dec(struct code_bytecode *code, const struct parser_expr *e, bool inc)
-{
-    int kind = inc ? NOD_EXPR_ADD : NOD_EXPR_SUB;
-    int one = code_emit_load_int(code, 1);
-
-    if (parser_ast_is_global(e->l)) {
-        /* _a_++ */
-        int tmp = gen_expr(code, e->l);
-        int src = gen_dst_register2(code, tmp);
-        int dst = gen_addr(code, e->l);
-        gen_binop(code, e->type, kind, src, tmp, one);
-        return code_emit_store_global(code, dst, src);
-    }
-    {
-        /* a++ */
-        int dst = gen_addr(code, e->l);
-        int src = gen_expr(code, e->l);
-        return gen_binop(code, e->type, kind, dst, src, one);
-    }
-}
-
 static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
 {
     const struct parser_func_sig *func_sig = call->l->type->func_sig;
@@ -811,12 +789,6 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         else
             gen_init(code, e);
         return 0;
-
-    case NOD_EXPR_INC:
-        return gen_inc_dec(code, e, true);
-
-    case NOD_EXPR_DEC:
-        return gen_inc_dec(code, e, false);
     }
 
     return -1;

@@ -880,20 +880,10 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
     }
 }
 
-static void semantic_check_incdec_stmt(struct parser *p, struct parser_pos pos,
-        const struct parser_expr *lval)
-{
-    if (!parser_is_int_type(lval->type)) {
-        error(p, pos, "type mismatch: ++/-- must be used for int");
-    }
-}
-
 /*
 assign_stmt ::= logand_expr assing_op expression
-            | logand_expr incdec_op
 assign_op   ::= "=" | "+=" | "-=" | "*=" | "/=" | "%="
             | "<<=" | ">>=" | "|=" | "^=" | "&="
-incdec_op   ::= "++" | "--"
 */
 static struct parser_stmt *assign_stmt(struct parser *p)
 {
@@ -958,14 +948,6 @@ static struct parser_stmt *assign_stmt(struct parser *p)
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
         return parser_new_andassign_stmt(lval, rval);
-
-    case TOK_PLUS2:
-        semantic_check_incdec_stmt(p, pos, lval);
-        return parser_new_inc_stmt(lval);
-
-    case TOK_MINUS2:
-        semantic_check_incdec_stmt(p, pos, lval);
-        return parser_new_dec_stmt(lval);
 
     default:
         ungettok(p);
