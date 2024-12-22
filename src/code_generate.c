@@ -210,24 +210,6 @@ static int gen_init_struct(struct code_bytecode *code, const struct parser_expr 
     }
 }
 
-static int gen_store(struct code_bytecode *code, const struct parser_expr *lval, const struct parser_expr *rval)
-{
-    int reg0 = 0xff;
-    int reg1 = gen_expr(code, rval);
-
-    if (parser_ast_is_global(lval)) {
-        reg0 = gen_addr(code, lval);
-        code_emit_store_global(code, reg0, reg1);
-    }
-    else {
-        /* TODO handle case where lhs is not addressable */
-        reg0 = gen_addr(code, lval);
-        code_emit_move(code, reg0, reg1);
-    }
-
-    return reg0;
-}
-
 static int gen_store2(struct code_bytecode *code, const struct parser_expr *lval, int src_reg)
 {
     int dst_reg = -1;
@@ -380,11 +362,9 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
 {
     const struct parser_expr *lval = e->l;
     const struct parser_expr *rval = e->r;
-    int reg0 = -1;
-    int reg1 = -1;
-    int reg2 = -1;
 
     if (lval->kind == NOD_EXPR_INDEX) {
+        /* a[b] = x */
         int obj = gen_expr(code, lval->l);
         int idx = gen_expr(code, lval->r);
         int src = gen_expr(code, rval);
@@ -392,34 +372,37 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
     }
 
     if (lval->kind == NOD_EXPR_SELECT) {
-        /* eval struct value */
-        reg0 = gen_expr(code, lval->l);
-        /* get field offset */
-        reg1 = gen_addr(code, lval->r);
-        /* eval rval */
-        reg2 = gen_expr(code, rval);
-        code_emit_store_struct(code, reg0, reg1, reg2);
-        return reg0;
+        /* a.b = x */
+        int obj = gen_expr(code, lval->l);
+        int fld = gen_addr(code, lval->r);
+        int src = gen_expr(code, rval);
+        return code_emit_store_struct(code, obj, fld, src);
     }
+
     else if (lval->kind == NOD_EXPR_DEREF) {
         /* TODO remove */
-        reg0 = gen_addr(code, lval);
-        reg1 = gen_expr(code, rval);
-        code_emit_store_global(code, reg0, reg1);
-        return reg0;
-    }
-    else if (lval->kind == NOD_EXPR_MODULE) {
-        reg0 = gen_addr(code, lval);
-        reg1 = gen_expr(code, rval);
+        int reg0 = gen_addr(code, lval);
+        int reg1 = gen_expr(code, rval);
         code_emit_store_global(code, reg0, reg1);
         return reg0;
     }
 
-    /* TODO if rval is global then skip binop anyway. */
-    /* Binop is one of `move` instruction (store value into register) */
+    if (lval->kind == NOD_EXPR_MODULE) {
+        int reg0 = gen_addr(code, lval);
+        int reg1 = gen_expr(code, rval);
+        code_emit_store_global(code, reg0, reg1);
+        return reg0;
+    }
 
-    /* check the rvalue expression to see if binop r0, r1, r2 can be applied */
-    /* e.g. a = b + c */
+    if (parser_ast_is_global(lval)) {
+        /* _a_ = x */
+        int dst = gen_addr(code, lval);
+        int src = gen_expr(code, rval);
+        code_emit_store_global(code, dst, src);
+    }
+
+    /* check the rvalue expression to see if `a = x + y` can be applied */
+    /* e.g. a = x + y */
     /*            ^ here */
     switch (rval->kind) {
     case NOD_EXPR_ADD:
@@ -438,24 +421,29 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_LTE:
     case NOD_EXPR_GT:
     case NOD_EXPR_GTE:
-        reg0 = gen_addr(code, lval);
-        reg1 = gen_expr(code, rval->l);
-        reg2 = gen_expr(code, rval->r);
-        gen_binop(code, e->type, rval->kind, reg0, reg1, reg2);
-        break;
-
-    default:
-        gen_store(code, lval, rval);
-        break;
+        {
+            /* a = x + y */
+            int dst = gen_addr(code, lval);
+            int src1 = gen_expr(code, rval->l);
+            int src2 = gen_expr(code, rval->r);
+            return gen_binop(code, e->type, rval->kind, dst, src1, src2);
+        }
     }
 
-    return reg0;
+    {
+        /* a += x */
+        int dst = gen_addr(code, lval);
+        int src = gen_expr(code, rval);
+        return code_emit_move(code, dst, src);
+    }
+
+    return -1;
 }
 
 static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr *e)
 {
     if (e->l->kind == NOD_EXPR_INDEX) {
-        /* array */
+        /* a[b] += x */
         int obj = gen_expr(code, e->l->l);
         int idx = gen_expr(code, e->l->r);
         int tmp1 = gen_expr(code, e->l);
@@ -465,8 +453,12 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         return code_emit_store_array(code, obj, idx, src);
     }
 
+    if (e->l->kind == NOD_EXPR_SELECT) {
+        /* a.b += x */
+    }
+
     if (parser_ast_is_global(e->l)) {
-        /* global primitive */
+        /* _a_ += x */
         int tmp1 = gen_expr(code, e->l);
         int tmp2 = gen_expr(code, e->r);
         int src = gen_dst_register(code, tmp1, tmp2);
@@ -474,9 +466,8 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
         return code_emit_store_global(code, dst, src);
     }
-
     {
-        /* local primitive */
+        /* a += x */
         int dst = gen_addr(code, e->l);
         int src1 = gen_expr(code, e->l);
         int src2 = gen_expr(code, e->r);
