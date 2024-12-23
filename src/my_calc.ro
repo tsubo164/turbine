@@ -1,5 +1,5 @@
-//- PI = 3.14159
-- UINT8_MAX = 255
+//- _PI_ = 3.14159
+- _UINT8_MAX_ = 255
 
 # add(x int, y int) int
   return x + y

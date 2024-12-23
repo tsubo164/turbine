@@ -2,7 +2,7 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-//[my_calc]
+[my_calc]
 //[math]
 
 //:: token
@@ -18,10 +18,18 @@
 //  - radius int
 
 # main(args []string) int
-  - a = [[2, 3], [4, 5]]
+  //- a = [[2, 3], [4, 5]]
+  - a = 42
+  - f = 3.14
+  //f = 0.00000314
+  //f = 4.0
 
-  //print(len(a))
-  print(a[1][1])
+  print(a, nil, f, nil)
+  print("----------")
+  print(a, f, nil)
+  print("----------")
+  print(a, f)
+  print("----------")
 
   return 12
 

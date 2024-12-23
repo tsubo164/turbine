@@ -8,6 +8,8 @@
 #include "parser_type.h"
 #include "parser_ast.h"
 #include "builtin_module.h"
+#include "data_intern.h"
+#include "data_strbuf.h"
 #include "os.h"
 
 #include <assert.h>
@@ -452,6 +454,38 @@ static const struct parser_type *fill_template_type(const struct parser_func_sig
     return NULL;
 }
 
+static struct parser_expr *make_format_args(struct parser_expr *args)
+{
+    struct data_strbuf sbuf = DATA_STRBUF_INIT;
+    struct parser_expr *arg;
+    struct parser_expr *fmt;
+
+    for (arg = args; arg; arg = arg->next) {
+
+        if (parser_is_nil_type(arg->type)) {
+            data_strbuf_cat(&sbuf, "n");
+        }
+        else if (parser_is_bool_type(arg->type)) {
+            data_strbuf_cat(&sbuf, "b");
+        }
+        else if (parser_is_int_type(arg->type)) {
+            data_strbuf_cat(&sbuf, "i");
+        }
+        else if (parser_is_float_type(arg->type)) {
+            data_strbuf_cat(&sbuf, "f");
+        }
+        else if (parser_is_string_type(arg->type)) {
+            data_strbuf_cat(&sbuf, "s");
+        }
+    }
+
+    fmt = parser_new_stringlit_expr(data_string_intern(sbuf.data));
+    data_strbuf_free(&sbuf);
+
+    fmt->next = args;
+    return fmt;
+}
+
 static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base,
         int caller_line)
 {
@@ -463,6 +497,11 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base,
     struct parser_expr *args;
 
     args = arg_list(p, func_sig, caller_line);
+
+    if (func_sig->is_variadic) {
+        args = make_format_args(args);
+    }
+
     call = parser_new_call_expr(base, args);
 
     if (func_sig->has_template_return_type) {

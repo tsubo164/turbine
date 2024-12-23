@@ -9,58 +9,56 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <math.h>
 
 static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value arg_count = regs->locals[0];
     int argc = arg_count.inum;
-    int arg_reg = 1;
 
-    assert(regs->local_count == 2 * argc + 1);
+    assert(regs->local_count == argc + 1);
 
-    for (int i = 0; i < argc; i ++) {
+    /* locals[0] holds arg count */
+    struct runtime_value *arg = &regs->locals[1];
+    const char *fmt = runtime_string_get_cstr(arg->string);
+    arg++;
 
-        struct runtime_value val = regs->locals[arg_reg++];
-        struct runtime_value type = regs->locals[arg_reg++];
+    while (*fmt) {
 
-        switch (type.inum) {
+        switch (*fmt++) {
 
-        case VAL_NIL:
+        case 'i':
+            printf("%lld", arg->inum);
+            arg++;
+            break;
+
+        case 'f':
+            printf("%g", arg->fpnum);
+            if (fmod(arg->fpnum, 1.0) == 0.0)
+                printf(".0");
+            arg++;
+            break;
+
+        case 's':
+            printf("%s", runtime_string_get_cstr(arg->string));
+            arg++;
+            break;
+
+        case 'n':
+            arg++;
             continue;
 
-        case VAL_BOOL:
-            if (val.inum == 0)
-                printf("false");
-            else
-                printf("true");
-            break;
-
-        case VAL_INT:
-            printf("%lld", val.inum);
-            break;
-
-        case VAL_FLOAT:
-            printf("%g", val.fpnum);
-            break;
-
-        case VAL_STRING:
-            printf("%s", runtime_string_get_cstr(val.string));
+        default:
+            assert(!"variadic argument error");
             break;
         }
 
-        /* peek next arg */
-        bool skip_separator = false;
-        if (i < argc - 1) {
-            struct runtime_value next_type = regs->locals[arg_reg + 1];
-            if (next_type.inum == VAL_NIL)
-                skip_separator = true;
-        }
+        char next = *fmt;
+        if (next != 'n')
+            printf(" ");
 
-        if (skip_separator)
-            continue;
-
-        int separator = (i == argc - 1) ? '\n' : ' ';
-        printf("%c", separator);
+        if (!next)
+            printf("\n");
     }
 
     return RESULT_SUCCESS;

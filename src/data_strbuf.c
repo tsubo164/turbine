@@ -77,4 +77,7 @@ void data_strbuf_free(struct data_strbuf *sb)
     if (!sb)
         return;
     free(sb->data);
+    sb->data = NULL;
+    sb->cap = 0;
+    sb->len = 0;
 }

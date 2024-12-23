@@ -472,45 +472,9 @@ static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
         int argc_dst = code_set_register_pointer(code, ++reg_ptr);
 
         for (const struct parser_expr *arg = call->r; arg; arg = arg->next, argc++) {
-            /* arg value */
-            int arg_src = gen_expr(code, arg);
-            int arg_dst = code_set_register_pointer(code, ++reg_ptr);
-            code_emit_move(code, arg_dst, arg_src);
-
-            /* arg type */
-            int type_dst = code_set_register_pointer(code, ++reg_ptr);
-
-            switch (arg->type->kind) {
-            case TYP_NIL:
-                code_emit_load_type_nil(code, type_dst);
-                break;
-
-            case TYP_BOOL:
-                code_emit_load_type_bool(code, type_dst);
-                break;
-
-            case TYP_INT:
-                code_emit_load_type_int(code, type_dst);
-                break;
-
-            case TYP_FLOAT:
-                code_emit_load_type_float(code, type_dst);
-                break;
-
-            case TYP_STRING:
-                code_emit_load_type_string(code, type_dst);
-                break;
-
-            case TYP_FUNC:
-            case TYP_STRUCT:
-            case TYP_TABLE:
-            case TYP_MODULE:
-            case TYP_PTR:
-            case TYP_ARRAY:
-            case TYP_ANY:
-                code_emit_load_type_nil(code, type_dst);
-                break;
-            }
+            int src = gen_expr(code, arg);
+            int dst = code_set_register_pointer(code, ++reg_ptr);
+            code_emit_move(code, dst, src);
         }
 
         /* arg count */
