@@ -19,6 +19,7 @@
 
 # main(args []string) int
   //- a = [[2, 3], [4, 5]]
+  //- a = [2, 3, 4, 5]
   - a = 42
   - f = 3.14
   //f = 0.00000314
@@ -28,8 +29,10 @@
   print("----------")
   print(a, f, nil)
   print("----------")
-  print(a, f)
+  print(a, f, nil, a)
+  print(a, f, a)
   print("----------")
+  //print(a, "!!")
 
   return 12
 

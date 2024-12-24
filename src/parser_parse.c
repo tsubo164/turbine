@@ -454,6 +454,29 @@ static const struct parser_type *fill_template_type(const struct parser_func_sig
     return NULL;
 }
 
+static void make_type_format(struct data_strbuf *sb, const struct parser_type *type)
+{
+    if (parser_is_nil_type(type)) {
+        data_strbuf_cat(sb, "n");
+    }
+    else if (parser_is_bool_type(type)) {
+        data_strbuf_cat(sb, "b");
+    }
+    else if (parser_is_int_type(type)) {
+        data_strbuf_cat(sb, "i");
+    }
+    else if (parser_is_float_type(type)) {
+        data_strbuf_cat(sb, "f");
+    }
+    else if (parser_is_string_type(type)) {
+        data_strbuf_cat(sb, "s");
+    }
+    else if (parser_is_array_type(type)) {
+        data_strbuf_cat(sb, "a");
+        make_type_format(sb, type->underlying);
+    }
+}
+
 static struct parser_expr *make_format_args(struct parser_expr *args)
 {
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
@@ -461,22 +484,7 @@ static struct parser_expr *make_format_args(struct parser_expr *args)
     struct parser_expr *fmt;
 
     for (arg = args; arg; arg = arg->next) {
-
-        if (parser_is_nil_type(arg->type)) {
-            data_strbuf_cat(&sbuf, "n");
-        }
-        else if (parser_is_bool_type(arg->type)) {
-            data_strbuf_cat(&sbuf, "b");
-        }
-        else if (parser_is_int_type(arg->type)) {
-            data_strbuf_cat(&sbuf, "i");
-        }
-        else if (parser_is_float_type(arg->type)) {
-            data_strbuf_cat(&sbuf, "f");
-        }
-        else if (parser_is_string_type(arg->type)) {
-            data_strbuf_cat(&sbuf, "s");
-        }
+        make_type_format(&sbuf, arg->type);
     }
 
     fmt = parser_new_stringlit_expr(data_string_intern(sbuf.data));

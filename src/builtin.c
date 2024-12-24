@@ -11,6 +11,51 @@
 #include <stdio.h>
 #include <math.h>
 
+static const char *print_value(struct runtime_value val, const char *fmt)
+{
+    const char *p = fmt;
+
+    switch (*p++) {
+
+    case 'i':
+        printf("%lld", val.inum);
+        return p;
+
+    case 'f':
+        printf("%g", val.fpnum);
+        if (fmod(val.fpnum, 1.0) == 0.0)
+            printf(".0");
+        return p;
+
+    case 's':
+        printf("%s", runtime_string_get_cstr(val.string));
+        return p;
+
+    case 'a':
+        {
+            int len = runtime_array_len(val.array);
+            const char *elem = p;
+
+            printf("[");
+            for (int i = 0; i < len; i++) {
+                p = print_value(runtime_array_get(val.array, i), elem);
+                if (i == len - 1)
+                    printf("]");
+                else
+                    printf(", ");
+            }
+        }
+        return p;
+
+    case 'n':
+        return p;
+
+    default:
+        assert(!"variadic argument error");
+        return NULL;
+    }
+}
+
 static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value arg_count = regs->locals[0];
@@ -24,41 +69,17 @@ static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
     arg++;
 
     while (*fmt) {
+        int curr;
+        int next;
 
-        switch (*fmt++) {
+        curr = *fmt;
+        fmt  = print_value(*arg++, fmt);
+        next = *fmt;
 
-        case 'i':
-            printf("%lld", arg->inum);
-            arg++;
-            break;
-
-        case 'f':
-            printf("%g", arg->fpnum);
-            if (fmod(arg->fpnum, 1.0) == 0.0)
-                printf(".0");
-            arg++;
-            break;
-
-        case 's':
-            printf("%s", runtime_string_get_cstr(arg->string));
-            arg++;
-            break;
-
-        case 'n':
-            arg++;
+        if (curr == 'n' || next == 'n')
             continue;
 
-        default:
-            assert(!"variadic argument error");
-            break;
-        }
-
-        char next = *fmt;
-        if (next != 'n')
-            printf(" ");
-
-        if (!next)
-            printf("\n");
+        printf(next ? " " : "\n");
     }
 
     return RESULT_SUCCESS;
