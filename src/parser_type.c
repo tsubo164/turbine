@@ -197,8 +197,17 @@ bool parser_match_type(const struct parser_type *t1, const struct parser_type *t
     if (parser_is_any_type(t1) || parser_is_any_type(t2))
         return true;
 
+    if (parser_is_template_type(t1) && !parser_is_template_type(t2))
+        return true;
+
+    if (!parser_is_template_type(t1) && parser_is_template_type(t2))
+        return true;
+
     if (parser_is_template_type(t1) && parser_is_template_type(t2))
         return t1->template_id == t2->template_id;
+
+    if (parser_is_array_type(t1) && parser_is_array_type(t2))
+        return parser_match_type(t1->underlying, t2->underlying);
 
     return t1->kind == t2->kind;
 }
