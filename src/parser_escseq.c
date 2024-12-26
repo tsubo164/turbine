@@ -50,7 +50,6 @@ int parser_convert_escape_sequence(const char *src, const char **dst)
             }
             else {
                 /* error */
-                *dst = data_string_intern(buf);
                 return i;
             }
         }
@@ -58,5 +57,6 @@ int parser_convert_escape_sequence(const char *src, const char **dst)
         s++;
     }
 
+    *dst = data_string_intern(buf);
     return -1;
 }

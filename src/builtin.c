@@ -1,5 +1,6 @@
 #include "builtin.h"
 #include "data_intern.h"
+#include "data_strbuf.h"
 #include "parser_symbol.h"
 #include "parser_type.h"
 #include "runtime_function.h"
@@ -124,6 +125,61 @@ static int builtin_exit(struct runtime_gc *gc, struct runtime_registers *regs)
 
 static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 {
+    struct runtime_value arg_count = regs->locals[0];
+    int argc = arg_count.inum;
+
+    assert(regs->local_count == argc + 1);
+
+    /* locals[0] holds arg count */
+    /* locals[1] holds type info */
+    struct runtime_value *arg = &regs->locals[2];
+    struct runtime_value ret = {0};
+    const char *fmt = runtime_string_get_cstr(arg->string);
+    struct data_strbuf sb = DATA_STRBUF_INIT;
+    char buf[32] = {'\0'};
+    int N = 32;
+    arg++;
+
+    while (*fmt) {
+        int ch = *fmt++;
+
+        if (ch == '%') {
+            ch = *fmt++;
+
+            switch (ch) {
+            case 'd':
+                snprintf(buf, N, "%lld", arg->inum);
+                data_strbuf_cat(&sb, buf);
+                arg++;
+                break;
+
+            case 'f':
+                snprintf(buf, N, "%g", arg->fpnum);
+                data_strbuf_cat(&sb, buf);
+                if (fmod(arg->fpnum, 1.0) == 0.0)
+                    data_strbuf_cat(&sb, ".0");
+                arg++;
+                break;
+
+            case '%':
+                data_strbuf_cat(&sb, "%");
+                break;
+
+            default:
+                /* error */
+                break;
+            }
+        }
+        else {
+            snprintf(buf, N, "%c", ch);
+            data_strbuf_cat(&sb, buf);
+        }
+    }
+
+    ret.string = runtime_gc_string_new(gc, sb.data);
+    regs->locals[0] = ret;
+
+    data_strbuf_free(&sb);
     return RESULT_SUCCESS;
 }
 

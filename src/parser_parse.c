@@ -506,7 +506,7 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
 
     //struct parser_pos fmt_pos = arg->pos;
     struct parser_pos arg_pos = arg->pos;
-    const char *fmt = arg->sval;
+    const char *fmt = arg->converted ? arg->converted : arg->sval;
     bool match = true;
     arg = arg->next;
 
@@ -523,6 +523,17 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
                 match = parser_is_int_type(arg->type);
                 arg_pos = arg->pos;
                 arg = arg->next;
+                break;
+
+            case 'f':
+                if (!arg)
+                    error(p, arg_pos, "too few arguments for format");
+                match = parser_is_float_type(arg->type);
+                arg_pos = arg->pos;
+                arg = arg->next;
+                break;
+
+            case '%':
                 break;
 
             default:
