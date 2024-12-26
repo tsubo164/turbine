@@ -2,7 +2,7 @@
 //[csv]
 //[json]
 //[opengl] (github.com/...)
-[my_calc]
+//[my_calc]
 //[math]
 
 //:: token
@@ -19,20 +19,30 @@
 
 # main(args []string) int
   //- a = [[2, 3], [4, 5]]
-  //- a = [2, 3, 4, 5]
-  - a = 42
-  - f = 3.14
-  //f = 0.00000314
-  //f = 4.0
+  //- b = [1, 2, 3, 4, 5]
+  - a = 42.0
+  //- f = 3.14
+  //- s = "Turbine"
+  //- ss = ["Turbine", "Go", "Python"]
 
-  print(a, nil, f, nil)
-  print("----------")
-  print(a, f, nil)
-  print("----------")
-  print(a, f, nil, a)
-  print(a, f, a)
-  print("----------")
-  //print(a, "!!")
+  //- s = format("Hello, {a}\n")
+  - t = format("Hello, %d\n", a)
+  //- s = format("Hello, `age;02` years old\n")
+  //- s = format("Hello, {age} years old\n")
+
+  //- s = "Hello, %v! I'm %v years old\n" << name << age
+
+  //print(a, nil, f, nil)
+  //print("----------")
+  //print(a, f, nil)
+  //print("----------")
+  //print(a, f, nil, a)
+  //print(a, f, a)
+  //print("----------")
+  //print(b)
+  //print(s)
+  //print(ss)
+  // foo bar "hoo"
 
   return 12
 

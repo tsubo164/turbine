@@ -122,6 +122,11 @@ static int builtin_exit(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_NORETURN;
 }
 
+static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    return RESULT_SUCCESS;
+}
+
 static int builtin_len(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value val = regs->locals[0];
@@ -145,6 +150,7 @@ static int builtin_resize(struct runtime_gc *gc, struct runtime_registers *regs)
 struct native_func_param {
     const char *name;
     const struct parser_type *type;
+    bool is_format;
 };
 
 void native_declare_func(struct parser_scope *scope,
@@ -186,6 +192,21 @@ void define_builtin_functions(struct parser_scope *builtin)
         func->native_func_ptr = builtin_exit;
     }
     {
+        const char *name = "format";
+        struct native_func_param params[] = {
+            { "fmt",  parser_new_string_type(), true },
+            { "...",  parser_new_any_type() },
+            { NULL },
+        };
+        struct parser_type *ret_type = parser_new_string_type();
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_format);
+    }
+    {
         struct parser_func *func;
 
         func = parser_declare_builtin_func(builtin, "len");
@@ -225,6 +246,9 @@ void native_declare_func(struct parser_scope *scope,
 
     for (param = params; param->name; param++) {
         parser_declare_param(func, param->name, param->type);
+
+        if (param->is_format)
+            func->has_format_param = true;
     }
 
     func->return_type = return_type;

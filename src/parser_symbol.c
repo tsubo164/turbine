@@ -206,6 +206,7 @@ struct parser_func_sig *parser_make_func_sig(struct parser_func *func)
 
     func_sig->is_builtin = func->is_builtin;
     func_sig->is_variadic = func->is_variadic;
+    func_sig->has_format_param = func->has_format_param;
     func_sig->has_special_var = func->has_special_var;
 
     return func_sig;

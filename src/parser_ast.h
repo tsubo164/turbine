@@ -1,6 +1,7 @@
 #ifndef PARSER_AST_H
 #define PARSER_AST_H
 
+#include "parser_token.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -105,6 +106,8 @@ struct parser_expr {
     struct parser_symbol *sym;
     struct parser_var *var;
     struct parser_field *field;
+    /* this is mostly use for args */
+    struct parser_pos pos;
 
     /* literals */
     union {

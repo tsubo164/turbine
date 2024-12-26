@@ -140,8 +140,9 @@ static struct parser_expr *expression(struct parser *p);
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
 
 static struct parser_expr *arg_list(struct parser *p,
-        const struct parser_func_sig *func_sig, int caller_line)
+        const struct parser_func_sig *func_sig)
 {
+    struct parser_pos caller_pos = tok_pos(p);
     struct parser_expr arghead = {0};
     struct parser_expr *arg = &arghead;
     int arg_count = 0;
@@ -152,17 +153,18 @@ static struct parser_expr *arg_list(struct parser *p,
         do {
             int param_idx = arg_count;
             const struct parser_type *param_type;
-            const struct parser_pos param_pos = peek_pos(p);
+            const struct parser_pos arg_pos = peek_pos(p);
 
             arg = arg->next = expression(p);
+            arg->pos = arg_pos;
             arg_count++;
 
             param_type = parser_get_param_type(func_sig, param_idx);
             if (!param_type)
-                error(p, param_pos, "too many arguments");
+                error(p, arg_pos, "too many arguments");
 
             if (!parser_match_type(arg->type, param_type)) {
-                error(p, param_pos,
+                error(p, arg_pos,
                         "type mismatch: parameter '%s': argument '%s'",
                         parser_type_string(param_type),
                         parser_type_string(arg->type));
@@ -172,6 +174,7 @@ static struct parser_expr *arg_list(struct parser *p,
     }
 
     if (func_sig->has_special_var) {
+        int caller_line = caller_pos.y;
         arg = arg->next = parser_new_intlit_expr(caller_line);
         arg_count++;
     }
@@ -454,7 +457,7 @@ static const struct parser_type *fill_template_type(const struct parser_func_sig
     return NULL;
 }
 
-static void make_type_format(struct data_strbuf *sb, const struct parser_type *type)
+static void add_type_info(struct data_strbuf *sb, const struct parser_type *type)
 {
     if (parser_is_nil_type(type)) {
         data_strbuf_cat(sb, "n");
@@ -473,18 +476,18 @@ static void make_type_format(struct data_strbuf *sb, const struct parser_type *t
     }
     else if (parser_is_array_type(type)) {
         data_strbuf_cat(sb, "a");
-        make_type_format(sb, type->underlying);
+        add_type_info(sb, type->underlying);
     }
 }
 
-static struct parser_expr *make_format_args(struct parser_expr *args)
+static struct parser_expr *add_packed_type_info(struct parser_expr *args)
 {
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
     struct parser_expr *arg;
     struct parser_expr *fmt;
 
     for (arg = args; arg; arg = arg->next) {
-        make_type_format(&sbuf, arg->type);
+        add_type_info(&sbuf, arg->type);
     }
 
     fmt = parser_new_stringlit_expr(data_string_intern(sbuf.data));
@@ -494,8 +497,49 @@ static struct parser_expr *make_format_args(struct parser_expr *args)
     return fmt;
 }
 
-static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base,
-        int caller_line)
+static void validate_format_string(struct parser *p, struct parser_expr *args)
+{
+    struct parser_expr *arg = args;
+
+    if (arg->kind != NOD_EXPR_STRINGLIT)
+        error(p, arg->pos, "the first argument must be a string literal");
+
+    //struct parser_pos fmt_pos = arg->pos;
+    struct parser_pos arg_pos = arg->pos;
+    const char *fmt = arg->sval;
+    bool match = true;
+    arg = arg->next;
+
+    while (*fmt) {
+        int c = *fmt++;
+
+        if (c == '%') {
+            c = *fmt++;
+
+            switch (c) {
+            case 'd':
+                if (!arg)
+                    error(p, arg_pos, "too few arguments for format");
+                match = parser_is_int_type(arg->type);
+                arg_pos = arg->pos;
+                arg = arg->next;
+                break;
+
+            default:
+                error(p, arg_pos, "invalid format specifier '%%%c'", c);
+            }
+        }
+
+        if (!match) {
+            error(p, arg_pos, "type mismatch: format specifier '%%%c' and argument", c);
+        }
+    }
+
+    if (arg)
+        error(p, arg->pos, "too many arguments for format");
+}
+
+static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
 {
     if (!base || !parser_is_func_type(base->type))
         error(p, tok_pos(p), "'()' must be used for function type");
@@ -504,10 +548,13 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base,
     struct parser_expr *call;
     struct parser_expr *args;
 
-    args = arg_list(p, func_sig, caller_line);
+    args = arg_list(p, func_sig);
 
+    if (func_sig->has_format_param) {
+        validate_format_string(p, args);
+    }
     if (func_sig->is_variadic) {
-        args = make_format_args(args);
+        args = add_packed_type_info(args);
     }
 
     call = parser_new_call_expr(base, args);
@@ -598,10 +645,7 @@ static struct parser_expr *postfix_expr(struct parser *p)
         switch (next) {
 
         case TOK_LPAREN:
-            {
-                struct parser_pos caller_pos = tok_pos(p);
-                expr = call_expr(p, expr, caller_pos.y);
-            }
+            expr = call_expr(p, expr);
             continue;
 
         case TOK_PERIOD:
@@ -909,7 +953,7 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
         const struct parser_expr *lval, const struct parser_expr *rval)
 {
     if (!parser_match_type(lval->type, rval->type)) {
-        error(p, pos, "type mismatch: l-value type '%s': r-value type '%s'",
+        error(p, pos, "type mismatch: l-value '%s': r-value '%s'",
                 parser_type_string(lval->type), parser_type_string(rval->type));
     }
     /* TODO make new_assign_stmt() */
