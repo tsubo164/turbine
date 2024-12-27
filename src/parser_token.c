@@ -220,25 +220,6 @@ static bool eof(const struct lexer *l)
     return *l->itr == '\0';
 }
 
-static bool isfp(int ch)
-{
-    return ch == '.' || ch == 'e' || ch == 'E';
-}
-
-static bool ishex(int ch)
-{
-    int c = tolower(ch);
-
-    return c == 'x' ||
-        c == 'a' || c == 'b' || c == 'c' ||
-        c == 'd' || c == 'e' || c == 'f';
-}
-
-static bool isnum(int ch)
-{
-    return isdigit(ch) || ishex(ch) || isfp(ch);
-}
-
 static void push(struct lexer *l, int indent)
 {
     if (l->sp == MAX_INDENT - 1)
@@ -268,82 +249,59 @@ static int top(const struct lexer *l)
  *   0.45
  *   6.e10
  */
-static void scan_number(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
+static void scan_decimal(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
-    const char *start = l->itr;
+    const char *itr = l->itr;
+    const char *start = itr;
     char *end = NULL;
     bool fpnum = false;
-    int base = 10;
-    int len = 0;
 
-    for (int ch = get(l); isnum(ch); ch = get(l)) {
+    while (true) {
+        int ch = tolower(*itr++);
 
-        if (ch == 'x' || ch == 'X')
-            base = 16;
+        if (isdigit(ch))
+            continue;
 
         if (ch == '.') {
-            char next = peek(l);
-            if (isdigit(next) || next == 'e' || next == 'E') {
+            int next = tolower(*itr);
+            if (isdigit(next) || next == 'e') {
                 fpnum = true;
             }
-            else {
-                break;
+        }
+        else if (ch == 'e') {
+            int next = *itr;
+            if (isdigit(next) || next == '+' || next == '-') {
+                fpnum = true;
             }
         }
 
-        if (ch == 'e' || ch == 'E') {
-            char next = peek(l);
-            if (next == '+' || next == '-' || isdigit(next)) {
-                fpnum = true;
-                /* consume next */
-                get(l);
-                len++;
-            }
-            else {
-                break;
-            }
-        }
-        len++;
+        break;
     }
-
-    unget(l);
 
     if (fpnum) {
         tok->fval = strtod(start, &end);
         set(tok, TOK_FLOATLIT, pos);
     }
     else {
-        tok->ival = strtol(start, &end, base);
+        tok->ival = strtol(start, &end, 10);
         set(tok, TOK_INTLIT, pos);
     }
 
-    assert(end && (len == end - start));
+    assert(end);
+    l->itr = end;
 }
 
-static void scan_octal(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
+static void scan_integer(struct lexer *l, struct parser_token *tok, struct parser_pos pos,
+        int base)
 {
     const char *start = l->itr;
     char *end = NULL;
-    int len = 0;
 
-    tok->ival = strtol(start, &end, 8);
+    tok->ival = strtol(start, &end, base);
     set(tok, TOK_INTLIT, pos);
 
-    len = end - start;
-    l->itr += len;
-}
-
-static void scan_hexa(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
-{
-    const char *start = l->itr;
-    char *end = NULL;
-    int len = 0;
-
-    tok->ival = strtol(start, &end, 16);
-    set(tok, TOK_INTLIT, pos);
-
-    len = end - start;
-    l->itr += len;
+    assert(end);
+    l->itr = end;
 }
 
 static void scan_char_literal(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
@@ -631,21 +589,21 @@ static void get_token(struct lexer *l, struct parser_token *tok)
             if (next == 'o') {
                 /* octal */
                 get(l);
-                scan_octal(l, tok, pos);
+                scan_integer(l, tok, pos, 8);
             }
             else if (isdigit(next)) {
                 /* octal */
-                scan_octal(l, tok, pos);
+                scan_integer(l, tok, pos, 8);
             }
             else if (next == 'x') {
                 /* hexadecimal */
                 get(l);
-                scan_hexa(l, tok, pos);
+                scan_integer(l, tok, pos, 16);
             }
             else {
                 /* decimal */
                 unget(l);
-                scan_number(l, tok, pos);
+                scan_decimal(l, tok, pos);
             }
             return;
         }
@@ -653,7 +611,7 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         /* decimal */
         if (isdigit(ch)) {
             unget(l);
-            scan_number(l, tok, pos);
+            scan_decimal(l, tok, pos);
             return;
         }
 
