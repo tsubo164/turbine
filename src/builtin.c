@@ -153,11 +153,34 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
                 arg++;
                 break;
 
+            case 'x':
+                snprintf(buf, N, "%llx", arg->inum);
+                data_strbuf_cat(&sb, buf);
+                arg++;
+                break;
+
+            case 'X':
+                snprintf(buf, N, "%llX", arg->inum);
+                data_strbuf_cat(&sb, buf);
+                arg++;
+                break;
+
+            case 'o':
+                snprintf(buf, N, "%llo", arg->inum);
+                data_strbuf_cat(&sb, buf);
+                arg++;
+                break;
+
             case 'f':
                 snprintf(buf, N, "%g", arg->fpnum);
                 data_strbuf_cat(&sb, buf);
                 if (fmod(arg->fpnum, 1.0) == 0.0)
                     data_strbuf_cat(&sb, ".0");
+                arg++;
+                break;
+
+            case 's':
+                data_strbuf_cat(&sb, runtime_string_get_cstr(arg->string));
                 arg++;
                 break;
 

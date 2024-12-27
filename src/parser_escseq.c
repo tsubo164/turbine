@@ -57,6 +57,7 @@ int parser_convert_escape_sequence(const char *src, const char **dst)
         s++;
     }
 
+    *d = '\0';
     *dst = data_string_intern(buf);
     return -1;
 }

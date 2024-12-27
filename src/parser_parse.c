@@ -504,9 +504,10 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
     if (arg->kind != NOD_EXPR_STRINGLIT)
         error(p, arg->pos, "the first argument must be a string literal");
 
-    //struct parser_pos fmt_pos = arg->pos;
+    struct parser_pos fmt_pos = arg->pos;
     struct parser_pos arg_pos = arg->pos;
-    const char *fmt = arg->converted ? arg->converted : arg->sval;
+    const char *fmt_start = arg->converted ? arg->converted : arg->sval;
+    const char *fmt = fmt_start;
     bool match = true;
     arg = arg->next;
 
@@ -518,6 +519,9 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
 
             switch (c) {
             case 'd':
+            case 'x':
+            case 'X':
+            case 'o':
                 if (!arg)
                     error(p, arg_pos, "too few arguments for format");
                 match = parser_is_int_type(arg->type);
@@ -533,11 +537,24 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
                 arg = arg->next;
                 break;
 
+            case 's':
+                if (!arg)
+                    error(p, arg_pos, "too few arguments for format");
+                match = parser_is_string_type(arg->type);
+                arg_pos = arg->pos;
+                arg = arg->next;
+                break;
+
             case '%':
                 break;
 
             default:
-                error(p, arg_pos, "invalid format specifier '%%%c'", c);
+                {
+                    struct parser_pos spec_pos = fmt_pos;
+                    int offset = fmt - fmt_start;
+                    spec_pos.x += offset;
+                    error(p, spec_pos, "invalid format specifier '%%%c'", c);
+                }
             }
         }
 

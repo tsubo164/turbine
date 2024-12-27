@@ -5,8 +5,19 @@
   ---
     - a = 42
     - b = 3.14
-    - s = format("<%d, %f>", a, b)
-    test.AssertS("<42, 3.14>", s)
+    - fmt = format("<%d, %f>", a, b)
+    test.AssertS("<42, 3.14>", fmt)
+
+  ---
+    - d = 42
+    - x = 0xae
+    - X = 0XF9
+    - o = 0o22//18
+    - O = 027
+    - f = 6.04
+    - s = "Hello"
+    - fmt = format("%d, 0x%x, 0X%X, 0o%o, 0%o %f, %s", d, x, X, o, O, f, s)
+    test.AssertS("42, 0xae, 0XF9, 0o22, 027 6.04, Hello", fmt)
 
   print(test._test_count_, "tests done.")
 
