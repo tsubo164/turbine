@@ -1,6 +1,7 @@
 #include "parser_token.h"
 #include "parser_escseq.h"
 #include "parser_error.h"
+#include "parser_limit.h"
 #include "data_intern.h"
 
 #include <assert.h>
@@ -127,8 +128,6 @@ static void set(struct parser_token *t, int k, struct parser_pos p)
     t->pos = p;
 }
 
-#define MAX_INDENT 128
-
 struct lexer {
     /* src text */
     const char *src;
@@ -139,7 +138,7 @@ struct lexer {
     const char *filename;
 
     /* indent */
-    int indent_stack[MAX_INDENT];
+    int indent_stack[PARSER_MAX_INDENT_DEPTH];
     int sp;
     int unread_blockend;
     bool is_line_begin;
@@ -222,7 +221,7 @@ static bool eof(const struct lexer *l)
 
 static void push(struct lexer *l, int indent)
 {
-    if (l->sp == MAX_INDENT - 1)
+    if (l->sp == PARSER_MAX_INDENT_DEPTH - 1)
         error(l, "indent stack overflow");
 
     l->indent_stack[++l->sp] = indent;
@@ -355,8 +354,8 @@ static void validate_underscores(struct lexer *l, const char *name)
 
 static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
-    /* TODO consider defining LANG_MAX_IDENT_LEN */
-    static char buf[128] = {'\0'};
+    static char buf[PARSER_MAX_IDENTIFIER_LENGTH + 1] = {'\0'};
+    int bufsize = sizeof(buf)/sizeof(buf[0]);
     char *p = buf;
     int len = 0;
     int alphas = 0;
@@ -373,9 +372,9 @@ static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_p
     for (int ch = get(l); isword(ch); ch = get(l)) {
         *p++ = ch;
         len++;
-        if (len == sizeof(buf)) {
+        if (len == bufsize) {
             error(l, "too long identifier name. it must have less than %d characters.",
-                    sizeof(buf) / sizeof(buf[0]));
+                    bufsize);
         }
 
         if (isalpha(ch))
@@ -397,13 +396,13 @@ static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_p
 
 static void scan_string(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
-    /* TODO take care of buffer overflow */
-    static char buf[4096] = {'\0'};
-    char *p = buf;
+    static char buf[PARSER_MAX_STRING_LITERAL_LENGTH + 1] = {'\0'};
+    int bufsize = sizeof(buf)/sizeof(buf[0]);
+    char *dst = buf;
 
     struct parser_pos strpos = pos;
-    int len = 0;
     int backslashes = 0;
+    int len = 0;
 
     for (int ch = get(l); ch != '"'; ch = get(l)) {
         int next = peek(l);
@@ -411,7 +410,7 @@ static void scan_string(struct lexer *l, struct parser_token *tok, struct parser
         if (ch == '\\') {
             backslashes++;
             if (next == '"' || next == '\\') {
-                *p++ = ch;
+                *dst++ = ch;
                 len++;
 
                 ch = get(l);
@@ -424,10 +423,15 @@ static void scan_string(struct lexer *l, struct parser_token *tok, struct parser
             error(l, "unterminated string literal");
         }
 
-        *p++ = ch;
+        *dst++ = ch;
         len++;
+
+        if (len == bufsize) {
+            error(l, "too long string literal. it must have less than %d characters.",
+                    bufsize);
+        }
     }
-    *p = '\0';
+    *dst = '\0';
 
     tok->has_escseq = backslashes > 0;
     tok->sval = data_string_intern(buf);
