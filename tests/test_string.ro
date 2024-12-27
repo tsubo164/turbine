@@ -12,12 +12,12 @@
     - d = 42
     - x = 0xae
     - X = 0XF9
-    - o = 0o22//18
+    - o = 022//18
     - O = 027
     - f = 6.04
     - s = "Hello"
-    - fmt = format("%d, 0x%x, 0X%X, 0o%o, 0%o %f, %s", d, x, X, o, O, f, s)
-    test.AssertS("42, 0xae, 0XF9, 0o22, 027 6.04, Hello", fmt)
+    - fmt = format("%d, 0x%x, 0X%X, 0%o, 0%o %f, %s", d, x, X, o, O, f, s)
+    test.AssertS("42, 0xae, 0XF9, 022, 027 6.04, Hello", fmt)
 
   print(test._test_count_, "tests done.")
 

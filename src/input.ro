@@ -36,11 +36,11 @@
   ---
     - d = 42
     - x = 0xae
-    - o = 0o22//18
+    - o = 022//18
     - O = 027
     - f = 6.04
     - s = "Hello"
-    print(format("%d, 0x%X, 0o%o, 0%o %f, %s", d, x, o, O, f, s))
+    print(format("%d, 0x%X, 0%o, 0%o %f, %s", d, x, o, O, f, s))
 
   return 12
 

@@ -250,57 +250,30 @@ static int top(const struct lexer *l)
  */
 static void scan_decimal(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
-    const char *itr = l->itr;
-    const char *start = itr;
-    char *end = NULL;
-    bool fpnum = false;
+    const char *start = l->itr;
+    double fval = 0.0;
+    long ival = 0;
+    int fcount = 0;
+    int icount = 0;
+    int fnext = '\0';
 
-    while (true) {
-        int ch = tolower(*itr++);
+    sscanf(start, "%le%n", &fval, &fcount);
+    sscanf(start, "%li%n", &ival, &icount);
 
-        if (isdigit(ch))
-            continue;
+    /* to ensure scanning "for i in 0..N" */
+    /*                              ^^^   */
+    fnext = *(start + fcount);
 
-        if (ch == '.') {
-            int next = tolower(*itr);
-            if (isdigit(next) || next == 'e') {
-                fpnum = true;
-            }
-        }
-        else if (ch == 'e') {
-            int next = *itr;
-            if (isdigit(next) || next == '+' || next == '-') {
-                fpnum = true;
-            }
-        }
-
-        break;
-    }
-
-    if (fpnum) {
-        tok->fval = strtod(start, &end);
+    if (fcount > icount && fnext != '.') {
+        tok->fval = fval;
         set(tok, TOK_FLOATLIT, pos);
+        l->itr += fcount;
     }
     else {
-        tok->ival = strtol(start, &end, 10);
+        tok->ival = ival;
         set(tok, TOK_INTLIT, pos);
+        l->itr += icount;
     }
-
-    assert(end);
-    l->itr = end;
-}
-
-static void scan_integer(struct lexer *l, struct parser_token *tok, struct parser_pos pos,
-        int base)
-{
-    const char *start = l->itr;
-    char *end = NULL;
-
-    tok->ival = strtol(start, &end, base);
-    set(tok, TOK_INTLIT, pos);
-
-    assert(end);
-    l->itr = end;
 }
 
 static void scan_char_literal(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
@@ -587,30 +560,6 @@ static void get_token(struct lexer *l, struct parser_token *tok)
     while (!eof(l)) {
         int ch = get(l);
         struct parser_pos pos = l->pos;
-
-        if (ch == '0') {
-            int next = tolower(peek(l));
-            if (next == 'o') {
-                /* octal */
-                get(l);
-                scan_integer(l, tok, pos, 8);
-            }
-            else if (isdigit(next)) {
-                /* octal */
-                scan_integer(l, tok, pos, 8);
-            }
-            else if (next == 'x') {
-                /* hexadecimal */
-                get(l);
-                scan_integer(l, tok, pos, 16);
-            }
-            else {
-                /* decimal */
-                unget(l);
-                scan_decimal(l, tok, pos);
-            }
-            return;
-        }
 
         /* decimal */
         if (isdigit(ch)) {
