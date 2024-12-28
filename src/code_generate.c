@@ -31,26 +31,30 @@
 static int gen_expr(struct code_bytecode *code, const struct parser_expr *e);
 static int gen_addr(struct code_bytecode *code, const struct parser_expr *e);
 
-static int gen_convert(struct code_bytecode *code, int reg0, int reg1, int from, int to)
+/* TODO remove forward decls */
+static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2);
+static int gen_dst_register2(struct code_bytecode *code, int reg1);
+
+static int gen_convert(struct code_bytecode *code, const struct parser_expr *e)
 {
-    int reg = -1;
+    int src = gen_expr(code, e->l);
+    int dst = gen_dst_register2(code, src);
+    int from = e->l->type->kind;
+    int to = e->type->kind;
 
     switch (from) {
+
     case TYP_BOOL:
         switch (to) {
-            break;
 
         case TYP_BOOL:
-            break;
-            break;
+            return src;
 
         case TYP_INT:
-            reg = code_emit_bool_to_int(code, reg0, reg1);
-            break;
+            return code_emit_bool_to_int(code, dst, src);
 
         case TYP_FLOAT:
-            reg = code_emit_bool_to_float(code, reg0, reg1);
-            break;
+            return code_emit_bool_to_float(code, dst, src);
         }
         break;
 
@@ -58,15 +62,13 @@ static int gen_convert(struct code_bytecode *code, int reg0, int reg1, int from,
         switch (to) {
 
         case TYP_BOOL:
-            reg = code_emit_int_to_bool(code, reg0, reg1);
-            break;
+            return code_emit_int_to_bool(code, dst, src);
 
         case TYP_INT:
-            break;
+            return src;
 
         case TYP_FLOAT:
-            reg = code_emit_int_to_float(code, reg0, reg1);
-            break;
+            return code_emit_int_to_float(code, dst, src);
         }
         break;
 
@@ -74,25 +76,19 @@ static int gen_convert(struct code_bytecode *code, int reg0, int reg1, int from,
         switch (to) {
 
         case TYP_BOOL:
-            reg = code_emit_float_to_bool(code, reg0, reg1);
-            break;
+            return code_emit_float_to_bool(code, dst, src);
 
         case TYP_INT:
-            reg = code_emit_float_to_int(code, reg0, reg1);
-            break;
+            return code_emit_float_to_int(code, dst, src);
 
         case TYP_FLOAT:
-            break;
+            return src;
         }
         break;
     }
 
-    return reg;
+    return src;
 }
-
-/* TODO remove forward decls */
-static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2);
-static int gen_dst_register2(struct code_bytecode *code, int reg1);
 
 static int gen_array_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
@@ -516,55 +512,26 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     switch (e->kind) {
 
     case NOD_EXPR_NILLIT:
-        {
-            int reg0 = code_emit_load_int(code, 0);
-            return reg0;
-        }
+        return code_emit_load_int(code, 0);
 
     case NOD_EXPR_BOOLLIT:
     case NOD_EXPR_INTLIT:
-        {
-            int reg0 = code_emit_load_int(code, e->ival);
-            return reg0;
-        }
+        return code_emit_load_int(code, e->ival);
 
     case NOD_EXPR_FLOATLIT:
-        {
-            int reg0 = code_emit_load_float(code, e->fval);
-            return reg0;
-        }
+        return code_emit_load_float(code, e->fval);
 
     case NOD_EXPR_STRINGLIT:
-        {
-            const char *s = NULL;
-
-            /* TODO could remove e->converted */
-            if (!e->converted)
-                s = e->sval;
-            else
-                s = e->converted;
-
-            reg0 = code_emit_load_string(code, s);
-            return reg0;
-        }
+        return code_emit_load_string(code, e->sval);
 
     case NOD_EXPR_ARRAYLIT:
-        {
-            int reg0 = gen_array_lit(code, e, -1);
-            return reg0;
-        }
+        return gen_array_lit(code, e, -1);
 
     case NOD_EXPR_FUNCLIT:
-        {
-            int reg0 = code_emit_load_int(code, e->func->id);
-            return reg0;
-        }
+        return code_emit_load_int(code, e->func->id);
 
     case NOD_EXPR_CONV:
-        reg1 = gen_expr(code, e->l);
-        reg0 = gen_dst_register2(code, reg1);
-        reg0 = gen_convert(code, reg0, reg1, e->l->type->kind, e->type->kind);
-        return reg0;
+        return gen_convert(code, e);
 
     case NOD_EXPR_IDENT:
         if (e->var->is_global) {

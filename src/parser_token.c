@@ -282,8 +282,11 @@ static void scan_char_literal(struct lexer *l, struct parser_token *tok, struct 
 
     if (ch == '\\') {
         int next = get(l);
-        bool found = parser_find_escaped_char(next, &ch);
-        if (!found) {
+        int escseq = parser_find_escape_sequence(next);
+        if (escseq != -1) {
+            ch = escseq;
+        }
+        else {
             unget(l);
             error(l, "unknown escape sequence");
         }
@@ -367,30 +370,29 @@ static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_p
     set(tok, kind, pos);
 }
 
-static void scan_string(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
+static void scan_string_literal(struct lexer *l, struct parser_token *tok,
+        struct parser_pos pos)
 {
     static char buf[PARSER_MAX_STRING_LITERAL_LENGTH + 1] = {'\0'};
     int bufsize = sizeof(buf)/sizeof(buf[0]);
     char *dst = buf;
 
     struct parser_pos strpos = pos;
-    int backslashes = 0;
     int len = 0;
 
     for (int ch = get(l); ch != '"'; ch = get(l)) {
-        int next = peek(l);
 
         if (ch == '\\') {
-            backslashes++;
-            if (next == '"' || next == '\\') {
-                *dst++ = ch;
-                len++;
-
-                ch = get(l);
+            ch = get(l);
+            int escseq = parser_find_escape_sequence(ch);
+            if (escseq != -1) {
+                ch = escseq;
+            }
+            else {
+                error(l, "unknown escape character");
             }
         }
-
-        if (ch == EOF || ch == '\0') {
+        else if (ch == EOF || ch == '\0') {
             unget(l);
             l->pos = strpos;
             error(l, "unterminated string literal");
@@ -406,7 +408,6 @@ static void scan_string(struct lexer *l, struct parser_token *tok, struct parser
     }
     *dst = '\0';
 
-    tok->has_escseq = backslashes > 0;
     tok->sval = data_string_intern(buf);
     set(tok, TOK_STRINGLIT, pos);
 }
@@ -856,7 +857,7 @@ static void get_token(struct lexer *l, struct parser_token *tok)
 
         /* string */
         if (ch == '"') {
-            scan_string(l, tok, pos);
+            scan_string_literal(l, tok, pos);
             return;
         }
 

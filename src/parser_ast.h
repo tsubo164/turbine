@@ -116,7 +116,6 @@ struct parser_expr {
         const char *sval;
         struct parser_func *func;
     };
-    const char *converted;
 };
 
 struct parser_stmt {

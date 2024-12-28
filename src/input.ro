@@ -22,7 +22,7 @@
   //- b = [1, 2, 3, 4, 5]
   - a = 42
   - f = 3.14
-  - name = "John"
+  - name = "John\n  -Do \\e"
 
   //- s = format("Hello, {a}\n")
   //- t = format("The rate increased by %f%% in the past %d years", f, a)

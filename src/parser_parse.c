@@ -277,17 +277,6 @@ static struct parser_expr *string_lit_expr(struct parser *p)
     expr = parser_new_stringlit_expr(tok_str(p));
     tok = curtok(p);
 
-    if (tok->has_escseq) {
-        int errpos = parser_convert_escape_sequence(expr->sval, &expr->converted);
-
-        if (errpos != -1) {
-            printf("!! expr->val.s [%s] errpos %d\n", expr->sval, errpos);
-            struct parser_pos pos = tok->pos;
-            pos.x += errpos + 1;
-            error(p, pos, "unknown escape sequence");
-        }
-    }
-
     return expr;
 }
 
@@ -506,7 +495,7 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
 
     struct parser_pos fmt_pos = arg->pos;
     struct parser_pos arg_pos = arg->pos;
-    const char *fmt_start = arg->converted ? arg->converted : arg->sval;
+    const char *fmt_start = arg->sval;
     const char *fmt = fmt_start;
     bool match = true;
     arg = arg->next;
