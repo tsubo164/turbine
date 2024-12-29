@@ -7,6 +7,7 @@
 #include "runtime_string.h"
 #include "runtime_array.h"
 #include "runtime_value.h"
+#include "format.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -141,60 +142,34 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
     arg++;
 
     while (*fmt) {
-        int ch = *fmt++;
 
-        if (ch == '%') {
-            ch = *fmt++;
+        if (*fmt == '%') {
 
-            switch (ch) {
-            case 'd':
-                snprintf(buf, N, "%lld", arg->inum);
+            struct format_spec spec = {0};
+
+            fmt = format_parse_specifier(fmt, &spec);
+            assert(!spec.errmsg);
+
+            if (format_is_spec_int(&spec)) {
+                snprintf(buf, N, spec.cspec, arg->inum);
                 data_strbuf_cat(&sb, buf);
-                arg++;
-                break;
-
-            case 'x':
-                snprintf(buf, N, "%llx", arg->inum);
-                data_strbuf_cat(&sb, buf);
-                arg++;
-                break;
-
-            case 'X':
-                snprintf(buf, N, "%llX", arg->inum);
-                data_strbuf_cat(&sb, buf);
-                arg++;
-                break;
-
-            case 'o':
-                snprintf(buf, N, "%llo", arg->inum);
-                data_strbuf_cat(&sb, buf);
-                arg++;
-                break;
-
-            case 'f':
-                snprintf(buf, N, "%g", arg->fpnum);
+            }
+            else if(format_is_spec_float(&spec)) {
+                snprintf(buf, N, spec.cspec, arg->fpnum);
                 data_strbuf_cat(&sb, buf);
                 if (fmod(arg->fpnum, 1.0) == 0.0)
                     data_strbuf_cat(&sb, ".0");
-                arg++;
-                break;
-
-            case 's':
-                data_strbuf_cat(&sb, runtime_string_get_cstr(arg->string));
-                arg++;
-                break;
-
-            case '%':
-                data_strbuf_cat(&sb, "%");
-                break;
-
-            default:
-                /* error */
-                break;
             }
+            else if(format_is_spec_string(&spec)) {
+                data_strbuf_cat(&sb, runtime_string_get_cstr(arg->string));
+            }
+            else {
+                data_strbuf_cat(&sb, "%");
+            }
+            arg++;
         }
         else {
-            snprintf(buf, N, "%c", ch);
+            snprintf(buf, N, "%c", *fmt++);
             data_strbuf_cat(&sb, buf);
         }
     }

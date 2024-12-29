@@ -18,29 +18,16 @@
 //  - radius int
 
 # main(args []string) int
-  //- a = [[2, 3], [4, 5]]
-  //- b = [1, 2, 3, 4, 5]
   - a = 42
-  - f = 3.14
-  - name = "John\n  -Do \\e"
+  - f = 3.14159
+  print(format("a: [%-8d], f: [%10f]", a, f))
 
+  //- s = format("Hello, `a`\n")
   //- s = format("Hello, {a}\n")
-  //- t = format("The rate increased by %f%% in the past %d years", f, a)
-  //- s = format("Hello, `age;02` years old\n")
-  //- s = format("Hello, {age} years old\n")
-
-  //- s = "Hello, %v! I'm %v years old\n" << name << age
-  //print("<<", nil, t, nil, ">>")
-  //print(format("The rate increased by %f%% in the past %d years.\n   -- J.P. Moore", f, a))
-
-  ---
-    - d = 42
-    - x = 0xae
-    - o = 022//18
-    - O = 027
-    - f = 6.04
-    - s = "Hello"
-    print(format("%d, 0x%X, 0%o, 0%o %f, %s", d, x, o, O, f, s))
+  //- s = format("Hello, {}\n", a)
+  //- s = format("Hello, {:<>^,+, ,}\n", a)
+  //- s = format("Hello, %(-^)(+ )(0)([0-9]+)X\n", a)
+  //- s = format("Hello, %d\n", a)
 
   return 12
 

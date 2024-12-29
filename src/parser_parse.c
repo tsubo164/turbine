@@ -10,6 +10,7 @@
 #include "builtin_module.h"
 #include "data_intern.h"
 #include "data_strbuf.h"
+#include "format.h"
 #include "os.h"
 
 #include <assert.h>
@@ -497,58 +498,46 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
     struct parser_pos arg_pos = arg->pos;
     const char *fmt_start = arg->sval;
     const char *fmt = fmt_start;
-    bool match = true;
     arg = arg->next;
 
     while (*fmt) {
-        int c = *fmt++;
 
-        if (c == '%') {
-            c = *fmt++;
+        if (*fmt == '%') {
+            struct format_spec spec = {0};
+            bool match = false;
+            int ch = *(fmt + 1);
 
-            switch (c) {
-            case 'd':
-            case 'x':
-            case 'X':
-            case 'o':
-                if (!arg)
-                    error(p, arg_pos, "too few arguments for format");
-                match = parser_is_int_type(arg->type);
-                arg_pos = arg->pos;
-                arg = arg->next;
-                break;
+            fmt = format_parse_specifier(fmt, &spec);
 
-            case 'f':
-                if (!arg)
-                    error(p, arg_pos, "too few arguments for format");
-                match = parser_is_float_type(arg->type);
-                arg_pos = arg->pos;
-                arg = arg->next;
-                break;
-
-            case 's':
-                if (!arg)
-                    error(p, arg_pos, "too few arguments for format");
-                match = parser_is_string_type(arg->type);
-                arg_pos = arg->pos;
-                arg = arg->next;
-                break;
-
-            case '%':
-                break;
-
-            default:
-                {
-                    struct parser_pos spec_pos = fmt_pos;
-                    int offset = fmt - fmt_start;
-                    spec_pos.x += offset;
-                    error(p, spec_pos, "invalid format specifier '%%%c'", c);
-                }
+            if (spec.errmsg) {
+                struct parser_pos spec_pos = fmt_pos;
+                int offset = fmt - fmt_start;
+                spec_pos.x += offset;
+                error(p, spec_pos, "invalid format specifier '%%%c'", *fmt);
             }
-        }
 
-        if (!match) {
-            error(p, arg_pos, "type mismatch: format specifier '%%%c' and argument", c);
+            if (!arg)
+                error(p, arg_pos, "too few arguments for format");
+
+            if (format_is_spec_int(&spec)) {
+                match = parser_is_int_type(arg->type);
+            }
+            else if(format_is_spec_float(&spec)) {
+                match = parser_is_float_type(arg->type);
+            }
+            else if(format_is_spec_string(&spec)) {
+                match = parser_is_string_type(arg->type);
+            }
+
+            if (!match)
+                error(p, arg_pos, "type mismatch: format specifier '%%%c' and argument", ch);
+
+            arg = arg->next;
+            if (arg)
+                arg_pos = arg->pos;
+        }
+        else {
+            fmt++;
         }
     }
 
