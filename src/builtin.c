@@ -138,7 +138,7 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
     const char *fmt = runtime_string_get_cstr(arg->string);
     struct data_strbuf sb = DATA_STRBUF_INIT;
     char buf[32] = {'\0'};
-    int N = 32;
+    int bufsize = sizeof(buf)/sizeof(buf[0]);
     arg++;
 
     while (*fmt) {
@@ -146,16 +146,18 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
         if (*fmt == '%') {
 
             struct format_spec spec = {0};
+            char c_spec[32] = {'\0'};
+            int c_spec_size = sizeof(c_spec)/sizeof(c_spec[0]);
 
-            fmt = format_parse_specifier(fmt, &spec);
+            fmt = format_parse_specifier(fmt, &spec, c_spec, c_spec_size);
             assert(!spec.errmsg);
 
             if (format_is_spec_int(&spec)) {
-                snprintf(buf, N, spec.cspec, arg->inum);
+                snprintf(buf, bufsize, c_spec, arg->inum);
                 data_strbuf_cat(&sb, buf);
             }
             else if(format_is_spec_float(&spec)) {
-                snprintf(buf, N, spec.cspec, arg->fpnum);
+                snprintf(buf, bufsize, c_spec, arg->fpnum);
                 data_strbuf_cat(&sb, buf);
                 if (fmod(arg->fpnum, 1.0) == 0.0)
                     data_strbuf_cat(&sb, ".0");
@@ -169,7 +171,7 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
             arg++;
         }
         else {
-            snprintf(buf, N, "%c", *fmt++);
+            snprintf(buf, bufsize, "%c", *fmt++);
             data_strbuf_cat(&sb, buf);
         }
     }

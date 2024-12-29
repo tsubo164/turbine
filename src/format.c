@@ -1,21 +1,73 @@
 #include "format.h"
+
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 
-const char *format_parse_specifier(const char *formats, struct format_spec *spec)
+static const char *parse_flags(const char *formats, struct format_spec *spec, char *flags)
+{
+    static const char orders[] = "-+ 0";
+    const char *order = orders;
+    const char *fmt = formats;
+    char *flag = flags;
+
+    while (true) {
+        int ch = *fmt;
+
+        switch (ch) {
+
+        case '-':
+            spec->align = FMT_ALIGN_LEFT;
+            break;
+
+        case '+':
+            spec->show_plus = true;
+            break;
+
+        case ' ':
+            if (spec->show_plus) {
+                spec->errmsg = "show plus '+' and positive number space ' ' cannot be combined";
+                return fmt;
+            }
+            spec->positive_space = true;
+            break;
+
+        case '0':
+            if (spec->align == FMT_ALIGN_LEFT) {
+                spec->errmsg = "align left '-' and zero padding '0' cannot be combined";
+                return fmt;
+            }
+            spec->padding = FMT_PAD_ZERO;
+            break;
+
+        default:
+            *flag = '\0';
+            return fmt;
+        }
+
+        order = strchr(order, ch);
+        if (!order) {
+            spec->errmsg = "invalid flag order: expected [-+ 0]";
+            return fmt;
+        }
+
+        *flag++ = ch;
+        fmt++;
+    }
+
+    return NULL;
+}
+
+const char *format_parse_specifier(const char *formats, struct format_spec *spec,
+        char *c_spec, int c_spec_max_size)
 {
     static const struct format_spec default_spec = {0};
     *spec = default_spec;
 
     /* C format */
-    const char *c_align = "";
-    const char *c_showplus = "";
-    const char *c_pad = "";
-    char c_width[16] = {'\0'};
-    char c_precision[16] = {'\0'};
+    char c_flags[8] = {'\0'};
     const char *c_type = "d";
-
     const char *fmt = formats;
 
     if (*fmt != '%') {
@@ -31,29 +83,9 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
     }
 
     /* flags */
-    if (*fmt == '-') {
-        spec->align = FMT_ALIGN_LEFT;
-        c_align = "-";
-        fmt++;
-    }
-    if (*fmt == '+') {
-        spec->showplus = true;
-        c_showplus = "+";
-        fmt++;
-    }
-    if (*fmt == '-') {
-        spec->errmsg = "'-' flag must come before '+' flag";
+    fmt = parse_flags(fmt, spec, c_flags);
+    if (spec->errmsg)
         return fmt;
-    }
-    if (*fmt == '0') {
-        if (spec->align == FMT_ALIGN_LEFT) {
-            spec->errmsg = "align left '-' and zero padding '0' cannot be combined";
-            return fmt;
-        }
-        spec->padding = FMT_PAD_ZERO;
-        c_pad = "0";
-        fmt++;
-    }
 
     /* width */
     if (isdigit(*fmt) && *fmt != '0') {
@@ -65,10 +97,6 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
         }
         spec->width = width;
         fmt = end;
-        snprintf(c_width, sizeof(c_width)/sizeof(c_width[0]), "%d", width);
-    }
-    else {
-        spec->width = 1;
     }
 
     /* precision */
@@ -82,7 +110,6 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
         }
         spec->precision = precision;
         fmt = end;
-        snprintf(c_precision, sizeof(c_precision)/sizeof(c_precision[0]), ".%d", precision);
     }
 
     /* type */
@@ -124,8 +151,21 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
     fmt++;
 
     /* c format spec */
-    snprintf(spec->cspec, 16, "%%%s%s%s%s%s%s",
-            c_align, c_showplus, c_pad, c_width, c_precision, c_type);
+    if (c_spec) {
+#define BUFSIZE 16
+        char c_width[BUFSIZE] = {'\0'};
+        char c_precision[BUFSIZE] = {'\0'};
+
+        if (spec->width > 0)
+            snprintf(c_width, BUFSIZE, "%d", spec->width);
+
+        if (spec->precision > 0)
+            snprintf(c_precision, BUFSIZE, ".%d", spec->precision);
+
+        snprintf(c_spec, c_spec_max_size, "%%%s%s%s%s",
+                c_flags, c_width, c_precision, c_type);
+#undef BUFSIZE
+    }
 
     return fmt;
 }

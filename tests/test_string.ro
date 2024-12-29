@@ -32,6 +32,10 @@
     fmt = format("%-+8d, %010.3f", a, f)
     test.AssertS("+42     , 0000003.14", fmt)
 
+    // positive number space
+    fmt = format("%- 8d, %010.3f", a, f)
+    test.AssertS(" 42     , 0000003.14", fmt)
+
   print(test._test_count_, "tests done.")
 
   return 0

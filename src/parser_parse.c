@@ -509,7 +509,7 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
             struct format_spec spec = {0};
             bool match = false;
 
-            fmt = format_parse_specifier(fmt, &spec);
+            fmt = format_parse_specifier(fmt, &spec, NULL, 0);
 
             if (spec.errmsg) {
                 struct parser_pos spec_pos = fmt_pos;

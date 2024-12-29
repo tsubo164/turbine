@@ -20,7 +20,7 @@
 # main(args []string) int
   - a = 42
   - f = 3.14159
-  - fmt = format("a: [%-+8d], f: [%010.3f]", a, f)
+  - fmt = format("a: [%+08d], f: [%10.3f]", a, f)
   print(fmt)
 
   //- s = format("Hello, `a`\n")
