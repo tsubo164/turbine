@@ -500,12 +500,14 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
     const char *fmt = fmt_start;
     arg = arg->next;
 
+    /* skip the first '"' */
+    fmt_pos.x++;
+
     while (*fmt) {
 
         if (*fmt == '%') {
             struct format_spec spec = {0};
             bool match = false;
-            int ch = *(fmt + 1);
 
             fmt = format_parse_specifier(fmt, &spec);
 
@@ -513,7 +515,7 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
                 struct parser_pos spec_pos = fmt_pos;
                 int offset = fmt - fmt_start;
                 spec_pos.x += offset;
-                error(p, spec_pos, "invalid format specifier '%%%c'", *fmt);
+                error(p, spec_pos, spec.errmsg);
             }
 
             if (!arg)
@@ -530,7 +532,7 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
             }
 
             if (!match)
-                error(p, arg_pos, "type mismatch: format specifier '%%%c' and argument", ch);
+                error(p, arg_pos, "type mismatch: format specifier and argument");
 
             arg = arg->next;
             if (arg)

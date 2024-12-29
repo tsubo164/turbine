@@ -19,6 +19,19 @@
     - fmt = format("%d, 0x%x, 0X%X, 0%o, 0%o %f, %s", d, x, X, o, O, f, s)
     test.AssertS("42, 0xae, 0XF9, 022, 027 6.04, Hello", fmt)
 
+  ---
+    - a = 42
+    - f = 3.14159
+    - fmt string
+
+    // align left and width
+    fmt = format("%-8d, %010f", a, f)
+    test.AssertS("42      , 0003.14159", fmt)
+
+    // plus sign and precision
+    fmt = format("%-+8d, %010.3f", a, f)
+    test.AssertS("+42     , 0000003.14", fmt)
+
   print(test._test_count_, "tests done.")
 
   return 0

@@ -20,14 +20,14 @@
 # main(args []string) int
   - a = 42
   - f = 3.14159
-  print(format("a: [%-8d], f: [%10f]", a, f))
+  - fmt = format("a: [%-+8d], f: [%010.3f]", a, f)
+  print(fmt)
 
   //- s = format("Hello, `a`\n")
   //- s = format("Hello, {a}\n")
   //- s = format("Hello, {}\n", a)
   //- s = format("Hello, {:<>^,+, ,}\n", a)
   //- s = format("Hello, %(-^)(+ )(0)([0-9]+)X\n", a)
-  //- s = format("Hello, %d\n", a)
 
   return 12
 

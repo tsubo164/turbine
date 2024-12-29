@@ -26,10 +26,13 @@ struct format_spec {
     int align;
     int padding;
     int width;
+    int precision;
     int type;
 
     char cspec[16];
     const char *errmsg;
+
+    bool showplus;
 };
 
 const char *format_parse_specifier(const char *formats, struct format_spec *spec);

@@ -10,7 +10,10 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
 
     /* C format */
     const char *c_align = "";
+    const char *c_showplus = "";
     const char *c_pad = "";
+    char c_width[16] = {'\0'};
+    char c_precision[16] = {'\0'};
     const char *c_type = "d";
 
     const char *fmt = formats;
@@ -33,8 +36,15 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
         c_align = "-";
         fmt++;
     }
-
-    /* padding */
+    if (*fmt == '+') {
+        spec->showplus = true;
+        c_showplus = "+";
+        fmt++;
+    }
+    if (*fmt == '-') {
+        spec->errmsg = "'-' flag must come before '+' flag";
+        return fmt;
+    }
     if (*fmt == '0') {
         if (spec->align == FMT_ALIGN_LEFT) {
             spec->errmsg = "align left '-' and zero padding '0' cannot be combined";
@@ -55,9 +65,24 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
         }
         spec->width = width;
         fmt = end;
+        snprintf(c_width, sizeof(c_width)/sizeof(c_width[0]), "%d", width);
     }
     else {
         spec->width = 1;
+    }
+
+    /* precision */
+    if (*fmt == '.') {
+        fmt++;
+        char *end = NULL;
+        int precision = strtol(fmt, &end, 10);
+        if (precision >= 64) {
+            spec->errmsg = "precision must be less than 64";
+            return fmt;
+        }
+        spec->precision = precision;
+        fmt = end;
+        snprintf(c_precision, sizeof(c_precision)/sizeof(c_precision[0]), ".%d", precision);
     }
 
     /* type */
@@ -99,7 +124,8 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
     fmt++;
 
     /* c format spec */
-    snprintf(spec->cspec, 16, "%%%s%s%d%s", c_align, c_pad, spec->width, c_type);
+    snprintf(spec->cspec, 16, "%%%s%s%s%s%s%s",
+            c_align, c_showplus, c_pad, c_width, c_precision, c_type);
 
     return fmt;
 }
