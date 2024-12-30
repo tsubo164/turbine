@@ -15,6 +15,7 @@ enum format_padding {
 
 enum format_type {
     FMT_TYPE_DECIMAL = 0,
+    FMT_TYPE_CHAR,
     FMT_TYPE_OCTAL,
     FMT_TYPE_HEX,
     FMT_TYPE_FLOAT,
@@ -31,6 +32,7 @@ struct format_spec {
 
     const char *errmsg;
     bool show_plus;
+    bool alternate;
     bool positive_space;
 };
 

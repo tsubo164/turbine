@@ -7,7 +7,7 @@
 
 static const char *parse_flags(const char *formats, struct format_spec *spec, char *flags)
 {
-    static const char orders[] = "-+ 0";
+    static const char orders[] = "-+# 0";
     const char *order = orders;
     const char *fmt = formats;
     char *flag = flags;
@@ -23,6 +23,10 @@ static const char *parse_flags(const char *formats, struct format_spec *spec, ch
 
         case '+':
             spec->show_plus = true;
+            break;
+
+        case '#':
+            spec->alternate = true;
             break;
 
         case ' ':
@@ -59,6 +63,138 @@ static const char *parse_flags(const char *formats, struct format_spec *spec, ch
     return NULL;
 }
 
+static const char *parse_width(const char *formats, struct format_spec *spec)
+{
+    const char *fmt = formats;
+
+    if (isdigit(*fmt) && *fmt != '0') {
+        char *end = NULL;
+        long width = strtol(fmt, &end, 10);
+        if (width >= 1024) {
+            spec->errmsg = "width must be less than 1024";
+            return fmt;
+        }
+        if (!end) {
+            spec->errmsg = "fail to scan width field";
+            return fmt;
+        }
+        spec->width = width;
+        return end;
+    }
+
+    return fmt;
+}
+
+static const char *parse_precision(const char *formats, struct format_spec *spec)
+{
+    const char *fmt = formats;
+
+    if (*fmt == '.') {
+        fmt++;
+        char *end = NULL;
+        long precision = strtol(fmt, &end, 10);
+        if (precision >= 64) {
+            spec->errmsg = "precision must be less than 64";
+            return fmt;
+        }
+        if (!end) {
+            spec->errmsg = "fail to scan precision field";
+            return fmt;
+        }
+        spec->precision = precision;
+        return end;
+    }
+
+    return fmt;
+}
+
+static const char *parse_type(const char *formats, struct format_spec *spec,
+        const char **c_type)
+{
+    const char *fmt = formats;
+
+    switch (*fmt) {
+
+    case 's':
+        if (spec->alternate) {
+            spec->errmsg = "flag '#' and type 's' cannot be combined";
+            return fmt;
+        }
+        spec->type = FMT_TYPE_STRING;
+        *c_type = "s";
+        break;
+
+    case 'd':
+        if (spec->alternate) {
+            spec->errmsg = "flag '#' and type 'd' cannot be combined";
+            return fmt;
+        }
+        spec->type = FMT_TYPE_DECIMAL;
+        *c_type = "lld";
+        break;
+
+    case 'c':
+        if (spec->alternate) {
+            spec->errmsg = "flag '#' and type 'c' cannot be combined";
+            return fmt;
+        }
+        spec->type = FMT_TYPE_CHAR;
+        *c_type = "c";
+        break;
+
+    case 'o':
+        spec->type = FMT_TYPE_OCTAL;
+        *c_type = "o";
+        break;
+
+    case 'x':
+        spec->type = FMT_TYPE_HEX;
+        *c_type = "x";
+        break;
+
+    case 'X':
+        spec->type = FMT_TYPE_HEX;
+        *c_type = "X";
+        break;
+
+    case 'f':
+        spec->type = FMT_TYPE_FLOAT;
+        *c_type = "f";
+        break;
+
+    case 'F':
+        spec->type = FMT_TYPE_FLOAT;
+        *c_type = "F";
+        break;
+
+    case 'e':
+        spec->type = FMT_TYPE_FLOAT;
+        *c_type = "e";
+        break;
+
+    case 'E':
+        spec->type = FMT_TYPE_FLOAT;
+        *c_type = "E";
+        break;
+
+    case 'g':
+        spec->type = FMT_TYPE_FLOAT;
+        *c_type = "g";
+        break;
+
+    case 'G':
+        spec->type = FMT_TYPE_FLOAT;
+        *c_type = "G";
+        break;
+
+    default:
+        spec->errmsg = "invalid type field";
+        return fmt;
+    }
+
+    return ++fmt;
+}
+
 const char *format_parse_specifier(const char *formats, struct format_spec *spec,
         char *c_spec, int c_spec_max_size)
 {
@@ -88,67 +224,19 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
         return fmt;
 
     /* width */
-    if (isdigit(*fmt) && *fmt != '0') {
-        char *end = NULL;
-        int width = strtol(fmt, &end, 10);
-        if (width >= 1024) {
-            spec->errmsg = "width must be less than 1024";
-            return fmt;
-        }
-        spec->width = width;
-        fmt = end;
-    }
+    fmt = parse_width(fmt, spec);
+    if (spec->errmsg)
+        return fmt;
 
     /* precision */
-    if (*fmt == '.') {
-        fmt++;
-        char *end = NULL;
-        int precision = strtol(fmt, &end, 10);
-        if (precision >= 64) {
-            spec->errmsg = "precision must be less than 64";
-            return fmt;
-        }
-        spec->precision = precision;
-        fmt = end;
-    }
+    fmt = parse_precision(fmt, spec);
+    if (spec->errmsg)
+        return fmt;
 
     /* type */
-    switch (*fmt) {
-    case 'd':
-        spec->type = FMT_TYPE_DECIMAL;
-        c_type = "lld";
-        break;
-
-    case 'o':
-        spec->type = FMT_TYPE_OCTAL;
-        c_type = "o";
-        break;
-
-    case 'x':
-        spec->type = FMT_TYPE_HEX;
-        c_type = "x";
-        break;
-
-    case 'X':
-        spec->type = FMT_TYPE_HEX;
-        c_type = "X"; 
-        break;
-
-    case 'f':
-        spec->type = FMT_TYPE_FLOAT;
-        c_type = "g";
-        break;
-
-    case 's':
-        spec->type = FMT_TYPE_STRING;
-        c_type = "s"; 
-        break;
-
-    default:
-        spec->errmsg = "invalid type field";
+    fmt = parse_type(fmt, spec, &c_type);
+    if (spec->errmsg)
         return fmt;
-    }
-    fmt++;
 
     /* c format spec */
     if (c_spec) {
@@ -173,6 +261,7 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
 bool format_is_spec_int(const struct format_spec *spec)
 {
     return spec->type == FMT_TYPE_DECIMAL ||
+        spec->type == FMT_TYPE_CHAR ||
         spec->type == FMT_TYPE_OCTAL ||
         spec->type == FMT_TYPE_HEX;
 }
