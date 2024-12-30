@@ -137,8 +137,6 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value ret = {0};
     const char *fmt = runtime_string_get_cstr(arg->string);
     struct data_strbuf sb = DATA_STRBUF_INIT;
-    char buf[32] = {'\0'};
-    int bufsize = sizeof(buf)/sizeof(buf[0]);
     arg++;
 
     while (*fmt) {
@@ -148,6 +146,8 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
             struct format_spec spec = {0};
             char c_spec[32] = {'\0'};
             int c_spec_size = sizeof(c_spec)/sizeof(c_spec[0]);
+            char buf[32] = {'\0'};
+            int bufsize = sizeof(buf)/sizeof(buf[0]);
 
             fmt = format_parse_specifier(fmt, &spec, c_spec, c_spec_size);
             assert(!spec.errmsg);
@@ -166,13 +166,13 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
                 data_strbuf_cat(&sb, runtime_string_get_cstr(arg->string));
             }
             else {
-                data_strbuf_cat(&sb, "%");
+                data_strbuf_push(&sb, '%');
+                continue;
             }
             arg++;
         }
         else {
-            snprintf(buf, bufsize, "%c", *fmt++);
-            data_strbuf_cat(&sb, buf);
+            data_strbuf_push(&sb, *fmt++);
         }
     }
 

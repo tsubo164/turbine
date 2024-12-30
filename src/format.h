@@ -42,5 +42,6 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
 bool format_is_spec_int(const struct format_spec *spec);
 bool format_is_spec_float(const struct format_spec *spec);
 bool format_is_spec_string(const struct format_spec *spec);
+bool format_is_spec_percent(const struct format_spec *spec);
 
 #endif /* _H */

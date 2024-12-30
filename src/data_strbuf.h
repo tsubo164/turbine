@@ -11,6 +11,8 @@ struct data_strbuf {
 
 void data_strbuf_copy(struct data_strbuf *sb, const char *s);
 void data_strbuf_cat(struct data_strbuf *sb, const char *s);
+void data_strbuf_push(struct data_strbuf *sb, int ch);
+
 void data_strbuf_free(struct data_strbuf *sb);
 
 #endif /* _H */

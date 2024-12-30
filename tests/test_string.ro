@@ -9,6 +9,11 @@
     test.AssertS("<42, 3.14>", fmt)
 
   ---
+    - b = 2.75
+    - fmt = format("%g%%", b)
+    test.AssertS("2.75%", fmt)
+
+  ---
     - d = 42
     - x = 0xae
     - X = 0XF9

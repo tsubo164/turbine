@@ -18,9 +18,10 @@
 //  - radius int
 
 # main(args []string) int
-  - a = 42
+  //- a = 42
   - f = 3.14159
-  - fmt = format("a: [%+08d], f: [%10.3f] x: %#d", a, f, a)
+  //- fmt = format("a: [%+08d], f: [%10.3f] x: %#d", a, f, a)
+  - fmt = format("%g%%", f)
   print(fmt)
 
   //- s = format("Hello, `a`\n")

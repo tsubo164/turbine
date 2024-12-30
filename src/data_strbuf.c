@@ -72,6 +72,18 @@ void data_strbuf_cat(struct data_strbuf *sb, const char *s)
     memcpy(sb->data + old_len, s, len + 1);
 }
 
+void data_strbuf_push(struct data_strbuf *sb, int ch)
+{
+    if (!sb)
+        return;
+
+    int old_len = sb->len;
+    int new_len = sb->len + 1;
+
+    resize(sb, new_len);
+    sb->data[old_len] = ch;
+}
+
 void data_strbuf_free(struct data_strbuf *sb)
 {
     if (!sb)

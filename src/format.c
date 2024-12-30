@@ -275,3 +275,8 @@ bool format_is_spec_string(const struct format_spec *spec)
 {
     return spec->type == FMT_TYPE_STRING;
 }
+
+bool format_is_spec_percent(const struct format_spec *spec)
+{
+    return spec->type == FMT_TYPE_PERCENT;
+}

@@ -518,6 +518,9 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
                 error(p, spec_pos, spec.errmsg);
             }
 
+            if (format_is_spec_percent(&spec))
+                continue;
+
             if (!arg)
                 error(p, arg_pos, "too few arguments for format");
 
