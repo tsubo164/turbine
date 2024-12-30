@@ -495,10 +495,8 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
         error(p, arg->pos, "the first argument must be a string literal");
 
     struct parser_pos fmt_pos = arg->pos;
-    struct parser_pos arg_pos = arg->pos;
     const char *fmt_start = arg->sval;
     const char *fmt = fmt_start;
-    arg = arg->next;
 
     /* skip the first '"' */
     fmt_pos.x++;
@@ -521,9 +519,12 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
             if (format_is_spec_percent(&spec))
                 continue;
 
-            if (!arg)
-                error(p, arg_pos, "too few arguments for format");
+            /* advance arg */
+            if (!arg->next)
+                error(p, arg->pos, "too few arguments for format");
+            arg = arg->next;
 
+            /* check type */
             if (format_is_spec_int(&spec)) {
                 match = parser_is_int_type(arg->type);
             }
@@ -533,20 +534,15 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
             else if(format_is_spec_string(&spec)) {
                 match = parser_is_string_type(arg->type);
             }
-
             if (!match)
-                error(p, arg_pos, "type mismatch: format specifier and argument");
-
-            arg = arg->next;
-            if (arg)
-                arg_pos = arg->pos;
+                error(p, arg->pos, "type mismatch: format specifier and argument");
         }
         else {
             fmt++;
         }
     }
 
-    if (arg)
+    if (arg->next)
         error(p, arg->pos, "too many arguments for format");
 }
 

@@ -7,7 +7,8 @@
 
 static const char *parse_flags(const char *formats, struct format_spec *spec, char *flags)
 {
-    static const char orders[] = "-+# 0";
+#define ORDERS "-+# 0"
+    static const char orders[] = ORDERS;
     const char *order = orders;
     const char *fmt = formats;
     char *flag = flags;
@@ -52,7 +53,7 @@ static const char *parse_flags(const char *formats, struct format_spec *spec, ch
 
         order = strchr(order, ch);
         if (!order) {
-            spec->errmsg = "invalid flag order: expected [-+ 0]";
+            spec->errmsg = "invalid flag order: expected ["ORDERS"]";
             return fmt;
         }
 

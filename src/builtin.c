@@ -124,6 +124,42 @@ static int builtin_exit(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_NORETURN;
 }
 
+#if 0
+static void format_int(struct data_strbuf *sb, const struct format_spec *spec,
+        const char *c_spec, int64_t inum)
+{
+    char buf[32] = {'\0'};
+    int bufsize = sizeof(buf)/sizeof(buf[0]);
+
+    snprintf(buf, bufsize, c_spec, inum);
+
+    {
+        const char *dot = strchr(buf, '.');
+
+        if (dot) {
+            const char *end = dot;
+
+            for (const char *src = buf; src < end; src++) {
+                if ((end - src) % 3 == 0)
+                    data_strbuf_push(sb, ',');
+                data_strbuf_push(sb, *src);
+            }
+            data_strbuf_cat(sb, end);
+        }
+        else {
+            const char *end = buf + strlen(buf);
+
+            for (const char *src = buf; src < end; src++) {
+                if ((end - src) % 3 == 0)
+                    data_strbuf_push(sb, ',');
+                data_strbuf_push(sb, *src);
+            }
+        }
+    }
+    //data_strbuf_cat(sb, buf);
+}
+#endif
+
 static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value arg_count = regs->locals[0];
@@ -137,7 +173,6 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value ret = {0};
     const char *fmt = runtime_string_get_cstr(arg->string);
     struct data_strbuf sb = DATA_STRBUF_INIT;
-    arg++;
 
     while (*fmt) {
 
@@ -151,6 +186,7 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 
             fmt = format_parse_specifier(fmt, &spec, c_spec, c_spec_size);
             assert(!spec.errmsg);
+            arg++;
 
             if (format_is_spec_int(&spec)) {
                 snprintf(buf, bufsize, c_spec, arg->inum);
@@ -169,7 +205,6 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
                 data_strbuf_push(&sb, '%');
                 continue;
             }
-            arg++;
         }
         else {
             data_strbuf_push(&sb, *fmt++);
