@@ -66,6 +66,14 @@
     fmt = format("[%- ,15d] [%+10g]", x, y)
     test.AssertS("[ 12,345,678    ] [      +3.0]", fmt)
 
+    y = 12345678.98
+    fmt = format("[%-_15d] [%,15.2f]", x, y)
+    test.AssertS("[12_345_678     ] [  12,345,678.98]", fmt)
+    fmt = format("[%-_15d] [%-,15.2f]", x, y)
+    test.AssertS("[12_345_678     ] [12,345,678.98  ]", fmt)
+    fmt = format("[%-_15d] [%-+,15.2f]", x, y)
+    test.AssertS("[12_345_678     ] [+12,345,678.98 ]", fmt)
+
   print(test._test_count_, "tests done.")
 
   return 0

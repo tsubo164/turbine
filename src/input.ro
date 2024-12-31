@@ -22,7 +22,7 @@
   //- f = 3.14159
   //- x = -42230432
   - x = 12345678
-  - y = 3.0
+  - y = 12345678.98
   //- fmt = format("a: [%+08d], f: [%10.3f] x: %#x", a, f, a)
   //print(fmt)
 
@@ -30,7 +30,7 @@
   //print(fmt)
   //- fmt = format("[%_15d], [%+010g]", x, y)
   //- fmt = format("[%+015d], [%+10g]", x, y)
-  - fmt = format("[%-_15d], [%+10g]", x, y)
+  - fmt = format("[%-_15d], [%,15.2f]", x, y)
   print(fmt)
   print("[123456789012345]")
 

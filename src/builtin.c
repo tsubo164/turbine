@@ -194,29 +194,39 @@ static void format_width(struct data_strbuf *sb, const char *src,
     }
 }
 
+static const char *insert_group_separators(const char *input, char *output, char separator)
+{
+    const char *dot = strchr(input, '.');
+    const char *end = dot ? dot : input + strlen(input);
+    const char *src = input;
+    char *dst = output;
+
+    while (src < end) {
+        if ((end - src) % 3 == 0 && isdigit(*src))
+            *dst++ = separator;
+        *dst++ = *src++;
+    }
+
+    while (*src)
+        *dst++ = *src++;
+
+    *dst = '\0';
+
+    return output;
+}
+
+#define BUFSIZE 64
 static void format_int(struct data_strbuf *sb, const struct format_spec *spec,
         const char *c_spec, int64_t inum)
 {
-#define BUFSIZE 64
     char buf[BUFSIZE] = {'\0'};
     const char *outputbuf = buf;
+
     snprintf(buf, BUFSIZE, c_spec, inum);
-#undef BUFSIZE
 
     if (spec->group1k) {
-        int len = strlen(buf);
-        const char *dot = strchr(buf, '.');
-        const char *end = dot ? dot : buf + len;
-
-        char buf1k[64] = {'\0'};
-        char *dst = buf1k;
-        outputbuf = buf1k;
-
-        for (const char *src = buf; src < end; src++) {
-            if ((end - src) % 3 == 0 && isdigit(*src))
-                *dst++ = spec->group1k;
-            *dst++ = *src;
-        }
+        char buf1k[BUFSIZE] = {'\0'};
+        outputbuf = insert_group_separators(buf, buf1k, spec->group1k);
     }
 
     format_width(sb, outputbuf, spec, inum > 0);
@@ -225,21 +235,25 @@ static void format_int(struct data_strbuf *sb, const struct format_spec *spec,
 static void format_float(struct data_strbuf *sb, const struct format_spec *spec,
         const char *c_spec, double fpnum)
 {
-#define BUFSIZE 64
     char buf[BUFSIZE] = {'\0'};
+    const char *outputbuf = buf;
 
     snprintf(buf, BUFSIZE, c_spec, fpnum);
+
     if (fmod(fpnum, 1.0) == 0.0) {
         int len = strlen(buf);
         buf[len]   = '.';
         buf[len+1] = '0';
     }
 
-    if (!spec->group1k) {
+    if (spec->group1k) {
+        char buf1k[BUFSIZE] = {'\0'};
+        outputbuf = insert_group_separators(buf, buf1k, spec->group1k);
     }
 
-    format_width(sb, buf, spec, fpnum > 0.0);
+    format_width(sb, outputbuf, spec, fpnum > 0.0);
 }
+#undef BUFSIZE
 
 static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 {
