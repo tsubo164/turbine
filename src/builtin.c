@@ -135,34 +135,26 @@ static void format_width(struct data_strbuf *sb, const char *src,
         int pads = width > len ? width - len : 0;
 
         if (format_is_spec_align_left(spec)) {
-            int i = 0;
-
             if (spec->plussign && is_positive_number) {
                 data_strbuf_push(sb, spec->plussign);
-                i++;
+                pads--;
             }
 
             data_strbuf_cat(sb, src);
-
-            for (; i < pads; i++)
-                data_strbuf_push(sb, spec->pad);
+            data_strbuf_pushn(sb, spec->pad, pads);
         }
         else {
-            int i = 0;
-
             if (spec->plussign && spec->pad == '0' && is_positive_number) {
                 data_strbuf_push(sb, spec->plussign);
-                i++;
+                pads--;
             }
 
-            for (; i < pads; i++) {
-                char pad = spec->pad;
-
-                if (i == pads - 1)
-                    if (spec->plussign && spec->pad == ' ' && is_positive_number)
-                        pad = spec->plussign;
-
-                data_strbuf_push(sb, pad);
+            if (spec->plussign && spec->pad == ' ' && is_positive_number) {
+                data_strbuf_pushn(sb, spec->pad, pads - 1);
+                data_strbuf_push(sb, spec->plussign);
+            }
+            else {
+                data_strbuf_pushn(sb, spec->pad, pads);
             }
 
             data_strbuf_cat(sb, src);
