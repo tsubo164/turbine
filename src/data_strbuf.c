@@ -72,6 +72,20 @@ void data_strbuf_cat(struct data_strbuf *sb, const char *s)
     memcpy(sb->data + old_len, s, len + 1);
 }
 
+void data_strbuf_catn(struct data_strbuf *sb, const char *s, int n)
+{
+    if (!sb || !s)
+        return;
+
+    int len = strlen(s);
+    len = len < n ? len : n;
+    int old_len = sb->len;
+    int new_len = sb->len + len;
+
+    resize(sb, new_len);
+    memcpy(sb->data + old_len, s, len);
+}
+
 void data_strbuf_push(struct data_strbuf *sb, int ch)
 {
     if (!sb)
@@ -82,6 +96,18 @@ void data_strbuf_push(struct data_strbuf *sb, int ch)
 
     resize(sb, new_len);
     sb->data[old_len] = ch;
+}
+
+void data_strbuf_pushn(struct data_strbuf *sb, int ch, int n)
+{
+    if (!sb)
+        return;
+
+    int old_len = sb->len;
+    int new_len = sb->len + n;
+
+    resize(sb, new_len);
+    memset(sb->data + old_len, ch, n);
 }
 
 void data_strbuf_free(struct data_strbuf *sb)

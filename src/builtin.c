@@ -126,27 +126,6 @@ static int builtin_exit(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_NORETURN;
 }
 
-#if 0
-static void insert_group_separators(const char *start, const char *stop, char *output,
-        const struct format_spec *spec, bool is_positive)
-{
-    const char *dot = strchr(start, '.');
-    const char *end = dot ? dot : stop;
-    char *dst = output;
-
-    if (spec->show_plus && is_positive)
-        *dst++ = '+';
-    if (spec->positive_space && is_positive)
-        *dst++ = ' ';
-
-    for (const char *src = start; src < end; src++) {
-        if ((end - src) % 3 == 0 && isdigit(*src))
-            *dst++ = spec->group1k;
-        *dst++ = *src;
-    }
-}
-#endif
-
 static void format_width(struct data_strbuf *sb, const char *src,
         const struct format_spec *spec, bool is_positive_number)
 {
@@ -255,6 +234,34 @@ static void format_float(struct data_strbuf *sb, const struct format_spec *spec,
 }
 #undef BUFSIZE
 
+static void format_string(struct data_strbuf *sb, const struct format_spec *spec,
+        const char *src)
+{
+    int len = strlen(src);
+
+    if (spec->precision > 0) {
+        if (len > spec->precision)
+            len = spec->precision;
+    }
+
+    if (spec->width > 0) {
+        int width = spec->width;
+        int pads = width > len ? width - len : 0;
+
+        if (format_is_spec_align_left(spec)) {
+            data_strbuf_catn(sb, src, len);
+            data_strbuf_pushn(sb, ' ', pads);
+        }
+        else {
+            data_strbuf_pushn(sb, ' ', pads);
+            data_strbuf_catn(sb, src, len);
+        }
+    }
+    else {
+        data_strbuf_catn(sb, src, len);
+    }
+}
+
 static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value arg_count = regs->locals[0];
@@ -288,7 +295,7 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
                 format_float(&sb, &spec, c_spec, arg->fpnum);
             }
             else if(format_is_spec_string(&spec)) {
-                data_strbuf_cat(&sb, runtime_string_get_cstr(arg->string));
+                format_string(&sb, &spec, runtime_string_get_cstr(arg->string));
             }
             else {
                 data_strbuf_push(&sb, '%');

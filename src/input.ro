@@ -18,19 +18,17 @@
 //  - radius int
 
 # main(args []string) int
-  //- a = 42
-  //- f = 3.14159
-  //- x = -42230432
-  - x = 12345678
-  - y = 12345678.98
-  //- fmt = format("a: [%+08d], f: [%10.3f] x: %#x", a, f, a)
-  //print(fmt)
-
-  //fmt = format("%g%%", f)
-  //print(fmt)
-  //- fmt = format("[%_15d], [%+010g]", x, y)
-  //- fmt = format("[%+015d], [%+10g]", x, y)
-  - fmt = format("[%-_15d], [%,15.2f]", x, y)
+  - s = "hello"
+  - fmt string
+  fmt = format("[%s]", s)
+  print(fmt)
+  fmt = format("[%-15s]", s)
+  print(fmt)
+  fmt = format("[%15s]", s)
+  print(fmt)
+  fmt = format("[%15.3s]", s)
+  print(fmt)
+  fmt = format("[%.4s]", s)
   print(fmt)
   print("[123456789012345]")
 

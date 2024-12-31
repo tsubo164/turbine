@@ -133,6 +133,11 @@ static const char *parse_width(const char *formats, struct format_spec *spec)
         return end;
     }
 
+    if (format_is_spec_align_left(spec)) {
+        spec->errmsg = "width field is required with align left flag";
+        return fmt;
+    }
+
     return fmt;
 }
 
@@ -171,6 +176,18 @@ static const char *parse_type(const char *formats, struct format_spec *spec,
     switch (*fmt) {
 
     case 's':
+        if (spec->plussign) {
+            spec->errmsg = "plus number flag and type 's' cannot be combined";
+            return fmt;
+        }
+        if (spec->group1k) {
+            spec->errmsg = "thousand grouping and type 's' cannot be combined";
+            return fmt;
+        }
+        if (spec->pad == '0') {
+            spec->errmsg = "pad zero and type 's' cannot be combined";
+            return fmt;
+        }
         if (spec->alternate) {
             spec->errmsg = "flag '#' and type 's' cannot be combined";
             return fmt;
