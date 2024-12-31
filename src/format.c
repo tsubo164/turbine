@@ -5,9 +5,39 @@
 #include <stdio.h>
 #include <ctype.h>
 
+enum format_align {
+    FMT_ALIGN_RIGHT = 0,
+    FMT_ALIGN_LEFT,
+};
+
+enum format_type {
+    FMT_TYPE_DECIMAL = 0,
+    FMT_TYPE_CHAR,
+    FMT_TYPE_OCTAL,
+    FMT_TYPE_HEX,
+    FMT_TYPE_FLOAT,
+    FMT_TYPE_STRING,
+    FMT_TYPE_PERCENT,
+};
+
+static void init_spec(struct format_spec *spec)
+{
+    spec->align = FMT_ALIGN_RIGHT;
+    spec->plussign = '\0';
+    spec->group1k = '\0';
+    spec->pad = ' ';
+    spec->alternate = false;
+
+    spec->width = 0;
+    spec->precision = 0;
+    spec->type = '\0';
+
+    spec->errmsg = NULL;
+}
+
 static const char *parse_flags(const char *formats, struct format_spec *spec, char *flags)
 {
-#define ORDERS "-+# 0"
+#define ORDERS "-+# 0,_"
     static const char orders[] = ORDERS;
     const char *order = orders;
     const char *fmt = formats;
@@ -23,27 +53,44 @@ static const char *parse_flags(const char *formats, struct format_spec *spec, ch
             break;
 
         case '+':
-            spec->show_plus = true;
+            spec->plussign = ch;
             break;
 
         case '#':
             spec->alternate = true;
+            *flag++ = ch;
             break;
 
         case ' ':
-            if (spec->show_plus) {
-                spec->errmsg = "show plus '+' and positive number space ' ' cannot be combined";
+            if (spec->plussign == '+') {
+                spec->errmsg = "plus sign '+' and plus space ' ' cannot be combined";
                 return fmt;
             }
-            spec->positive_space = true;
+            spec->plussign = ch;
             break;
 
         case '0':
-            if (spec->align == FMT_ALIGN_LEFT) {
+            if (format_is_spec_align_left(spec)) {
                 spec->errmsg = "align left '-' and zero padding '0' cannot be combined";
                 return fmt;
             }
-            spec->padding = FMT_PAD_ZERO;
+            spec->pad = ch;
+            break;
+
+        case ',':
+            if (spec->plussign == '_') {
+                spec->errmsg = "thousand grouping ',' and ' ' cannot be combined";
+                return fmt;
+            }
+            spec->group1k = ch;
+            break;
+
+        case '_':
+            if (spec->plussign == ',') {
+                spec->errmsg = "thousand grouping ',' and ' ' cannot be combined";
+                return fmt;
+            }
+            spec->group1k = ch;
             break;
 
         default:
@@ -57,11 +104,11 @@ static const char *parse_flags(const char *formats, struct format_spec *spec, ch
             return fmt;
         }
 
-        *flag++ = ch;
         fmt++;
     }
 
     return NULL;
+#undef ORDERS
 }
 
 static const char *parse_width(const char *formats, struct format_spec *spec)
@@ -71,14 +118,17 @@ static const char *parse_width(const char *formats, struct format_spec *spec)
     if (isdigit(*fmt) && *fmt != '0') {
         char *end = NULL;
         long width = strtol(fmt, &end, 10);
+
         if (width >= 1024) {
             spec->errmsg = "width must be less than 1024";
             return fmt;
         }
+
         if (!end) {
             spec->errmsg = "fail to scan width field";
             return fmt;
         }
+
         spec->width = width;
         return end;
     }
@@ -92,16 +142,20 @@ static const char *parse_precision(const char *formats, struct format_spec *spec
 
     if (*fmt == '.') {
         fmt++;
+
         char *end = NULL;
         long precision = strtol(fmt, &end, 10);
+
         if (precision >= 64) {
             spec->errmsg = "precision must be less than 64";
             return fmt;
         }
+
         if (!end) {
             spec->errmsg = "fail to scan precision field";
             return fmt;
         }
+
         spec->precision = precision;
         return end;
     }
@@ -199,12 +253,12 @@ static const char *parse_type(const char *formats, struct format_spec *spec,
 const char *format_parse_specifier(const char *formats, struct format_spec *spec,
         char *c_spec, int c_spec_max_size)
 {
-    static const struct format_spec default_spec = {0};
-    *spec = default_spec;
+    init_spec(spec);
+
 
     /* C format */
-    char c_flags[8] = {'\0'};
-    const char *c_type = "d";
+    char c_flags[16] = {'\0'};
+    const char *c_type = "lld";
     const char *fmt = formats;
 
     if (*fmt != '%') {
@@ -241,22 +295,19 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
 
     /* c format spec */
     if (c_spec) {
-#define BUFSIZE 16
-        char c_width[BUFSIZE] = {'\0'};
-        char c_precision[BUFSIZE] = {'\0'};
-
-        if (spec->width > 0)
-            snprintf(c_width, BUFSIZE, "%d", spec->width);
-
+        char c_precision[16] = {'\0'};
         if (spec->precision > 0)
-            snprintf(c_precision, BUFSIZE, ".%d", spec->precision);
+            snprintf(c_precision, 16, ".%d", spec->precision);
 
-        snprintf(c_spec, c_spec_max_size, "%%%s%s%s%s",
-                c_flags, c_width, c_precision, c_type);
-#undef BUFSIZE
+        snprintf(c_spec, c_spec_max_size, "%%%s%s%s", c_flags, c_precision, c_type);
     }
 
     return fmt;
+}
+
+bool format_is_spec_align_left(const struct format_spec *spec)
+{
+    return spec->align == FMT_ALIGN_LEFT;
 }
 
 bool format_is_spec_int(const struct format_spec *spec)

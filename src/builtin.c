@@ -10,7 +10,9 @@
 #include "format.h"
 
 #include <assert.h>
+#include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <math.h>
 
 static const char *print_value(struct runtime_value val, const char *fmt)
@@ -125,40 +127,119 @@ static int builtin_exit(struct runtime_gc *gc, struct runtime_registers *regs)
 }
 
 #if 0
+static void insert_group_separators(const char *start, const char *stop, char *output,
+        const struct format_spec *spec, bool is_positive)
+{
+    const char *dot = strchr(start, '.');
+    const char *end = dot ? dot : stop;
+    char *dst = output;
+
+    if (spec->show_plus && is_positive)
+        *dst++ = '+';
+    if (spec->positive_space && is_positive)
+        *dst++ = ' ';
+
+    for (const char *src = start; src < end; src++) {
+        if ((end - src) % 3 == 0 && isdigit(*src))
+            *dst++ = spec->group1k;
+        *dst++ = *src;
+    }
+}
+#endif
+
+static void format_width(struct data_strbuf *sb, const char *src,
+        const struct format_spec *spec, bool is_positive_number)
+{
+    if (spec->width > 0) {
+        int len = strlen(src);
+        int width = spec->width;
+        int pads = width > len ? width - len : 0;
+
+        if (format_is_spec_align_left(spec)) {
+            int i = 0;
+
+            if (spec->plussign && is_positive_number) {
+                data_strbuf_push(sb, spec->plussign);
+                i++;
+            }
+
+            data_strbuf_cat(sb, src);
+
+            for (; i < pads; i++)
+                data_strbuf_push(sb, spec->pad);
+        }
+        else {
+            int i = 0;
+
+            if (spec->plussign && spec->pad == '0' && is_positive_number) {
+                data_strbuf_push(sb, spec->plussign);
+                i++;
+            }
+
+            for (; i < pads; i++) {
+                char pad = spec->pad;
+
+                if (i == pads - 1)
+                    if (spec->plussign && spec->pad == ' ' && is_positive_number)
+                        pad = spec->plussign;
+
+                data_strbuf_push(sb, pad);
+            }
+
+            data_strbuf_cat(sb, src);
+        }
+    }
+    else {
+        data_strbuf_cat(sb, src);
+    }
+}
+
 static void format_int(struct data_strbuf *sb, const struct format_spec *spec,
         const char *c_spec, int64_t inum)
 {
-    char buf[32] = {'\0'};
-    int bufsize = sizeof(buf)/sizeof(buf[0]);
+#define BUFSIZE 64
+    char buf[BUFSIZE] = {'\0'};
+    const char *outputbuf = buf;
+    snprintf(buf, BUFSIZE, c_spec, inum);
+#undef BUFSIZE
 
-    snprintf(buf, bufsize, c_spec, inum);
-
-    {
+    if (spec->group1k) {
+        int len = strlen(buf);
         const char *dot = strchr(buf, '.');
+        const char *end = dot ? dot : buf + len;
 
-        if (dot) {
-            const char *end = dot;
+        char buf1k[64] = {'\0'};
+        char *dst = buf1k;
+        outputbuf = buf1k;
 
-            for (const char *src = buf; src < end; src++) {
-                if ((end - src) % 3 == 0)
-                    data_strbuf_push(sb, ',');
-                data_strbuf_push(sb, *src);
-            }
-            data_strbuf_cat(sb, end);
-        }
-        else {
-            const char *end = buf + strlen(buf);
-
-            for (const char *src = buf; src < end; src++) {
-                if ((end - src) % 3 == 0)
-                    data_strbuf_push(sb, ',');
-                data_strbuf_push(sb, *src);
-            }
+        for (const char *src = buf; src < end; src++) {
+            if ((end - src) % 3 == 0 && isdigit(*src))
+                *dst++ = spec->group1k;
+            *dst++ = *src;
         }
     }
-    //data_strbuf_cat(sb, buf);
+
+    format_width(sb, outputbuf, spec, inum > 0);
 }
-#endif
+
+static void format_float(struct data_strbuf *sb, const struct format_spec *spec,
+        const char *c_spec, double fpnum)
+{
+#define BUFSIZE 64
+    char buf[BUFSIZE] = {'\0'};
+
+    snprintf(buf, BUFSIZE, c_spec, fpnum);
+    if (fmod(fpnum, 1.0) == 0.0) {
+        int len = strlen(buf);
+        buf[len]   = '.';
+        buf[len+1] = '0';
+    }
+
+    if (!spec->group1k) {
+    }
+
+    format_width(sb, buf, spec, fpnum > 0.0);
+}
 
 static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 {
@@ -181,22 +262,16 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
             struct format_spec spec = {0};
             char c_spec[32] = {'\0'};
             int c_spec_size = sizeof(c_spec)/sizeof(c_spec[0]);
-            char buf[32] = {'\0'};
-            int bufsize = sizeof(buf)/sizeof(buf[0]);
 
             fmt = format_parse_specifier(fmt, &spec, c_spec, c_spec_size);
             assert(!spec.errmsg);
             arg++;
 
             if (format_is_spec_int(&spec)) {
-                snprintf(buf, bufsize, c_spec, arg->inum);
-                data_strbuf_cat(&sb, buf);
+                format_int(&sb, &spec, c_spec, arg->inum);
             }
             else if(format_is_spec_float(&spec)) {
-                snprintf(buf, bufsize, c_spec, arg->fpnum);
-                data_strbuf_cat(&sb, buf);
-                if (fmod(arg->fpnum, 1.0) == 0.0)
-                    data_strbuf_cat(&sb, ".0");
+                format_float(&sb, &spec, c_spec, arg->fpnum);
             }
             else if(format_is_spec_string(&spec)) {
                 data_strbuf_cat(&sb, runtime_string_get_cstr(arg->string));

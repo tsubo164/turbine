@@ -3,41 +3,25 @@
 
 #include <stdbool.h>
 
-enum format_align {
-    FMT_ALIGN_RIGHT = 0,
-    FMT_ALIGN_LEFT,
-};
-
-enum format_padding {
-    FMT_PAD_SPACE = 0,
-    FMT_PAD_ZERO,
-};
-
-enum format_type {
-    FMT_TYPE_DECIMAL = 0,
-    FMT_TYPE_CHAR,
-    FMT_TYPE_OCTAL,
-    FMT_TYPE_HEX,
-    FMT_TYPE_FLOAT,
-    FMT_TYPE_STRING,
-    FMT_TYPE_PERCENT,
-};
-
 struct format_spec {
-    int align;
-    int padding;
-    int width;
-    int precision;
-    int type;
+    /* flags */
+    char align;
+    char plussign;
+    char group1k;
+    char pad;
+    bool alternate;
+
+    int  width;
+    int  precision;
+    char type;
 
     const char *errmsg;
-    bool show_plus;
-    bool alternate;
-    bool positive_space;
 };
 
 const char *format_parse_specifier(const char *formats, struct format_spec *spec,
         char *c_spec, int c_spec_max_size);
+
+bool format_is_spec_align_left(const struct format_spec *spec);
 
 bool format_is_spec_int(const struct format_spec *spec);
 bool format_is_spec_float(const struct format_spec *spec);
