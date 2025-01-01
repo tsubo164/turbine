@@ -192,6 +192,7 @@ struct parser_field *parser_add_field(struct parser_struct *strct,
 struct parser_field *parser_find_field(const struct parser_struct *strct,
         const char *name);
 int parser_struct_get_field_count(const struct parser_struct *s);
+struct parser_field *parser_struct_get_field(const struct parser_struct *s, int idx);
 
 /* table */
 struct parser_table *parser_define_table(struct parser_scope *sc,

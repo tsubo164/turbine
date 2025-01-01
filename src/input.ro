@@ -17,26 +17,23 @@
 //  - center Point
 //  - radius int
 
+## Point
+  - x int
+  - y int
+
+
 # main(args []string) int
-  - s = "hello"
-  - fmt string
-  fmt = format("[%s]", s)
-  print(fmt)
-  fmt = format("[%-15s]", s)
-  print(fmt)
-  fmt = format("[%15s]", s)
-  print(fmt)
-  fmt = format("[%15.3s]", s)
-  print(fmt)
-  fmt = format("[%.4s]", s)
-  print(fmt)
-  print("[123456789012345]")
+  - a = [1, 2, 3, 4]
+  - p = Point { x = 42, y = -11}
+
+  print(a)
+  print(p)
 
   //- s = format("Hello, `a`\n")
   //- s = format("Hello, {a}\n")
   //- s = format("Hello, {}\n", a)
-  //- s = format("Hello, {:<>^,+, ,}\n", a)
-  //- s = format("Hello, %(-^)(+ )(0)([0-9]+)X\n", a)
+  //- s = format("Hello, {:04d}\n", a)
+  //- s = format("Hello, %-+d\n", a)
 
   return 12
 
@@ -47,5 +44,5 @@
   //- d = true
   //- f = 3.14
   //- s = "Hello!"
-  //print(a, b, c, d, f, s)
-  //return a
+  //print(a, b, c, d)//, f, s)
+  //return b

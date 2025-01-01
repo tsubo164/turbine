@@ -2,6 +2,7 @@
 #include "parser_type.h"
 #include "data_intern.h"
 
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -345,6 +346,12 @@ struct parser_field *parser_find_field(const struct parser_struct *strct,
 int parser_struct_get_field_count(const struct parser_struct *s)
 {
     return s->fields.len;
+}
+
+struct parser_field *parser_struct_get_field(const struct parser_struct *s, int idx)
+{
+    assert(idx >= 0 && idx < s->fields.len);
+    return s->fields.data[idx];
 }
 
 /* table */

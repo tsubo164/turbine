@@ -24,6 +24,11 @@ void runtime_struct_free(struct runtime_struct *s)
     free(s);
 }
 
+int64_t runtime_struct_field_count(const struct runtime_struct *s)
+{
+    return s->fields.len;
+}
+
 struct runtime_value runtime_struct_get(const struct runtime_struct *s, int64_t field_idx)
 {
     if (field_idx < 0 || field_idx >= s->fields.len) {

@@ -465,8 +465,20 @@ static void add_type_info(struct data_strbuf *sb, const struct parser_type *type
         data_strbuf_cat(sb, "s");
     }
     else if (parser_is_array_type(type)) {
-        data_strbuf_cat(sb, "a");
+        data_strbuf_cat(sb, "A");
         add_type_info(sb, type->underlying);
+    }
+    else if (parser_is_struct_type(type)) {
+        data_strbuf_cat(sb, "S");
+
+        const struct parser_struct *strct = type->strct;
+        int count = parser_struct_get_field_count(strct);
+
+        for (int i = 0; i < count; i++) {
+            const struct parser_field *field;
+            field = parser_struct_get_field(strct, i);
+            add_type_info(sb, field->type);
+        }
     }
 }
 

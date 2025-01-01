@@ -5,6 +5,7 @@
 #include "parser_type.h"
 #include "runtime_function.h"
 #include "runtime_string.h"
+#include "runtime_struct.h"
 #include "runtime_array.h"
 #include "runtime_value.h"
 #include "format.h"
@@ -35,7 +36,7 @@ static const char *print_value(struct runtime_value val, const char *fmt)
         printf("%s", runtime_string_get_cstr(val.string));
         return p;
 
-    case 'a':
+    case 'A':
         {
             int len = runtime_array_len(val.array);
             const char *elem = p;
@@ -43,11 +44,26 @@ static const char *print_value(struct runtime_value val, const char *fmt)
             printf("[");
             for (int i = 0; i < len; i++) {
                 p = print_value(runtime_array_get(val.array, i), elem);
-                if (i == len - 1)
-                    printf("]");
-                else
+                if (i < len - 1)
                     printf(", ");
             }
+            printf("]");
+        }
+        return p;
+
+    case 'S':
+        {
+            int len = runtime_struct_field_count(val.strct);
+            const char *fld = p;
+
+            printf("{");
+            for (int i = 0; i < len; i++) {
+                fld = print_value(runtime_struct_get(val.strct, i), fld);
+                if (i < len - 1)
+                    printf(", ");
+            }
+            printf("}");
+            p = fld;
         }
         return p;
 

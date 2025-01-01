@@ -13,6 +13,7 @@ struct runtime_struct {
 struct runtime_struct *runtime_struct_new(int64_t len);
 void runtime_struct_free(struct runtime_struct *s);
 
+int64_t runtime_struct_field_count(const struct runtime_struct *s);
 struct runtime_value runtime_struct_get(const struct runtime_struct *s, int64_t field_idx);
 void runtime_struct_set(struct runtime_struct *s, int64_t field_idx, struct runtime_value val);
 
