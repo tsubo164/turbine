@@ -1,0 +1,22 @@
+[test]
+[math]
+
+## Point
+  - x float
+  - y float
+
+# length(p Point) float
+  return math.sqrt(p.x * p.x + p.y * p.y)
+
+# main(args []string) int
+
+  ---
+    // struct literal
+    - p = Point { x = 3.0, y = 4.0}
+    - l = length(p)
+    test.AssertF(5.0, l)
+    test.AssertF(5.0, length(Point { x = 3.0, y = 4.0}))
+
+  print(test._test_count_, "tests done.")
+
+  return 0
