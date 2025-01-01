@@ -52,28 +52,28 @@ static struct parser_type *new_type(int kind)
     return t;
 }
 
-struct parser_type *parser_new_func_type(struct parser_func_sig *func_sig)
+struct parser_type *parser_new_func_type(const struct parser_func_sig *func_sig)
 {
     struct parser_type *t = new_type(TYP_FUNC);
     t->func_sig = func_sig;
     return t;
 }
 
-struct parser_type *parser_new_struct_type(struct parser_struct *s)
+struct parser_type *parser_new_struct_type(const struct parser_struct *s)
 {
     struct parser_type *t = new_type(TYP_STRUCT);
     t->strct = s;
     return t;
 }
 
-struct parser_type *parser_new_table_type(struct parser_table *tab)
+struct parser_type *parser_new_table_type(const struct parser_table *tab)
 {
     struct parser_type *t = new_type(TYP_TABLE);
     t->table = tab;
     return t;
 }
 
-struct parser_type *parser_new_module_type(struct parser_module *mod)
+struct parser_type *parser_new_module_type(const struct parser_module *mod)
 {
     struct parser_type *t = new_type(TYP_MODULE);
     t->module = mod;

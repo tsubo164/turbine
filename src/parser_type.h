@@ -26,6 +26,7 @@ enum parser_type_kind {
 
 struct parser_type {
     int kind;
+    /* TODO move to union after removing pointer */
     const struct parser_type *underlying;
 
     union {
@@ -42,10 +43,10 @@ struct parser_type *parser_new_bool_type(void);
 struct parser_type *parser_new_int_type(void);
 struct parser_type *parser_new_float_type(void);
 struct parser_type *parser_new_string_type(void);
-struct parser_type *parser_new_func_type(struct parser_func_sig *func_sig);
-struct parser_type *parser_new_struct_type(struct parser_struct *s);
-struct parser_type *parser_new_table_type(struct parser_table *t);
-struct parser_type *parser_new_module_type(struct parser_module *m);
+struct parser_type *parser_new_func_type(const struct parser_func_sig *func_sig);
+struct parser_type *parser_new_struct_type(const struct parser_struct *s);
+struct parser_type *parser_new_table_type(const struct parser_table *t);
+struct parser_type *parser_new_module_type(const struct parser_module *m);
 struct parser_type *parser_new_ptr_type(const struct parser_type *underlying);
 struct parser_type *parser_new_array_type(const struct parser_type *underlying);
 struct parser_type *parser_new_any_type(void);
