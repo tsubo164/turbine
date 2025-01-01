@@ -332,7 +332,7 @@ int code_emit_new_array(struct code_bytecode *code, int dst, int len)
 
 int code_emit_new_struct(struct code_bytecode *code, int dst, int len)
 {
-    push_inst_ab(code, OP_NEWSTRUCT, dst, len);
+    push_inst_abb(code, OP_NEWSTRUCT, dst, len);
     return dst;
 }
 

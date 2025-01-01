@@ -20,7 +20,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_DEREF]          = { "deref",          OPERAND_AB_ },
     /* array/struct */
     [OP_NEWARRAY]       = { "newarray",       OPERAND_AB_ },
-    [OP_NEWSTRUCT]      = { "newstruct",      OPERAND_AB_ },
+    [OP_NEWSTRUCT]      = { "newstruct",      OPERAND_ABB },
     /* arithmetic */
     [OP_ADDINT]         = { "addint",         OPERAND_ABC },
     [OP_ADDFLOAT]       = { "addfloat",       OPERAND_ABC },

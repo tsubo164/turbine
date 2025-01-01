@@ -325,8 +325,8 @@ struct parser_field *parser_add_field(struct parser_struct *strct,
     if (parser_find_field(strct, name))
         return NULL;
 
-    struct parser_field *f = new_field(name, type, strct->size);
-    strct->size += parser_sizeof_type(f->type);
+    int offset = strct->fields.len;
+    struct parser_field *f = new_field(name, type, offset);
 
     push_field(&strct->fields, f);
     return f;

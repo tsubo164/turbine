@@ -108,16 +108,6 @@ struct parser_type *parser_new_template_type(int id)
     return t;
 }
 
-int parser_sizeof_type(const struct parser_type *t)
-{
-    if (parser_is_array_type(t))
-        return 1;
-    else if (parser_is_struct_type(t))
-        return t->strct->size;
-    else
-        return 1;
-}
-
 bool parser_is_nil_type(const struct parser_type *t)      { return t->kind == TYP_NIL; }
 bool parser_is_bool_type(const struct parser_type *t)     { return t->kind == TYP_BOOL; }
 bool parser_is_int_type(const struct parser_type *t)      { return t->kind == TYP_INT; }

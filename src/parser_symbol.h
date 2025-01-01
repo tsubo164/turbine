@@ -83,7 +83,6 @@ struct parser_fieldvec {
 struct parser_struct {
     const char *name;
     struct parser_fieldvec fields;
-    int size;
 };
 
 /* table */

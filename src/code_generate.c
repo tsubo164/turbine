@@ -1183,11 +1183,11 @@ static int resolve_offset(struct parser_scope *scope, int start_offset)
                 struct parser_var *var = sym->var;
                 /* offset */
                 var->id = cur_offset;
-                cur_offset += parser_sizeof_type(var->type);
+                cur_offset++;
                 max_offset = max(max_offset, cur_offset);
                 /* size */
                 if (!var->is_param)
-                    cur_size += parser_sizeof_type(var->type);
+                    cur_size++;
                 max_size = max(max_size, cur_size);
             }
             break;

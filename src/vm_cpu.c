@@ -365,7 +365,7 @@ static void run_cpu(struct vm_cpu *vm)
         case OP_NEWSTRUCT:
             {
                 int dst = inst.A;
-                int len = inst.B;
+                int len = inst.BB;
 
                 struct runtime_struct *obj = runtime_struct_new(len);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
