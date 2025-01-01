@@ -31,6 +31,7 @@
   //print(p)
   - p = Point { x = 3.0, y = 4.0}
   print(length(p))
+  print(length(Point { x = 3.0, y = 4.0}))
 
   //- s = format("Hello, `a`\n")
   //- s = format("Hello, {a}\n")

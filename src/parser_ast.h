@@ -140,7 +140,7 @@ struct parser_expr *parser_new_stringlit_expr(const char *s);
 struct parser_expr *parser_new_funclit_expr(struct parser_func *func);
 struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
-struct parser_expr *parser_new_structlit_expr(struct parser_struct *strct,
+struct parser_expr *parser_new_structlit_expr(const struct parser_struct *strct,
         struct parser_expr *fields);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
         struct parser_type *to);

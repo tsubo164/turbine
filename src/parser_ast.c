@@ -169,7 +169,8 @@ struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type
     return e;
 }
 
-struct parser_expr *parser_new_structlit_expr(struct parser_struct *strct, struct parser_expr *fields)
+struct parser_expr *parser_new_structlit_expr(const struct parser_struct *strct,
+        struct parser_expr *fields)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_STRUCTLIT);
     e->type = parser_new_struct_type(strct);

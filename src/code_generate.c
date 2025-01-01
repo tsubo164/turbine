@@ -119,55 +119,34 @@ static int gen_array_lit(struct code_bytecode *code,
     return dst;
 }
 
-static int gen_struct_lit(struct code_bytecode *code, const struct parser_expr *e,
-        const struct parser_type *type, /* XXX TEMP */
-        int dst_reg)
+static int gen_struct_lit(struct code_bytecode *code,
+        const struct parser_expr *e, int dst_reg)
 {
-    if (e && e->kind == NOD_EXPR_MODULE) {
-        return gen_struct_lit(code, e->r, e->r->type, dst_reg);
-    }
-
-    /* XXX TEMP */
-    if (e && e->kind == NOD_EXPR_IDENT) {
-        /* initialized by another object */
-        if (dst_reg == -1) {
-            /* global */
-            int src = gen_expr(code, e);
-            return src;
-        }
-        else {
-            /* local */
-            int src = gen_addr(code, e);
-            code_emit_move(code, dst_reg, src);
-            return dst_reg;
-        }
-    }
-    /*
-    int len = parser_struct_get_field_count(e->type->strct);
-    */ /* XXX TEMP */
-    int len = parser_struct_get_field_count(type->strct);
+    const struct parser_expr *elem;
+    int len = 0;
     int dst = 0;
 
+    /* dst register */
     if (dst_reg == -1)
         dst = code_allocate_temporary_register(code);
     else
         dst = dst_reg;
 
+    /* make struct */
+    len = parser_struct_get_field_count(e->type->strct);
     code_emit_new_struct(code, dst, len);
 
-    const struct parser_expr *struct_lit = e;
-
-    for (struct parser_expr *elem = struct_lit->l; elem; elem = elem->next) {
-        int src = gen_expr(code, elem->r);
+    /* set elements */
+    for (elem = e->l; elem; elem = elem->next) {
         int idx = gen_addr(code, elem->l);
-
+        int src = gen_expr(code, elem->r);
         code_emit_store_struct(code, dst, idx, src);
     }
 
     return dst;
 }
 
-static int gen_init_array(struct code_bytecode *code, const struct parser_expr *e)
+static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
 {
     if (parser_ast_is_global(e->l)) {
         int dst = gen_addr(code, e->l);
@@ -175,53 +154,25 @@ static int gen_init_array(struct code_bytecode *code, const struct parser_expr *
         code_emit_store_global(code, dst, tmp);
         return dst;
     }
-    else {
-        /* TODO consider use this logic for all types init */
-        if (e->r->kind == NOD_EXPR_ARRAYLIT) {
-            int dst = gen_addr(code, e->l);
-            gen_array_lit(code, e->r, dst);
-            return dst;
-        }
 
+    if (e->r->kind == NOD_EXPR_ARRAYLIT) {
+        int dst = gen_addr(code, e->l);
+        gen_array_lit(code, e->r, dst);
+        return dst;
+    }
+
+    if (e->r->kind == NOD_EXPR_STRUCTLIT) {
+        int dst = gen_addr(code, e->l);
+        gen_struct_lit(code, e->r, dst);
+        return dst;
+    }
+
+    {
         int dst = gen_addr(code, e->l);
         int src = gen_expr(code, e->r);
         code_emit_move(code, dst, src);
         return dst;
     }
-}
-
-static int gen_init_struct(struct code_bytecode *code, const struct parser_expr *e)
-{
-    if (parser_ast_is_global(e->l)) {
-        int dst = gen_addr(code, e->l);
-        int tmp = gen_struct_lit(code, e->r, e->type, -1);
-        code_emit_store_global(code, dst, tmp);
-        return dst;
-    }
-    else {
-        int dst = gen_addr(code, e->l);
-        gen_struct_lit(code, e->r, e->type, dst);
-        return dst;
-    }
-}
-
-static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
-{
-    /* rval */
-    int reg0 = -1;
-    int reg1 = gen_expr(code, e->r);
-
-    if (parser_ast_is_global(e->l)) {
-        reg0 = gen_addr(code, e->l);
-        code_emit_store_global(code, reg0, reg1);
-    }
-    else {
-        /* TODO handle case where lhs is not addressable */
-        reg0 = gen_addr(code, e->l);
-        code_emit_move(code, reg0, reg1);
-    }
-
-    return 0;
 }
 
 /* TODO move to bytecode.c */
@@ -527,6 +478,9 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_ARRAYLIT:
         return gen_array_lit(code, e, -1);
 
+    case NOD_EXPR_STRUCTLIT:
+        return gen_struct_lit(code, e, -1);
+
     case NOD_EXPR_FUNCLIT:
         return code_emit_load_int(code, e->func->id);
 
@@ -713,13 +667,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         return gen_binop_assign(code, e);
 
     case NOD_EXPR_INIT:
-        if (parser_is_array_type(e->type))
-            gen_init_array(code, e);
-        else if (parser_is_struct_type(e->type))
-            gen_init_struct(code, e);
-        else
-            gen_init(code, e);
-        return 0;
+        return gen_init(code, e);
     }
 
     return -1;

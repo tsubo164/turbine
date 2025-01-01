@@ -1408,8 +1408,10 @@ static struct parser_expr *default_value(const struct parser_type *type)
     case TYP_ARRAY:
         return parser_new_arraylit_expr(type->underlying, NULL, 0);
 
-    case TYP_FUNC:
     case TYP_STRUCT:
+        return parser_new_structlit_expr(type->strct, NULL);
+
+    case TYP_FUNC:
     case TYP_TABLE:
     case TYP_MODULE:
         /* TODO */
