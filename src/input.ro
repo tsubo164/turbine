@@ -3,7 +3,7 @@
 //[json]
 //[opengl] (github.com/...)
 //[my_calc]
-//[math]
+[math]
 
 //:: token
 //  | enum  | name
@@ -18,15 +18,19 @@
 //  - radius int
 
 ## Point
-  - x int
-  - y int
+  - x float
+  - y float
+
+# length(p Point) float
+  return math.sqrt(p.x * p.x + p.y * p.y)
 
 # main(args []string) int
-  - a = [1, 2, 3, 4]
-  - p = Point { x = 42, y = -11}
-
-  print(a)
-  print(p)
+  //- a = [1, 2, 3, 4]
+  //- p = Point { x = 42, y = -11}
+  //print(a)
+  //print(p)
+  - p = Point { x = 3.0, y = 4.0}
+  print(length(p))
 
   //- s = format("Hello, `a`\n")
   //- s = format("Hello, {a}\n")
@@ -35,7 +39,6 @@
   //- s = format("Hello, %-+d\n", a)
 
   return 12
-
   //- a = 42
   //- fp = exit
   //- b = 242301
