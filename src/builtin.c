@@ -22,6 +22,13 @@ static const char *print_value(struct runtime_value val, const char *fmt)
 
     switch (*p++) {
 
+    case 'b':
+        if (val.inum)
+            printf("true");
+        else
+            printf("false");
+        return p;
+
     case 'i':
         printf("%lld", val.inum);
         return p;
