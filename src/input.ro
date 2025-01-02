@@ -27,15 +27,18 @@
 # main(args []string) int
   //- pts = [Point{x=3, y=4}]
   - pts = [Point{}]
-  print(pts)
 
+  pts[0].x = 123
+  pts[0].y = -323
+  print(pts)
+  /*
   resize(pts, 4) // => resize("Sii", pts, 4)
   print("pts[0]:", pts[0])
-  print("pts[1]:", pts[1])
-  //- p = Point{}
-  //- q Point
-  //print("p:", p)
-  //print("q:", q)
+  //print("pts[1]:", pts[1])
+
+  for p in resize(pts, 1)
+    print(p)
+  */
 
   //- s = format("Hello, `a`\n")
   //- s = format("Hello, {a}\n")
