@@ -164,7 +164,6 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
         gen_struct_lit(code, e->r, dst);
         return dst;
     }
-
     {
         int dst = gen_addr(code, e->l);
         int src = gen_expr(code, e->r);
@@ -344,7 +343,6 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
             return gen_binop(code, e->type, rval->kind, dst, src1, src2);
         }
     }
-
     {
         /* a += x */
         int dst = gen_addr(code, lval);
@@ -357,35 +355,45 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
 
 static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr *e)
 {
-    if (e->l->kind == NOD_EXPR_INDEX) {
+    const struct parser_expr *lval = e->l;
+    const struct parser_expr *rval = e->r;
+
+    if (lval->kind == NOD_EXPR_INDEX) {
         /* a[b] += x */
-        int obj = gen_expr(code, e->l->l);
-        int idx = gen_expr(code, e->l->r);
-        int tmp1 = gen_expr(code, e->l);
-        int tmp2 = gen_expr(code, e->r);
+        int obj = gen_expr(code, lval->l);
+        int idx = gen_expr(code, lval->r);
+        int tmp1 = gen_expr(code, lval);
+        int tmp2 = gen_expr(code, rval);
         int src = gen_dst_register2(code, tmp1, tmp2);
         gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
         return code_emit_store_array(code, obj, idx, src);
     }
 
-    if (e->l->kind == NOD_EXPR_SELECT) {
+    if (lval->kind == NOD_EXPR_SELECT) {
         /* a.b += x */
+        int obj = gen_expr(code, lval->l);
+        int fld = gen_addr(code, lval->r);
+        int tmp1 = gen_expr(code, lval);
+        int tmp2 = gen_expr(code, rval);
+        int src = gen_dst_register2(code, tmp1, tmp2);
+        gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
+        return code_emit_store_struct(code, obj, fld, src);
     }
 
-    if (parser_ast_is_global(e->l)) {
+    if (parser_ast_is_global(lval)) {
         /* _a_ += x */
-        int tmp1 = gen_expr(code, e->l);
-        int tmp2 = gen_expr(code, e->r);
+        int tmp1 = gen_expr(code, lval);
+        int tmp2 = gen_expr(code, rval);
         int src = gen_dst_register2(code, tmp1, tmp2);
-        int dst = gen_addr(code, e->l);
+        int dst = gen_addr(code, lval);
         gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
         return code_emit_store_global(code, dst, src);
     }
     {
         /* a += x */
-        int dst = gen_addr(code, e->l);
-        int src1 = gen_expr(code, e->l);
-        int src2 = gen_expr(code, e->r);
+        int dst = gen_addr(code, lval);
+        int src1 = gen_expr(code, lval);
+        int src2 = gen_expr(code, rval);
         return gen_binop(code, e->type, e->kind, dst, src1, src2);
     }
 }
