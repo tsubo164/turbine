@@ -148,6 +148,12 @@ static const char *parse_precision(const char *formats, struct format_spec *spec
     if (*fmt == '.') {
         fmt++;
 
+        if (*fmt == '0') {
+            /* precision ".0" ensures ".0" for whole numbers */
+            spec->pointzero = true;
+            return ++fmt;
+        }
+
         char *end = NULL;
         long precision = strtol(fmt, &end, 10);
 
@@ -172,6 +178,7 @@ static const char *parse_type(const char *formats, struct format_spec *spec,
         const char **c_type)
 {
     const char *fmt = formats;
+    bool type_g = false;
 
     switch (*fmt) {
 
@@ -252,15 +259,22 @@ static const char *parse_type(const char *formats, struct format_spec *spec,
     case 'g':
         spec->type = FMT_TYPE_FLOAT;
         *c_type = "g";
+        type_g = true;
         break;
 
     case 'G':
         spec->type = FMT_TYPE_FLOAT;
         *c_type = "G";
+        type_g = true;
         break;
 
     default:
         spec->errmsg = "invalid type field";
+        return fmt;
+    }
+
+    if (spec->pointzero && !type_g) {
+        spec->errmsg = "'.0' precision is allowed only with 'g' or 'G'";
         return fmt;
     }
 

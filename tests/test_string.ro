@@ -57,14 +57,14 @@
     - y = 3.0
     - fmt string
     fmt = format("[%-_15d] [%+10g]", x, y)
-    test.AssertS("[12_345_678     ] [      +3.0]", fmt)
+    test.AssertS("[12_345_678     ] [        +3]", fmt)
     fmt = format("[%,15d] [%-10g]", x, y)
-    test.AssertS("[     12,345,678] [3.0       ]", fmt)
+    test.AssertS("[     12,345,678] [3         ]", fmt)
     fmt = format("[%+,15d] [%- 10g]", x, y)
-    test.AssertS("[    +12,345,678] [ 3.0      ]", fmt)
+    test.AssertS("[    +12,345,678] [ 3        ]", fmt)
     fmt = format("[%+,15d] [%+10g]", -x, y)
-    test.AssertS("[    -12,345,678] [      +3.0]", fmt)
-    fmt = format("[%- ,15d] [%+10g]", x, y)
+    test.AssertS("[    -12,345,678] [        +3]", fmt)
+    fmt = format("[%- ,15d] [%+10.0g]", x, y)
     test.AssertS("[ 12,345,678    ] [      +3.0]", fmt)
 
     y = 12345678.98
@@ -74,6 +74,10 @@
     test.AssertS("[12_345_678     ] [12,345,678.98  ]", fmt)
     fmt = format("[%-_15d] [%-+,15.2f]", x, y)
     test.AssertS("[12_345_678     ] [+12,345,678.98 ]", fmt)
+
+    - z = 42.0
+    fmt = format("[%g] [%.0g]", z, z)
+    test.AssertS("[42] [42.0]", fmt)
 
   ---
     // format string

@@ -10,6 +10,7 @@ struct format_spec {
     char group1k;
     char pad;
     bool alternate;
+    bool pointzero;
 
     int  width;
     int  precision;

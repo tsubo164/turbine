@@ -234,7 +234,7 @@ static void format_float(struct data_strbuf *sb, const struct format_spec *spec,
 
     snprintf(buf, BUFSIZE, c_spec, fpnum);
 
-    if (fmod(fpnum, 1.0) == 0.0) {
+    if (spec->pointzero && fmod(fpnum, 1.0) == 0.0) {
         int len = strlen(buf);
         buf[len]   = '.';
         buf[len+1] = '0';
