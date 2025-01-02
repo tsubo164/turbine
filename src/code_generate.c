@@ -479,17 +479,8 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             return e->var->id;
         }
 
-    case NOD_EXPR_SELECT:
-        {
-            int obj = gen_expr(code, e->l);
-            int idx = gen_expr(code, e->r);
-            int dst = gen_dst_register2(code, obj, idx);
-            return code_emit_load_struct(code, dst, obj, idx);
-        }
-
     case NOD_EXPR_FIELD:
         return e->field->offset;
-
 
     case NOD_EXPR_INDEX:
         {
@@ -498,6 +489,14 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             int dst = gen_dst_register2(code, obj, idx);
             code_emit_load_array(code, dst, obj, idx);
             return dst;
+        }
+
+    case NOD_EXPR_SELECT:
+        {
+            int obj = gen_expr(code, e->l);
+            int idx = gen_expr(code, e->r);
+            int dst = gen_dst_register2(code, obj, idx);
+            return code_emit_load_struct(code, dst, obj, idx);
         }
 
     case NOD_EXPR_CALL:
@@ -648,66 +647,27 @@ static int gen_addr(struct code_bytecode *code, const struct parser_expr *e)
     if (!e)
         return -1;
 
-    int reg0 = -1;
-
     switch (e->kind) {
 
     case NOD_EXPR_IDENT:
-        /*
-        if (IsPtr(e->type)) {
-            gen_expr(code, e);
-            return;
-        }
-
-        if (IsStruct(e->type)) {
-            if (e->var->is_param) {
-                LoadAddress(code, e->var->offset);
-                Dereference(code);
-            }
-            else if (e->var->is_global) {
-                LoadInt(code, e->var->offset + 1);
-            }
-            else {
-                LoadAddress(code, e->var->offset);
-            }
-            return;
-        }
-        */
-        if (e->var->is_global) {
-            int reg0 = code_emit_load_int(code, e->var->id);
-            return reg0;
-        }
-        else {
-            int reg0 = e->var->id;
-            return reg0;
-        }
+        if (e->var->is_global)
+            return code_emit_load_int(code, e->var->id);
+        else
+            return e->var->id;
 
     case NOD_EXPR_FIELD:
-        //LoadByte(code, e->field->offset);
-        reg0 = e->field->offset;
-        return reg0;
-
-        /*
-    case NOD_EXPR_SELECT:
-        return;
-
-    case NOD_EXPR_INDEX:
-        return;
-        */
+        return e->field->offset;
 
     case NOD_EXPR_MODULE:
         return gen_addr(code, e->r);
 
     case NOD_EXPR_DEREF:
-        {
-            int reg0 = gen_expr(code, e->l);
-            return reg0;
-        }
-
+        return gen_expr(code, e->l);
     }
 
-    return reg0;
+    return -1;
 }
+
 static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 {
     if (!s)

@@ -1334,7 +1334,7 @@ static struct parser_stmt *switch_stmt(struct parser *p)
     }
 }
 
-static struct parser_stmt *ret_stmt(struct parser *p)
+static struct parser_stmt *return_stmt(struct parser *p)
 {
     expect(p, TOK_RETURN);
 
@@ -1601,7 +1601,7 @@ static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *blo
             break;
 
         case TOK_RETURN:
-            tail = tail->next = ret_stmt(p);
+            tail = tail->next = return_stmt(p);
             break;
 
         case TOK_MINUS3:

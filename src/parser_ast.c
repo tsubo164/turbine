@@ -25,8 +25,8 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_STMT_INIT]           = {"init"},
     [NOD_STMT_BLOCK]          = {"block"},
     /* identifier */
-    [NOD_EXPR_FIELD]          = {"field", 'g'},
     [NOD_EXPR_IDENT]          = {"ident", 'y'},
+    [NOD_EXPR_FIELD]          = {"field", 'g'},
     /* literal */
     [NOD_EXPR_NILLIT]         = {"nillit"},
     [NOD_EXPR_BOOLLIT]        = {"boollit",   'i'},
@@ -69,8 +69,8 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_EXPR_DEC]            = {"--"},
     [NOD_EXPR_CONV]           = {"conversion"},
     /* array, struct, func */
-    [NOD_EXPR_SELECT]         = {"select"},
     [NOD_EXPR_INDEX]          = {"index"},
+    [NOD_EXPR_SELECT]         = {"select"},
     [NOD_EXPR_CALL]           = {"call"},
     [NOD_EXPR_ELEMENT]        = {"element"},
     [NOD_EXPR_MODULE]         = {"module"},
@@ -195,11 +195,12 @@ struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym)
     return e;
 }
 
-struct parser_expr *parser_new_field_expr(struct parser_field *f)
+struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_FIELD);
-    e->type = f->type;
-    e->field = f;
+    struct parser_expr *e = new_expr(NOD_EXPR_INDEX);
+    e->type = ary->type->underlying;
+    e->l = ary;
+    e->r = idx;
     return e;
 }
 
@@ -212,12 +213,11 @@ struct parser_expr *parser_new_select_expr(struct parser_expr *inst, struct pars
     return e;
 }
 
-struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx)
+struct parser_expr *parser_new_field_expr(struct parser_field *f)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_INDEX);
-    e->type = ary->type->underlying;
-    e->l = ary;
-    e->r = idx;
+    struct parser_expr *e = new_expr(NOD_EXPR_FIELD);
+    e->type = f->type;
+    e->field = f;
     return e;
 }
 

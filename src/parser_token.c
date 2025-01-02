@@ -255,6 +255,7 @@ static void scan_decimal(struct lexer *l, struct parser_token *tok, struct parse
     long ival = 0;
     int fcount = 0;
     int icount = 0;
+    int count = 0;
     int fnext = '\0';
 
     sscanf(start, "%le%n", &fval, &fcount);
@@ -267,13 +268,16 @@ static void scan_decimal(struct lexer *l, struct parser_token *tok, struct parse
     if (fcount > icount && fnext != '.') {
         tok->fval = fval;
         set(tok, TOK_FLOATLIT, pos);
-        l->itr += fcount;
+        count = fcount;
     }
     else {
         tok->ival = ival;
         set(tok, TOK_INTLIT, pos);
-        l->itr += icount;
+        count = icount;
     }
+
+    for (int i = 0; i < count; i++)
+        get(l);
 }
 
 static void scan_char_literal(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
