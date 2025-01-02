@@ -18,24 +18,24 @@
 //  - radius int
 
 ## Point
-  - x float
-  - y float
+  - x int
+  - y int
 
 //# length(p Point) float
 //  return math.sqrt(p.x * p.x + p.y * p.y)
 
 # main(args []string) int
-  //- a = [1, 2, 3, 4]
-  //- p = Point { x = 42, y = -11}
-  //print(a)
-  //print(p)
-  - p = Point { x = 3.0, y = 4.0}
-  //- p Point
-  //print(length(p))
-  //print(length(Point { x = 3.0, y = 4.0}))
+  //- pts = [Point{x=3, y=4}]
+  - pts = [Point{}]
+  print(pts)
 
-  p.x += 3.3
-  print(p)
+  resize(pts, 4) // => resize("Sii", pts, 4)
+  print("pts[0]:", pts[0])
+  print("pts[1]:", pts[1])
+  //- p = Point{}
+  //- q Point
+  //print("p:", p)
+  //print("q:", q)
 
   //- s = format("Hello, `a`\n")
   //- s = format("Hello, {a}\n")

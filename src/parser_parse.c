@@ -243,28 +243,30 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
 
     expect(p, TOK_LBRACE);
 
-    do {
-        expect(p, TOK_IDENT);
+    if (peek(p) != TOK_RBRACE) {
+        do {
+            expect(p, TOK_IDENT);
 
-        struct parser_field *field = parser_find_field(strct, tok_str(p));
-        if (!field) {
-            error(p, tok_pos(p),
-                    "struct '%s' has no field '%s'", strct->name, tok_str(p));
+            struct parser_field *field = parser_find_field(strct, tok_str(p));
+            if (!field) {
+                error(p, tok_pos(p),
+                        "struct '%s' has no field '%s'", strct->name, tok_str(p));
+            }
+
+            expect(p, TOK_EQUAL);
+
+            struct parser_expr *f = parser_new_field_expr(field);
+            struct parser_expr *e = expression(p);
+
+            if (!parser_match_type(f->type, e->type)) {
+                error(p, tok_pos(p), "type mismatch: field %s and expression %s",
+                        parser_type_string(f->type), parser_type_string(e->type));
+            }
+
+            elem = elem->next = parser_new_element_expr(f, e);
         }
-
-        expect(p, TOK_EQUAL);
-
-        struct parser_expr *f = parser_new_field_expr(field);
-        struct parser_expr *e = expression(p);
-
-        if (!parser_match_type(f->type, e->type)) {
-            error(p, tok_pos(p), "type mismatch: field %s and expression %s",
-                    parser_type_string(f->type), parser_type_string(e->type));
-        }
-
-        elem = elem->next = parser_new_element_expr(f, e);
+        while (consume(p, TOK_COMMA));
     }
-    while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
 

@@ -17,6 +17,14 @@
     test.AssertF(5.0, l)
     test.AssertF(5.0, length(Point { x = 3.0, y = 4.0}))
 
+    - q = Point{}
+    test.AssertF(0.0, q.x)
+    test.AssertF(0.0, q.y)
+
+    - r = Point{y=1.1, x=2.2}
+    test.AssertF(2.2, r.x)
+    test.AssertF(1.1, r.y)
+
   ---
     - p = Point { x = 3.0, y = 4.0}
     p.x += 3.3
