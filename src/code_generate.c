@@ -9,36 +9,34 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define BINOP(code, ty, op, r0, r1, r2) \
-    do { \
-    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
-        code_emit_##op##_int((code), (r0), (r1), (r2)); \
-    else if (parser_is_float_type((ty))) \
-        code_emit_##op##_float((code), (r0), (r1), (r2)); \
-    } while (0)
+static int gen_dst_register1(struct code_bytecode *code, int reg1)
+{
+    /* determine the destination register */
+    if (code_is_temporary_register(code, reg1))
+        return reg1;
 
-#define BINOP_S(code, ty, op, ops, r0, r1, r2) \
-    do { \
-    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
-        code_emit_##op##_int((code), (r0), (r1), (r2)); \
-    else if (parser_is_float_type((ty))) \
-        code_emit_##op##_float((code), (r0), (r1), (r2)); \
-    else if (parser_is_string_type((ty))) \
-        code_emit_##ops##_string((code), (r0), (r1), (r2)); \
-    } while (0)
+    return code_allocate_temporary_register(code);
+}
 
-/* XXX TEST compiling to register-based machine code */
+static int gen_dst_register2(struct code_bytecode *code, int reg1, int reg2)
+{
+    /* determine the destination register */
+    if (code_is_temporary_register(code, reg1))
+        return reg1;
+
+    if (code_is_temporary_register(code, reg2))
+        return reg2;
+
+    return code_allocate_temporary_register(code);
+}
+
 static int gen_expr(struct code_bytecode *code, const struct parser_expr *e);
 static int gen_addr(struct code_bytecode *code, const struct parser_expr *e);
-
-/* TODO remove forward decls */
-static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2);
-static int gen_dst_register2(struct code_bytecode *code, int reg1);
 
 static int gen_convert(struct code_bytecode *code, const struct parser_expr *e)
 {
     int src = gen_expr(code, e->l);
-    int dst = gen_dst_register2(code, src);
+    int dst = gen_dst_register1(code, src);
     int from = e->l->type->kind;
     int to = e->type->kind;
 
@@ -175,35 +173,23 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
     }
 }
 
-/* TODO move to bytecode.c */
-static int gen_dst_register(struct code_bytecode *code, int reg1, int reg2)
-{
-    int reg0 = -1;
+#define BINOP(code, ty, op, r0, r1, r2) \
+    do { \
+    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
+        code_emit_##op##_int((code), (r0), (r1), (r2)); \
+    else if (parser_is_float_type((ty))) \
+        code_emit_##op##_float((code), (r0), (r1), (r2)); \
+    } while (0)
 
-    /* determine the destination register */
-    if (code_is_temporary_register(code, reg1))
-        reg0 = reg1;
-    else if (code_is_temporary_register(code, reg2))
-        reg0 = reg2;
-    else
-        reg0 = code_allocate_temporary_register(code);
-
-    return reg0;
-}
-
-/* TODO move to bytecode.c */
-static int gen_dst_register2(struct code_bytecode *code, int reg1)
-{
-    int reg0 = -1;
-
-    /* determine the destination register */
-    if (code_is_temporary_register(code, reg1))
-        reg0 = reg1;
-    else
-        reg0 = code_allocate_temporary_register(code);
-
-    return reg0;
-}
+#define BINOP_S(code, ty, op, ops, r0, r1, r2) \
+    do { \
+    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
+        code_emit_##op##_int((code), (r0), (r1), (r2)); \
+    else if (parser_is_float_type((ty))) \
+        code_emit_##op##_float((code), (r0), (r1), (r2)); \
+    else if (parser_is_string_type((ty))) \
+        code_emit_##ops##_string((code), (r0), (r1), (r2)); \
+    } while (0)
 
 static int gen_binop(struct code_bytecode *code, const struct parser_type *type, int kind,
         int reg0, int reg1, int reg2)
@@ -377,7 +363,7 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         int idx = gen_expr(code, e->l->r);
         int tmp1 = gen_expr(code, e->l);
         int tmp2 = gen_expr(code, e->r);
-        int src = gen_dst_register(code, tmp1, tmp2);
+        int src = gen_dst_register2(code, tmp1, tmp2);
         gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
         return code_emit_store_array(code, obj, idx, src);
     }
@@ -390,7 +376,7 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         /* _a_ += x */
         int tmp1 = gen_expr(code, e->l);
         int tmp2 = gen_expr(code, e->r);
-        int src = gen_dst_register(code, tmp1, tmp2);
+        int src = gen_dst_register2(code, tmp1, tmp2);
         int dst = gen_addr(code, e->l);
         gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
         return code_emit_store_global(code, dst, src);
@@ -456,10 +442,6 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     if (!e)
         return -1;
 
-    int reg0 = -1;
-    int reg1 = -1;
-    int reg2 = -1;
-
     switch (e->kind) {
 
     case NOD_EXPR_NILLIT:
@@ -489,23 +471,21 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_IDENT:
         if (e->var->is_global) {
-            int reg1 = code_emit_load_int(code, e->var->id);
-            int reg0 = code_allocate_temporary_register(code);
-
-            reg0 = code_emit_load_global(code, reg0, reg1);
-            return reg0;
+            int id = code_emit_load_int(code, e->var->id);
+            int dst = code_allocate_temporary_register(code);
+            return code_emit_load_global(code, dst, id);
         }
         else {
-            int reg0 = e->var->id;
-            return reg0;
+            return e->var->id;
         }
 
     case NOD_EXPR_SELECT:
-        reg1 = gen_expr(code, e->l);
-        reg2 = gen_expr(code, e->r);
-        reg0 = gen_dst_register(code, reg0, reg1);
-        code_emit_load_struct(code, reg0, reg1, reg2);
-        return reg0;
+        {
+            int obj = gen_expr(code, e->l);
+            int idx = gen_expr(code, e->r);
+            int dst = gen_dst_register2(code, obj, idx);
+            return code_emit_load_struct(code, dst, obj, idx);
+        }
 
     case NOD_EXPR_FIELD:
         return e->field->offset;
@@ -513,10 +493,10 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_INDEX:
         {
-            int src = gen_expr(code, e->l);
+            int obj = gen_expr(code, e->l);
             int idx = gen_expr(code, e->r);
-            int dst = gen_dst_register(code, src, idx);
-            code_emit_load_array(code, dst, src, idx);
+            int dst = gen_dst_register2(code, obj, idx);
+            code_emit_load_array(code, dst, obj, idx);
             return dst;
         }
 
@@ -529,39 +509,39 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_LOGOR:
         {
             /* eval */
-            reg1 = gen_expr(code, e->l);
-            int64_t els = code_emit_jump_if_zero(code, reg1, -1);
+            int src = gen_expr(code, e->l);
+            int64_t els = code_emit_jump_if_zero(code, src, -1);
 
             /* true */
-            reg0 = gen_dst_register2(code, reg1);
-            code_emit_move(code, reg0, reg1);
+            int dst = gen_dst_register1(code, src);
+            code_emit_move(code, dst, src);
             int64_t exit = code_emit_jump(code, -1);
 
             /* false */
             code_back_patch(code, els);
-            reg0 = gen_expr(code, e->r);
+            dst = gen_expr(code, e->r);
             code_back_patch(code, exit);
+            return dst;
         }
-        return reg0;
 
     case NOD_EXPR_LOGAND:
         {
             /* eval */
-            reg1 = gen_expr(code, e->l);
-            int64_t els = code_emit_jump_if_zero(code, reg1, -1);
+            int src1 = gen_expr(code, e->l);
+            int64_t els = code_emit_jump_if_zero(code, src1, -1);
 
             /* true */
-            reg2 = gen_expr(code, e->r);
-            reg0 = gen_dst_register(code, reg1, reg2);
-            code_emit_move(code, reg0, reg2);
+            int src2 = gen_expr(code, e->r);
+            int dst = gen_dst_register2(code, src1, src2);
+            code_emit_move(code, dst, src2);
             int64_t exit = code_emit_jump(code, -1);
 
             /* false */
             code_back_patch(code, els);
-            code_emit_move(code, reg0, reg1);
+            code_emit_move(code, dst, src1);
             code_back_patch(code, exit);
+            return dst;
         }
-        return reg0;
 
     case NOD_EXPR_ADD:
     case NOD_EXPR_SUB:
@@ -576,7 +556,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         {
             int src1 = gen_expr(code, e->l);
             int src2 = gen_expr(code, e->r);
-            int dst  = gen_dst_register(code, src1, src2);
+            int dst  = gen_dst_register2(code, src1, src2);
             gen_binop(code, e->type, e->kind, dst, src1, src2);
             return dst;
         }
@@ -590,7 +570,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         {
             int src1 = gen_expr(code, e->l);
             int src2 = gen_expr(code, e->r);
-            int dst  = gen_dst_register(code, src1, src2);
+            int dst  = gen_dst_register2(code, src1, src2);
             /* e->type is always result type bool. e->l->type for operand type. */
             gen_binop(code, e->l->type, e->kind, dst, src1, src2);
             return dst;
@@ -598,57 +578,47 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_NOT:
         {
-            int reg1 = gen_expr(code, e->l);
-            int reg0 = gen_dst_register2(code, reg1);
-            reg0 = code_emit_bitwise_not(code, reg0, reg1);
-            return reg0;
+            int src = gen_expr(code, e->l);
+            int dst = gen_dst_register1(code, src);
+            return code_emit_bitwise_not(code, dst, src);
         }
 
     case NOD_EXPR_ADDRESS:
         if (parser_is_struct_type(e->l->type)) {
-            int reg0 = gen_expr(code, e->l);
-            return reg0;
+            return gen_expr(code, e->l);
         }
-        {
-            int reg1 = gen_addr(code, e->l);
-            int reg0 = gen_dst_register2(code, reg1);
-            code_emit_load_address(code, reg0, reg1);
-            return reg0;
+        else {
+            int src = gen_addr(code, e->l);
+            int dst = gen_dst_register1(code, src);
+            return code_emit_load_address(code, dst, src);
         }
 
     case NOD_EXPR_POS:
-        {
-            int reg0 = gen_expr(code, e->l);
-            return reg0;
-        }
+        return gen_expr(code, e->l);
 
     case NOD_EXPR_NEG:
         {
-            int reg1 = gen_expr(code, e->l);
-            int reg0 = gen_dst_register2(code, reg1);
+            int src = gen_expr(code, e->l);
+            int dst = gen_dst_register1(code, src);
 
             if (parser_is_int_type(e->type))
-                reg0 = code_emit_negate_int(code, reg0, reg1);
+                return code_emit_negate_int(code, dst, src);
             else if (parser_is_float_type(e->type))
-                reg0 = code_emit_negate_float(code, reg0, reg1);
-
-            return reg0;
+                return code_emit_negate_float(code, dst, src);
         }
 
     case NOD_EXPR_LOGNOT:
         {
-            int reg1 = gen_expr(code, e->l);
-            int reg0 = gen_dst_register2(code, reg1);
-            reg0 = code_emit_set_if_zero(code, reg0, reg1);
-            return reg0;
+            int src = gen_expr(code, e->l);
+            int dst = gen_dst_register1(code, src);
+            return code_emit_set_if_zero(code, dst, src);
         }
 
     case NOD_EXPR_DEREF:
         {
-            int reg1 = gen_expr(code, e->l);
-            int reg0 = gen_dst_register2(code, reg1);
-            code_emit_dereference(code, reg0, reg1);
-            return reg0;
+            int src = gen_expr(code, e->l);
+            int dst = gen_dst_register1(code, src);
+            return code_emit_dereference(code, dst, src);
         }
 
     case NOD_EXPR_ASSIGN:
@@ -768,16 +738,15 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             int64_t next = 0;
 
             if (s->cond) {
-                /* cond */
-                int reg0 = gen_expr(code, s->cond);
-                next = code_emit_jump_if_zero(code, reg0, -1);
+                int cond = gen_expr(code, s->cond);
+                next = code_emit_jump_if_zero(code, cond, -1);
             }
 
             /* true */
             gen_stmt(code, s->body);
 
             if (s->cond) {
-                /* close */
+                /* exit */
                 int64_t addr = code_emit_jump(code, -1);
                 code_push_else_end(code, addr);
                 code_back_patch(code, next);
@@ -890,14 +859,14 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             /* init */
             code_begin_switch(code);
             int curr = code_get_register_pointer(code);
-            int reg0 = code_allocate_temporary_register(code);
-            int reg1 = gen_expr(code, s->cond);
-            reg0 = code_emit_move(code, reg0, reg1);
+            int dst = code_allocate_temporary_register(code);
+            int src = gen_expr(code, s->cond);
+            dst = code_emit_move(code, dst, src);
 
             /* cases */
             for (struct parser_stmt *cas = s->children; cas; cas = cas->next) {
                 /* set current where expr is stored */
-                code_set_register_pointer(code, reg0);
+                code_set_register_pointer(code, dst);
                 gen_stmt(code, cas);
             }
 
@@ -912,7 +881,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
     case NOD_STMT_CASE:
         {
             /* cond */
-            int reg1 = code_get_register_pointer(code);
+            int src1 = code_get_register_pointer(code);
 
             /* backpatch address for each expression */
             struct data_intvec trues = {0};
@@ -921,12 +890,12 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             /* eval conds */
             for (struct parser_expr *cond = s->cond; cond; cond = cond->next) {
                 /* cond test */
-                int reg2 = gen_expr(code, cond);
-                int reg0 = code_set_register_pointer(code, reg1 + 1);
-                code_emit_equal_int(code, reg0, reg1, reg2);
+                int src2 = gen_expr(code, cond);
+                int dst = code_set_register_pointer(code, src1 + 1);
+                code_emit_equal_int(code, dst, src1, src2);
 
                 /* jump if true otherwise fallthrough */
-                int64_t tru = code_emit_jump_if_not_zero(code, reg0, -1);
+                int64_t tru = code_emit_jump_if_not_zero(code, dst, -1);
                 data_intvec_push(&trues, tru);
             }
             /* all conds false -> close case */
@@ -953,15 +922,13 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
     case NOD_STMT_RETURN:
         {
-            int reg0 = gen_expr(code, s->expr);
-            code_emit_return(code, reg0);
+            int src = gen_expr(code, s->expr);
+            code_emit_return(code, src);
         }
         break;
 
     case NOD_STMT_EXPR:
         gen_expr(code, s->expr);
-        /* remove the result */
-        //Pop(code);
         break;
 
         /* XXX need NOD_STMT_ASSNSTMT? */
