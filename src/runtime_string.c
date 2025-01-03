@@ -43,6 +43,11 @@ int runtime_string_compare(const struct runtime_string *a, const struct runtime_
     return strcmp(a->data, b->data);
 }
 
+int runtime_string_len(const struct runtime_string *s)
+{
+    return s->len;
+}
+
 struct runtime_string *runtime_string_concat(const struct runtime_string *a,
         const struct runtime_string *b)
 {
