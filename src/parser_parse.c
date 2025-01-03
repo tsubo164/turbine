@@ -577,7 +577,7 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
     if (func_sig->has_format_param) {
         validate_format_string(p, args);
     }
-    if (func_sig->is_variadic) {
+    if (parser_require_type_sequence(func_sig)) {
         args = add_packed_type_info(args);
     }
 
@@ -1391,7 +1391,7 @@ static struct parser_stmt *nop_stmt(struct parser *p)
 
 static struct parser_expr *default_value(const struct parser_type *type)
 {
-    switch (type->kind) {
+    switch ((enum parser_type_kind) type->kind) {
     case TYP_BOOL:
         return parser_new_boollit_expr(false);
 
@@ -1421,6 +1421,8 @@ static struct parser_expr *default_value(const struct parser_type *type)
 
     case TYP_NIL:
     case TYP_ANY:
+    case TYP_UNION:
+    case TYP_TEMPLATE:
         assert(!"unreachable");
         return NULL;
     }

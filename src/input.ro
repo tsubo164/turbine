@@ -3,7 +3,7 @@
 //[json]
 //[opengl] (github.com/...)
 //[my_calc]
-[math]
+//[math]
 
 //:: token
 //  | enum  | name
@@ -26,19 +26,15 @@
 
 # main(args []string) int
   //- pts = [Point{x=3, y=4}]
-  - pts = [Point{}]
+  //- pts = [Point{}]
+  - l int
+  - pts = [0, 1, 2, 3]
+  l = len(pts)
+  print("length of", pts, "=>", l)
 
-  pts[0].x = 123
-  pts[0].y = -323
-  print(pts)
-  /*
-  resize(pts, 4) // => resize("Sii", pts, 4)
-  print("pts[0]:", pts[0])
-  //print("pts[1]:", pts[1])
-
-  for p in resize(pts, 1)
-    print(p)
-  */
+  - s = "Hello, World!"
+  l = len(s)
+  print(format("length of \"%s\" => %d", s, l))
 
   //- s = format("Hello, `a`\n")
   //- s = format("Hello, {a}\n")

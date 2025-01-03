@@ -6,9 +6,8 @@
 
 #include "data_hashmap.h"
 #include "data_vec.h"
+#include "parser_type.h"
 #include "runtime_function.h"
-
-struct parser_type;
 
 /* var */
 struct parser_var {
@@ -25,12 +24,6 @@ struct parser_varvec {
     int len;
 };
 
-struct parser_typevec {
-    const struct parser_type **data;
-    int cap;
-    int len;
-};
-
 struct parser_func_sig {
     const struct parser_type *return_type;
     struct parser_typevec param_types;
@@ -38,6 +31,7 @@ struct parser_func_sig {
     bool is_variadic;
     bool has_special_var;
     bool has_format_param;
+    bool has_union_param;
     bool has_template_return_type;
 };
 
@@ -53,6 +47,7 @@ struct parser_func {
     bool is_builtin;
     bool is_variadic;
     bool has_format_param;
+    bool has_union_param;
     bool has_special_var;
 
     struct parser_scope *scope;
@@ -180,6 +175,7 @@ void parser_declare_param(struct parser_func *f, const char *name,
 const struct parser_type *parser_get_param_type(const struct parser_func_sig *func_sig,
         int index);
 int parser_required_param_count(const struct parser_func_sig *func_sig);
+bool parser_require_type_sequence(const struct parser_func_sig *func_sig);
 
 /* struct */
 struct parser_struct *parser_define_struct(struct parser_scope *sc,

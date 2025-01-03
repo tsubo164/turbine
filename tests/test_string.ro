@@ -96,6 +96,12 @@
     fmt = format("[%-15.4s]", s)
     test.AssertS("[hell           ]", fmt)
 
+  ---
+    // len()
+    test.AssertI(0, len(""))
+    test.AssertI(5, len("Hello"))
+    test.AssertI(6, len("Hello\n"))
+
   print(test._test_count_, "tests done.")
 
   return 0

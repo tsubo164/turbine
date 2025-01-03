@@ -1,5 +1,4 @@
 #include "parser_symbol.h"
-#include "parser_type.h"
 #include "data_intern.h"
 
 #include <assert.h>
@@ -10,15 +9,6 @@
 #define MIN_CAP 8
 
 /* vec */
-static void push_type(struct parser_typevec *v, const struct parser_type *val)
-{
-    if (v->len == v->cap) {
-        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
-        v->data = realloc(v->data, v->cap * sizeof(*v->data));
-    }
-    v->data[v->len++] = val;
-}
-
 static void push_var(struct parser_varvec *v, struct parser_var *val)
 {
     if (v->len == v->cap) {
@@ -202,12 +192,13 @@ struct parser_func_sig *parser_make_func_sig(struct parser_func *func)
 
     for (int i = 0; i < func->params.len; i++) {
         const struct parser_var *var = parser_get_param(func, i);
-        push_type(&func_sig->param_types, var->type);
+        parser_typevec_push(&func_sig->param_types, var->type);
     }
 
     func_sig->is_builtin = func->is_builtin;
     func_sig->is_variadic = func->is_variadic;
     func_sig->has_format_param = func->has_format_param;
+    func_sig->has_union_param = func->has_union_param;
     func_sig->has_special_var = func->has_special_var;
 
     return func_sig;
@@ -222,6 +213,9 @@ void parser_declare_param(struct parser_func *f,
 
     if (!strcmp(name, "..."))
         f->is_variadic = true;
+
+    if (parser_is_union_type(type))
+        f->has_union_param = true;
 
     if (name[0] == '$')
         f->has_special_var = true;
@@ -269,6 +263,11 @@ int parser_required_param_count(const struct parser_func_sig *func_sig)
         return param_count - 1;
     else
         return param_count;
+}
+
+bool parser_require_type_sequence(const struct parser_func_sig *func_sig)
+{
+    return func_sig->is_variadic || func_sig->has_union_param;
 }
 
 /* struct */
