@@ -406,30 +406,12 @@ static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
     int curr_reg = code_get_register_pointer(code);
     int retval_reg = code_set_register_pointer(code, curr_reg + 1);
 
-    if (func_sig->is_variadic) {
-        int reg_ptr = curr_reg;
+    int reg_ptr = curr_reg;
 
-        int argc = 0;
-        int argc_dst = code_set_register_pointer(code, ++reg_ptr);
-
-        for (const struct parser_expr *arg = call->r; arg; arg = arg->next, argc++) {
-            int src = gen_expr(code, arg);
-            int dst = code_set_register_pointer(code, ++reg_ptr);
-            code_emit_move(code, dst, src);
-        }
-
-        /* arg count */
-        int argc_src = code_emit_load_int(code, argc);
-        code_emit_move(code, argc_dst, argc_src);
-    }
-    else {
-        int reg_ptr = curr_reg;
-
-        for (const struct parser_expr *arg = call->r; arg; arg = arg->next) {
-            int src = gen_expr(code, arg);
-            int dst = code_set_register_pointer(code, ++reg_ptr);
-            code_emit_move(code, dst, src);
-        }
+    for (const struct parser_expr *arg = call->r; arg; arg = arg->next) {
+        int src = gen_expr(code, arg);
+        int dst = code_set_register_pointer(code, ++reg_ptr);
+        code_emit_move(code, dst, src);
     }
 
     /* call */

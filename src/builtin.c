@@ -88,20 +88,21 @@ static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value arg_count = regs->locals[0];
     int argc = arg_count.inum;
 
-    assert(regs->local_count == argc + 1);
+    assert(regs->local_count == argc + 2);
 
     /* locals[0] holds arg count */
+    /* locals[1] holds type sequence */
     struct runtime_value *arg = &regs->locals[1];
-    const char *fmt = runtime_string_get_cstr(arg->string);
+    const char *types = runtime_string_get_cstr(arg->string);
     arg++;
 
-    while (*fmt) {
+    while (*types) {
         int curr;
         int next;
 
-        curr = *fmt;
-        fmt  = print_value(*arg++, fmt);
-        next = *fmt;
+        curr = *types;
+        types  = print_value(*arg++, types);
+        next = *types;
 
         if (curr == 'n' || next == 'n')
             continue;
@@ -282,10 +283,10 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value arg_count = regs->locals[0];
     int argc = arg_count.inum;
 
-    assert(regs->local_count == argc + 1);
+    assert(regs->local_count == argc + 2);
 
     /* locals[0] holds arg count */
-    /* locals[1] holds type info */
+    /* locals[1] holds type sequence */
     struct runtime_value *arg = &regs->locals[2];
     struct runtime_value ret = {0};
     const char *fmt = runtime_string_get_cstr(arg->string);

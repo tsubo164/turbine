@@ -487,13 +487,13 @@ static void add_type_info(struct data_strbuf *sb, const struct parser_type *type
     }
 }
 
-static struct parser_expr *add_packed_type_info(struct parser_expr *args)
+static struct parser_expr *add_packed_type_info(struct parser_expr *args, int *argc)
 {
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
     struct parser_expr *arg;
     struct parser_expr *fmt;
 
-    for (arg = args; arg; arg = arg->next) {
+    for (arg = args, *argc = 0; arg; arg = arg->next, (*argc)++) {
         add_type_info(&sbuf, arg->type);
     }
 
@@ -571,6 +571,7 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
     const struct parser_func_sig *func_sig = base->type->func_sig;
     struct parser_expr *call;
     struct parser_expr *args;
+    int argc = 0;
 
     args = arg_list(p, func_sig);
 
@@ -578,7 +579,12 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
         validate_format_string(p, args);
     }
     if (parser_require_type_sequence(func_sig)) {
-        args = add_packed_type_info(args);
+        args = add_packed_type_info(args, &argc);
+    }
+    if (func_sig->is_variadic) {
+        struct parser_expr *e = parser_new_intlit_expr(argc);
+        e->next = args;
+        args = e;
     }
 
     call = parser_new_call_expr(base, args);

@@ -422,8 +422,8 @@ static void run_cpu(struct vm_cpu *vm)
 
                 if (code_is_function_variadic(vm->code, func_id)) {
                     struct runtime_value arg_count = fetch_register_value(vm, 0);
-                    /* 1 register for arg count itself */
-                    regs.local_count = arg_count.inum + 1;
+                    /* 1 for arg count and 1 for type sequence */
+                    regs.local_count = arg_count.inum + 1 + 1;
                 }
 
                 int result = native_func(&vm->gc, &regs);
