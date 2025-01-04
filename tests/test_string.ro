@@ -97,10 +97,10 @@
     test.AssertS("[hell           ]", fmt)
 
   ---
-    // len()
-    test.AssertI(0, len(""))
-    test.AssertI(5, len("Hello"))
-    test.AssertI(6, len("Hello\n"))
+    // strlen()
+    test.AssertI(0, strlen(""))
+    test.AssertI(5, strlen("Hello"))
+    test.AssertI(6, strlen("Hello\n"))
 
   print(test._test_count_, "tests done.")
 

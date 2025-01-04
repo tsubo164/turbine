@@ -332,18 +332,19 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 
 static int builtin_len(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    /* type sequence */
-    const char *types = runtime_string_get_cstr(regs->locals[0].string);
-    struct runtime_value val = regs->locals[1];
+    struct runtime_value val = regs->locals[0];
 
-    /* TODO consider having iterator to hide the detail of type sequence */
-    if (types[0] == 'A')
-        val.inum = runtime_array_len(val.array);
-    else if (types[0] == 's')
-        val.inum = runtime_string_len(val.string);
-    else
-        return RESULT_FAIL;
+    val.inum = runtime_array_len(val.array);
+    regs->locals[0] = val;
 
+    return RESULT_SUCCESS;
+}
+
+static int builtin_strlen(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value val = regs->locals[0];
+
+    val.inum = runtime_string_len(val.string);
     regs->locals[0] = val;
 
     return RESULT_SUCCESS;
@@ -406,8 +407,8 @@ void define_builtin_functions(struct parser_scope *builtin)
     {
         const char *name = "format";
         struct native_func_param params[] = {
-            { "fmt",  parser_new_string_type(), true },
-            { "...",  parser_new_any_type() },
+            { "fmt", parser_new_string_type(), true },
+            { "...", parser_new_any_type() },
             { NULL },
         };
         struct parser_type *ret_type = parser_new_string_type();
@@ -419,17 +420,32 @@ void define_builtin_functions(struct parser_scope *builtin)
                 builtin_format);
     }
     {
-        struct parser_func *func;
+        const char *name = "len";
+        struct native_func_param params[] = {
+            { "array", parser_new_array_type(parser_new_any_type()) },
+            { NULL },
+        };
+        struct parser_type *ret_type = parser_new_int_type();
 
-        func = parser_declare_builtin_func(builtin, "len");
-        struct parser_type *t = parser_new_union_type(0);
-        parser_add_union_type(t, parser_new_array_type(parser_new_any_type()));
-        parser_add_union_type(t, parser_new_string_type());
-        parser_declare_param(func, "obj", t);
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_len);
+    }
+    {
+        const char *name = "strlen";
+        struct native_func_param params[] = {
+            { "str", parser_new_string_type() },
+            { NULL },
+        };
+        struct parser_type *ret_type = parser_new_int_type();
 
-        func->return_type = parser_new_int_type();
-        func->func_sig = parser_make_func_sig(func);
-        func->native_func_ptr = builtin_len;
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_strlen);
     }
     {
         const char *name = "resize";
