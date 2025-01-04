@@ -44,6 +44,4 @@ struct runtime_value runtime_valuevec_get(const struct runtime_valuevec *v, int 
 void runtime_valuevec_set(struct runtime_valuevec *v, int idx, struct runtime_value val);
 void runtime_valuevec_free(struct runtime_valuevec *v);
 
-void runtime_valuevec_zeroclear(struct runtime_valuevec *v);
-
 #endif /* _H */

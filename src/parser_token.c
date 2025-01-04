@@ -141,8 +141,8 @@ struct lexer {
     int indent_stack[PARSER_MAX_INDENT_DEPTH];
     int sp;
     int unread_blockend;
+    int grouping_depth;
     bool is_line_begin;
-    bool is_inside_brackets;
 };
 
 static void error(const struct lexer *l, const char *fmt, ...)
@@ -167,9 +167,9 @@ static void set_input(struct lexer *l, const char *src, const char *filename)
     l->indent_stack[0] = 0;
     l->sp = 0;
     l->unread_blockend = 0;
+    l->grouping_depth = 0;
 
     l->is_line_begin = true;
-    l->is_inside_brackets = false;
 }
 
 static int curr(const struct lexer *l)
@@ -807,37 +807,37 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         }
 
         if (ch == '(') {
-            l->is_inside_brackets = true;
+            l->grouping_depth++;
             set(tok, TOK_LPAREN, pos);
             return;
         }
 
         if (ch == ')') {
-            l->is_inside_brackets = false;
+            l->grouping_depth--;
             set(tok, TOK_RPAREN, pos);
             return;
         }
 
         if (ch == '[') {
-            l->is_inside_brackets = true;
+            l->grouping_depth++;
             set(tok, TOK_LBRACK, pos);
             return;
         }
 
         if (ch == ']') {
-            l->is_inside_brackets = false;
+            l->grouping_depth--;
             set(tok, TOK_RBRACK, pos);
             return;
         }
 
         if (ch == '{') {
-            l->is_inside_brackets = true;
+            l->grouping_depth++;
             set(tok, TOK_LBRACE, pos);
             return;
         }
 
         if (ch == '}') {
-            l->is_inside_brackets = false;
+            l->grouping_depth--;
             set(tok, TOK_RBRACE, pos);
             return;
         }
@@ -878,7 +878,7 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         }
 
         if (ch == '\n') {
-            if (l->is_inside_brackets)
+            if (l->grouping_depth > 0)
                 continue;
 
             set(tok, TOK_NEWLINE, pos);

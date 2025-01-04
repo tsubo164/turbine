@@ -408,6 +408,7 @@ static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
 
     int reg_ptr = curr_reg;
 
+    /* args */
     for (const struct parser_expr *arg = call->r; arg; arg = arg->next) {
         int src = gen_expr(code, arg);
         int dst = code_set_register_pointer(code, ++reg_ptr);

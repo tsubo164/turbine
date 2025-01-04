@@ -10,7 +10,6 @@ struct runtime_struct *runtime_struct_new(int64_t len)
 
     runtime_valuevec_init(&s->fields);
     runtime_valuevec_resize(&s->fields, len);
-    runtime_valuevec_zeroclear(&s->fields);
 
     return s;
 }

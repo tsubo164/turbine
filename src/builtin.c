@@ -434,8 +434,8 @@ void define_builtin_functions(struct parser_scope *builtin)
     {
         const char *name = "resize";
         struct native_func_param params[] = {
-            { "array",    parser_new_array_type(parser_new_template_type(0)) },
-            { "new_len",  parser_new_int_type() },
+            { "array",   parser_new_array_type(parser_new_template_type(0)) },
+            { "new_len", parser_new_int_type() },
             { NULL },
         };
         struct parser_type *ret_type = parser_new_array_type(parser_new_template_type(0));

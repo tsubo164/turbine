@@ -32,9 +32,12 @@ void runtime_valuevec_resize(struct runtime_valuevec *v, int new_len)
     while (new_cap < new_len)
         new_cap *= 2;
 
+    int old_len = v->len;
     v->data = realloc(v->data, sizeof(*v->data) * new_cap);
     v->cap = new_cap;
     v->len = new_len;
+
+    memset(v->data + old_len, 0, (new_len - old_len) * sizeof(*v->data));
 }
 
 void runtime_valuevec_push(struct runtime_valuevec *v, struct runtime_value val)
@@ -69,9 +72,4 @@ void runtime_valuevec_free(struct runtime_valuevec *v)
     v->data = NULL;
     v->cap = 0;
     v->len = 0;
-}
-
-void runtime_valuevec_zeroclear(struct runtime_valuevec *v)
-{
-    memset(v->data, 0, v->len * sizeof(*v->data));
 }
