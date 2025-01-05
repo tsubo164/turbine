@@ -12,6 +12,11 @@
 # length(p Point) float
   return math.sqrt(p.x * p.x + p.y * p.y)
 
+## Circle
+  - center Pos
+  - radius int
+  - samples []int
+
 # main(args []string) int
 
   ---
@@ -52,6 +57,14 @@
     positions[0].y = -91
     test.AssertI(123, positions[0].x)
     test.AssertI(-91, positions[0].y)
+
+  ---
+    // nested struct default initializer
+    - c Circle
+    test.AssertI(0, c.center.x)
+    test.AssertI(0, c.center.y)
+    test.AssertI(0, c.radius)
+    test.AssertI(0, len(c.samples))
 
   print(test._test_count_, "tests done.")
 

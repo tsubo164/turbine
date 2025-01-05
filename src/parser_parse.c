@@ -139,6 +139,7 @@ static bool consume(struct parser *p, int kind)
 static struct parser_type *type_spec(struct parser *p);
 static struct parser_expr *expression(struct parser *p);
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
+static struct parser_expr *default_value(const struct parser_type *type);
 
 static struct parser_expr *arg_list(struct parser *p,
         const struct parser_func_sig *func_sig)
@@ -266,6 +267,37 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
             elem = elem->next = parser_new_element_expr(f, e);
         }
         while (consume(p, TOK_COMMA));
+
+        /* omitted default values */
+        struct parser_expr dflthead = {0};
+        struct parser_expr *dflt = &dflthead;
+
+        for (int i = 0; i < strct->fields.len; i++) {
+            struct parser_field *field = parser_struct_get_field(strct, i);
+            bool already_init = false;
+
+            for (const struct parser_expr *init = elemhead.next; init; init = init->next) {
+                struct parser_field *init_field = init->l->field;
+                if (field == init_field) {
+                    already_init = true;
+                    break;
+                }
+            }
+
+            if (already_init)
+                continue;
+
+            if (!parser_is_array_type(field->type) &&
+                !parser_is_struct_type(field->type)) {
+                continue;
+            }
+
+            struct parser_expr *f = parser_new_field_expr(field);
+            struct parser_expr *e = default_value(field->type);
+            dflt = dflt->next = parser_new_element_expr(f, e);
+        }
+
+        elem = elem->next = dflthead.next;
     }
 
     expect(p, TOK_RBRACE);
@@ -474,7 +506,7 @@ static void add_type_info(struct data_strbuf *sb, const struct parser_type *type
         add_type_info(sb, type->underlying);
     }
     else if (parser_is_struct_type(type)) {
-        data_strbuf_cat(sb, "S");
+        data_strbuf_push(sb, 'S');
 
         const struct parser_struct *strct = type->strct;
         int count = parser_struct_get_field_count(strct);
@@ -484,6 +516,7 @@ static void add_type_info(struct data_strbuf *sb, const struct parser_type *type
             field = parser_struct_get_field(strct, i);
             add_type_info(sb, field->type);
         }
+        data_strbuf_push(sb, '.');
     }
 }
 
@@ -1395,6 +1428,34 @@ static struct parser_stmt *nop_stmt(struct parser *p)
     return s;
 }
 
+static struct parser_expr *default_struct_lit(const struct parser_struct *strct)
+{
+    struct parser_expr elemhead = {0};
+    struct parser_expr *elem = &elemhead;
+
+    for (int i = 0; i < strct->fields.len; i++) {
+
+        struct parser_field *field = parser_struct_get_field(strct, i);
+
+        if (parser_is_array_type(field->type)) {
+            struct parser_expr *f = parser_new_field_expr(field);
+            struct parser_expr *e = parser_new_arraylit_expr(field->type->underlying,
+                    NULL, 0);
+            elem = elem->next = parser_new_element_expr(f, e);
+            continue;
+        }
+
+        if (parser_is_struct_type(field->type)) {
+            struct parser_expr *f = parser_new_field_expr(field);
+            struct parser_expr *e = default_struct_lit(field->type->strct);
+            elem = elem->next = parser_new_element_expr(f, e);
+            continue;
+        }
+    }
+
+    return parser_new_structlit_expr(strct, elemhead.next);
+}
+
 static struct parser_expr *default_value(const struct parser_type *type)
 {
     switch ((enum parser_type_kind) type->kind) {
@@ -1417,7 +1478,7 @@ static struct parser_expr *default_value(const struct parser_type *type)
         return parser_new_arraylit_expr(type->underlying, NULL, 0);
 
     case TYP_STRUCT:
-        return parser_new_structlit_expr(type->strct, NULL);
+        return default_struct_lit(type->strct);
 
     case TYP_FUNC:
     case TYP_TABLE:

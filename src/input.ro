@@ -20,27 +20,27 @@
 ## Circle
   - center Point
   - radius int
-
-//# length(p Point) float
-//  return math.sqrt(p.x * p.x + p.y * p.y)
+  //- samples []int
 
 # main(args []string) int
-  //- a = [ 1, 2, 3, 4 ]
-  //print(a)
-  //- pts = [Point{}]
-  //- s = "Hello, World!"
-  //l = len(s)
-  //print(format("length of \"%s\" => %d", s, l))
+  /*
+  - a [] int
+  print(a)
+  - p = Point{}
+  print(p)
+  */
 
+  /*
   - c = Circle {
     center = Point {x=3, y=4},
     radius = 5
+    //samples = [0]
   }
+  */
   - d Circle
 
-  print(c)
-  //print(d)
-
+  //print(c)
+  print(d)
 
   return 42
   //- a = 42
