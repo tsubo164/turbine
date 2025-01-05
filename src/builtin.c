@@ -16,70 +16,70 @@
 #include <ctype.h>
 #include <math.h>
 
-static const char *print_value(struct runtime_value val, const char *fmt)
+static void print_value(struct runtime_value val, struct parser_typelist_iterator *it)
 {
-    const char *p = fmt;
+    switch (it->kind) {
 
-    switch (*p++) {
+    case TYP_NIL:
+        return;
 
-    case 'b':
+    case TYP_BOOL:
         if (val.inum)
             printf("true");
         else
             printf("false");
-        return p;
+        return;
 
-    case 'i':
+    case TYP_INT:
         printf("%lld", val.inum);
-        return p;
+        return;
 
-    case 'f':
+    case TYP_FLOAT:
         printf("%g", val.fpnum);
         if (fmod(val.fpnum, 1.0) == 0.0)
             printf(".0");
-        return p;
+        return;
 
-    case 's':
+    case TYP_STRING:
         printf("%s", runtime_string_get_cstr(val.string));
-        return p;
+        return;
 
-    case 'A':
+    case TYP_ARRAY:
         {
             int len = runtime_array_len(val.array);
-            const char *elem = p;
+            parser_typelist_next(it);
 
             printf("[");
             for (int i = 0; i < len; i++) {
-                p = print_value(runtime_array_get(val.array, i), elem);
+                print_value(runtime_array_get(val.array, i), it);
                 if (i < len - 1)
                     printf(", ");
             }
             printf("]");
         }
-        return p;
+        return;
 
-    case 'S':
+    case TYP_STRUCT:
         {
             int len = runtime_struct_field_count(val.strct);
-            const char *fld = p;
+            parser_typelist_next(it);
 
             printf("{");
             for (int i = 0; i < len; i++) {
-                fld = print_value(runtime_struct_get(val.strct, i), fld);
+                print_value(runtime_struct_get(val.strct, i), it);
                 if (i < len - 1)
                     printf(", ");
+                parser_typelist_next(it);
             }
             printf("}");
-            p = fld;
+            assert(parser_typelist_struct_end(it));
+            parser_typelist_next(it);
         }
-        return p;
-
-    case 'n':
-        return p;
+        return;
 
     default:
         assert(!"variadic argument error");
-        return NULL;
+        return;
     }
 }
 
@@ -96,18 +96,26 @@ static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
     const char *types = runtime_string_get_cstr(arg->string);
     arg++;
 
-    while (*types) {
-        int curr;
-        int next;
+    struct parser_typelist_iterator it;
+    parser_typelist_begin(&it, types);
 
-        curr = *types;
-        types  = print_value(*arg++, types);
-        next = *types;
+    if (parser_typelist_end(&it)) {
+        printf("\n");
+    }
+    else {
+        while (!parser_typelist_end(&it)) {
+            int curr;
+            int next;
 
-        if (curr == 'n' || next == 'n')
-            continue;
+            curr = it.kind;
+            print_value(*arg++, &it);
+            next = parser_typelist_next(&it);
 
-        printf(next ? " " : "\n");
+            if (curr == TYP_NIL || next == TYP_NIL)
+                continue;
+
+            printf(parser_typelist_end(&it) ? "\n" : " ");
+        }
     }
 
     return RESULT_SUCCESS;

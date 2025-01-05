@@ -1,6 +1,7 @@
 #include "parser_type.h"
 #include "parser_symbol.h"
 #include "data_intern.h"
+#include "data_strbuf.h"
 #include "assert.h"
 
 #include <stdio.h>
@@ -257,4 +258,93 @@ void parser_typevec_push(struct parser_typevec *v, const struct parser_type *val
         v->data = realloc(v->data, v->cap * sizeof(*v->data));
     }
     v->data[v->len++] = val;
+}
+
+/* type list */
+static const int table[] = {
+    [TYP_NIL]      = 'n',
+    [TYP_BOOL]     = 'b',
+    [TYP_INT]      = 'i',
+    [TYP_FLOAT]    = 'f',
+    [TYP_STRING]   = 's',
+    [TYP_FUNC]     = 'F',
+    [TYP_STRUCT]   = 'S',
+    [TYP_TABLE]    = 't',
+    [TYP_MODULE]   = 'M',
+    [TYP_PTR]      = 'p',
+    [TYP_ARRAY]    = 'A',
+    [TYP_ANY]      = 'a',
+    [TYP_UNION]    = 'n',
+    [TYP_TEMPLATE] = 'T',
+};
+static const int tablesize = sizeof(table)/sizeof(table[0]);
+
+static int kind_to_char(int kind)
+{
+    assert(kind >= 0 && kind < tablesize);
+    return table[kind];
+}
+
+static int char_to_kind(int ch)
+{
+    for (int kind = 0; kind < tablesize; kind++) {
+        if (ch == table[kind])
+            return kind;
+    }
+    assert(!"variadic argument error");
+    return -1;
+}
+
+void parser_typelist_begin(struct parser_typelist_iterator *it, const char *typelist)
+{
+    assert(typelist);
+    it->curr = typelist - 1;
+    it->kind = TYP_NIL;
+    parser_typelist_next(it);
+}
+
+bool parser_typelist_end(const struct parser_typelist_iterator *it)
+{
+    return it->kind == -1;
+}
+
+bool parser_typelist_struct_end(const struct parser_typelist_iterator *it)
+{
+    return it->kind == -2;
+}
+
+int parser_typelist_next(struct parser_typelist_iterator *it)
+{
+    it->curr++;
+    int ch = *it->curr;
+
+    if (ch == '\0')
+        it->kind = -1;
+    else if (ch == '.')
+        it->kind = -2;
+    else
+        it->kind = char_to_kind(ch);
+
+    return it->kind;
+}
+
+void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t)
+{
+    char ch = kind_to_char(t->kind);
+    data_strbuf_push(sb, ch);
+
+    if (parser_is_array_type(t)) {
+        parser_typelist_push(sb, t->underlying);
+    }
+    else if (parser_is_struct_type(t)) {
+        const struct parser_struct *strct = t->strct;
+        int count = parser_struct_get_field_count(strct);
+
+        for (int i = 0; i < count; i++) {
+            const struct parser_field *field;
+            field = parser_struct_get_field(strct, i);
+            parser_typelist_push(sb, field->type);
+        }
+        data_strbuf_push(sb, '.');
+    }
 }

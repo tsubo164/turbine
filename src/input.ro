@@ -23,12 +23,8 @@
   //- samples []int
 
 # main(args []string) int
-  /*
-  - a [] int
-  print(a)
+  - A [] int// = [1, 2, 3]
   - p = Point{}
-  print(p)
-  */
 
   /*
   - c = Circle {
@@ -37,18 +33,26 @@
     //samples = [0]
   }
   */
-  - d Circle
+  //- d Circle
 
   //print(c)
-  print(d)
+  //print(d)
 
-  return 42
-  //- a = 42
+  //return 42
+  - a = 42
   //- fp = exit
-  //- b = 242301
-  //- c = 0x1234567890
-  //- d = true
-  //- f = 3.14
-  //- s = "Hello!"
-  //print(a, b, c, d, f, s)
-  //return b
+  - b = 242301
+  - c = 0x1234567890
+  - d = true
+  - f = 3.14
+  - s = "Hello!"
+  print(a, b, c, d, f, s)
+  print(a, nil, d)
+  print(a, d, nil)
+  print("--")
+  print(a, nil, d, nil)
+  print("--")
+  print(a, d)
+  print()
+  print(A, a, A, s, p)
+  return a

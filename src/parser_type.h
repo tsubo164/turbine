@@ -89,4 +89,18 @@ void parser_add_union_type(struct parser_type *uni, const struct parser_type *t)
 /* type vec */
 void parser_typevec_push(struct parser_typevec *v, const struct parser_type *val);
 
+/* type list is an ordered list packed into a string */
+struct data_strbuf;
+
+struct parser_typelist_iterator {
+    const char *curr;
+    enum parser_type_kind kind;
+};
+
+void parser_typelist_begin(struct parser_typelist_iterator *it, const char *typelist);
+int parser_typelist_next(struct parser_typelist_iterator *it);
+bool parser_typelist_end(const struct parser_typelist_iterator *it);
+bool parser_typelist_struct_end(const struct parser_typelist_iterator *it);
+void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t);
+
 #endif /* _H */

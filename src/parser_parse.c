@@ -484,42 +484,6 @@ static const struct parser_type *fill_template_type(const struct parser_func_sig
     return NULL;
 }
 
-static void add_type_info(struct data_strbuf *sb, const struct parser_type *type)
-{
-    if (parser_is_nil_type(type)) {
-        data_strbuf_cat(sb, "n");
-    }
-    else if (parser_is_bool_type(type)) {
-        data_strbuf_cat(sb, "b");
-    }
-    else if (parser_is_int_type(type)) {
-        data_strbuf_cat(sb, "i");
-    }
-    else if (parser_is_float_type(type)) {
-        data_strbuf_cat(sb, "f");
-    }
-    else if (parser_is_string_type(type)) {
-        data_strbuf_cat(sb, "s");
-    }
-    else if (parser_is_array_type(type)) {
-        data_strbuf_cat(sb, "A");
-        add_type_info(sb, type->underlying);
-    }
-    else if (parser_is_struct_type(type)) {
-        data_strbuf_push(sb, 'S');
-
-        const struct parser_struct *strct = type->strct;
-        int count = parser_struct_get_field_count(strct);
-
-        for (int i = 0; i < count; i++) {
-            const struct parser_field *field;
-            field = parser_struct_get_field(strct, i);
-            add_type_info(sb, field->type);
-        }
-        data_strbuf_push(sb, '.');
-    }
-}
-
 static struct parser_expr *add_packed_type_info(struct parser_expr *args, int *argc)
 {
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
@@ -527,10 +491,11 @@ static struct parser_expr *add_packed_type_info(struct parser_expr *args, int *a
     struct parser_expr *fmt;
 
     for (arg = args, *argc = 0; arg; arg = arg->next, (*argc)++) {
-        add_type_info(&sbuf, arg->type);
+        parser_typelist_push(&sbuf, arg->type);
     }
 
-    fmt = parser_new_stringlit_expr(data_string_intern(sbuf.data));
+    const char *typelist = sbuf.data ? sbuf.data : "";
+    fmt = parser_new_stringlit_expr(data_string_intern(typelist));
     data_strbuf_free(&sbuf);
 
     fmt->next = args;
