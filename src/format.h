@@ -24,6 +24,7 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
 
 bool format_is_spec_align_left(const struct format_spec *spec);
 
+bool format_is_spec_bool(const struct format_spec *spec);
 bool format_is_spec_int(const struct format_spec *spec);
 bool format_is_spec_float(const struct format_spec *spec);
 bool format_is_spec_string(const struct format_spec *spec);

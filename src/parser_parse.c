@@ -540,7 +540,10 @@ static void validate_format_string(struct parser *p, struct parser_expr *args)
             arg = arg->next;
 
             /* check type */
-            if (format_is_spec_int(&spec)) {
+            if (format_is_spec_bool(&spec)) {
+                match = parser_is_bool_type(arg->type);
+            }
+            else if (format_is_spec_int(&spec)) {
                 match = parser_is_int_type(arg->type);
             }
             else if(format_is_spec_float(&spec)) {

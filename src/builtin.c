@@ -302,7 +302,10 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
             assert(!spec.errmsg);
             arg++;
 
-            if (format_is_spec_int(&spec)) {
+            if (format_is_spec_bool(&spec)) {
+                format_string(&sb, &spec, arg->inum ? "true" : "false");
+            }
+            else if (format_is_spec_int(&spec)) {
                 format_int(&sb, &spec, c_spec, arg->inum);
             }
             else if(format_is_spec_float(&spec)) {

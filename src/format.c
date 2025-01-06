@@ -12,6 +12,7 @@ enum format_align {
 
 enum format_type {
     FMT_TYPE_DECIMAL = 0,
+    FMT_TYPE_BOOL,
     FMT_TYPE_CHAR,
     FMT_TYPE_OCTAL,
     FMT_TYPE_HEX,
@@ -182,6 +183,19 @@ static const char *parse_type(const char *formats, struct format_spec *spec,
 
     switch (*fmt) {
 
+    case 't':
+        if (spec->alternate ||
+            spec->plussign ||
+            spec->group1k ||
+            spec->pad == '0' ||
+            spec->pointzero) {
+            spec->errmsg = "flags and type 't' cannot be combined except for '-'";
+            return fmt;
+        }
+        spec->type = FMT_TYPE_BOOL;
+        *c_type = "s";
+        break;
+
     case 's':
         if (spec->plussign) {
             spec->errmsg = "plus number flag and type 's' cannot be combined";
@@ -339,6 +353,11 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
 bool format_is_spec_align_left(const struct format_spec *spec)
 {
     return spec->align == FMT_ALIGN_LEFT;
+}
+
+bool format_is_spec_bool(const struct format_spec *spec)
+{
+    return spec->type == FMT_TYPE_BOOL;
 }
 
 bool format_is_spec_int(const struct format_spec *spec)

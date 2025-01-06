@@ -34,8 +34,8 @@
   print(d)
   */
   - a = 42
-  - b = 3.14
-  print(a, nil, b, nil)
+  - b = true
+  print(format("%d => [%-10t]", a, b))
   print()
 
   return 42
