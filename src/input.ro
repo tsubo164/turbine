@@ -23,6 +23,7 @@
   - samples []int
 
 # main(args []string) int
+  /*
   - c = Circle {
     center = Point{x=3, y=4},
     radius = 5,
@@ -31,6 +32,11 @@
   - d Circle
   print(c)
   print(d)
+  */
+  - a = 42
+  - b = 3.14
+  print(a, nil, b, nil)
+  print()
 
   return 42
   //- a = 42

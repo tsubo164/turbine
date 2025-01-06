@@ -21,6 +21,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
     switch (it->kind) {
 
     case TYP_NIL:
+        printf("nil");
         return;
 
     case TYP_BOOL:
@@ -98,24 +99,14 @@ static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
     struct parser_typelist_iterator it;
     parser_typelist_begin(&it, types);
 
-    if (parser_typelist_end(&it)) {
-        printf("\n");
+    while (!parser_typelist_end(&it)) {
+        print_value(*arg++, &it);
+        parser_typelist_next(&it);
+
+        if (!parser_typelist_end(&it))
+            printf(" ");
     }
-    else {
-        while (!parser_typelist_end(&it)) {
-            int curr;
-            int next;
-
-            curr = it.kind;
-            print_value(*arg++, &it);
-            next = parser_typelist_next(&it);
-
-            if (curr == TYP_NIL || next == TYP_NIL)
-                continue;
-
-            printf(parser_typelist_end(&it) ? "\n" : " ");
-        }
-    }
+    printf("\n");
 
     return RESULT_SUCCESS;
 }
