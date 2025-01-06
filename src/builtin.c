@@ -73,7 +73,6 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
             }
             printf("}");
             assert(parser_typelist_struct_end(it));
-            parser_typelist_next(it);
         }
         return;
 

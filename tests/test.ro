@@ -5,7 +5,7 @@
   _test_count_ += 1
 
   if expected != actual
-    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+    print(format("error:%d:", $caller_line), "expected:", expected, "actual:", actual)
     exit(1)
 
 // asserts int
@@ -13,7 +13,7 @@
   _test_count_ += 1
 
   if expected != actual
-    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+    print(format("error:%d:", $caller_line), "expected:", expected, "actual:", actual)
     exit(1)
 
 // asserts float
@@ -21,7 +21,7 @@
   _test_count_ += 1
 
   if expected != actual
-    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+    print(format("error:%d:", $caller_line), "expected:", expected, "actual:", actual)
     exit(1)
 
 // asserts string
@@ -29,5 +29,5 @@
   _test_count_ += 1
 
   if expected != actual
-    print("error:", nil, $caller_line, nil, ": expected:", expected, "actual:", actual)
+    print(format("error:%d:", $caller_line), "expected:", expected, "actual:", actual)
     exit(1)
