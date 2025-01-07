@@ -10,25 +10,25 @@ all: $(TARGETS)
 
 test: all
 	@echo "[Rock tests]"
-	../rock test_initdev.ro
+	../turbine initdev_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[number literal tests]"
-	../rock test_numliteral.ro
+	../turbine numliteral_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[string tests]"
-	../rock test_string.ro
+	../turbine string_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[array tests]"
-	../rock test_array.ro foo bar baz
+	../turbine array_tests.tu foo bar baz
 	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[struct tests]"
-	../rock test_struct.ro
+	../turbine struct_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[for statement tests]"
-	../rock test_for.ro
+	../turbine for_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[math module tests]"
-	../rock test_math.ro
+	../turbine math_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
 
 libtest: libtest.out
@@ -36,13 +36,13 @@ libtest: libtest.out
 	./$@.out
 	@echo "\033[0;32mOK\033[0;39m"
 
-libtest.out: libtest.o test.o ../src/librock.a
+libtest.out: libtest.o test.o ../src/libturbine.a
 	$(CC) -g -o $@ $^
 
 %.o:%.c
 	$(CC) -std=c11 -g -c $<
 
-../src/librock.a: ../src/*.h ../src/*.c
+../src/libturbine.a: ../src/*.h ../src/*.c
 	make -C ../src
 
 clean:

@@ -19,6 +19,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* TODO move to somewhere */
+#define FILE_EXT "tu"
+
 /* TODO move this somewhere */
 #include "data_strbuf.h"
 static char *read_file(const char *filename)
@@ -1830,7 +1833,7 @@ static void module_import(struct parser *p)
         error(p, tok_pos(p),
                 "error: too long module name: '%s'", modulename);
     }
-    sprintf(module_filename, "%s.ro", modulename);
+    sprintf(module_filename, "%s.%s", modulename, FILE_EXT);
 
     /* builtin modules */
     const struct builtin_module *found_module;
@@ -1847,7 +1850,7 @@ static void module_import(struct parser *p)
 
         if (!text) {
             error(p, tok_pos(p),
-                    "module %s.ro not found", modulename);
+                    "module %s.%s not found", modulename, FILE_EXT);
         }
 
         /* parse module file */

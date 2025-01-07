@@ -1,27 +1,27 @@
 CFLAGS := -g -Wall --pedantic-errors -std=c11
 SRCS   := $(wildcard *.c)
 
-ROCK  := ../rock
-ROCKA := librock.a
+TURBINE  := ../turbine
+TURBINEA := libturbine.a
 DEP   := dep
 
 .PHONY: all clean run test
 
-all: $(ROCK)
+all: $(TURBINE)
 
-run: $(ROCK) $(DEP)
-	$(ROCK) ./input.ro
+run: $(TURBINE) $(DEP)
+	$(TURBINE) ./input.tu
 
-$(ROCK): main.o $(ROCKA)
+$(TURBINE): main.o $(TURBINEA)
 	$(CC) -o $@ $^
 
-$(ROCKA): $(filter-out main.o, $(SRCS:.c=.o))
+$(TURBINEA): $(filter-out main.o, $(SRCS:.c=.o))
 	$(AR) -r $@ $^
 
 clean:
-	$(RM) $(ROCK) $(ROCKA) *.o $(DEP)
+	$(RM) $(TURBINE) $(TURBINEA) *.o $(DEP)
 
-test: $(ROCKA)
+test: $(TURBINEA)
 	$(MAKE) -C tests $@
 
 $(DEP):
