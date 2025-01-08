@@ -71,6 +71,7 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_EXPR_CONV]           = {"conversion"},
     /* array, struct, func */
     [NOD_EXPR_INDEX]          = {"index"},
+    [NOD_EXPR_MAPINDEX]       = {"mapindex"},
     [NOD_EXPR_SELECT]         = {"select"},
     [NOD_EXPR_CALL]           = {"call"},
     [NOD_EXPR_ELEMENT]        = {"element"},
@@ -212,6 +213,15 @@ struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser
     e->type = ary->type->underlying;
     e->l = ary;
     e->r = idx;
+    return e;
+}
+
+struct parser_expr *parser_new_mapindex_expr(struct parser_expr *map, struct parser_expr *key)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_MAPINDEX);
+    e->type = map->type->underlying;
+    e->l = map;
+    e->r = key;
     return e;
 }
 

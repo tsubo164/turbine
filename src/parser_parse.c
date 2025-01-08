@@ -664,7 +664,15 @@ static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *b
     }
 
     expect(p, TOK_RBRACK);
-    return parser_new_index_expr(base, idx);
+
+    struct parser_expr *expr = NULL;
+
+    if (parser_is_array_type(base->type))
+        expr = parser_new_index_expr(base, idx);
+    else if (parser_is_map_type(base->type))
+        expr = parser_new_mapindex_expr(base, idx);
+
+    return expr;
 }
 
 /*

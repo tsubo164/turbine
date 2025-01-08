@@ -15,6 +15,8 @@ enum code_opcode {
     OP_STOREGLOBAL,
     OP_LOADARRAY,
     OP_STOREARRAY,
+    OP_LOADMAP,
+    OP_STOREMAP,
     OP_LOADSTRUCT,
     OP_STORESTRUCT,
     OP_LOADTYPEID,
@@ -22,8 +24,9 @@ enum code_opcode {
     OP_LOADADDR,
     OP_DEREF,
     /* ------------------------------ */
-    /* array/struct */
+    /* array, map, struct */
     OP_NEWARRAY,
+    OP_NEWMAP,
     OP_NEWSTRUCT,
     /* arithmetic */
     OP_ADDINT,

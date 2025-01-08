@@ -68,8 +68,9 @@ enum parser_node_kind {
     NOD_EXPR_INC,
     NOD_EXPR_DEC,
     NOD_EXPR_CONV,
-    /* array, struct, func */
+    /* array, struct, map, func */
     NOD_EXPR_INDEX,
+    NOD_EXPR_MAPINDEX,
     NOD_EXPR_SELECT,
     NOD_EXPR_CALL,
     NOD_EXPR_ELEMENT, /* TODO may not need */
@@ -149,6 +150,7 @@ struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
         struct parser_type *to);
 struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym);
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
+struct parser_expr *parser_new_mapindex_expr(struct parser_expr *map, struct parser_expr *key);
 struct parser_expr *parser_new_select_expr(struct parser_expr *inst, struct parser_expr *fld);
 struct parser_expr *parser_new_field_expr(struct parser_field *f);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args);

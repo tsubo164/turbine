@@ -25,7 +25,7 @@
 # main(args []string) int
   - m {}int
 
-  m["foo"] = 42
+  //m["foo"] = 42
 
   return 42
   //- a = 42

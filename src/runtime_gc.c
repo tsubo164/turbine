@@ -1,4 +1,5 @@
 #include "runtime_gc.h"
+#include "runtime_map.h"
 #include "runtime_array.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
@@ -43,6 +44,14 @@ static void print_obj(const struct runtime_object *obj)
             const struct runtime_array *a = (struct runtime_array *) obj;
             printf("[array] => len: %d, cap: %d\n",
                     a->values.len, a->values.cap);
+        }
+        break;
+
+    case OBJ_MAP:
+        {
+            const struct runtime_map *m = (struct runtime_map *) obj;
+            printf("[map] => len: %d, cap: %d\n",
+                    m->values.len, m->values.cap);
         }
         break;
 

@@ -117,6 +117,37 @@ static int gen_array_lit(struct code_bytecode *code,
     return dst;
 }
 
+static int gen_map_lit(struct code_bytecode *code,
+        const struct parser_expr *e, int dst_reg)
+{
+    //const struct parser_expr *elem;
+    //int index = 0;
+    int len = 0;
+    int dst = 0;
+
+    /* dst register */
+    if (dst_reg == -1)
+        dst = code_allocate_temporary_register(code);
+    else
+        dst = dst_reg;
+
+    /* make map */
+    len = gen_expr(code, e->l);
+    code_emit_new_map(code, dst, len);
+
+    /* set elements */
+    /*
+    for (elem = e->r; elem; elem = elem->next) {
+        int src = gen_expr(code, elem);
+        int idx = code_emit_load_int(code, index);
+        code_emit_store_array(code, dst, idx, src);
+        index++;
+    }
+    */
+
+    return dst;
+}
+
 static int gen_struct_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
@@ -149,26 +180,27 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
     if (parser_ast_is_global(e->l)) {
         int dst = gen_addr(code, e->l);
         int tmp = gen_expr(code, e->r);
-        code_emit_store_global(code, dst, tmp);
-        return dst;
+        return code_emit_store_global(code, dst, tmp);
     }
 
     if (e->r->kind == NOD_EXPR_ARRAYLIT) {
         int dst = gen_addr(code, e->l);
-        gen_array_lit(code, e->r, dst);
-        return dst;
+        return gen_array_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_MAPLIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_map_lit(code, e->r, dst);
     }
 
     if (e->r->kind == NOD_EXPR_STRUCTLIT) {
         int dst = gen_addr(code, e->l);
-        gen_struct_lit(code, e->r, dst);
-        return dst;
+        return gen_struct_lit(code, e->r, dst);
     }
     {
         int dst = gen_addr(code, e->l);
         int src = gen_expr(code, e->r);
-        code_emit_move(code, dst, src);
-        return dst;
+        return code_emit_move(code, dst, src);
     }
 }
 

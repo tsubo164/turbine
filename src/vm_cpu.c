@@ -347,7 +347,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        /* array/struct */
+        /* array, map, struct */
         case OP_NEWARRAY:
             {
                 int dst = inst.A;
@@ -359,6 +359,11 @@ static void run_cpu(struct vm_cpu *vm)
 
                 struct runtime_value srcobj = {.array = obj};
                 set_local(vm, dst, srcobj);
+            }
+            break;
+
+        case OP_NEWMAP:
+            {
             }
             break;
 

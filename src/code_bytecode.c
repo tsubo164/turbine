@@ -195,7 +195,7 @@ void code_emit_allocate_global(struct code_bytecode *code, int count)
     push_inst_abb(code, OP_ALLOCGLOBAL, 0, count);
 }
 
-/* load/store/move */
+/* load, store, move */
 int code_emit_move(struct code_bytecode *code, int dst, int src)
 {
     if (dst == src)
@@ -269,6 +269,18 @@ int code_emit_store_array(struct code_bytecode *code, int dst, int idx, int src)
     return dst;
 }
 
+int code_emit_load_map(struct code_bytecode *code, int dst, int src, int key)
+{
+    push_inst_abc(code, OP_LOADMAP, dst, src, key);
+    return dst;
+}
+
+int code_emit_store_map(struct code_bytecode *code, int dst, int key, int src)
+{
+    push_inst_abc(code, OP_STOREMAP, dst, key, src);
+    return dst;
+}
+
 int code_emit_load_struct(struct code_bytecode *code, int dst, int src, int field_idx)
 {
     push_inst_abc(code, OP_LOADSTRUCT, dst, src, field_idx);
@@ -323,10 +335,16 @@ int code_emit_dereference(struct code_bytecode *code, int dst, int src)
     return dst;
 }
 
-/* array/struct */
+/* array, map, struct */
 int code_emit_new_array(struct code_bytecode *code, int dst, int len)
 {
     push_inst_ab(code, OP_NEWARRAY, dst, len);
+    return dst;
+}
+
+int code_emit_new_map(struct code_bytecode *code, int dst, int len)
+{
+    push_inst_ab(code, OP_NEWMAP, dst, len);
     return dst;
 }
 

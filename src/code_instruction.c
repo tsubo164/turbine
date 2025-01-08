@@ -7,19 +7,22 @@ static const struct code_opcode_info opecode_table[] = {
     /* allocate */
     [OP_ALLOCATE]       = { "allocate",       OPERAND_A__ },
     [OP_ALLOCGLOBAL]    = { "allocglobal",    OPERAND_ABB },
-    /* load/store/move */
+    /* load, store, move */
     [OP_MOVE]           = { "move",           OPERAND_AB_ },
     [OP_LOADGLOBAL]     = { "loadglobal",     OPERAND_AB_ },
     [OP_STOREGLOBAL]    = { "storeglobal",    OPERAND_AB_ },
     [OP_LOADARRAY]      = { "loadarray",      OPERAND_ABC },
     [OP_STOREARRAY]     = { "storearray",     OPERAND_ABC },
+    [OP_LOADMAP]        = { "loadmap",        OPERAND_ABC },
+    [OP_STOREMAP]       = { "storemap",       OPERAND_ABC },
     [OP_LOADSTRUCT]     = { "loadstruct",     OPERAND_ABC },
     [OP_STORESTRUCT]    = { "storestruct",    OPERAND_ABC },
     [OP_LOADTYPEID]     = { "loadtypeid",     OPERAND_ABB },
     [OP_LOADADDR]       = { "loadaddr",       OPERAND_AB_ },
     [OP_DEREF]          = { "deref",          OPERAND_AB_ },
-    /* array/struct */
+    /* array, map, struct */
     [OP_NEWARRAY]       = { "newarray",       OPERAND_AB_ },
+    [OP_NEWMAP]         = { "newmap",         OPERAND_AB_ },
     [OP_NEWSTRUCT]      = { "newstruct",      OPERAND_ABB },
     /* arithmetic */
     [OP_ADDINT]         = { "addint",         OPERAND_ABC },

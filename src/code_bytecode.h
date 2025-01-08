@@ -62,7 +62,7 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
 void code_emit_allocate(struct code_bytecode *code, int count);
 void code_emit_allocate_global(struct code_bytecode *code, int count);
 
-/* load/store/move */
+/* load, store, move */
 int code_emit_move(struct code_bytecode *code, int dst, int src);
 int code_emit_load_int(struct code_bytecode *code, int64_t val);
 int code_emit_load_float(struct code_bytecode *code, double val);
@@ -71,6 +71,8 @@ int code_emit_load_global(struct code_bytecode *code, int dst, int src);
 int code_emit_store_global(struct code_bytecode *code, int dst, int src);
 int code_emit_load_array(struct code_bytecode *code, int dst, int src, int idx);
 int code_emit_store_array(struct code_bytecode *code, int dst, int idx, int src);
+int code_emit_load_map(struct code_bytecode *code, int dst, int src, int key);
+int code_emit_store_map(struct code_bytecode *code, int dst, int key, int src);
 int code_emit_load_struct(struct code_bytecode *code, int dst, int src, int field_idx);
 int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, int src);
 int code_emit_load_type_nil(struct code_bytecode *code, int dst);
@@ -82,8 +84,9 @@ int code_emit_load_type_string(struct code_bytecode *code, int dst);
 int code_emit_load_address(struct code_bytecode *code, int dst, int src);
 int code_emit_dereference(struct code_bytecode *code, int dst, int src);
 
-/* array/struct */
+/* array, map, struct */
 int code_emit_new_array(struct code_bytecode *code, int dst, int len);
+int code_emit_new_map(struct code_bytecode *code, int dst, int len);
 int code_emit_new_struct(struct code_bytecode *code, int dst, int len);
 
 /* arithmetic */
