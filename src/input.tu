@@ -23,20 +23,9 @@
   - samples []int
 
 # main(args []string) int
-  /*
-  - c = Circle {
-    center = Point{x=3, y=4},
-    radius = 5,
-    samples = [1, 2, 3]
-  }
-  - d Circle
-  print(c)
-  print(d)
-  */
-  - a = 42
-  - b = true
-  print(format("%d => [%-10t]", a, b))
-  print()
+  - m {}int
+
+  m["foo"] = 42
 
   return 42
   //- a = 42

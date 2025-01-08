@@ -651,13 +651,17 @@ static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *b
 {
     expect(p, TOK_LBRACK);
 
-    if (!parser_is_array_type(base->type))
-        error(p, tok_pos(p), "`[]` must be used for array type");
+    if (!parser_is_array_type(base->type) &&
+        !parser_is_map_type(base->type)) {
+        error(p, tok_pos(p), "`[]` must be used for array or map type");
+    }
 
     struct parser_expr *idx = expression(p);
 
-    if (!parser_is_int_type(idx->type))
-        error(p, tok_pos(p), "index expression must be integer type");
+    if (!parser_is_int_type(idx->type) &&
+        !parser_is_string_type(idx->type)) {
+        error(p, tok_pos(p), "index expression must be integer or string type");
+    }
 
     expect(p, TOK_RBRACK);
     return parser_new_index_expr(base, idx);
@@ -1448,6 +1452,9 @@ static struct parser_expr *default_value(const struct parser_type *type)
     case TYP_ARRAY:
         return parser_new_arraylit_expr(type->underlying, NULL, 0);
 
+    case TYP_MAP:
+        return parser_new_maplit_expr(type->underlying, NULL, 0);
+
     case TYP_STRUCT:
         return default_struct_lit(type->strct);
 
@@ -1728,6 +1735,11 @@ static struct parser_type *type_spec(struct parser *p)
     if (consume(p, TOK_LBRACK)) {
         expect(p, TOK_RBRACK);
         return parser_new_array_type(type_spec(p));
+    }
+
+    if (consume(p, TOK_LBRACE)) {
+        expect(p, TOK_RBRACE);
+        return parser_new_map_type(type_spec(p));
     }
 
     if (consume(p, TOK_HASH)) {

@@ -60,6 +60,20 @@ struct parser_type *parser_new_func_type(const struct parser_func_sig *func_sig)
     return t;
 }
 
+struct parser_type *parser_new_array_type(const struct parser_type *underlying)
+{
+    struct parser_type *t = new_type(TYP_ARRAY);
+    t->underlying = underlying;
+    return t;
+}
+
+struct parser_type *parser_new_map_type(const struct parser_type *underlying)
+{
+    struct parser_type *t = new_type(TYP_MAP);
+    t->underlying = underlying;
+    return t;
+}
+
 struct parser_type *parser_new_struct_type(const struct parser_struct *s)
 {
     struct parser_type *t = new_type(TYP_STRUCT);
@@ -84,13 +98,6 @@ struct parser_type *parser_new_module_type(const struct parser_module *mod)
 struct parser_type *parser_new_ptr_type(const struct parser_type *underlying)
 {
     struct parser_type *t = new_type(TYP_PTR);
-    t->underlying = underlying;
-    return t;
-}
-
-struct parser_type *parser_new_array_type(const struct parser_type *underlying)
-{
-    struct parser_type *t = new_type(TYP_ARRAY);
     t->underlying = underlying;
     return t;
 }
@@ -122,11 +129,12 @@ bool parser_is_int_type(const struct parser_type *t)      { return t->kind == TY
 bool parser_is_float_type(const struct parser_type *t)    { return t->kind == TYP_FLOAT; }
 bool parser_is_string_type(const struct parser_type *t)   { return t->kind == TYP_STRING; }
 bool parser_is_func_type(const struct parser_type *t)     { return t->kind == TYP_FUNC; }
+bool parser_is_array_type(const struct parser_type *t)    { return t->kind == TYP_ARRAY; }
+bool parser_is_map_type(const struct parser_type *t)      { return t->kind == TYP_MAP; }
 bool parser_is_struct_type(const struct parser_type *t)   { return t->kind == TYP_STRUCT; }
 bool parser_is_table_type(const struct parser_type *t)    { return t->kind == TYP_TABLE; }
 bool parser_is_module_type(const struct parser_type *t)   { return t->kind == TYP_MODULE; }
 bool parser_is_ptr_type(const struct parser_type *t)      { return t->kind == TYP_PTR; }
-bool parser_is_array_type(const struct parser_type *t)    { return t->kind == TYP_ARRAY; }
 bool parser_is_any_type(const struct parser_type *t)      { return t->kind == TYP_ANY; }
 bool parser_is_union_type(const struct parser_type *t)    { return t->kind == TYP_UNION; }
 bool parser_is_template_type(const struct parser_type *t) { return t->kind == TYP_TEMPLATE; }
@@ -148,11 +156,12 @@ static const char *type_kind_string(int kind)
     case TYP_FLOAT:    return "float";
     case TYP_STRING:   return "string";
     case TYP_FUNC:     return "func";
+    case TYP_ARRAY:    return "[]";
+    case TYP_MAP:      return "{}";
     case TYP_STRUCT:   return "struct";
     case TYP_TABLE:    return "table";
     case TYP_MODULE:   return "module";
     case TYP_PTR:      return "*";
-    case TYP_ARRAY:    return "[]";
     case TYP_ANY:      return "any";
     case TYP_UNION:    return "union";
     case TYP_TEMPLATE: return "template";
@@ -268,14 +277,15 @@ static const int table[] = {
     [TYP_FLOAT]    = 'f',
     [TYP_STRING]   = 's',
     [TYP_FUNC]     = 'F',
-    [TYP_STRUCT]   = 'S',
-    [TYP_TABLE]    = 't',
-    [TYP_MODULE]   = 'M',
-    [TYP_PTR]      = 'p',
     [TYP_ARRAY]    = 'A',
+    [TYP_MAP]      = 'M',
+    [TYP_STRUCT]   = 'S',
+    [TYP_TABLE]    = 'T',
+    [TYP_MODULE]   = 'm',
+    [TYP_PTR]      = 'p',
     [TYP_ANY]      = 'a',
     [TYP_UNION]    = 'n',
-    [TYP_TEMPLATE] = 'T',
+    [TYP_TEMPLATE] = 't',
 };
 static const int tablesize = sizeof(table)/sizeof(table[0]);
 

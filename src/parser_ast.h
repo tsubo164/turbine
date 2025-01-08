@@ -34,6 +34,7 @@ enum parser_node_kind {
     NOD_EXPR_STRINGLIT,
     NOD_EXPR_FUNCLIT,
     NOD_EXPR_ARRAYLIT,
+    NOD_EXPR_MAPLIT,
     NOD_EXPR_STRUCTLIT,
     /* binary */
     NOD_EXPR_ADD,
@@ -139,6 +140,8 @@ struct parser_expr *parser_new_floatlit_expr(double d);
 struct parser_expr *parser_new_stringlit_expr(const char *s);
 struct parser_expr *parser_new_funclit_expr(struct parser_func *func);
 struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type,
+        struct parser_expr *elems, int len);
+struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
 struct parser_expr *parser_new_structlit_expr(const struct parser_struct *strct,
         struct parser_expr *fields);
