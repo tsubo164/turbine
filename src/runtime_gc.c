@@ -42,16 +42,14 @@ static void print_obj(const struct runtime_object *obj)
     case OBJ_ARRAY:
         {
             const struct runtime_array *a = (struct runtime_array *) obj;
-            printf("[array] => len: %d, cap: %d\n",
-                    a->values.len, a->values.cap);
+            printf("[array] => len: %d, cap: %d\n", a->values.len, a->values.cap);
         }
         break;
 
     case OBJ_MAP:
         {
             const struct runtime_map *m = (struct runtime_map *) obj;
-            printf("[map] => len: %d, cap: %d\n",
-                    m->values.len, m->values.cap);
+            printf("[map] => used: %d, cap: %d\n", m->used, m->cap);
         }
         break;
 

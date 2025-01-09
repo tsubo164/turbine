@@ -21,6 +21,9 @@ test: all
 	@echo "[array tests]"
 	../turbine array_tests.tu foo bar baz
 	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[map tests]"
+	../turbine map_tests.tu foo bar baz
+	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[struct tests]"
 	../turbine struct_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"

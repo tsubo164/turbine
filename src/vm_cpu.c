@@ -1,4 +1,5 @@
 #include "vm_cpu.h"
+#include "runtime_map.h"
 #include "runtime_array.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
@@ -291,6 +292,32 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_LOADMAP:
+            {
+                int dst = inst.A;
+                int src = inst.B;
+                int key = inst.C;
+                struct runtime_value srcobj = fetch_register_value(vm, src);
+                struct runtime_value keyval = fetch_register_value(vm, key);
+                struct runtime_value srcval = runtime_map_get(srcobj.map, keyval);
+
+                set_local(vm, dst, srcval);
+            }
+            break;
+
+        case OP_STOREMAP:
+            {
+                uint8_t dst = inst.A;
+                uint8_t key = inst.B;
+                uint8_t src = inst.C;
+                struct runtime_value dstobj = fetch_register_value(vm, dst);
+                struct runtime_value keyval = fetch_register_value(vm, key);
+                struct runtime_value srcval = fetch_register_value(vm, src);
+
+                runtime_map_set(dstobj.map, keyval, srcval);
+            }
+            break;
+
         case OP_LOADSTRUCT:
             {
                 uint8_t dst = inst.A;
@@ -364,6 +391,15 @@ static void run_cpu(struct vm_cpu *vm)
 
         case OP_NEWMAP:
             {
+                int dst = inst.A;
+                int len = inst.B;
+                struct runtime_value lenval = fetch_register_value(vm, len);
+
+                struct runtime_map *obj = runtime_map_new(lenval.inum);
+                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+
+                struct runtime_value srcobj = {.map = obj};
+                set_local(vm, dst, srcobj);
             }
             break;
 

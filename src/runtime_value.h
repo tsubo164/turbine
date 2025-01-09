@@ -7,6 +7,7 @@
 typedef int64_t  value_int_t;
 typedef double   value_float_t;
 
+struct runtime_map;
 struct runtime_array;
 struct runtime_string;
 struct runtime_struct;
@@ -23,8 +24,9 @@ struct runtime_value {
     union {
         value_int_t inum;
         value_float_t fpnum;
-        struct runtime_array *array;
         struct runtime_string *string;
+        struct runtime_array *array;
+        struct runtime_map *map;
         struct runtime_struct *strct;
     };
 };

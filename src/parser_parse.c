@@ -1018,7 +1018,7 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
 }
 
 /*
-assign_stmt ::= logand_expr assing_op expression
+assign_stmt ::= logand_expr assign_op expression
 assign_op   ::= "=" | "+=" | "-=" | "*=" | "/=" | "%="
             | "<<=" | ">>=" | "|=" | "^=" | "&="
 */
