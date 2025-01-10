@@ -9,8 +9,11 @@ TARGETS := $(SRCS)
 all: $(TARGETS)
 
 test: all
-	@echo "[Rock tests]"
+	@echo "[init dev tests]"
 	../turbine initdev_tests.tu
+	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[expression tests]"
+	../turbine expr_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[number literal tests]"
 	../turbine numliteral_tests.tu

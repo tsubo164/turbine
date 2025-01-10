@@ -26,9 +26,11 @@
   - m {}int
 
   m["foo"] = 42
-  //m["bar"] = 12
+  //m["bar"] = 1212
   print("m[\"foo\"] =>", m["foo"])
-  //print(400 - 300)
+  - a = 400 - 300
+  - b = 300 - 400
+  print(a, b)
 
   return 42
   //- a = 42

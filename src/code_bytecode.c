@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static void push_immediate_value(struct code_bytecode *code, int operand);
+static bool pop_if_constpool_reg(struct code_bytecode *code, int operand, int32_t *val);
 
 static void push_inst_op(struct code_bytecode *code, int op)
 {
@@ -14,28 +14,41 @@ static void push_inst_op(struct code_bytecode *code, int op)
 static void push_inst_a(struct code_bytecode *code, int op, int a)
 {
     code_push_instruction_a(&code->insts, op, a);
-    push_immediate_value(code, a);
+    /* no immediate value for operand A */
 }
 
 static void push_inst_ab(struct code_bytecode *code, int op, int a, int b)
 {
     code_push_instruction_ab(&code->insts, op, a, b);
-    push_immediate_value(code, a);
-    push_immediate_value(code, b);
+    /* no immediate value for operand A */
+    int32_t const_id = 0;
+    if (pop_if_constpool_reg(code, b, &const_id))
+        code_push_immediate_value(&code->insts, const_id);
 }
 
 static void push_inst_abc(struct code_bytecode *code, int op, int a, int b, int c)
 {
     code_push_instruction_abc(&code->insts, op, a, b, c);
-    push_immediate_value(code, a);
-    push_immediate_value(code, b);
-    push_immediate_value(code, c);
+    /* no immediate value for operand A */
+    /* When both operands A and B are immediate values,
+     * they are pushed onto the temporary stack in the order: C, B. */
+    int32_t const_id = 0;
+    int32_t id_stack[2] = {0};
+    int sp = 0;
+
+    if (pop_if_constpool_reg(code, b, &const_id))
+        id_stack[sp++] = const_id;
+    if (pop_if_constpool_reg(code, c, &const_id))
+        id_stack[sp++] = const_id;
+
+    for (int i = sp - 1; i >= 0; i--)
+        code_push_immediate_value(&code->insts, id_stack[i]);
 }
 
 static void push_inst_abb(struct code_bytecode *code, int op, int a, int bb)
 {
     code_push_instruction_abb(&code->insts, op, a, bb);
-    push_immediate_value(code, a);
+    /* no immediate value for operand A and BB */
 }
 
 static bool is_localreg_full(const struct code_bytecode *code)
@@ -115,15 +128,16 @@ static bool is_constpool_register(int id)
     return id > IMMEDIATE_SMALLINT_END && id <= 0xFF;
 }
 
-static void push_immediate_value(struct code_bytecode *code, int operand)
+static bool pop_if_constpool_reg(struct code_bytecode *code, int operand, int32_t *val)
 {
     if (!is_constpool_register(operand))
-        return;
+        return false;
 
-    int64_t val = data_intstack_pop(&code->immediate_ints);
-    int32_t id = val & 0xFFFFFFFF;
+    int64_t val64 = data_intstack_pop(&code->immediate_ints);
+    int32_t id = val64 & 0xFFFFFFFF;
 
-    code_push_immediate_value(&code->insts, id);
+    *val = id;
+    return true;
 }
 
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
