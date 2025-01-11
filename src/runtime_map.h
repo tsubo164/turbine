@@ -9,9 +9,10 @@ struct runtime_map_entry;
 
 struct runtime_map {
     struct runtime_object obj;
-    struct runtime_map_entry *buckets;
+    struct runtime_map_entry **buckets;
+    int32_t prime_index;
     int cap;
-    int used;
+    int len;
 };
 
 struct runtime_map *runtime_map_new(int64_t len);

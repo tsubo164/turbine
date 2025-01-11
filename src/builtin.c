@@ -8,6 +8,7 @@
 #include "runtime_struct.h"
 #include "runtime_array.h"
 #include "runtime_value.h"
+#include "runtime_map.h"
 #include "format.h"
 
 #include <assert.h>
@@ -57,6 +58,24 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
                     printf(", ");
             }
             printf("]");
+        }
+        return;
+
+    case TYP_MAP:
+        {
+            int len = runtime_map_len(val.map);
+            parser_typelist_next(it);
+
+            printf(">>>>>>> %d\n", len);
+            /*
+            printf("[");
+            for (int i = 0; i < len; i++) {
+                print_value(runtime_map_get(val.map, i), it);
+                if (i < len - 1)
+                    printf(", ");
+            }
+            printf("]");
+            */
         }
         return;
 

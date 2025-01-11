@@ -5,52 +5,152 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* hash map */
+#define MAX_LOAD_FACTOR 70
+#define MIN_PRIME_INDEX 5
+
+const int32_t power_of_two_primes[] = {
+    /* 2^0 */  1,
+    /* 2^1 */  2,
+    /* 2^2 */  3,
+    /* 2^3 */  7,
+    /* 2^4 */  13,
+    /* 2^5 */  31,
+    /* 2^6 */  61,
+    /* 2^7 */  127,
+    /* 2^8 */  251,
+    /* 2^9 */  509,
+    /* 2^10 */ 1021,
+    /* 2^11 */ 2039,
+    /* 2^12 */ 4093,
+    /* 2^13 */ 8179,
+    /* 2^14 */ 16381,
+    /* 2^15 */ 32749,
+    /* 2^16 */ 65521,
+    /* 2^17 */ 131071,
+    /* 2^18 */ 262139,
+    /* 2^19 */ 524287,
+    /* 2^20 */ 1048573,
+    /* 2^21 */ 2097143,
+    /* 2^22 */ 4194301,
+    /* 2^23 */ 8388593,
+    /* 2^24 */ 16777199,
+    /* 2^25 */ 33554393,
+    /* 2^26 */ 67108859,
+    /* 2^27 */ 134217689,
+    /* 2^28 */ 268435399,
+    /* 2^29 */ 536870909,
+    /* 2^30 */ 1073741789,
+    /* 2^31 */ 2147483647
+};
+
 struct runtime_map_entry {
     struct runtime_value key;
     struct runtime_value val;
-    bool used;
+    struct runtime_map_entry *next_in_chain;
 };
 
-#define MAX_LOAD_FACTOR 70
+static uint64_t simple_hash(const char *key, int len)
+{
+    uint64_t h = 0;
+    const uint8_t *p = (const uint8_t *) key;
 
-static uint64_t fnv_hash(const char *key)
+    for (int i = 0; i < len; i++) {
+        h = 31 * h + p[i];
+    }
+
+    return h;
+}
+
+static uint64_t fnv_hash(const char *key, int len)
 {
     uint64_t hash = 0xcbf29ce484222325;
-    for (const char *p = key; *p; p++) {
-        hash ^= *p;
+    const uint8_t *p = (const uint8_t *) key;
+
+    for (int i = 0; i < len; i++) {
+        hash ^= p[i];
         hash *= 0x100000001b3;
     }
+
     return hash;
+}
+
+static int32_t next_prime_index(int index)
+{
+    return index < MIN_PRIME_INDEX ?  MIN_PRIME_INDEX : index + 1;
+}
+
+static int32_t get_prime(int index)
+{
+    int idx = index < 0 ? 0 : index;
+    idx = index > 31 ? 31 : index;
+
+    return power_of_two_primes[idx];
+}
+
+static uint64_t get_hash(const struct runtime_map *map, struct runtime_value key)
+{
+    const char *str = runtime_string_get_cstr(key.string);
+    int len = runtime_string_len(key.string);
+    uint64_t h;
+
+    if (1)
+        h = fnv_hash(str, len);
+    else
+        h = simple_hash(str, len);
+
+    return h % map->cap;
 }
 
 static void resize(struct runtime_map *map)
 {
-    int cap = map->cap < 16 ? 16 : 2 * map->cap;
+    int cap;
+
+    map->prime_index = next_prime_index(map->prime_index);
+    cap = get_prime(map->prime_index);
     map->buckets = calloc(cap, sizeof(map->buckets[0]));
     map->cap = cap;
-    map->used = 0;
+    map->len = 0;
 }
-
-static struct runtime_map_entry *insert(struct runtime_map *map,
-        struct runtime_value key, struct runtime_value val);
 
 static void rehash(struct runtime_map *map)
 {
-    struct runtime_map_entry *old_buckets = map->buckets;
+    struct runtime_map_entry **old_buckets = map->buckets;
     int old_cap = map->cap;
+
     resize(map);
 
     for (int i = 0; i < old_cap; i++) {
-        struct runtime_map_entry *ent = &old_buckets[i];
-        insert(map, ent->key, ent->val);
+        struct runtime_map_entry *ent, *next;
+        uint64_t h;
+
+        for (ent = old_buckets[i]; ent; ) {
+            next = ent->next_in_chain;
+
+            h = get_hash(map, ent->key);
+            ent->next_in_chain = map->buckets[h];
+            map->buckets[h] = ent;
+
+            ent = next;
+        }
     }
+
     free(old_buckets);
 }
 
 static bool match(const struct runtime_map_entry *ent, struct runtime_value key)
 {
     return !runtime_string_compare(ent->key.string, key.string);
+}
+
+static struct runtime_map_entry *new_entry(struct runtime_value key, struct runtime_value val)
+{
+    struct runtime_map_entry *ent;
+
+    ent = calloc(1, sizeof(struct runtime_map_entry));
+    ent->key = key;
+    ent->val = val;
+
+    return ent;
 }
 
 static struct runtime_map_entry *insert(struct runtime_map *map,
@@ -61,30 +161,25 @@ static struct runtime_map_entry *insert(struct runtime_map *map,
 
     if (!map->buckets)
         resize(map);
-    else if (100 * map->used / map->cap >= MAX_LOAD_FACTOR)
+    else if (100. * map->len / map->cap >= MAX_LOAD_FACTOR)
         rehash(map);
 
-    uint64_t hash = fnv_hash(runtime_string_get_cstr(key.string));
+    uint64_t h = get_hash(map, key);
+    struct runtime_map_entry *ent;
 
-    for (int i = 0; i < map->cap; i++) {
-        struct runtime_map_entry *ent = &map->buckets[(hash + i) % map->cap];
-
-        if (!ent->used) {
-            ent->key = key;
+    for (ent = map->buckets[h]; ent; ent = ent->next_in_chain) {
+        if (match(ent, key)) {
             ent->val = val;
-            ent->used = true;
-            map->used++;
             return ent;
         }
-        else if (match(ent, key)) {
-            /*
-            return NULL;
-            */
-            /* TODO consider not writing a new value here */
-            ent->val = val;
-        }
     }
-    return NULL;
+
+    ent = new_entry(key, val);
+    ent->next_in_chain = map->buckets[h];
+    map->buckets[h] = ent;
+    map->len++;
+
+    return ent;
 }
 
 static struct runtime_map_entry *lookup(const struct runtime_map *map,
@@ -93,16 +188,13 @@ static struct runtime_map_entry *lookup(const struct runtime_map *map,
     if (!map)
         return NULL;
 
-    uint64_t hash = fnv_hash(runtime_string_get_cstr(key.string));
+    uint64_t h = get_hash(map, key);
+    struct runtime_map_entry *ent;
 
-    for (int i = 0; i < map->cap; i++) {
-        struct runtime_map_entry *ent = &map->buckets[(hash + i) % map->cap];
-
-        if (!ent->used)
-            return NULL;
-        else if (match(ent, key))
+    for (ent = map->buckets[h]; ent; ent = ent->next_in_chain)
+        if (match(ent, key))
             return ent;
-    }
+
     return NULL;
 }
 
@@ -120,6 +212,19 @@ void runtime_map_free(struct runtime_map *m)
 {
     if (!m)
         return;
+
+    /* TODO use next_in_order */
+    for (int i = 0; i < m->cap; i++) {
+        struct runtime_map_entry *ent = m->buckets[i];
+        struct runtime_map_entry *next;
+
+        while (ent) {
+            next = ent->next_in_chain;
+            free(ent);
+            ent = next;
+        }
+    }
+
     free(m->buckets);
     free(m);
 }
@@ -133,22 +238,27 @@ struct runtime_value runtime_map_get(const struct runtime_map *m, struct runtime
         return (struct runtime_value) {0};
 }
 
+void print_map(const struct runtime_map *map);
 void runtime_map_set(struct runtime_map *m, struct runtime_value key, struct runtime_value val)
 {
     insert(m, key, val);
+    /*
+    printf("----------------------\n");
+    print_map(m);
+    */
 }
 
 int64_t runtime_map_len(const struct runtime_map *m)
 {
-    return m->used;
+    return m->len;
 }
 
 void print_map(const struct runtime_map *map)
 {
     for (int i = 0; i < map->cap; i++) {
-        struct runtime_map_entry *ent = &map->buckets[i];
-        if (ent->used)
-            printf( "%4d: key => \"%s\", val => %lld\n", i,
+        struct runtime_map_entry *ent;
+        for (ent = map->buckets[i]; ent; ent = ent->next_in_chain)
+            printf( "%4d/%d: key => \"%s\", val => %lld\n", i, map->cap,
                     runtime_string_get_cstr(ent->key.string),
                     ent->val.inum);
     }
