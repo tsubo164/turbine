@@ -95,13 +95,12 @@ static uint64_t get_hash(const struct runtime_map *map, struct runtime_value key
     return h % map->cap;
 }
 
-static void resize(struct runtime_map *map)
+static void resize(struct runtime_map *map, int prime_index)
 {
-    int cap;
+    int cap = get_prime(prime_index);
 
-    map->prime_index = next_prime_index(map->prime_index);
-    cap = get_prime(map->prime_index);
     map->buckets = calloc(cap, sizeof(map->buckets[0]));
+    map->prime_index = prime_index;
     map->cap = cap;
     map->len = 0;
 }
@@ -111,7 +110,7 @@ static void rehash(struct runtime_map *map)
     struct runtime_map_entry **old_buckets = map->buckets;
     int old_cap = map->cap;
 
-    resize(map);
+    resize(map, next_prime_index(map->prime_index));
 
     for (int i = 0; i < old_cap; i++) {
         struct runtime_map_entry *ent, *next;
@@ -153,8 +152,8 @@ static struct runtime_map_entry *insert(struct runtime_map *map,
     if (!key.string)
         return NULL;
 
-    if (!map->buckets)
-        resize(map);
+    if (map->cap == 0)
+        resize(map, next_prime_index(0));
     else if (100. * map->len / map->cap >= MAX_LOAD_FACTOR)
         rehash(map);
 
@@ -201,6 +200,17 @@ struct runtime_map *runtime_map_new(int64_t len)
     m = calloc(1, sizeof(*m));
     m->obj.kind = OBJ_MAP;
     m->tail = &m->head;
+
+    int init_cap = 2 * len;
+    int idx = 0;
+
+    if (len > 0) {
+        do {
+            idx = next_prime_index(idx);
+        } while (get_prime(idx) < init_cap);
+
+        resize(m, idx);
+    }
 
     return m;
 }
