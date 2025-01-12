@@ -75,11 +75,6 @@ int code_emit_load_map(struct code_bytecode *code, int dst, int src, int key);
 int code_emit_store_map(struct code_bytecode *code, int dst, int key, int src);
 int code_emit_load_struct(struct code_bytecode *code, int dst, int src, int field_idx);
 int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, int src);
-int code_emit_load_type_nil(struct code_bytecode *code, int dst);
-int code_emit_load_type_bool(struct code_bytecode *code, int dst);
-int code_emit_load_type_int(struct code_bytecode *code, int dst);
-int code_emit_load_type_float(struct code_bytecode *code, int dst);
-int code_emit_load_type_string(struct code_bytecode *code, int dst);
 /* TODO remove address operations */
 int code_emit_load_address(struct code_bytecode *code, int dst, int src);
 int code_emit_dereference(struct code_bytecode *code, int dst, int src);

@@ -17,7 +17,6 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_STOREMAP]       = { "storemap",       OPERAND_ABC },
     [OP_LOADSTRUCT]     = { "loadstruct",     OPERAND_ABC },
     [OP_STORESTRUCT]    = { "storestruct",    OPERAND_ABC },
-    [OP_LOADTYPEID]     = { "loadtypeid",     OPERAND_ABB },
     [OP_LOADADDR]       = { "loadaddr",       OPERAND_AB_ },
     [OP_DEREF]          = { "deref",          OPERAND_AB_ },
     /* array, map, struct */

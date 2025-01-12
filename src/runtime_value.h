@@ -12,14 +12,6 @@ struct runtime_array;
 struct runtime_string;
 struct runtime_struct;
 
-enum runtime_value_type {
-    VAL_NIL = 0,
-    VAL_BOOL,
-    VAL_INT,
-    VAL_FLOAT,
-    VAL_STRING,
-};
-
 struct runtime_value {
     union {
         value_int_t inum;

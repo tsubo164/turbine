@@ -342,16 +342,6 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_LOADTYPEID:
-            {
-                int dst = inst.A;
-                int src = inst.BB;
-                struct runtime_value dstval;
-                dstval.inum = src;
-                set_local(vm, dst, dstval);
-            }
-            break;
-
         case OP_LOADADDR:
             {
                 int dst = inst.A;
