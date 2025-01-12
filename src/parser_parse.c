@@ -228,7 +228,7 @@ static struct parser_expr *array_lit_expr(struct parser *p)
         e = e->next = expression(p);
         if (!parser_match_type(elem_type, e->type)) {
             error(p, tok_pos(p),
-                    "type mismatch: first element type '%s': this element type '%s'",
+                    "type mismatch: first element '%s': this element '%s'",
                     parser_type_string(elem_type),
                     parser_type_string(e->type));
         }
@@ -237,6 +237,45 @@ static struct parser_expr *array_lit_expr(struct parser *p)
 
     expect(p, TOK_RBRACK);
     return parser_new_arraylit_expr(elem_type, expr, len);
+}
+
+static struct parser_expr *map_lit_expr(struct parser *p)
+{
+    struct parser_expr elemhead = {0};
+    struct parser_expr *elem = &elemhead;
+    const struct parser_type *elem_type = NULL;
+    int len = 0;
+
+    expect(p, TOK_LBRACE);
+
+    do {
+        struct parser_expr *key, *val;
+
+        key = expression(p);
+        if (!parser_is_string_type(key->type)) {
+            error(p, tok_pos(p), "key expression must be string type");
+        }
+
+        expect(p, TOK_COLON);
+        val = expression(p);
+
+        if (!elem_type) {
+            elem_type = val->type;
+        }
+        else if (!parser_match_type(elem_type, val->type)) {
+            error(p, tok_pos(p),
+                    "type mismatch: first value '%s': this value '%s'",
+                    parser_type_string(elem_type),
+                    parser_type_string(val->type));
+        }
+
+        elem = elem->next = parser_new_element_expr(key, val);
+        len++;
+    }
+    while (consume(p, TOK_COMMA));
+
+    expect(p, TOK_RBRACE);
+    return parser_new_maplit_expr(elem_type, elemhead.next, len);
 }
 
 static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbol *sym)
@@ -259,15 +298,15 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
 
             expect(p, TOK_EQUAL);
 
-            struct parser_expr *f = parser_new_field_expr(field);
-            struct parser_expr *e = expression(p);
+            struct parser_expr *fld = parser_new_field_expr(field);
+            struct parser_expr *val = expression(p);
 
-            if (!parser_match_type(f->type, e->type)) {
+            if (!parser_match_type(fld->type, val->type)) {
                 error(p, tok_pos(p), "type mismatch: field %s and expression %s",
-                        parser_type_string(f->type), parser_type_string(e->type));
+                        parser_type_string(fld->type), parser_type_string(val->type));
             }
 
-            elem = elem->next = parser_new_element_expr(f, e);
+            elem = elem->next = parser_new_element_expr(fld, val);
         }
         while (consume(p, TOK_COMMA));
 
@@ -304,7 +343,6 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
     }
 
     expect(p, TOK_RBRACE);
-
     return parser_new_structlit_expr(strct, elemhead.next);
 }
 
@@ -399,6 +437,9 @@ static struct parser_expr *primary_expr(struct parser *p)
 
     case TOK_LBRACK:
         return array_lit_expr(p);
+
+    case TOK_LBRACE:
+        return map_lit_expr(p);
 
     case TOK_LPAREN:
         {

@@ -120,8 +120,7 @@ static int gen_array_lit(struct code_bytecode *code,
 static int gen_map_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
-    //const struct parser_expr *elem;
-    //int index = 0;
+    const struct parser_expr *elem;
     int len = 0;
     int dst = 0;
 
@@ -136,14 +135,11 @@ static int gen_map_lit(struct code_bytecode *code,
     code_emit_new_map(code, dst, len);
 
     /* set elements */
-    /*
     for (elem = e->r; elem; elem = elem->next) {
-        int src = gen_expr(code, elem);
-        int idx = code_emit_load_int(code, index);
-        code_emit_store_array(code, dst, idx, src);
-        index++;
+        int key = gen_expr(code, elem->l);
+        int src = gen_expr(code, elem->r);
+        code_emit_store_map(code, dst, key, src);
     }
-    */
 
     return dst;
 }

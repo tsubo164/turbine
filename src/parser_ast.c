@@ -175,7 +175,7 @@ struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_MAPLIT);
-    e->type = parser_new_array_type(elem_type);
+    e->type = parser_new_map_type(elem_type);
     e->l = parser_new_intlit_expr(len);
     e->r = elems;
     return e;

@@ -23,6 +23,7 @@
   - samples []int
 
 # main(args []string) int
+  /*
   - m {}int
   m["foo"] = 42
   m["bar"] = 1212
@@ -48,6 +49,8 @@
   m["JavaScript"] = 7432
   m["Swift"] = 3921
   m["Turbine"] = 3574
+  */
+  - m = { "Go":923, "Python":4261, "Lua":1453, "Turbine":777 }
   print(m)
 
   return 42
