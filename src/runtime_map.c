@@ -43,12 +43,6 @@ const int32_t power_of_two_primes[] = {
     /* 2^31 */ 2147483647
 };
 
-struct runtime_map_entry {
-    struct runtime_value key;
-    struct runtime_value val;
-    struct runtime_map_entry *next_in_chain;
-};
-
 static uint64_t simple_hash(const char *key, int len)
 {
     uint64_t h = 0;
@@ -179,6 +173,8 @@ static struct runtime_map_entry *insert(struct runtime_map *map,
     map->buckets[h] = ent;
     map->len++;
 
+    map->tail = map->tail->next_in_order = ent;
+
     return ent;
 }
 
@@ -204,6 +200,7 @@ struct runtime_map *runtime_map_new(int64_t len)
 
     m = calloc(1, sizeof(*m));
     m->obj.kind = OBJ_MAP;
+    m->tail = &m->head;
 
     return m;
 }
@@ -213,16 +210,13 @@ void runtime_map_free(struct runtime_map *m)
     if (!m)
         return;
 
-    /* TODO use next_in_order */
-    for (int i = 0; i < m->cap; i++) {
-        struct runtime_map_entry *ent = m->buckets[i];
-        struct runtime_map_entry *next;
+    struct runtime_map_entry *ent, *next;
+    ent = runtime_map_entry_begin(m);
 
-        while (ent) {
-            next = ent->next_in_chain;
-            free(ent);
-            ent = next;
-        }
+    while (ent) {
+        next = runtime_map_entry_next(ent);
+        free(ent);
+        ent = next;
     }
 
     free(m->buckets);
@@ -242,15 +236,21 @@ void print_map(const struct runtime_map *map);
 void runtime_map_set(struct runtime_map *m, struct runtime_value key, struct runtime_value val)
 {
     insert(m, key, val);
-    /*
-    printf("----------------------\n");
-    print_map(m);
-    */
 }
 
 int64_t runtime_map_len(const struct runtime_map *m)
 {
     return m->len;
+}
+
+struct runtime_map_entry *runtime_map_entry_begin(const struct runtime_map *m)
+{
+    return m->head.next_in_order;
+}
+
+struct runtime_map_entry *runtime_map_entry_next(const struct runtime_map_entry *ent)
+{
+    return ent->next_in_order;
 }
 
 void print_map(const struct runtime_map *map)

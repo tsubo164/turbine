@@ -44,9 +44,11 @@
   m["Python"] = 4261
   m["Ruby"] = 519
   m["Perl"] = 682
+  m["PHP"] = -832
+  m["JavaScript"] = 7432
+  m["Swift"] = 3921
   m["Turbine"] = 3574
-  //print(m)
-  print("------------>", m["foo"], m["bar"])
+  print(m)
 
   return 42
   //- a = 42

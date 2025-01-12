@@ -63,19 +63,20 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
 
     case TYP_MAP:
         {
-            int len = runtime_map_len(val.map);
             parser_typelist_next(it);
 
-            printf(">>>>>>> %d\n", len);
-            /*
-            printf("[");
-            for (int i = 0; i < len; i++) {
-                print_value(runtime_map_get(val.map, i), it);
-                if (i < len - 1)
+            printf("{");
+            struct runtime_map_entry *ent;
+            for (ent = runtime_map_entry_begin(val.map);
+                    ent; ent = runtime_map_entry_next(ent)) {
+
+                printf("\"%s\":", runtime_string_get_cstr(ent->key.string));
+                print_value(ent->val, it);
+
+                if (runtime_map_entry_next(ent))
                     printf(", ");
             }
-            printf("]");
-            */
+            printf("}");
         }
         return;
 
