@@ -51,6 +51,7 @@
   m["Turbine"] = 3574
   */
   - m = { "Go":923, "Python":4261, "Lua":1453, "Turbine":777 }
+  - a = [1, 2, 3, 4]
   print(m)
 
   return 42

@@ -215,28 +215,33 @@ static struct parser_expr *conv_expr(struct parser *p)
 
 static struct parser_expr *array_lit_expr(struct parser *p)
 {
-    struct parser_expr *expr, *e;
-    const struct parser_type *elem_type;
-    int len = 1;
+    struct parser_expr elemhead = {0};
+    struct parser_expr *elem = &elemhead;
+    const struct parser_type *elem_type = NULL;
+    int len = 0;
 
     expect(p, TOK_LBRACK);
-    expr = expression(p);
-    e = expr;
-    elem_type = expr->type;
 
-    while (consume(p, TOK_COMMA)) {
-        e = e->next = expression(p);
-        if (!parser_match_type(elem_type, e->type)) {
-            error(p, tok_pos(p),
-                    "type mismatch: first element '%s': this element '%s'",
-                    parser_type_string(elem_type),
-                    parser_type_string(e->type));
+    do {
+        struct parser_expr *val = expression(p);
+
+        if (!elem_type) {
+            elem_type = val->type;
         }
+        else if (!parser_match_type(elem_type, val->type)) {
+            error(p, tok_pos(p),
+                    "type mismatch: first value '%s': this value '%s'",
+                    parser_type_string(elem_type),
+                    parser_type_string(val->type));
+        }
+
+        elem = elem->next = val;
         len++;
     }
+    while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACK);
-    return parser_new_arraylit_expr(elem_type, expr, len);
+    return parser_new_arraylit_expr(elem_type, elemhead.next, len);
 }
 
 static struct parser_expr *map_lit_expr(struct parser *p)
@@ -334,9 +339,9 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
                 continue;
             }
 
-            struct parser_expr *f = parser_new_field_expr(field);
-            struct parser_expr *e = default_value(field->type);
-            dflt = dflt->next = parser_new_element_expr(f, e);
+            struct parser_expr *fld = parser_new_field_expr(field);
+            struct parser_expr *val = default_value(field->type);
+            dflt = dflt->next = parser_new_element_expr(fld, val);
         }
 
         elem = elem->next = dflthead.next;
