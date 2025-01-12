@@ -361,6 +361,16 @@ static int builtin_len(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int builtin_maplen(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value val = regs->locals[0];
+
+    val.inum = runtime_map_len(val.map);
+    regs->locals[0] = val;
+
+    return RESULT_SUCCESS;
+}
+
 static int builtin_strlen(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value val = regs->locals[0];
@@ -453,6 +463,20 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_len);
+    }
+    {
+        const char *name = "maplen";
+        struct native_func_param params[] = {
+            { "map", parser_new_map_type(parser_new_any_type()) },
+            { NULL },
+        };
+        struct parser_type *ret_type = parser_new_int_type();
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_maplen);
     }
     {
         const char *name = "strlen";

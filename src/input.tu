@@ -78,6 +78,7 @@
     "Turbine":3574
   }
   print(m)
+  print(maplen(m))
 
   return 42
   //- a = 42
