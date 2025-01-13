@@ -12,6 +12,7 @@ enum parser_node_kind {
     NOD_STMT_WHILE,
     NOD_STMT_FORNUM,
     NOD_STMT_FORARRAY,
+    NOD_STMT_FORMAP,
     NOD_STMT_ELSE,
     NOD_STMT_BREAK,
     NOD_STMT_CONTINUE,
@@ -199,6 +200,8 @@ struct parser_stmt *parser_new_while_stmt(struct parser_expr *cond, struct parse
 struct parser_stmt *parser_new_fornum_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);
 struct parser_stmt *parser_new_forarray_stmt(struct parser_expr *iter,
+        struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_formap_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);
 struct parser_stmt *parser_new_break_stmt(void);
 struct parser_stmt *parser_new_continue_stmt(void);

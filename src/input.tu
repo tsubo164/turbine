@@ -80,6 +80,9 @@
   print(m)
   print(maplen(m))
 
+  for val in m
+    print("val =>", val)
+
   return 42
   //- a = 42
   //- fp = exit

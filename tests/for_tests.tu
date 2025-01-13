@@ -95,6 +95,14 @@
         break
     test.AssertI(45, sum)
 
+  ---
+    // for map value
+    - m = { "Go":923, "Python":4261, "Lua":1453, "Turbine":777 }
+    - sum = 0
+    for val in m
+      sum += val
+    test.AssertI(7414, sum)
+
   print(test._test_count_, "tests done.")
 
   return 0

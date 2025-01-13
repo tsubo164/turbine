@@ -13,6 +13,7 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_STMT_WHILE]          = {"while"},
     [NOD_STMT_FORNUM]         = {"for (num)"},
     [NOD_STMT_FORARRAY]       = {"for (array)"},
+    [NOD_STMT_FORMAP]         = {"for (map)"},
     [NOD_STMT_ELSE]           = {"else"},
     [NOD_STMT_BREAK]          = {"break"},
     [NOD_STMT_CONTINUE]       = {"continue"},
@@ -471,6 +472,16 @@ struct parser_stmt *parser_new_forarray_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body)
 {
     struct parser_stmt *s = new_stmt(NOD_STMT_FORARRAY);
+    s->expr = iter;
+    s->cond = collection;
+    s->body = body;
+    return s;
+}
+
+struct parser_stmt *parser_new_formap_stmt(struct parser_expr *iter,
+        struct parser_expr *collection, struct parser_stmt *body)
+{
+    struct parser_stmt *s = new_stmt(NOD_STMT_FORMAP);
     s->expr = iter;
     s->cond = collection;
     s->body = body;

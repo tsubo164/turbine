@@ -588,6 +588,60 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_FORMAPBEGIN:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value itr = fetch_register_value(vm, src);
+                struct runtime_value idx = fetch_register_value(vm, src + 1);
+                struct runtime_value key = fetch_register_value(vm, src + 2);
+                struct runtime_value val = fetch_register_value(vm, src + 3);
+                struct runtime_value obj = fetch_register_value(vm, src + 4);
+                struct runtime_map_entry *ent = runtime_map_entry_begin(obj.map);
+
+                if (ent) {
+                    itr.data = ent;
+                    idx.inum = 0;
+                    key = ent->key;
+                    val = ent->val;
+
+                    set_local(vm, src    , itr);
+                    set_local(vm, src + 1, idx);
+                    set_local(vm, src + 2, key);
+                    set_local(vm, src + 3, val);
+                }
+                else {
+                    set_ip(vm, dst);
+                }
+            }
+            break;
+
+        case OP_FORMAPEND:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value itr = fetch_register_value(vm, src);
+                struct runtime_value idx = fetch_register_value(vm, src + 1);
+                struct runtime_value key = fetch_register_value(vm, src + 2);
+                struct runtime_value val = fetch_register_value(vm, src + 3);
+                struct runtime_map_entry *ent = runtime_map_entry_next(itr.data);
+
+                if (ent) {
+                    itr.data = ent;
+                    idx.inum++;
+                    key = ent->key;
+                    val = ent->val;
+
+                    set_local(vm, src    , itr);
+                    set_local(vm, src + 1, idx);
+                    set_local(vm, src + 2, key);
+                    set_local(vm, src + 3, val);
+
+                    set_ip(vm, dst);
+                }
+            }
+            break;
+
 #define DO_BINOP(num0, num1, op, num2, zerocheck) \
 do { \
     int dst = inst.A; \

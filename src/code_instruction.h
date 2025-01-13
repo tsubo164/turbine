@@ -80,6 +80,8 @@ enum code_opcode {
     OP_FORNUMEND,
     OP_FORARRAYBEGIN,
     OP_FORARRAYEND,
+    OP_FORMAPBEGIN,
+    OP_FORMAPEND,
     /* conversion */
     OP_BOOLTOINT,
     OP_BOOLTOFLOAT,

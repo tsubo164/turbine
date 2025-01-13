@@ -20,6 +20,7 @@ struct runtime_value {
         struct runtime_array *array;
         struct runtime_map *map;
         struct runtime_struct *strct;
+        void *data;
     };
 };
 

@@ -846,6 +846,32 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
         }
         break;
 
+    case NOD_STMT_FORMAP:
+        {
+            code_begin_for(code);
+
+            int itr = gen_addr(code, s->expr);
+            int obj = gen_expr(code, s->cond);
+
+            /* the collection is located 4 registers away from the iterator */
+            code_emit_move(code, itr + 4, obj);
+
+            /* begin */
+            int64_t init = code_emit_formap_begin(code, itr);
+            int64_t begin = code_get_next_addr(code);
+
+            /* body */
+            gen_stmt(code, s->body);
+
+            /* end */
+            code_back_patch_continues(code);
+            code_emit_formap_end(code, itr, begin);
+
+            code_back_patch(code, init);
+            code_back_patch_breaks(code);
+        }
+        break;
+
     case NOD_STMT_BREAK:
         {
             int64_t addr = code_emit_jump(code, -1);
