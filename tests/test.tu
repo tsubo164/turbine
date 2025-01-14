@@ -29,5 +29,5 @@
   _test_count_ += 1
 
   if expected != actual
-    print(format("error:%d: expected: %s actual: %s", $caller_line, expected, actual))
+    print(format("error:%d: expected: \"%s\" actual: \"%s\"", $caller_line, expected, actual))
     exit(1)

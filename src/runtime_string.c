@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 struct runtime_string *new_string(char *new_data, int new_len)
 {
@@ -51,12 +52,12 @@ int runtime_string_len(const struct runtime_string *s)
 struct runtime_string *runtime_string_concat(const struct runtime_string *a,
         const struct runtime_string *b)
 {
-    int new_len = a->len + b->len + 1;
+    int new_len = a->len + b->len;
     char *new_data;
 
-    new_data = calloc(new_len, sizeof(*new_data));
-    memcpy(new_data, a->data, a->len);
-    memcpy(new_data + a->len, b->data, b->len);
+    new_data = malloc((new_len + 1) * sizeof(*new_data));
+    strcpy(new_data, a->data);
+    strcpy(new_data + a->len, b->data);
 
     return new_string(new_data, new_len);
 }

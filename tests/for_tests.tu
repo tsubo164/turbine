@@ -137,10 +137,10 @@
 
     for i, key, val in m
       idxsum += i
-      //keysum += key
+      keysum += key
       valsum += val
     test.AssertI(276, idxsum)
-    //test.AssertS("foobarbazGoNimZigC/C++BashRustLuaMarkdownTomlYamlJavaKotlinDartLispPythonRubyPerlPHPJavaScriptSwiftTurbine", keysum)
+    test.AssertS("foobarbazGoNimZigC/C++BashRustLuaMarkdownTomlYamlJavaKotlinDartLispPythonRubyPerlPHPJavaScriptSwiftTurbine", keysum)
     test.AssertI(59609, valsum)
 
   print(test._test_count_, "tests done.")

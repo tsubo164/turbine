@@ -102,6 +102,15 @@
     test.AssertI(5, strlen("Hello"))
     test.AssertI(6, strlen("Hello\n"))
 
+  ---
+    // cat string
+    - s = ""
+    test.AssertS("", s)
+    s += "Hello"
+    test.AssertS("Hello", s)
+    s += ", World!"
+    test.AssertS("Hello, World!", s)
+
   print(test._test_count_, "tests done.")
 
   return 0
