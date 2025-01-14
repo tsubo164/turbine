@@ -103,6 +103,46 @@
       sum += val
     test.AssertI(7414, sum)
 
+  ---
+    // for map index, key and value
+    - m = {
+      "foo":42,
+      "bar":1212,
+      "baz":284,
+      "Go":923,
+      "Nim":1736,
+      "Zig":4812,
+      "C/C++":361,
+      "Bash":5792,
+      "Rust":814,
+      "Lua":1453,
+      "Markdown":2678,
+      "Toml":3921,
+      "Yaml":837,
+      "Java":5293,
+      "Kotlin":1847,
+      "Dart":615,
+      "Lisp":7432,
+      "Python":4261,
+      "Ruby":519,
+      "Perl":682,
+      "PHP":-832,
+      "JavaScript":7432,
+      "Swift":3921,
+      "Turbine":3574
+    }
+    - idxsum = 0
+    - valsum = 0
+    - keysum = ""
+
+    for i, key, val in m
+      idxsum += i
+      //keysum += key
+      valsum += val
+    test.AssertI(276, idxsum)
+    //test.AssertS("foobarbazGoNimZigC/C++BashRustLuaMarkdownTomlYamlJavaKotlinDartLispPythonRubyPerlPHPJavaScriptSwiftTurbine", keysum)
+    test.AssertI(59609, valsum)
+
   print(test._test_count_, "tests done.")
 
   return 0

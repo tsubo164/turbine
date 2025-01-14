@@ -1200,12 +1200,36 @@ static struct parser_stmt *if_stmt(struct parser *p)
     return parser_new_if_stmt(head.next);
 }
 
+struct loop_var {
+    const char *name;
+    const struct parser_type *type;
+};
+
 static struct parser_symbol *define_loop_var(struct parser_scope *scope,
         const char *name, const struct parser_type *type)
 {
     bool isglobal = false;
     struct parser_symbol *sym = parser_define_var(scope, name, type, isglobal);
     assert(sym);
+
+    return sym;
+}
+
+static struct parser_symbol *define_loop_vars(struct parser_scope *scope,
+        const struct loop_var *loopvars)
+{
+    struct parser_symbol *sym = NULL;
+    const struct loop_var *var;
+
+    for (var = loopvars; var->name; var++) {
+        bool isglobal = false;
+        struct parser_symbol *s;
+
+        s = parser_define_var(scope, var->name, var->type, isglobal);
+        assert(s);
+        if (!sym)
+            sym = s;
+    }
 
     return sym;
 }
@@ -1308,47 +1332,33 @@ static struct parser_stmt *for_stmt(struct parser *p)
         /* map */
         expect(p, TOK_NEWLINE);
 
-        struct parser_symbol *sym = NULL, *dmy;
+        struct parser_symbol *sym = NULL;
+        struct loop_var loop_vars[] = {
+            { "_itr", parser_new_any_type() },
+            { "_idx", parser_new_int_type() },
+            { "_key", parser_new_string_type() },
+            { "_val", collection->type->underlying },
+            { "_map", collection->type },
+            { NULL }
+        };
 
         if (iter_count == 1) {
-            /*
-            struct loop_var {
-                const char *name;
-                const struct parser_type *type;
-            }
-            struct loop_var loopvars[] = {
-                { "_itr", parser_new_any_type() },
-                { "_idx", parser_new_int_type() },
-                { "_key", parser_new_string_type() }
-                { "_val", collection->type->underlying },
-                { "_map", collection->type },
-                { NULL },
-            };
-            sym = define_loop_vars(block_scope, loopvars);
-            */
-            sym = define_loop_var(block_scope, "_itr", parser_new_any_type());
-            dmy = define_loop_var(block_scope, "_idx", parser_new_int_type());
-            dmy = define_loop_var(block_scope, "_key", parser_new_string_type());
-            dmy = define_loop_var(block_scope, iters[0]->sval, collection->type->underlying);
-            dmy = define_loop_var(block_scope, "_map", collection->type);
+            loop_vars[3].name = iters[0]->sval;
         }
-        /*
         else if (iter_count == 2) {
-            sym = define_loop_var(block_scope, iters[0]->sval, parser_new_string_type());
-            define_loop_var(block_scope, iters[1]->sval, collection->type->underlying);
-            define_loop_var(block_scope, "_map", collection->type);
+            loop_vars[2].name = iters[0]->sval;
+            loop_vars[3].name = iters[1]->sval;
         }
         else if (iter_count == 3) {
-            sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
-            define_loop_var(block_scope, iters[1]->sval, parser_new_string_type());
-            define_loop_var(block_scope, iters[2]->sval, collection->type->underlying);
-            define_loop_var(block_scope, "_map", collection->type);
+            loop_vars[1].name = iters[0]->sval;
+            loop_vars[2].name = iters[1]->sval;
+            loop_vars[3].name = iters[2]->sval;
         }
-        */
         else {
             error(p, iters[3]->pos, "too many iterators");
         }
 
+        sym = define_loop_vars(block_scope, loop_vars);
         iter = parser_new_ident_expr(sym);
 
         struct parser_stmt *body = block_stmt(p, block_scope);

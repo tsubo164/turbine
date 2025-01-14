@@ -80,8 +80,12 @@
   print(m)
   print(maplen(m))
 
-  for val in m
-    print("val =>", val)
+  for i, key, val in m
+    print(format("%3d: %10s => %d", i, key, val))
+
+  //for i, key, val in m
+  //for _, _, val in m
+  //for , , val in m
 
   return 42
   //- a = 42
