@@ -1205,16 +1205,6 @@ struct loop_var {
     const struct parser_type *type;
 };
 
-static struct parser_symbol *define_loop_var(struct parser_scope *scope,
-        const char *name, const struct parser_type *type)
-{
-    bool isglobal = false;
-    struct parser_symbol *sym = parser_define_var(scope, name, type, isglobal);
-    assert(sym);
-
-    return sym;
-}
-
 static struct parser_symbol *define_loop_vars(struct parser_scope *scope,
         const struct loop_var *loopvars)
 {
@@ -1291,45 +1281,51 @@ static struct parser_stmt *for_stmt(struct parser *p)
         if (iter_count > 1) {
             error(p, iters[1]->pos, "too many iterators");
         }
-        struct parser_symbol *sym;
 
-        sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
-        define_loop_var(block_scope, "_start", parser_new_int_type());
-        define_loop_var(block_scope, "_stop", parser_new_int_type());
-        define_loop_var(block_scope, "_step", parser_new_int_type());
+        struct parser_symbol *sym = NULL;
+        struct loop_var loop_vars[] = {
+            { iters[0]->sval, parser_new_int_type() },
+            { "_start", parser_new_int_type() },
+            { "_stop",  parser_new_int_type() },
+            { "_step",  parser_new_int_type() },
+            { NULL }
+        };
 
+        sym = define_loop_vars(block_scope, loop_vars);
         iter = parser_new_ident_expr(sym);
 
         struct parser_stmt *body = block_stmt(p, block_scope);
         return parser_new_fornum_stmt(iter, collection, body);
     }
     else if (parser_is_array_type(collection->type)) {
-
         expect(p, TOK_NEWLINE);
 
         struct parser_symbol *sym = NULL;
+        struct loop_var loop_vars[] = {
+            { "_idx", parser_new_int_type() },
+            { "_val", collection->type->underlying },
+            { "_arrayy", collection->type },
+            { NULL }
+        };
 
         if (iter_count == 1) {
-            sym = define_loop_var(block_scope, "_index", parser_new_int_type());
-            define_loop_var(block_scope, iters[0]->sval, collection->type->underlying);
-            define_loop_var(block_scope, "_array", collection->type);
+            loop_vars[1].name = iters[0]->sval;
         }
         else if (iter_count == 2) {
-            sym = define_loop_var(block_scope, iters[0]->sval, parser_new_int_type());
-            define_loop_var(block_scope, iters[1]->sval, collection->type->underlying);
-            define_loop_var(block_scope, "_array", collection->type);
+            loop_vars[0].name = iters[0]->sval;
+            loop_vars[1].name = iters[1]->sval;
         }
         else {
             error(p, iters[2]->pos, "too many iterators");
         }
 
+        sym = define_loop_vars(block_scope, loop_vars);
         iter = parser_new_ident_expr(sym);
 
         struct parser_stmt *body = block_stmt(p, block_scope);
         return parser_new_forarray_stmt(iter, collection, body);
     }
     else if (parser_is_map_type(collection->type)) {
-        /* map */
         expect(p, TOK_NEWLINE);
 
         struct parser_symbol *sym = NULL;

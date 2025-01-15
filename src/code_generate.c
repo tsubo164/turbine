@@ -827,7 +827,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             int idx = gen_addr(code, s->expr);
             int obj = gen_expr(code, s->cond);
 
-            /* idx + 1 hold value */
+            /* the collection is located 2 registers away from the iterator */
             code_emit_move(code, idx + 2, obj);
 
             /* begin */

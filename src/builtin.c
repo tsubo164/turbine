@@ -70,7 +70,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
             for (ent = runtime_map_entry_begin(val.map);
                     ent; ent = runtime_map_entry_next(ent)) {
 
-                printf("\"%s\":", runtime_string_get_cstr(ent->key.string));
+                printf("%s:", runtime_string_get_cstr(ent->key.string));
                 print_value(ent->val, it);
 
                 if (runtime_map_entry_next(ent))
