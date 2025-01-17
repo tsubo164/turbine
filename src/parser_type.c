@@ -179,16 +179,19 @@ const char *parser_type_string(const struct parser_type *t)
         /* TODO take care of buffer overflow */
         char buf[128] = {'\0'};
 
-        if (type->kind == TYP_ARRAY) {
+        if (parser_is_array_type(type)) {
             sprintf(buf, "[]%s", interned);
         }
-        else if (type->kind == TYP_PTR) {
+        else if (parser_is_ptr_type(type)) {
             sprintf(buf, "%s*", interned);
         }
-        else if (type->kind == TYP_STRUCT) {
+        else if (parser_is_struct_type(type)) {
             sprintf(buf, "%s%s", interned, type->strct->name);
         }
-        else if (type->kind == TYP_TEMPLATE) {
+        else if (parser_is_table_type(type)) {
+            sprintf(buf, "%s%s", interned, type->table->name);
+        }
+        else if (parser_is_template_type(type)) {
             sprintf(buf, "%stype%d", interned, type->template_id);
         }
         else {

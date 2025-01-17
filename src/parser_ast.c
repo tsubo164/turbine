@@ -38,6 +38,7 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_EXPR_ARRAYLIT]       = {"arraylit"},
     [NOD_EXPR_MAPLIT]         = {"maplit"},
     [NOD_EXPR_STRUCTLIT]      = {"structlit"},
+    [NOD_EXPR_TABLELIT]       = {"tablelit",  'i'},
     /* binary */
     [NOD_EXPR_ADD]            = {"+"},
     [NOD_EXPR_SUB]            = {"-"},
@@ -188,6 +189,15 @@ struct parser_expr *parser_new_structlit_expr(const struct parser_struct *strct,
     struct parser_expr *e = new_expr(NOD_EXPR_STRUCTLIT);
     e->type = parser_new_struct_type(strct);
     e->l = fields;
+    return e;
+}
+
+struct parser_expr *parser_new_tablelit_expr(const struct parser_table *table,
+        int row_idx)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_TABLELIT);
+    e->type = parser_new_table_type(table);
+    e->ival = row_idx;
     return e;
 }
 

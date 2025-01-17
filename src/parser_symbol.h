@@ -93,13 +93,9 @@ struct parser_columnvec {
     int len;
 };
 
+/* TODO consider removing */
 struct parser_table_row {
     const char *name;
-    union {
-        int64_t ival;
-        double fval;
-        const char *sval;
-    };
 };
 
 struct parser_cell {
@@ -119,7 +115,6 @@ struct parser_cellvec {
 struct parser_table {
     const char *name;
     struct data_hashmap rows;
-
     struct parser_columnvec columns;
     struct parser_cellvec cells;
 };
@@ -221,6 +216,10 @@ struct parser_field *parser_struct_get_field(const struct parser_struct *s, int 
 /* table */
 struct parser_table *parser_define_table(struct parser_scope *sc,
         const char *name);
+struct parser_table *parser_find_table(const struct parser_scope *sc,
+        const char *name);
+int parser_add_row(struct parser_table *tab, const char *name);
+int parser_find_row(const struct parser_table *tab, const char *name);
 struct parser_column *parser_add_column(struct parser_table *tab,
         const char *name/*, const struct parser_type *type*/);
 struct parser_column *parser_find_column(const struct parser_table *tab,

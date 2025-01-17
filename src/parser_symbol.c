@@ -391,6 +391,40 @@ struct parser_table *parser_define_table(struct parser_scope *sc,
     return tab;
 }
 
+struct parser_table *parser_find_table(const struct parser_scope *sc,
+        const char *name)
+{
+    struct parser_symbol *sym = parser_find_symbol(sc, name);
+    if (sym)
+        return sym->table;
+
+    return NULL;
+}
+
+int parser_add_row(struct parser_table *tab, const char *name)
+{
+    int idx = parser_find_row(tab, name);
+    if (idx >= 0)
+        return -1;
+
+    int64_t new_idx = parser_table_get_row_count(tab);
+    data_hashmap_insert(&tab->rows, name, (void*)new_idx);
+
+    return new_idx;
+}
+
+int parser_find_row(const struct parser_table *tab, const char *name)
+{
+    struct data_hashmap_entry *ent;
+    ent = data_hashmap_lookup(&tab->rows, name);
+
+    if (!ent)
+        return -1;
+
+    int64_t idx = (int64_t) ent->val;
+    return idx;
+}
+
 static struct parser_column *new_column(const char *Name,
         const struct parser_type *type, int offset)
 {
@@ -439,14 +473,7 @@ void parser_add_cell(struct parser_table *tab, struct parser_cell cell)
 
 int parser_table_get_row_count(const struct parser_table *tab)
 {
-    int columns = parser_table_get_column_count(tab);
-    int cells = tab->cells.len;
-
-    if (columns == 0)
-        return 0;
-
-    assert(cells % columns == 0);
-    return cells / columns;
+    return data_hashmap_get_count(&tab->rows);
 }
 
 /* module */

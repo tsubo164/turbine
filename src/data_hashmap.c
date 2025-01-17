@@ -91,6 +91,11 @@ struct data_hashmap_entry *data_hashmap_lookup(const struct data_hashmap *map,
     return NULL;
 }
 
+int data_hashmap_get_count(const struct data_hashmap *map)
+{
+    return map->used;
+}
+
 void data_hashmap_print(const struct data_hashmap *map)
 {
     for (int i = 0; i < map->cap; i++) {

@@ -670,10 +670,7 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
 
     if (parser_is_table_type(base->type)) {
         expect(p, TOK_IDENT);
-        struct data_hashmap_entry *ent;
-        ent = data_hashmap_lookup(&base->type->table->rows, tok_str(p));
-
-        int64_t index = (int64_t) ent->val;
+        int64_t index = parser_find_row(base->type->table, tok_str(p));
         struct parser_expr *expr = parser_new_intlit_expr(index);
         /* TODO consider making symbol */
         //struct parser_expr *expr = parser_new_ident_expr(index);
@@ -1569,8 +1566,10 @@ static struct parser_expr *default_value(const struct parser_type *type)
     case TYP_STRUCT:
         return default_struct_lit(type->strct);
 
-    case TYP_FUNC:
     case TYP_TABLE:
+        return parser_new_tablelit_expr(type->table, 0);
+
+    case TYP_FUNC:
     case TYP_MODULE:
         /* TODO */
         return parser_new_nillit_expr();
@@ -1693,7 +1692,6 @@ static struct parser_table *table_def(struct parser *p)
         error(p, tok_pos(p), "re-defined table: '%s'", tok_str(p));
     }
     expect(p, TOK_NEWLINE);
-
     expect(p, TOK_BLOCKBEGIN);
 
     /* header */
@@ -1730,16 +1728,17 @@ static struct parser_table *table_def(struct parser *p)
             if (x == 0) {
                 /* symbol column */
                 expect(p, TOK_IDENT);
+                const char *name = tok_str(p);
 
                 if (y == 0)
                     tab->columns.data[x]->type = parser_new_int_type();
 
-                struct parser_cell cell = {.sval = tok_str(p)};
-                parser_add_cell(tab, cell);
-
                 /* symbol to index */
-                int64_t index = y;
-                data_hashmap_insert(&tab->rows, tok_str(p), (void*)index);
+                int idx = parser_add_row(tab, name);
+                assert(idx == y);
+
+                struct parser_cell cell = {.sval = name};
+                parser_add_cell(tab, cell);
             }
             else {
                 //struct parser_expr *expr = primary_expr(p);
@@ -1930,8 +1929,17 @@ static struct parser_type *type_spec(struct parser *p)
             type = type_spec(p);
             p->scope = cur;
         }
-        else {
+        else if (parser_is_struct_type(sym->type)) {
             type = parser_new_struct_type(parser_find_struct(p->scope, tok_str(p)));
+        }
+        else if (parser_is_table_type(sym->type)) {
+            type = parser_new_table_type(parser_find_table(p->scope, tok_str(p)));
+        }
+        else {
+            const struct parser_token *tok = gettok(p);
+            error(p, tok->pos,
+                    "not a type name: '%s'",
+                    parser_get_token_string(tok->kind));
         }
     }
     else {
