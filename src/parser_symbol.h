@@ -81,6 +81,18 @@ struct parser_struct {
 };
 
 /* table */
+struct parser_column {
+    const char *name;
+    const struct parser_type *type;
+    int id;
+};
+
+struct parser_columnvec {
+    struct parser_column **data;
+    int cap;
+    int len;
+};
+
 struct parser_table_row {
     const char *name;
     union {
@@ -90,9 +102,26 @@ struct parser_table_row {
     };
 };
 
+struct parser_cell {
+    union {
+        int64_t ival;
+        double fval;
+        const char *sval;
+    };
+};
+
+struct parser_cellvec {
+    struct parser_cell *data;
+    int cap;
+    int len;
+};
+
 struct parser_table {
     const char *name;
     struct data_hashmap rows;
+
+    struct parser_columnvec columns;
+    struct parser_cellvec cells;
 };
 
 /* module */
@@ -192,6 +221,13 @@ struct parser_field *parser_struct_get_field(const struct parser_struct *s, int 
 /* table */
 struct parser_table *parser_define_table(struct parser_scope *sc,
         const char *name);
+struct parser_column *parser_add_column(struct parser_table *tab,
+        const char *name/*, const struct parser_type *type*/);
+struct parser_column *parser_find_column(const struct parser_table *tab,
+        const char *name);
+int parser_table_get_column_count(const struct parser_table *tab);
+void parser_add_cell(struct parser_table *tab, struct parser_cell cell);
+int parser_table_get_row_count(const struct parser_table *tab);
 
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,

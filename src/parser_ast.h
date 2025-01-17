@@ -114,7 +114,7 @@ struct parser_expr {
 
     /* literals */
     union {
-        long ival;
+        int64_t ival;
         double fval;
         const char *sval;
         struct parser_func *func;

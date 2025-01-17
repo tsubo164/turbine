@@ -670,12 +670,13 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
 
     if (parser_is_table_type(base->type)) {
         expect(p, TOK_IDENT);
-        struct data_hashmap_entry *ent =
-            data_hashmap_lookup(&base->type->table->rows, tok_str(p));
-        struct parser_table_row *r = ent->val;
-        struct parser_expr *expr;
-        expr = parser_new_intlit_expr(r->ival);
-        /* TODO come up with better idea rather than keeping it in intlit */
+        struct data_hashmap_entry *ent;
+        ent = data_hashmap_lookup(&base->type->table->rows, tok_str(p));
+
+        int64_t index = (int64_t) ent->val;
+        struct parser_expr *expr = parser_new_intlit_expr(index);
+        /* TODO consider making symbol */
+        //struct parser_expr *expr = parser_new_ident_expr(index);
         expr->l = base;
         return expr;
     }
@@ -1694,24 +1695,68 @@ static struct parser_table *table_def(struct parser *p)
     expect(p, TOK_NEWLINE);
 
     expect(p, TOK_BLOCKBEGIN);
-    int id = 0;
-    for (;;) {
-        if (consume(p, TOK_VBAR)) {
-            expect(p, TOK_IDENT);
-            struct parser_table_row *r;
 
-            r = calloc(1, sizeof(*r));
-            r->name = tok_str(p);
-            r->ival = id++;
+    /* header */
+    do {
+        expect(p, TOK_VBAR);
+        expect(p, TOK_IDENT);
+        parser_add_column(tab, tok_str(p));
 
-            data_hashmap_insert(&tab->rows, tok_str(p), r);
-            expect(p, TOK_NEWLINE);
+    } while (!consume(p, TOK_NEWLINE));
+
+    /* separateor */
+    int ncols = parser_table_get_column_count(tab);
+    int nseps = 0;
+    do {
+        expect(p, TOK_VBAR);
+        expect(p, TOK_MINUS3);
+        nseps++;
+
+        if (nseps > ncols) {
+            error(p, tok_pos(p), "too many separators");
         }
-        else {
-            break;
-        }
+    } while (!consume(p, TOK_NEWLINE));
+
+    if (nseps < ncols) {
+        error(p, tok_pos(p), "too few separators");
     }
-    expect(p, TOK_BLOCKEND);
+
+    /* rows */
+    int y = 0;
+    do {
+        for (int x = 0; x < ncols; x++) {
+            expect(p, TOK_VBAR);
+
+            if (x == 0) {
+                /* symbol column */
+                expect(p, TOK_IDENT);
+
+                if (y == 0)
+                    tab->columns.data[x]->type = parser_new_int_type();
+
+                struct parser_cell cell = {.sval = tok_str(p)};
+                parser_add_cell(tab, cell);
+
+                /* symbol to index */
+                int64_t index = y;
+                data_hashmap_insert(&tab->rows, tok_str(p), (void*)index);
+            }
+            else {
+                //struct parser_expr *expr = primary_expr(p);
+                struct parser_expr *expr = unary_expr(p);
+                /* TODO need const calc */
+                if (y == 0)
+                    tab->columns.data[x]->type = expr->type;
+
+                struct parser_cell cell = {.ival = expr->ival};
+                parser_add_cell(tab, cell);
+            }
+
+        }
+        expect(p, TOK_NEWLINE);
+        y++;
+    }
+    while(!consume(p, TOK_BLOCKEND));
 
     return tab;
 }

@@ -81,7 +81,7 @@ static void print_expr(const struct parser_expr *e, int depth)
     /* extra value */
     switch (info->type) {
     case 'i':
-        printf(" %ld", e->ival);
+        printf(" %lld", e->ival);
         break;
     case 'f':
         printf(" %g", e->fval);
@@ -221,16 +221,40 @@ static void print_scope(const struct parser_scope *sc, int depth)
 
         if (sym->kind == SYM_TABLE) {
             const struct parser_table *t = sym->table;
+            int nrows = parser_table_get_row_count(t);
+            int ncols = parser_table_get_column_count(t);
 
             print_header(depth);
             printf("[table] \"%s\"\n", t->name);
-            for (int i = 0; i < t->rows.cap; i++) {
-                struct data_hashmap_entry *e = &t->rows.buckets[i];
-                if (!e->key)
-                    continue;
-                struct parser_table_row *r = e->val;
+
+            print_header(depth + 1);
+            for (int x = 0; x < ncols; x++) {
+                const struct parser_column *col = t->columns.data[x];
+                printf("| %s(%s)", col->name, parser_type_string(col->type));
+                printf("%c", x < ncols - 1 ? ' ' : '\n');
+            }
+
+            print_header(depth + 1);
+            for (int x = 0; x < ncols; x++) {
+                printf("| ---");
+                printf("%c", x < ncols - 1 ? ' ' : '\n');
+            }
+
+            for (int y = 0; y < nrows; y++) {
+
                 print_header(depth + 1);
-                printf("[row] \"%s\" => %lld\n", r->name, r->ival);
+                for (int x = 0; x < ncols; x++) {
+                    const struct parser_column *col = t->columns.data[x];
+                    const struct parser_cell cell = t->cells.data[x + y * ncols];
+                    if (x == 0)
+                        printf("| %s", cell.sval);
+                    else if (parser_is_string_type(col->type))
+                        printf("| \"%s\"", cell.sval);
+                    else if (parser_is_int_type(col->type))
+                        printf("| %lld", cell.ival);
+
+                    printf("%c", x < ncols - 1 ? ' ' : '\n');
+                }
             }
         }
 

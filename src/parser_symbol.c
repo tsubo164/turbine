@@ -36,6 +36,24 @@ static void push_field(struct parser_fieldvec *v, struct parser_field *val)
     v->data[v->len++] = val;
 }
 
+static void push_column(struct parser_columnvec *v, struct parser_column *val)
+{
+    if (v->len == v->cap) {
+        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
+        v->data = realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = val;
+}
+
+static void push_cell(struct parser_cellvec *v, struct parser_cell val)
+{
+    if (v->len == v->cap) {
+        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
+        v->data = realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = val;
+}
+
 static void push_symbol(struct parser_symbolvec *v, struct parser_symbol *val)
 {
     if (v->len == v->cap) {
@@ -371,6 +389,64 @@ struct parser_table *parser_define_table(struct parser_scope *sc,
     push_symbol(&sc->syms, sym);
 
     return tab;
+}
+
+static struct parser_column *new_column(const char *Name,
+        const struct parser_type *type, int offset)
+{
+    struct parser_column *c;
+
+    c = calloc(1, sizeof(*c));
+    c->name = Name;
+    c->type = type;
+    c->id = offset;
+    return c;
+}
+
+struct parser_column *parser_add_column(struct parser_table *tab,
+        const char *name/*, const struct parser_type *type*/)
+{
+    if (parser_find_column(tab, name))
+        return NULL;
+
+    int offset = tab->columns.len;
+    struct parser_column *c = new_column(name, NULL, offset);
+
+    push_column(&tab->columns, c);
+    return c;
+}
+
+struct parser_column *parser_find_column(const struct parser_table *tab,
+        const char *name)
+{
+    for (int i = 0; i < tab->columns.len; i++) {
+        struct parser_column *c = tab->columns.data[i];
+        if (!strcmp(c->name, name))
+            return c;
+    }
+    return NULL;
+}
+
+int parser_table_get_column_count(const struct parser_table *tab)
+{
+    return tab->columns.len;
+}
+
+void parser_add_cell(struct parser_table *tab, struct parser_cell cell)
+{
+    push_cell(&tab->cells, cell);
+}
+
+int parser_table_get_row_count(const struct parser_table *tab)
+{
+    int columns = parser_table_get_column_count(tab);
+    int cells = tab->cells.len;
+
+    if (columns == 0)
+        return 0;
+
+    assert(cells % columns == 0);
+    return cells / columns;
 }
 
 /* module */
