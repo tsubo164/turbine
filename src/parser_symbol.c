@@ -426,25 +426,24 @@ int parser_find_row(const struct parser_table *tab, const char *name)
 }
 
 static struct parser_column *new_column(const char *Name,
-        const struct parser_type *type, int offset)
+        const struct parser_type *type, int id)
 {
     struct parser_column *c;
 
     c = calloc(1, sizeof(*c));
     c->name = Name;
     c->type = type;
-    c->id = offset;
+    c->id = id;
     return c;
 }
 
-struct parser_column *parser_add_column(struct parser_table *tab,
-        const char *name/*, const struct parser_type *type*/)
+struct parser_column *parser_add_column(struct parser_table *tab, const char *name)
 {
     if (parser_find_column(tab, name) >= 0)
         return NULL;
 
-    int offset = tab->columns.len;
-    struct parser_column *c = new_column(name, NULL, offset);
+    int new_id = tab->columns.len;
+    struct parser_column *c = new_column(name, NULL, new_id);
 
     push_column(&tab->columns, c);
     return c;
@@ -461,9 +460,29 @@ int parser_find_column(const struct parser_table *tab,
     return -1;
 }
 
+const struct parser_type *parser_get_enum_field_type(const struct parser_table *tab, int idx)
+{
+    assert(idx >= 0 && idx < parser_table_get_column_count(tab));
+
+    return tab->columns.data[idx]->type;
+}
+
+void parser_set_enum_field_offset(struct parser_table *tab, int idx, int offset)
+{
+    assert(idx >= 0 && idx < parser_table_get_column_count(tab));
+
+    struct parser_column *field = tab->columns.data[idx];
+    field->offset = offset;
+}
+
 int parser_table_get_column_count(const struct parser_table *tab)
 {
     return tab->columns.len;
+}
+
+int parser_table_get_row_count(const struct parser_table *tab)
+{
+    return data_hashmap_get_count(&tab->rows);
 }
 
 void parser_add_cell(struct parser_table *tab, struct parser_cell cell)
@@ -471,9 +490,12 @@ void parser_add_cell(struct parser_table *tab, struct parser_cell cell)
     push_cell(&tab->cells, cell);
 }
 
-int parser_table_get_row_count(const struct parser_table *tab)
+struct parser_cell parser_get_enum_field(const struct parser_table *tab, int x, int y)
 {
-    return data_hashmap_get_count(&tab->rows);
+    int ncols = parser_table_get_column_count(tab);
+    int idx = x + y * ncols;
+
+    return tab->cells.data[idx];
 }
 
 /* module */

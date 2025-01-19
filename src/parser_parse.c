@@ -1754,7 +1754,7 @@ static struct parser_table *table_def(struct parser *p)
                 const char *name = tok_str(p);
 
                 if (y == 0)
-                    tab->columns.data[x]->type = parser_new_int_type();
+                    tab->columns.data[x]->type = parser_new_string_type();
 
                 /* symbol to index */
                 int idx = parser_add_row(tab, name);

@@ -1145,13 +1145,32 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
         case SYM_TABLE:
             {
                 struct parser_table *table = sym->table;
-
                 int ncols = parser_table_get_column_count(table);
                 int nrows = parser_table_get_row_count(table);
 
                 for (int x = 0; x < ncols; x++) {
+                    int const_id = 0;
+                    const struct parser_type *type;
+                    type = parser_get_enum_field_type(table, x);
+
                     for (int y = 0; y < nrows; y++) {
+                        struct parser_cell field = parser_get_enum_field(table, x, y);
+                        int tmp_id = 0;
+
+                        if (parser_is_string_type(type)) {
+                            tmp_id = code_constant_pool_push_string(&code->const_pool,
+                                    field.sval);
+                        }
+                        else if (parser_is_int_type(type)) {
+                            tmp_id = code_constant_pool_push_int(&code->const_pool,
+                                    field.ival);
+                        }
+
+                        if (y == 0)
+                            const_id = tmp_id;
                     }
+
+                    parser_set_enum_field_offset(table, x, const_id);
                 }
             }
             break;

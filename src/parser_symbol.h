@@ -85,6 +85,7 @@ struct parser_column {
     const char *name;
     const struct parser_type *type;
     int id;
+    int offset;
 };
 
 struct parser_columnvec {
@@ -220,12 +221,16 @@ struct parser_table *parser_find_table(const struct parser_scope *sc,
         const char *name);
 int parser_add_row(struct parser_table *tab, const char *name);
 int parser_find_row(const struct parser_table *tab, const char *name);
-struct parser_column *parser_add_column(struct parser_table *tab,
-        const char *name);
+
+struct parser_column *parser_add_column(struct parser_table *tab, const char *name);
 int parser_find_column(const struct parser_table *tab, const char *name);
+const struct parser_type *parser_get_enum_field_type(const struct parser_table *tab, int idx);
+void parser_set_enum_field_offset(struct parser_table *tab, int idx, int offset);
 int parser_table_get_column_count(const struct parser_table *tab);
-void parser_add_cell(struct parser_table *tab, struct parser_cell cell);
+
 int parser_table_get_row_count(const struct parser_table *tab);
+void parser_add_cell(struct parser_table *tab, struct parser_cell cell);
+struct parser_cell parser_get_enum_field(const struct parser_table *tab, int x, int y);
 
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,
