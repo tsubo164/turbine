@@ -201,4 +201,13 @@ int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_i
 void code_set_function_variadic(struct code_bytecode *code, int func_id, bool is_variadic);
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id);
 
+/* enum fields */
+int64_t code_push_enum_field_int(struct code_bytecode *code, int64_t ival);
+int64_t code_push_enum_field_string(struct code_bytecode *code, const char *sval);
+struct runtime_value code_get_enum_field(const struct code_bytecode *code, int id);
+
+bool code_is_enum_field_int(const struct code_bytecode *code, int id);
+bool code_is_enum_field_string(const struct code_bytecode *code, int id);
+int code_get_enum_field_count(const struct code_bytecode *code);
+
 #endif /* _H */

@@ -1149,7 +1149,7 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                 int nrows = parser_table_get_row_count(table);
 
                 for (int x = 0; x < ncols; x++) {
-                    int const_id = 0;
+                    int field_id = 0;
                     const struct parser_type *type;
                     type = parser_get_enum_field_type(table, x);
 
@@ -1158,19 +1158,17 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                         int tmp_id = 0;
 
                         if (parser_is_string_type(type)) {
-                            tmp_id = code_constant_pool_push_string(&code->const_pool,
-                                    field.sval);
+                            tmp_id = code_push_enum_field_string(code, field.sval);
                         }
                         else if (parser_is_int_type(type)) {
-                            tmp_id = code_constant_pool_push_int(&code->const_pool,
-                                    field.ival);
+                            tmp_id = code_push_enum_field_int(code, field.ival);
                         }
 
                         if (y == 0)
-                            const_id = tmp_id;
+                            field_id = tmp_id;
                     }
 
-                    parser_set_enum_field_offset(table, x, const_id);
+                    parser_set_enum_field_offset(table, x, field_id);
                 }
             }
             break;

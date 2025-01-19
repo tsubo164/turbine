@@ -36,6 +36,22 @@ void code_print_bytecode(const struct code_bytecode *code)
         }
     }
 
+    /* enum fields */
+    {
+        printf("* enum fields:\n");
+        int nfields = code_get_enum_field_count(code);
+        for (int i = 0; i < nfields; i++) {
+            struct runtime_value val = code_get_enum_field(code, i);
+            printf("[%6d] ", i);
+            if (code_is_enum_field_int(code, i)) {
+                printf("%-10lld (int)\n", val.inum);
+            }
+            else if (code_is_enum_field_string(code, i)) {
+                printf("%-10s (string)\n", runtime_string_get_cstr(val.string));
+            }
+        }
+    }
+
     /* functions */
     struct data_intvec labels = {0};
     int64_t code_size = code_get_size(code);

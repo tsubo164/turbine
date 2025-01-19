@@ -904,3 +904,34 @@ bool code_is_function_variadic(const struct code_bytecode *code, int func_id)
 
     return func->is_variadic;
 }
+
+/* enum fields */
+int64_t code_push_enum_field_int(struct code_bytecode *code, int64_t ival)
+{
+    return code_constant_pool_push_literal_int(&code->const_pool, ival);
+}
+
+int64_t code_push_enum_field_string(struct code_bytecode *code, const char *sval)
+{
+    return code_constant_pool_push_literal_string(&code->const_pool, sval);
+}
+
+struct runtime_value code_get_enum_field(const struct code_bytecode *code, int id)
+{
+    return code_constant_pool_get_literal(&code->const_pool, id);
+}
+
+bool code_is_enum_field_int(const struct code_bytecode *code, int id)
+{
+    return code_constant_pool_is_literal_int(&code->const_pool, id);
+}
+
+bool code_is_enum_field_string(const struct code_bytecode *code, int id)
+{
+    return code_constant_pool_is_literal_string(&code->const_pool, id);
+}
+
+int code_get_enum_field_count(const struct code_bytecode *code)
+{
+    return code_constant_pool_get_literal_count(&code->const_pool);
+}

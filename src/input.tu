@@ -23,6 +23,7 @@
   | R      | "red"   | 42
   | G      | "green" | 99
   | B      | "blue"  | 4095
+  | A      | "alpha" | 42
 
 /*
 :: Color
@@ -53,6 +54,8 @@
   - d = Color.B
 
   -s = d.name
+  - a = 0xFFFFFFFFFF
+  - h = "Hello!"
 
   //- x = d == Color.G
   //- x = p.x
