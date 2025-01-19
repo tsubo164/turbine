@@ -440,7 +440,7 @@ static struct parser_column *new_column(const char *Name,
 struct parser_column *parser_add_column(struct parser_table *tab,
         const char *name/*, const struct parser_type *type*/)
 {
-    if (parser_find_column(tab, name))
+    if (parser_find_column(tab, name) >= 0)
         return NULL;
 
     int offset = tab->columns.len;
@@ -450,15 +450,15 @@ struct parser_column *parser_add_column(struct parser_table *tab,
     return c;
 }
 
-struct parser_column *parser_find_column(const struct parser_table *tab,
+int parser_find_column(const struct parser_table *tab,
         const char *name)
 {
     for (int i = 0; i < tab->columns.len; i++) {
         struct parser_column *c = tab->columns.data[i];
         if (!strcmp(c->name, name))
-            return c;
+            return c->id;
     }
-    return NULL;
+    return -1;
 }
 
 int parser_table_get_column_count(const struct parser_table *tab)

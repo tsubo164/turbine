@@ -75,6 +75,7 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_EXPR_INDEX]          = {"index"},
     [NOD_EXPR_MAPINDEX]       = {"mapindex"},
     [NOD_EXPR_SELECT]         = {"select"},
+    [NOD_EXPR_ENUMACCESS]     = {"enumaccess"},
     [NOD_EXPR_CALL]           = {"call"},
     [NOD_EXPR_ELEMENT]        = {"element"},
     [NOD_EXPR_MODULE]         = {"module"},
@@ -241,6 +242,16 @@ struct parser_expr *parser_new_select_expr(struct parser_expr *inst, struct pars
     struct parser_expr *e = new_expr(NOD_EXPR_SELECT);
     e->type = fld->type;
     e->l = inst;
+    e->r = fld;
+    return e;
+}
+
+struct parser_expr *parser_new_enum_access_expr(struct parser_expr *enm,
+        struct parser_expr *fld)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_ENUMACCESS);
+    e->type = fld->type;
+    e->l = enm;
     e->r = fld;
     return e;
 }

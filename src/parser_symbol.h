@@ -136,8 +136,8 @@ struct parser_module {
 enum parser_symbol_kind {
     SYM_VAR,
     SYM_FUNC,
-    SYM_TABLE,
     SYM_STRUCT,
+    SYM_TABLE,
     SYM_MODULE,
     SYM_SCOPE,
 };
@@ -221,9 +221,8 @@ struct parser_table *parser_find_table(const struct parser_scope *sc,
 int parser_add_row(struct parser_table *tab, const char *name);
 int parser_find_row(const struct parser_table *tab, const char *name);
 struct parser_column *parser_add_column(struct parser_table *tab,
-        const char *name/*, const struct parser_type *type*/);
-struct parser_column *parser_find_column(const struct parser_table *tab,
         const char *name);
+int parser_find_column(const struct parser_table *tab, const char *name);
 int parser_table_get_column_count(const struct parser_table *tab);
 void parser_add_cell(struct parser_table *tab, struct parser_cell cell);
 int parser_table_get_row_count(const struct parser_table *tab);

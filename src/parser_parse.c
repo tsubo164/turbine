@@ -351,6 +351,22 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
     return parser_new_structlit_expr(strct, elemhead.next);
 }
 
+static struct parser_expr *table_lit_expr(struct parser *p, struct parser_symbol *sym)
+{
+    struct parser_table *table = sym->table;
+
+    expect(p, TOK_PERIOD);
+    expect(p, TOK_IDENT);
+
+    int index = parser_find_row(table, tok_str(p));
+    if (index < 0) {
+        error(p, tok_pos(p),
+                "no row named '%s' in table '%s'", tok_str(p));
+    }
+
+    return parser_new_tablelit_expr(table, index);
+}
+
 static struct parser_expr *string_lit_expr(struct parser *p)
 {
     struct parser_expr *expr;
@@ -394,12 +410,18 @@ static struct parser_expr *ident_expr(struct parser *p)
                 tok_str(p));
     }
 
-    if (sym->kind == SYM_FUNC)
+    if (sym->kind == SYM_FUNC) {
         expr = parser_new_funclit_expr(sym->func);
-    else if (sym->kind == SYM_STRUCT)
+    }
+    else if (sym->kind == SYM_STRUCT) {
         expr = struct_lit_expr(p, sym);
-    else
+    }
+    else if (sym->kind == SYM_TABLE) {
+        expr = table_lit_expr(p, sym);
+    }
+    else {
         expr = parser_new_ident_expr(sym);
+    }
 
     return expr;
 }
@@ -654,12 +676,6 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
 {
     expect(p, TOK_PERIOD);
 
-    if (parser_is_struct_type(base->type)) {
-        expect(p, TOK_IDENT);
-        struct parser_field *f = parser_find_field(base->type->strct, tok_str(p));
-        return parser_new_select_expr(base, parser_new_field_expr(f));
-    }
-
     if (parser_is_ptr_type(base->type) &&
             parser_is_struct_type(base->type->underlying)) {
         expect(p, TOK_IDENT);
@@ -668,14 +684,21 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
         return parser_new_select_expr(base, parser_new_field_expr(f));
     }
 
+    if (parser_is_struct_type(base->type)) {
+        expect(p, TOK_IDENT);
+        struct parser_field *f = parser_find_field(base->type->strct, tok_str(p));
+        return parser_new_select_expr(base, parser_new_field_expr(f));
+    }
+
     if (parser_is_table_type(base->type)) {
         expect(p, TOK_IDENT);
-        int64_t index = parser_find_row(base->type->table, tok_str(p));
-        struct parser_expr *expr = parser_new_intlit_expr(index);
-        /* TODO consider making symbol */
-        //struct parser_expr *expr = parser_new_ident_expr(index);
-        expr->l = base;
-        return expr;
+        const struct parser_table *table = base->type->table;
+        int index = parser_find_column(table, tok_str(p));
+        if (index < 0) {
+            error(p, tok_pos(p),
+                    "no row named '%s' in table '%s'", tok_str(p), table->name);
+        }
+        return parser_new_enum_access_expr(base, parser_new_intlit_expr(index));
     }
 
     if (parser_is_module_type(base->type)) {

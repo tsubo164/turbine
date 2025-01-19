@@ -287,7 +287,7 @@ static const int table[] = {
     [TYP_MODULE]   = 'm',
     [TYP_PTR]      = 'p',
     [TYP_ANY]      = 'a',
-    [TYP_UNION]    = 'n',
+    [TYP_UNION]    = 'u',
     [TYP_TEMPLATE] = 't',
 };
 static const int tablesize = sizeof(table)/sizeof(table[0]);

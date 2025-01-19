@@ -47,15 +47,21 @@
 */
 
 # main(args []string) int
-  - p Point
-  - q = Point{x=11, y=22}
-  - c Color
+  //- p Point
+  //- q = Point{x=11, y=22}
+  //- c Color
   - d = Color.B
+
+  -s = d.name
+
+  //- x = d == Color.G
+  //- x = p.x
 
   // TODO
   //- i int = 3.1
   //- p Vec
+  //- x = p.t
 
-  print(Color.B)
+  //print(Color.B)
 
   return 42

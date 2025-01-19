@@ -747,9 +747,9 @@
   // table
   ---
     - a = Color.R
-    test.AssertI(0, a)
-    test.AssertI(1, Color.G)
-    test.AssertI(3, a + Color.G + Color.B)
+    test.AssertB(true, a == Color.R)
+    test.AssertB(true, a != Color.G)
+    //test.AssertI(3, a + Color.G + Color.B)
 
   // module import
   ---

@@ -210,7 +210,7 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
 
 #define BINOP_S(code, ty, op, ops, r0, r1, r2) \
     do { \
-    if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
+    if (parser_is_int_type((ty)) || parser_is_bool_type((ty)) || parser_is_table_type((ty))) \
         code_emit_##op##_int((code), (r0), (r1), (r2)); \
     else if (parser_is_float_type((ty))) \
         code_emit_##op##_float((code), (r0), (r1), (r2)); \
@@ -501,6 +501,9 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_STRUCTLIT:
         return gen_struct_lit(code, e, -1);
 
+    case NOD_EXPR_TABLELIT:
+        return code_emit_load_int(code, e->ival);
+
     case NOD_EXPR_FUNCLIT:
         return code_emit_load_int(code, e->func->id);
 
@@ -544,6 +547,15 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             int idx = gen_expr(code, e->r);
             int dst = gen_dst_register2(code, obj, idx);
             return code_emit_load_struct(code, dst, obj, idx);
+        }
+
+    case NOD_EXPR_ENUMACCESS:
+        {
+            int enm = gen_expr(code, e->l);
+            int idx = gen_expr(code, e->r);
+            int dst = gen_dst_register2(code, enm, idx);
+            //return code_emit_load_struct(code, dst, enm, idx);
+            return dst;
         }
 
     case NOD_EXPR_CALL:
@@ -1123,6 +1135,36 @@ static void gen_module(struct code_bytecode *code, const struct parser_module *m
     gen_funcs(code, mod);
 }
 
+static void gen_enum_values(struct code_bytecode *code, struct parser_scope *scope)
+{
+    for (int i = 0; i < scope->syms.len; i++) {
+        struct parser_symbol *sym = scope->syms.data[i];
+
+        switch (sym->kind) {
+
+        case SYM_TABLE:
+            {
+                struct parser_table *table = sym->table;
+
+                int ncols = parser_table_get_column_count(table);
+                int nrows = parser_table_get_row_count(table);
+
+                for (int x = 0; x < ncols; x++) {
+                    for (int y = 0; y < nrows; y++) {
+                    }
+                }
+            }
+            break;
+
+            /*
+        case SYM_MODULE:
+            register_functions(code, sym->module->scope);
+            break;
+            */
+        }
+    }
+}
+
 static void register_functions(struct code_bytecode *code, struct parser_scope *scope)
 {
     for (int i = 0; i < scope->syms.len; i++) {
@@ -1156,6 +1198,7 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
 
 void code_generate(struct code_bytecode *code, const struct parser_module *mod)
 {
+    gen_enum_values(code, mod->scope);
     register_functions(code, mod->scope->parent);
     gen_module(code, mod);
     code_emit_halt(code);
