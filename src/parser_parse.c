@@ -686,7 +686,12 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
 
     if (parser_is_struct_type(base->type)) {
         expect(p, TOK_IDENT);
-        struct parser_field *f = parser_find_field(base->type->strct, tok_str(p));
+        const struct parser_struct *strct = base->type->strct;
+        struct parser_field *f = parser_find_field(strct, tok_str(p));
+        if (!f) {
+            error(p, tok_pos(p), "no field named '%s' in struct '%s'",
+                    tok_str(p), strct->name);
+        }
         return parser_new_select_expr(base, parser_new_field_expr(f));
     }
 

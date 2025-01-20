@@ -221,6 +221,11 @@ static bool find_in_union(const struct parser_type *uni, const struct parser_typ
 
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2)
 {
+    /* TODO remove this when remove ptr type */
+    if ((parser_is_ptr_type(t1) && parser_is_nil_type(t2)) ||
+        (parser_is_nil_type(t1) && parser_is_ptr_type(t2)))
+        return true;
+
     if (parser_is_any_type(t1) || parser_is_any_type(t2))
         return true;
 

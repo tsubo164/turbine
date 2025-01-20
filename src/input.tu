@@ -17,8 +17,6 @@
   - x int
   - y int
 
-# foo()
-  nop
 //:: Color
 //  | symbol | name    | val
 //  | ---    | ---     | ---
@@ -58,7 +56,7 @@
 
 # main(args []string) int
   //- p Point
-  //- q = Point{x=11, y=22}
+  - q = Point{x=11, y=22}
   //- c Color
   //- d = Color.A
 
@@ -75,10 +73,7 @@
   //print(Color.G)
 
   // TODO
-  //- i int = 3.1 + 4.3
-  //- p Vec
-  - p foo
-  //- x = p.t
-  return i
+  - x = q.t
+  print(x)
 
   return 42
