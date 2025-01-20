@@ -523,6 +523,9 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_FIELD:
         return e->field->offset;
 
+    case NOD_EXPR_COLUMN:
+        return code_emit_load_int(code, e->column->offset);
+
     case NOD_EXPR_INDEX:
         {
             int obj = gen_expr(code, e->l);
@@ -552,10 +555,9 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_ENUMACCESS:
         {
             int enm = gen_expr(code, e->l);
-            int idx = gen_expr(code, e->r);
-            int dst = gen_dst_register2(code, enm, idx);
-            //return code_emit_load_struct(code, dst, enm, idx);
-            return dst;
+            int fld = gen_expr(code, e->r);
+            int dst = gen_dst_register2(code, enm, fld);
+            return code_emit_load_enum(code, dst, enm, fld);
         }
 
     case NOD_EXPR_CALL:
@@ -1149,26 +1151,26 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                 int nrows = parser_table_get_row_count(table);
 
                 for (int x = 0; x < ncols; x++) {
-                    int field_id = 0;
-                    const struct parser_type *type;
-                    type = parser_get_enum_field_type(table, x);
+                    int field_offset = 0;
+                    struct parser_column *column;
+                    column = parser_get_column(table, x);
 
                     for (int y = 0; y < nrows; y++) {
                         struct parser_cell field = parser_get_enum_field(table, x, y);
-                        int tmp_id = 0;
+                        int tmp_offset = 0;
 
-                        if (parser_is_string_type(type)) {
-                            tmp_id = code_push_enum_field_string(code, field.sval);
+                        if (parser_is_string_type(column->type)) {
+                            tmp_offset = code_push_enum_field_string(code, field.sval);
                         }
-                        else if (parser_is_int_type(type)) {
-                            tmp_id = code_push_enum_field_int(code, field.ival);
+                        else if (parser_is_int_type(column->type)) {
+                            tmp_offset = code_push_enum_field_int(code, field.ival);
                         }
 
                         if (y == 0)
-                            field_id = tmp_id;
+                            field_offset = tmp_offset;
                     }
 
-                    parser_set_enum_field_offset(table, x, field_id);
+                    column->offset = field_offset;
                 }
             }
             break;

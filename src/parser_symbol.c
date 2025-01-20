@@ -439,7 +439,7 @@ static struct parser_column *new_column(const char *Name,
 
 struct parser_column *parser_add_column(struct parser_table *tab, const char *name)
 {
-    if (parser_find_column(tab, name) >= 0)
+    if (parser_find_column(tab, name))
         return NULL;
 
     int new_id = tab->columns.len;
@@ -449,30 +449,20 @@ struct parser_column *parser_add_column(struct parser_table *tab, const char *na
     return c;
 }
 
-int parser_find_column(const struct parser_table *tab,
-        const char *name)
+struct parser_column *parser_find_column(const struct parser_table *tab, const char *name)
 {
     for (int i = 0; i < tab->columns.len; i++) {
         struct parser_column *c = tab->columns.data[i];
         if (!strcmp(c->name, name))
-            return c->id;
+            return c;
     }
-    return -1;
+    return NULL;
 }
 
-const struct parser_type *parser_get_enum_field_type(const struct parser_table *tab, int idx)
+struct parser_column *parser_get_column(const struct parser_table *tab, int idx)
 {
     assert(idx >= 0 && idx < parser_table_get_column_count(tab));
-
-    return tab->columns.data[idx]->type;
-}
-
-void parser_set_enum_field_offset(struct parser_table *tab, int idx, int offset)
-{
-    assert(idx >= 0 && idx < parser_table_get_column_count(tab));
-
-    struct parser_column *field = tab->columns.data[idx];
-    field->offset = offset;
+    return tab->columns.data[idx];
 }
 
 int parser_table_get_column_count(const struct parser_table *tab)
@@ -494,7 +484,6 @@ struct parser_cell parser_get_enum_field(const struct parser_table *tab, int x, 
 {
     int ncols = parser_table_get_column_count(tab);
     int idx = x + y * ncols;
-
     return tab->cells.data[idx];
 }
 

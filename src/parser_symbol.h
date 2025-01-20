@@ -223,9 +223,8 @@ int parser_add_row(struct parser_table *tab, const char *name);
 int parser_find_row(const struct parser_table *tab, const char *name);
 
 struct parser_column *parser_add_column(struct parser_table *tab, const char *name);
-int parser_find_column(const struct parser_table *tab, const char *name);
-const struct parser_type *parser_get_enum_field_type(const struct parser_table *tab, int idx);
-void parser_set_enum_field_offset(struct parser_table *tab, int idx, int offset);
+struct parser_column *parser_find_column(const struct parser_table *tab, const char *name);
+struct parser_column *parser_get_column(const struct parser_table *tab, int idx);
 int parser_table_get_column_count(const struct parser_table *tab);
 
 int parser_table_get_row_count(const struct parser_table *tab);

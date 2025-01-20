@@ -693,12 +693,12 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
     if (parser_is_table_type(base->type)) {
         expect(p, TOK_IDENT);
         const struct parser_table *table = base->type->table;
-        int index = parser_find_column(table, tok_str(p));
-        if (index < 0) {
+        struct parser_column *c = parser_find_column(table, tok_str(p));
+        if (!c) {
             error(p, tok_pos(p),
                     "no row named '%s' in table '%s'", tok_str(p), table->name);
         }
-        return parser_new_enum_access_expr(base, parser_new_intlit_expr(index));
+        return parser_new_enum_access_expr(base, parser_new_column_expr(c));
     }
 
     if (parser_is_module_type(base->type)) {

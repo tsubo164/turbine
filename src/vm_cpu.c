@@ -342,6 +342,20 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_LOADENUM:
+            {
+                int dst = inst.A;
+                int src = inst.B;
+                int fld = inst.C;
+                struct runtime_value srcobj = fetch_register_value(vm, src);
+                struct runtime_value fldval = fetch_register_value(vm, fld);
+                struct runtime_value srcval;
+
+                srcval = code_get_enum_field(vm->code, srcobj.inum + fldval.inum);
+                set_local(vm, dst, srcval);
+            }
+            break;
+
         case OP_LOADADDR:
             {
                 int dst = inst.A;

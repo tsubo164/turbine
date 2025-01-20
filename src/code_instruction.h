@@ -19,6 +19,7 @@ enum code_opcode {
     OP_STOREMAP,
     OP_LOADSTRUCT,
     OP_STORESTRUCT,
+    OP_LOADENUM,
     /* TODO remove address operations */
     OP_LOADADDR,
     OP_DEREF,

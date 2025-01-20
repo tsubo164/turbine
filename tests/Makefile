@@ -30,6 +30,9 @@ test: all
 	@echo "[struct tests]"
 	../turbine struct_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[enum tests]"
+	../turbine enum_tests.tu
+	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[for statement tests]"
 	../turbine for_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"

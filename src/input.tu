@@ -18,7 +18,7 @@
   - y int
 
 :: Color
-  | symbol | name    | num
+  | symbol | name    | val
   | ---    | ---     | ---
   | R      | "red"   | 42
   | G      | "green" | 99
@@ -26,6 +26,13 @@
   | A      | "alpha" | 42
 
 /*
+:: Color
+  - symbol , name    , val
+  - R      , "red"   , 42
+  - G      , "green" , 99
+  - B      , "blue"  , 4095
+  - A      , "alpha" , 42
+
 :: Color
   | symbol | name   | num
   | ---    | ---    | ---
@@ -48,17 +55,22 @@
 */
 
 # main(args []string) int
-  //- p Point
+  - p Point
   //- q = Point{x=11, y=22}
   //- c Color
-  - d = Color.B
+  - d = Color.A
 
   -s = d.name
-  - a = 0xFFFFFFFFFF
-  - h = "Hello!"
+  //- a = 0xFFFFFFFFFF
+  //- h = "Hello!"
 
   //- x = d == Color.G
-  //- x = p.x
+  - x = p.x
+
+  print(s)
+  print(d.val)
+  print(Color.R.name)
+  //print(Color.G)
 
   // TODO
   //- i int = 3.1

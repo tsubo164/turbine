@@ -27,6 +27,7 @@ enum parser_node_kind {
     /* identifier */
     NOD_EXPR_IDENT,
     NOD_EXPR_FIELD,
+    NOD_EXPR_COLUMN,
     /* literal */
     NOD_EXPR_NILLIT,
     NOD_EXPR_BOOLLIT,
@@ -100,6 +101,7 @@ struct parser_func;
 struct parser_field;
 struct parser_struct;
 struct parser_table;
+struct parser_column;
 
 struct parser_expr {
     int kind;
@@ -112,6 +114,7 @@ struct parser_expr {
     struct parser_symbol *sym;
     struct parser_var *var;
     struct parser_field *field;
+    struct parser_column *column;
     /* this is mostly use for args */
     struct parser_pos pos;
 
@@ -161,6 +164,7 @@ struct parser_expr *parser_new_select_expr(struct parser_expr *inst, struct pars
 struct parser_expr *parser_new_enum_access_expr(struct parser_expr *enm,
         struct parser_expr *fld);
 struct parser_expr *parser_new_field_expr(struct parser_field *f);
+struct parser_expr *parser_new_column_expr(struct parser_column *c);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args);
 struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);
 struct parser_expr *parser_new_module_expr(struct parser_expr *mod,

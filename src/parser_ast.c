@@ -28,6 +28,7 @@ const struct parser_node_info *parser_get_node_info(int kind)
     /* identifier */
     [NOD_EXPR_IDENT]          = {"ident", 'y'},
     [NOD_EXPR_FIELD]          = {"field", 'g'},
+    [NOD_EXPR_COLUMN]         = {"column", 'e'},
     /* literal */
     [NOD_EXPR_NILLIT]         = {"nillit"},
     [NOD_EXPR_BOOLLIT]        = {"boollit",   'i'},
@@ -261,6 +262,14 @@ struct parser_expr *parser_new_field_expr(struct parser_field *f)
     struct parser_expr *e = new_expr(NOD_EXPR_FIELD);
     e->type = f->type;
     e->field = f;
+    return e;
+}
+
+struct parser_expr *parser_new_column_expr(struct parser_column *c)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_COLUMN);
+    e->type = c->type;
+    e->column = c;
     return e;
 }
 

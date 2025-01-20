@@ -307,6 +307,12 @@ int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, i
     return dst;
 }
 
+int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_offset)
+{
+    push_inst_abc(code, OP_LOADENUM, dst, src, field_offset);
+    return dst;
+}
+
 int code_emit_load_address(struct code_bytecode *code, int dst, int src)
 {
     push_inst_ab(code, OP_LOADADDR, dst, src);

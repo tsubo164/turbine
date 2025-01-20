@@ -95,6 +95,9 @@ static void print_expr(const struct parser_expr *e, int depth)
     case 'g':
         printf(" \"%s\"", e->field->name);
         break;
+    case 'e':
+        printf(" \"%s\"", e->column->name);
+        break;
     case 'F':
         printf(" %s", e->func->fullname);
         break;
