@@ -158,7 +158,7 @@ static struct parser_expr *arg_list(struct parser *p,
         do {
             int param_idx = arg_count;
             const struct parser_type *param_type;
-            const struct parser_pos arg_pos = peek_pos(p);
+            struct parser_pos arg_pos = peek_pos(p);
 
             arg = arg->next = expression(p);
             arg->pos = arg_pos;
@@ -1640,6 +1640,7 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
     }
     else {
         type = type_spec(p);
+        struct parser_pos spec_pos = tok_pos(p);
 
         if (consume(p, TOK_EQUAL)) {
             /* "- x int = 42" */
@@ -1649,8 +1650,13 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
             /* "- x int" */
             init = default_value(type);
         }
+
+        if (!parser_match_type(type, init->type)) {
+            error(p, spec_pos, "type mismatch: variable '%s': initializer '%s'",
+                    parser_type_string(type), parser_type_string(init->type));
+        }
     }
-    const struct parser_pos init_pos = tok_pos(p);
+    struct parser_pos init_pos = tok_pos(p);
 
     expect(p, TOK_NEWLINE);
 
