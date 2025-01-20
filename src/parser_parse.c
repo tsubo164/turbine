@@ -1949,7 +1949,12 @@ static struct parser_type *type_spec(struct parser *p)
         type = parser_new_string_type();
     }
     else if (consume(p, TOK_IDENT)) {
+        struct parser_pos ident_pos = tok_pos(p);
         struct parser_symbol *sym = parser_find_symbol(p->scope, tok_str(p));
+        if (!sym) {
+            error(p, ident_pos, "not a type name: '%s'", tok_str(p));
+        }
+
         if (parser_is_module_type(sym->type)) {
             /* TODO consider making the type_spec a part of expression */
             expect(p, TOK_PERIOD);
@@ -1965,10 +1970,7 @@ static struct parser_type *type_spec(struct parser *p)
             type = parser_new_table_type(parser_find_table(p->scope, tok_str(p)));
         }
         else {
-            const struct parser_token *tok = gettok(p);
-            error(p, tok->pos,
-                    "not a type name: '%s'",
-                    parser_get_token_string(tok->kind));
+            error(p, ident_pos, "not a type name: '%s'", sym->name);
         }
     }
     else {

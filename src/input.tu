@@ -13,10 +13,12 @@
 //  | T_ELS    | "or"
 //  | T_BRK    | "break"
 
-//## Point
-//  - x int
-//  - y int
-//
+## Point
+  - x int
+  - y int
+
+# foo()
+  nop
 //:: Color
 //  | symbol | name    | val
 //  | ---    | ---     | ---
@@ -73,8 +75,9 @@
   //print(Color.G)
 
   // TODO
-  - i int = 3.1 + 4.3
+  //- i int = 3.1 + 4.3
   //- p Vec
+  - p foo
   //- x = p.t
   return i
 
