@@ -831,13 +831,31 @@ static struct parser_expr *unary_expr(struct parser *p)
     }
 }
 
-static void semantic_check_type_match(struct parser *p, struct parser_pos pos,
+static void validate_binop_type_match(struct parser *p, struct parser_pos pos,
         const struct parser_type *t0, const struct parser_type *t1)
 {
     if (!parser_match_type(t0, t1)) {
         error(p, pos, "type mismatch: %s and %s",
                 parser_type_string(t0), parser_type_string(t1));
     }
+}
+
+static const int VALID_INT[] = {TYP_INT, -1};
+static const int VALID_INT_FLOAT[] = {TYP_INT, TYP_FLOAT, -1};
+static const int VALID_INT_FLOAT_STRING[] = {TYP_INT, TYP_FLOAT, TYP_STRING, -1};
+static const int VALID_INT_FLOAT_STRING_BOOL_ENUM[] = {
+    TYP_INT, TYP_FLOAT, TYP_STRING, TYP_BOOL, TYP_TABLE, -1};
+
+static void validate_binop_types(struct parser *p, struct parser_pos pos,
+        const struct parser_type *type, const int *valid_types)
+{
+    for (const int *t = valid_types; *t != -1; t++) {
+        if (type->kind == *t)
+            return;
+    }
+
+    error(p, pos, "invalid operands to binary expression: %s",
+            parser_type_string(type));
 }
 
 /*
@@ -857,37 +875,43 @@ static struct parser_expr *mul_expr(struct parser *p)
 
         case TOK_ASTER:
             r = unary_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
             expr = parser_new_mul_expr(expr, r);
             break;
 
         case TOK_SLASH:
             r = unary_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
             expr = parser_new_div_expr(expr, r);
             break;
 
         case TOK_PERCENT:
             r = unary_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
             expr = parser_new_rem_expr(expr, r);
             break;
 
         case TOK_AMPERSAND:
             r = unary_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT);
             expr = parser_new_and_expr(expr, r);
             break;
 
         case TOK_LT2:
             r = unary_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT);
             expr = parser_new_shl_expr(expr, r);
             break;
 
         case TOK_GT2:
             r = unary_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT);
             expr = parser_new_shr_expr(expr, r);
             break;
 
@@ -899,8 +923,8 @@ static struct parser_expr *mul_expr(struct parser *p)
 }
 
 /*
- * add_expr = mul_expr (add_op mul_expr)*
- * add_op   = "+" | "-" | "|" | "^"
+add_expr = mul_expr (add_op mul_expr)*
+add_op   = "+" | "-" | "|" | "^"
  */
 static struct parser_expr *add_expr(struct parser *p)
 {
@@ -915,25 +939,29 @@ static struct parser_expr *add_expr(struct parser *p)
 
         case TOK_PLUS:
             r = mul_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
             expr = parser_new_add_expr(expr, r);
             break;
 
         case TOK_MINUS:
             r = mul_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
             expr = parser_new_sub_expr(expr, r);
             break;
 
         case TOK_VBAR:
             r = mul_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT);
             expr = parser_new_or_expr(expr, r);
             break;
 
         case TOK_CARET:
             r = mul_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT);
             expr = parser_new_xor_expr(expr, r);
             break;
 
@@ -961,37 +989,43 @@ static struct parser_expr *rel_expr(struct parser *p)
 
         case TOK_EQUAL2:
             r = add_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING_BOOL_ENUM);
             expr = parser_new_eq_expr(expr, r);
             break;
 
         case TOK_EXCLAMEQ:
             r = add_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING_BOOL_ENUM);
             expr = parser_new_neq_expr(expr, r);
             break;
 
         case TOK_LT:
             r = add_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
             expr = parser_new_lt_expr(expr, r);
             break;
 
         case TOK_LTE:
             r = add_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
             expr = parser_new_lte_expr(expr, r);
             break;
 
         case TOK_GT:
             r = add_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
             expr = parser_new_gt_expr(expr, r);
             break;
 
         case TOK_GTE:
             r = add_expr(p);
-            semantic_check_type_match(p, pos, expr->type, r->type);
+            validate_binop_type_match(p, pos, expr->type, r->type);
+            validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
             expr = parser_new_gte_expr(expr, r);
             break;
 
