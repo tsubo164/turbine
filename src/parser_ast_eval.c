@@ -8,7 +8,7 @@ bool parser_ast_is_global(const struct parser_expr *e)
     case NOD_EXPR_IDENT:
         return e->var->is_global;
 
-    case NOD_EXPR_SELECT:
+    case NOD_EXPR_STRUCTACCESS:
         return parser_ast_is_global(e->l);
 
     default:
@@ -24,7 +24,7 @@ bool parser_ast_is_mutable(const struct parser_expr *e)
             return true;
         return e->var->is_param == false;
 
-    case NOD_EXPR_SELECT:
+    case NOD_EXPR_STRUCTACCESS:
         return parser_ast_is_mutable(e->l);
 
     default:

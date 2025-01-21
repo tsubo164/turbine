@@ -681,7 +681,7 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
         expect(p, TOK_IDENT);
         struct parser_field *f;
         f = parser_find_field(base->type->underlying->strct, tok_str(p));
-        return parser_new_select_expr(base, parser_new_field_expr(f));
+        return parser_new_struct_access_expr(base, parser_new_field_expr(f));
     }
 
     if (parser_is_struct_type(base->type)) {
@@ -692,7 +692,7 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
             error(p, tok_pos(p), "no field named '%s' in struct '%s'",
                     tok_str(p), strct->name);
         }
-        return parser_new_select_expr(base, parser_new_field_expr(f));
+        return parser_new_struct_access_expr(base, parser_new_field_expr(f));
     }
 
     if (parser_is_table_type(base->type)) {
@@ -1093,7 +1093,7 @@ static const struct parser_var *find_root_object(const struct parser_expr *e)
     case NOD_EXPR_IDENT:
         return e->var;
 
-    case NOD_EXPR_SELECT:
+    case NOD_EXPR_STRUCTACCESS:
         return find_root_object(e->l);
 
     default:

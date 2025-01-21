@@ -321,7 +321,7 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         return code_emit_store_map(code, obj, key, src);
     }
 
-    if (lval->kind == NOD_EXPR_SELECT) {
+    if (lval->kind == NOD_EXPR_STRUCTACCESS) {
         /* a.b = x */
         int obj = gen_expr(code, lval->l);
         int fld = gen_addr(code, lval->r);
@@ -416,7 +416,7 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         return code_emit_store_map(code, obj, idx, src);
     }
 
-    if (lval->kind == NOD_EXPR_SELECT) {
+    if (lval->kind == NOD_EXPR_STRUCTACCESS) {
         /* a.b += x */
         int obj = gen_expr(code, lval->l);
         int fld = gen_addr(code, lval->r);
@@ -544,7 +544,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             return dst;
         }
 
-    case NOD_EXPR_SELECT:
+    case NOD_EXPR_STRUCTACCESS:
         {
             int obj = gen_expr(code, e->l);
             int idx = gen_expr(code, e->r);
