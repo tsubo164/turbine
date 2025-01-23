@@ -69,8 +69,6 @@ const struct parser_node_info *parser_get_node_info(int kind)
     [NOD_EXPR_ADDRESS]        = {"address"},
     [NOD_EXPR_DEREF]          = {"deref"},
     [NOD_EXPR_NOT]            = {"~"},
-    [NOD_EXPR_INC]            = {"++"},
-    [NOD_EXPR_DEC]            = {"--"},
     [NOD_EXPR_CONV]           = {"conversion"},
     /* array, struct, func */
     [NOD_EXPR_INDEX]          = {"index"},
@@ -645,26 +643,4 @@ struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parse
 struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r)
 {
     return new_assign_stmt(l, r, NOD_EXPR_XORASSIGN);
-}
-
-static struct parser_stmt *new_incdec_stmt(struct parser_expr *l, int kind)
-{
-    struct parser_expr *e = new_expr(kind);
-    e->type = l->type;
-    e->l = l;
-
-    struct parser_stmt *s = new_stmt(NOD_STMT_ASSIGN);
-    s->expr = e;
-
-    return s;
-}
-
-struct parser_stmt *parser_new_inc_stmt(struct parser_expr *l)
-{
-    return new_incdec_stmt(l, NOD_EXPR_INC);
-}
-
-struct parser_stmt *parser_new_dec_stmt(struct parser_expr *l)
-{
-    return new_incdec_stmt(l, NOD_EXPR_DEC);
 }

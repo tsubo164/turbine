@@ -118,8 +118,6 @@ int code_emit_negate_int(struct code_bytecode *code, int dst, int src);
 int code_emit_negate_float(struct code_bytecode *code, int dst, int src);
 int code_emit_set_if_zero(struct code_bytecode *code, int dst, int src);
 int code_emit_set_if_not_zero(struct code_bytecode *code, int dst, int src);
-int code_emit_inc(struct code_bytecode *code, int src);
-int code_emit_dec(struct code_bytecode *code, int src);
 
 /* string */
 int code_emit_concat_string(struct code_bytecode *code, int dst, int src0, int src1);

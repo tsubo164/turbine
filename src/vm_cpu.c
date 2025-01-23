@@ -865,24 +865,6 @@ do { \
             BITOP(>>);
             break;
 
-        case OP_INC:
-            {
-                int src = inst.A;
-                struct runtime_value srcval = fetch_register_value(vm, src);
-                srcval.inum++;
-                set_local(vm, src, srcval);
-            }
-            break;
-
-        case OP_DEC:
-            {
-                int src = inst.A;
-                struct runtime_value srcval = fetch_register_value(vm, src);
-                srcval.inum--;
-                set_local(vm, src, srcval);
-            }
-            break;
-
         case OP_NEGINT:
             {
                 int dst = inst.A;

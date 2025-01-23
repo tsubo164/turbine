@@ -55,8 +55,4 @@
 */
 
 # main(args []string) int
-  //- p Point
-  //- q = Point{x=11, y=22}
-  - d = Color.A + Color.R
-
-  return 42
+  return 4422

@@ -61,8 +61,6 @@ enum code_opcode {
     OP_NEGFLOAT,
     OP_SETIFZERO,
     OP_SETIFNOTZ,
-    OP_INC,
-    OP_DEC,
     /* string */
     OP_CATSTRING,
     OP_EQSTRING,

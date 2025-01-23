@@ -68,8 +68,6 @@ enum parser_node_kind {
     NOD_EXPR_ADDRESS,
     NOD_EXPR_DEREF,
     NOD_EXPR_NOT,
-    NOD_EXPR_INC,
-    NOD_EXPR_DEC,
     NOD_EXPR_CONV,
     /* array, struct, map, func */
     NOD_EXPR_INDEX,
@@ -236,9 +234,6 @@ struct parser_stmt *parser_new_shrassign_stmt(struct parser_expr *l, struct pars
 struct parser_stmt *parser_new_andassign_stmt(struct parser_expr *l, struct parser_expr *r);
 struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parser_expr *r);
 struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r);
-
-struct parser_stmt *parser_new_inc_stmt(struct parser_expr *l);
-struct parser_stmt *parser_new_dec_stmt(struct parser_expr *l);
 
 /* node info */
 struct parser_node_info {

@@ -537,18 +537,6 @@ int code_emit_set_if_not_zero(struct code_bytecode *code, int dst, int src)
     return dst;
 }
 
-int code_emit_inc(struct code_bytecode *code, int src)
-{
-    push_inst_a(code, OP_INC, src);
-    return src;
-}
-
-int code_emit_dec(struct code_bytecode *code, int src)
-{
-    push_inst_a(code, OP_DEC, src);
-    return src;
-}
-
 /* string */
 int code_emit_concat_string(struct code_bytecode *code, int dst, int src0, int src1)
 {

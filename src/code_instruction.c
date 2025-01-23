@@ -57,8 +57,6 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_NEGFLOAT]       = { "negfloat",       OPERAND_AB_ },
     [OP_SETIFZERO]      = { "setifzero",      OPERAND_AB_ },
     [OP_SETIFNOTZ]      = { "setifnotz",      OPERAND_AB_ },
-    [OP_INC]            = { "inc",            OPERAND_A__ },
-    [OP_DEC]            = { "dec",            OPERAND_A__ },
     /* string */
     [OP_CATSTRING]      = { "catstring",      OPERAND_ABC },
     [OP_EQSTRING]       = { "eqstring",       OPERAND_ABC },
