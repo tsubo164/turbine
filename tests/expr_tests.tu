@@ -1,5 +1,8 @@
 [test]
 
+# return_large_int() int
+  return 4422
+
 # main() int
 
   ---
@@ -8,6 +11,9 @@
     test.AssertI(100, a)
     - b = 300 - 400
     test.AssertI(-100, b)
+
+  ---
+    test.AssertI(4422, return_large_int())
 
   print(test._test_count_, "tests done.")
 

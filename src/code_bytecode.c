@@ -14,7 +14,9 @@ static void push_inst_op(struct code_bytecode *code, int op)
 static void push_inst_a(struct code_bytecode *code, int op, int a)
 {
     code_push_instruction_a(&code->insts, op, a);
-    /* no immediate value for operand A */
+    int32_t const_id = 0;
+    if (pop_if_constpool_reg(code, a, &const_id))
+        code_push_immediate_value(&code->insts, const_id);
 }
 
 static void push_inst_ab(struct code_bytecode *code, int op, int a, int b)

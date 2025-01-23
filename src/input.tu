@@ -55,4 +55,5 @@
 */
 
 # main(args []string) int
+  - a = 1111
   return 4422

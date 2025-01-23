@@ -171,16 +171,16 @@ void code_print_instruction(const struct code_bytecode *code,
         if (inst->op == OP_ALLOCATE)
             print_operand16(code, inst->A);
         else
-            print_operand(code, addr, inst->A, 0, NULL);
+            print_operand(code, addr, inst->A, 0, imm_size);
         break;
 
     case OPERAND_AB_:
-        print_operand(code, addr, inst->A, 1, NULL);
+        print_operand(code, addr, inst->A, 1, imm_size);
         print_operand(code, addr, inst->B, 0, imm_size);
         break;
 
     case OPERAND_ABB:
-        print_operand(code, addr, inst->A, 1, NULL);
+        print_operand(code, addr, inst->A, 1, imm_size);
         print_operand16(code, inst->BB);
         break;
 
