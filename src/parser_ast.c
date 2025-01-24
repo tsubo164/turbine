@@ -101,6 +101,12 @@ const struct parser_node_info *parser_get_node_info(int kind)
     return &table[kind];
 }
 
+const char *parser_node_string(int kind)
+{
+    const struct parser_node_info *info = parser_get_node_info(kind);
+    return info->str;
+}
+
 static struct parser_expr *new_expr(int kind)
 {
     struct parser_expr *e = calloc(1, sizeof(struct parser_expr));
@@ -136,6 +142,7 @@ struct parser_expr *parser_new_intlit_expr(long l)
     struct parser_expr *e = new_expr(NOD_EXPR_INTLIT);
     e->type = parser_new_int_type();
     e->ival = l;
+    e->is_const = true;
     return e;
 }
 
@@ -303,6 +310,18 @@ static struct parser_expr *new_unary_expr(struct parser_expr *l, int kind)
     struct parser_expr *e = new_expr(kind);
     e->type = l->type;
     e->l = l;
+    e->is_const = e->l->is_const;
+
+    if (e->is_const) {
+        // eval(e);
+        e->kind_orig = e->kind;
+        e->kind = NOD_EXPR_INTLIT;
+
+        switch (e->kind_orig) {
+        case NOD_EXPR_NEG: e->ival = -1 * e->l->ival; break;
+        }
+    }
+
     return e;
 }
 
@@ -342,12 +361,29 @@ struct parser_expr *parser_new_deref_expr(struct parser_expr *l)
     return e;
 }
 
-static struct parser_expr *new_binary_expr(struct parser_expr *l, struct parser_expr *r, int kind)
+static struct parser_expr *new_binary_expr(struct parser_expr *l, struct parser_expr *r,
+        int kind)
 {
     struct parser_expr *e = new_expr(kind);
     e->type = l->type;
     e->l = l;
     e->r = r;
+    e->is_const = e->l->is_const && e->r->is_const;
+
+    if (e->is_const) {
+        // eval(e);
+        e->kind_orig = e->kind;
+        e->kind = NOD_EXPR_INTLIT;
+
+        switch (e->kind_orig) {
+        case NOD_EXPR_ADD: e->ival = e->l->ival + e->r->ival; break;
+        case NOD_EXPR_SUB: e->ival = e->l->ival - e->r->ival; break;
+        case NOD_EXPR_MUL: e->ival = e->l->ival * e->r->ival; break;
+        case NOD_EXPR_DIV: e->ival = e->l->ival / e->r->ival; break;
+        case NOD_EXPR_REM: e->ival = e->l->ival % e->r->ival; break;
+        }
+    }
+
     return e;
 }
 

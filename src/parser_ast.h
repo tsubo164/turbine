@@ -103,6 +103,7 @@ struct parser_column;
 
 struct parser_expr {
     int kind;
+    int kind_orig; /* constexpr */
     const struct parser_type *type;
 
     struct parser_expr *l;
@@ -123,6 +124,9 @@ struct parser_expr {
         const char *sval;
         struct parser_func *func;
     };
+
+    /* constexpr */
+    bool is_const;
 };
 
 struct parser_stmt {
@@ -167,6 +171,7 @@ struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct pars
 struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);
 struct parser_expr *parser_new_module_expr(struct parser_expr *mod,
         struct parser_expr *member);
+struct parser_expr *parser_new_const_expr(struct parser_expr *orig, struct parser_expr *cnst);
 
 /* unary expr */
 struct parser_expr *parser_new_posi_expr(struct parser_expr *l);
@@ -235,6 +240,7 @@ struct parser_stmt *parser_new_andassign_stmt(struct parser_expr *l, struct pars
 struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parser_expr *r);
 struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r);
 
+/* TODO remove this */
 /* node info */
 struct parser_node_info {
     const char *str;
@@ -242,5 +248,6 @@ struct parser_node_info {
 };
 
 const struct parser_node_info *parser_get_node_info(int kind);
+const char *parser_node_string(int kind);
 
 #endif /* _H */

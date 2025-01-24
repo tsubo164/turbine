@@ -69,20 +69,31 @@ static void print_expr(const struct parser_expr *e, int depth)
         return;
 
     /* indentation */
-    for (int i = 0; i < depth; i++) {
+    for (int i = 0; i < depth; i++)
         printf("  ");
-    }
 
     /* basic info */
     const struct parser_node_info *info = parser_get_node_info(e->kind);
-    printf("%d. <%s>", depth, info->str);
+    bool is_constexpr = e->kind_orig > 0;
+    int printed_kind = is_constexpr ? e->kind_orig : e->kind;
+
+    printf("%d. <%s>", depth, parser_node_string(printed_kind));
     printf(" (%s)", parser_type_string(e->type));
 
+    if (is_constexpr)
+        printf("(constexpr)");
+
     /* extra value */
-    switch (info->type) {
-    case 'i':
+    switch (e->kind) {
+
+    case NOD_EXPR_BOOLLIT:
+    case NOD_EXPR_INTLIT:
+    case NOD_EXPR_TABLELIT:
         printf(" %lld", e->ival);
         break;
+    }
+
+    switch (info->type) {
     case 'f':
         printf(" %g", e->fval);
         break;

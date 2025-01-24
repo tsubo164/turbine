@@ -15,6 +15,14 @@
   ---
     test.AssertI(4422, return_large_int())
 
+  ---
+    test.AssertI(3000, 2000 + 1000)
+    test.AssertI(1000, 2000 - 1000)
+    test.AssertI(2000000, 2000 * 1000)
+    test.AssertI(2, 2000 / 1000)
+    test.AssertI(6, 2000 % 997)
+    test.AssertI(-42, -42)
+
   print(test._test_count_, "tests done.")
 
   return 0
