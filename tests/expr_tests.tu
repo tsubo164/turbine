@@ -24,6 +24,26 @@
     test.AssertI(-42, -42)
 
   ---
+    test.AssertB(false, 2000 == 1000)
+    test.AssertB(true, 2000 != 1000)
+    test.AssertB(true, 2000 >= 1000)
+    test.AssertB(false, 2000 <= 1000)
+    test.AssertB(true, 2000 > 1000)
+    test.AssertB(false, 2000 < 1000)
+
+  ---
+    test.AssertI(4, 1 << 2)
+    test.AssertI(1024, 1 << 10)
+    test.AssertI(32, 1024 >> 5)
+    test.AssertI(1024, 1024 >> 0)
+    test.AssertI(0, 4 & 2)
+    test.AssertI(6, 4 | 2)
+    test.AssertI(1, 1 ^ 0)
+    test.AssertI(0, 1 ^ 1)
+    test.AssertI(0, 0 ^ 0)
+    test.AssertI(1, 0 ^ 1)
+
+  ---
     test.AssertB(false, false && false)
     test.AssertB(false, true && false)
     test.AssertB(true, true || false)

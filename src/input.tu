@@ -62,13 +62,15 @@
   //- b = false || true
   //- c = true && true
   //- d = false && true
-  - e = 1 << 3
+  - d = 1 ^ 0
+  - e = 3 < 1
+  print(e)
 
   //print(b)
   //print(c)
   //print(d)
   //- a = 7
-  return e
+  return 42
   //return 42 + (3 * 5 + a * 2)
   //print(Color.R.val)
   //print(2 + 3 + 11 - a)

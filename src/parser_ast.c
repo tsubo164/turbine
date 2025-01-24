@@ -128,22 +128,37 @@ static void eval_int(struct parser_expr *e)
     switch (e->kind_orig) {
         case NOD_EXPR_NEG: e->ival = -1 * e->l->ival; break;
         case NOD_EXPR_NOT: e->ival = ~e->l->ival; break;
+
         case NOD_EXPR_ADD: e->ival = e->l->ival + e->r->ival; break;
         case NOD_EXPR_SUB: e->ival = e->l->ival - e->r->ival; break;
         case NOD_EXPR_MUL: e->ival = e->l->ival * e->r->ival; break;
         case NOD_EXPR_DIV: e->ival = e->l->ival / e->r->ival; break;
         case NOD_EXPR_REM: e->ival = e->l->ival % e->r->ival; break;
+
+        case NOD_EXPR_EQ:  e->ival = e->l->ival == e->r->ival; break;
+        case NOD_EXPR_NEQ: e->ival = e->l->ival != e->r->ival; break;
+        case NOD_EXPR_GT:  e->ival = e->l->ival > e->r->ival; break;
+        case NOD_EXPR_LT:  e->ival = e->l->ival < e->r->ival; break;
+        case NOD_EXPR_GTE: e->ival = e->l->ival >= e->r->ival; break;
+        case NOD_EXPR_LTE: e->ival = e->l->ival <= e->r->ival; break;
+
         case NOD_EXPR_SHL: e->ival = e->l->ival << e->r->ival; break;
         case NOD_EXPR_SHR: e->ival = e->l->ival >> e->r->ival; break;
+        case NOD_EXPR_OR:  e->ival = e->l->ival | e->r->ival; break;
+        case NOD_EXPR_XOR: e->ival = e->l->ival ^ e->r->ival; break;
+        case NOD_EXPR_AND: e->ival = e->l->ival & e->r->ival; break;
     }
 }
 
 static void eval(struct parser_expr *e)
 {
-    if (parser_is_bool_type(e->type)) {
+    /* check operands type as relational ops resutl is always bool */
+    const struct parser_type *type = e->l->type;
+
+    if (parser_is_bool_type(type)) {
         eval_bool(e);
     }
-    else if (parser_is_int_type(e->type)) {
+    else if (parser_is_int_type(type)) {
         eval_int(e);
     }
 }
@@ -468,6 +483,11 @@ static struct parser_expr *new_rel_expr(struct parser_expr *l, struct parser_exp
     e->type = parser_new_bool_type();
     e->l = l;
     e->r = r;
+    e->is_const = e->l->is_const && e->r->is_const;
+
+    if (e->is_const)
+        eval(e);
+
     return e;
 }
 
