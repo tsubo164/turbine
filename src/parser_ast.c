@@ -107,6 +107,48 @@ const char *parser_node_string(int kind)
     return info->str;
 }
 
+/* eval */
+static void eval_bool(struct parser_expr *e)
+{
+    e->kind_orig = e->kind;
+    e->kind = NOD_EXPR_INTLIT;
+
+    switch (e->kind_orig) {
+        case NOD_EXPR_LOGNOT: e->ival = !e->l->ival; break;
+        case NOD_EXPR_LOGOR:  e->ival = e->l->ival || e->r->ival; break;
+        case NOD_EXPR_LOGAND: e->ival = e->l->ival && e->r->ival; break;
+    }
+}
+
+static void eval_int(struct parser_expr *e)
+{
+    e->kind_orig = e->kind;
+    e->kind = NOD_EXPR_INTLIT;
+
+    switch (e->kind_orig) {
+        case NOD_EXPR_NEG: e->ival = -1 * e->l->ival; break;
+        case NOD_EXPR_NOT: e->ival = ~e->l->ival; break;
+        case NOD_EXPR_ADD: e->ival = e->l->ival + e->r->ival; break;
+        case NOD_EXPR_SUB: e->ival = e->l->ival - e->r->ival; break;
+        case NOD_EXPR_MUL: e->ival = e->l->ival * e->r->ival; break;
+        case NOD_EXPR_DIV: e->ival = e->l->ival / e->r->ival; break;
+        case NOD_EXPR_REM: e->ival = e->l->ival % e->r->ival; break;
+        case NOD_EXPR_SHL: e->ival = e->l->ival << e->r->ival; break;
+        case NOD_EXPR_SHR: e->ival = e->l->ival >> e->r->ival; break;
+    }
+}
+
+static void eval(struct parser_expr *e)
+{
+    if (parser_is_bool_type(e->type)) {
+        eval_bool(e);
+    }
+    else if (parser_is_int_type(e->type)) {
+        eval_int(e);
+    }
+}
+
+/* new node */
 static struct parser_expr *new_expr(int kind)
 {
     struct parser_expr *e = calloc(1, sizeof(struct parser_expr));
@@ -134,6 +176,7 @@ struct parser_expr *parser_new_boollit_expr(bool b)
     struct parser_expr *e = new_expr(NOD_EXPR_BOOLLIT);
     e->type = parser_new_bool_type();
     e->ival = b;
+    e->is_const = true;
     return e;
 }
 
@@ -312,15 +355,8 @@ static struct parser_expr *new_unary_expr(struct parser_expr *l, int kind)
     e->l = l;
     e->is_const = e->l->is_const;
 
-    if (e->is_const) {
-        // eval(e);
-        e->kind_orig = e->kind;
-        e->kind = NOD_EXPR_INTLIT;
-
-        switch (e->kind_orig) {
-        case NOD_EXPR_NEG: e->ival = -1 * e->l->ival; break;
-        }
-    }
+    if (e->is_const)
+        eval(e);
 
     return e;
 }
@@ -370,19 +406,8 @@ static struct parser_expr *new_binary_expr(struct parser_expr *l, struct parser_
     e->r = r;
     e->is_const = e->l->is_const && e->r->is_const;
 
-    if (e->is_const) {
-        // eval(e);
-        e->kind_orig = e->kind;
-        e->kind = NOD_EXPR_INTLIT;
-
-        switch (e->kind_orig) {
-        case NOD_EXPR_ADD: e->ival = e->l->ival + e->r->ival; break;
-        case NOD_EXPR_SUB: e->ival = e->l->ival - e->r->ival; break;
-        case NOD_EXPR_MUL: e->ival = e->l->ival * e->r->ival; break;
-        case NOD_EXPR_DIV: e->ival = e->l->ival / e->r->ival; break;
-        case NOD_EXPR_REM: e->ival = e->l->ival % e->r->ival; break;
-        }
-    }
+    if (e->is_const)
+        eval(e);
 
     return e;
 }

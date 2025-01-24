@@ -23,6 +23,14 @@
     test.AssertI(6, 2000 % 997)
     test.AssertI(-42, -42)
 
+  ---
+    test.AssertB(false, false && false)
+    test.AssertB(false, true && false)
+    test.AssertB(true, true || false)
+    test.AssertB(false, false || false)
+    test.AssertB(false, !true)
+    test.AssertB(true, !false)
+
   print(test._test_count_, "tests done.")
 
   return 0
