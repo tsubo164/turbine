@@ -6,109 +6,102 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
-
-const struct parser_node_info *parser_get_node_info(int kind)
-{
-    static const struct parser_node_info table[] = {
-    /* stmt */
-    [NOD_STMT_NOP]            = {"nop"},
-    [NOD_STMT_IF]             = {"if"},
-    [NOD_STMT_WHILE]          = {"while"},
-    [NOD_STMT_FORNUM]         = {"for (num)"},
-    [NOD_STMT_FORARRAY]       = {"for (array)"},
-    [NOD_STMT_FORMAP]         = {"for (map)"},
-    [NOD_STMT_ELSE]           = {"else"},
-    [NOD_STMT_BREAK]          = {"break"},
-    [NOD_STMT_CONTINUE]       = {"continue"},
-    [NOD_STMT_SWITCH]         = {"switch"},
-    [NOD_STMT_CASE]           = {"case"},
-    [NOD_STMT_DEFAULT]        = {"default"},
-    [NOD_STMT_RETURN]         = {"return"},
-    [NOD_STMT_EXPR]           = {"expr"},
-    [NOD_STMT_ASSIGN]         = {"assign"},
-    [NOD_STMT_INIT]           = {"init"},
-    [NOD_STMT_BLOCK]          = {"block"},
-    /* identifier */
-    [NOD_EXPR_IDENT]          = {"ident", 'y'},
-    [NOD_EXPR_FIELD]          = {"field", 'g'},
-    [NOD_EXPR_COLUMN]         = {"column", 'e'},
-    /* literal */
-    [NOD_EXPR_NILLIT]         = {"nillit"},
-    [NOD_EXPR_BOOLLIT]        = {"boollit",   'i'},
-    [NOD_EXPR_INTLIT]         = {"intlit",    'i'},
-    [NOD_EXPR_FLOATLIT]       = {"floatlit",  'f'},
-    [NOD_EXPR_STRINGLIT]      = {"stringlit", 's'},
-    [NOD_EXPR_FUNCLIT]        = {"funclit",   'F'},
-    [NOD_EXPR_ARRAYLIT]       = {"arraylit"},
-    [NOD_EXPR_MAPLIT]         = {"maplit"},
-    [NOD_EXPR_STRUCTLIT]      = {"structlit"},
-    [NOD_EXPR_TABLELIT]       = {"tablelit",  'i'},
-    /* binary */
-    [NOD_EXPR_ADD]            = {"+"},
-    [NOD_EXPR_SUB]            = {"-"},
-    [NOD_EXPR_MUL]            = {"*"},
-    [NOD_EXPR_DIV]            = {"/"},
-    [NOD_EXPR_REM]            = {"%"},
-    /* relational */
-    [NOD_EXPR_EQ]             = {"=="},
-    [NOD_EXPR_NEQ]            = {"!="},
-    [NOD_EXPR_LT]             = {"<"},
-    [NOD_EXPR_LTE]            = {"<="},
-    [NOD_EXPR_GT]             = {">"},
-    [NOD_EXPR_GTE]            = {">="},
-    /* bitwise */
-    [NOD_EXPR_SHL]            = {"<<"},
-    [NOD_EXPR_SHR]            = {">>"},
-    [NOD_EXPR_OR]             = {"|"},
-    [NOD_EXPR_XOR]            = {"^"},
-    [NOD_EXPR_AND]            = {"&"},
-    /* logical */
-    [NOD_EXPR_LOGOR]          = {"||"},
-    [NOD_EXPR_LOGAND]         = {"&&"},
-    [NOD_EXPR_LOGNOT]         = {"!"},
-    /* unary */
-    [NOD_EXPR_POS]            = {"+(pos)"},
-    [NOD_EXPR_NEG]            = {"-(neg)"},
-    [NOD_EXPR_ADDRESS]        = {"address"},
-    [NOD_EXPR_DEREF]          = {"deref"},
-    [NOD_EXPR_NOT]            = {"~"},
-    [NOD_EXPR_CONV]           = {"conversion"},
-    /* array, struct, func */
-    [NOD_EXPR_INDEX]          = {"index"},
-    [NOD_EXPR_MAPINDEX]       = {"mapindex"},
-    [NOD_EXPR_STRUCTACCESS]   = {"structaccess"},
-    [NOD_EXPR_ENUMACCESS]     = {"enumaccess"},
-    [NOD_EXPR_CALL]           = {"call"},
-    [NOD_EXPR_ELEMENT]        = {"element"},
-    [NOD_EXPR_MODULE]         = {"module"},
-    /* assign */
-    [NOD_EXPR_ASSIGN]         = {"="},
-    [NOD_EXPR_ADDASSIGN]      = {"+="},
-    [NOD_EXPR_SUBASSIGN]      = {"-="},
-    [NOD_EXPR_MULASSIGN]      = {"*="},
-    [NOD_EXPR_DIVASSIGN]      = {"/="},
-    [NOD_EXPR_REMASSIGN]      = {"%="},
-    [NOD_EXPR_SHLASSIGN]      = {"<<="},
-    [NOD_EXPR_SHRASSIGN]      = {">>="},
-    [NOD_EXPR_ORASSIGN]       = {"|="},
-    [NOD_EXPR_XORASSIGN]      = {"^="},
-    [NOD_EXPR_ANDASSIGN]      = {"&="},
-    [NOD_EXPR_INIT]           = {"init"},
-    };
-
-    int count = sizeof(table) / sizeof(table[0]);
-
-    if (kind < 0 || kind >= count)
-        return NULL;
-
-    return &table[kind];
-}
 
 const char *parser_node_string(int kind)
 {
-    const struct parser_node_info *info = parser_get_node_info(kind);
-    return info->str;
+
+    static const char *table[] = {
+    /* stmt */
+    [NOD_STMT_NOP]            = "nop",
+    [NOD_STMT_IF]             = "if",
+    [NOD_STMT_WHILE]          = "while",
+    [NOD_STMT_FORNUM]         = "for (num)",
+    [NOD_STMT_FORARRAY]       = "for (array)",
+    [NOD_STMT_FORMAP]         = "for (map)",
+    [NOD_STMT_ELSE]           = "else",
+    [NOD_STMT_BREAK]          = "break",
+    [NOD_STMT_CONTINUE]       = "continue",
+    [NOD_STMT_SWITCH]         = "switch",
+    [NOD_STMT_CASE]           = "case",
+    [NOD_STMT_DEFAULT]        = "default",
+    [NOD_STMT_RETURN]         = "return",
+    [NOD_STMT_EXPR]           = "expr",
+    [NOD_STMT_ASSIGN]         = "assign",
+    [NOD_STMT_INIT]           = "init",
+    [NOD_STMT_BLOCK]          = "block",
+    /* identifier */
+    [NOD_EXPR_IDENT]          = "ident",
+    [NOD_EXPR_FIELD]          = "field",
+    [NOD_EXPR_COLUMN]         = "column",
+    /* literal */
+    [NOD_EXPR_NILLIT]         = "nillit",
+    [NOD_EXPR_BOOLLIT]        = "boollit",
+    [NOD_EXPR_INTLIT]         = "intlit",
+    [NOD_EXPR_FLOATLIT]       = "floatlit",
+    [NOD_EXPR_STRINGLIT]      = "stringlit",
+    [NOD_EXPR_FUNCLIT]        = "funclit",
+    [NOD_EXPR_ARRAYLIT]       = "arraylit",
+    [NOD_EXPR_MAPLIT]         = "maplit",
+    [NOD_EXPR_STRUCTLIT]      = "structlit",
+    [NOD_EXPR_TABLELIT]       = "tablelit",
+    /* binary */
+    [NOD_EXPR_ADD]            = "+",
+    [NOD_EXPR_SUB]            = "-",
+    [NOD_EXPR_MUL]            = "*",
+    [NOD_EXPR_DIV]            = "/",
+    [NOD_EXPR_REM]            = "%",
+    /* relational */
+    [NOD_EXPR_EQ]             = "==",
+    [NOD_EXPR_NEQ]            = "!=",
+    [NOD_EXPR_LT]             = "<",
+    [NOD_EXPR_LTE]            = "<=",
+    [NOD_EXPR_GT]             = ">",
+    [NOD_EXPR_GTE]            = ">=",
+    /* bitwise */
+    [NOD_EXPR_SHL]            = "<<",
+    [NOD_EXPR_SHR]            = ">>",
+    [NOD_EXPR_OR]             = "|",
+    [NOD_EXPR_XOR]            = "^",
+    [NOD_EXPR_AND]            = "&",
+    /* logical */
+    [NOD_EXPR_LOGOR]          = "||",
+    [NOD_EXPR_LOGAND]         = "&&",
+    [NOD_EXPR_LOGNOT]         = "!",
+    /* unary */
+    [NOD_EXPR_POS]            = "+(pos)",
+    [NOD_EXPR_NEG]            = "-(neg)",
+    [NOD_EXPR_ADDRESS]        = "address",
+    [NOD_EXPR_DEREF]          = "deref",
+    [NOD_EXPR_NOT]            = "~",
+    [NOD_EXPR_CONV]           = "conversion",
+    /* array, struct, func */
+    [NOD_EXPR_INDEX]          = "index",
+    [NOD_EXPR_MAPINDEX]       = "mapindex",
+    [NOD_EXPR_STRUCTACCESS]   = "structaccess",
+    [NOD_EXPR_ENUMACCESS]     = "enumaccess",
+    [NOD_EXPR_CALL]           = "call",
+    [NOD_EXPR_ELEMENT]        = "element",
+    [NOD_EXPR_MODULE]         = "module",
+    /* assign */
+    [NOD_EXPR_ASSIGN]         = "=",
+    [NOD_EXPR_ADDASSIGN]      = "+=",
+    [NOD_EXPR_SUBASSIGN]      = "-=",
+    [NOD_EXPR_MULASSIGN]      = "*=",
+    [NOD_EXPR_DIVASSIGN]      = "/=",
+    [NOD_EXPR_REMASSIGN]      = "%=",
+    [NOD_EXPR_SHLASSIGN]      = "<<=",
+    [NOD_EXPR_SHRASSIGN]      = ">>=",
+    [NOD_EXPR_ORASSIGN]       = "|=",
+    [NOD_EXPR_XORASSIGN]      = "^=",
+    [NOD_EXPR_ANDASSIGN]      = "&=",
+    [NOD_EXPR_INIT]           = "init",
+    };
+    static const int count = sizeof(table) / sizeof(table[0]);
+    assert(kind >= 0 && kind < count);
+
+    return table[kind];
 }
 
 /* eval */

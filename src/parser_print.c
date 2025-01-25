@@ -73,7 +73,6 @@ static void print_expr(const struct parser_expr *e, int depth)
         printf("  ");
 
     /* basic info */
-    const struct parser_node_info *info = parser_get_node_info(e->kind);
     bool is_constexpr = e->kind_orig > 0;
     int printed_kind = is_constexpr ? e->kind_orig : e->kind;
 
@@ -91,25 +90,28 @@ static void print_expr(const struct parser_expr *e, int depth)
     case NOD_EXPR_TABLELIT:
         printf(" %lld", e->ival);
         break;
-    }
 
-    switch (info->type) {
-    case 'f':
+    case NOD_EXPR_FLOATLIT:
         printf(" %g", e->fval);
         break;
-    case 's':
+
+    case NOD_EXPR_STRINGLIT:
         printf(" \"%s\"", e->sval);
         break;
-    case 'y':
+
+    case NOD_EXPR_IDENT:
         printf(" \"%s\"", e->sym->name);
         break;
-    case 'g':
+
+    case NOD_EXPR_FIELD:
         printf(" \"%s\"", e->field->name);
         break;
-    case 'e':
+
+    case NOD_EXPR_COLUMN:
         printf(" \"%s\"", e->column->name);
         break;
-    case 'F':
+
+    case NOD_EXPR_FUNCLIT:
         printf(" %s", e->func->fullname);
         break;
     }
@@ -131,8 +133,7 @@ static void print_stmt(const struct parser_stmt *s, int depth)
         printf("  ");
 
     /* basic info */
-    const struct parser_node_info *info = parser_get_node_info(s->kind);
-    printf("%d. <%s>", depth, info->str);
+    printf("%d. <%s>", depth, parser_node_string(s->kind));
     printf("\n");
 
     /* children */

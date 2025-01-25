@@ -51,9 +51,7 @@
 */
 
 # main(args []string) int
-  - b = 4 < 4
-  //- s = "Hello," + " World!"
-  //print(s)
-  print("foo" == "foo")
-  //print("bar" == "foo")
+  //print(42, 3.14, "foo", Color.B)
+  //print(Color.B)
+  print(42, 3.14, "foo", Color.B.val)
   return 42

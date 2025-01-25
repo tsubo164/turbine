@@ -240,14 +240,7 @@ struct parser_stmt *parser_new_andassign_stmt(struct parser_expr *l, struct pars
 struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parser_expr *r);
 struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r);
 
-/* TODO remove this */
-/* node info */
-struct parser_node_info {
-    const char *str;
-    char type;
-};
-
-const struct parser_node_info *parser_get_node_info(int kind);
+/* node string */
 const char *parser_node_string(int kind);
 
 #endif /* _H */
