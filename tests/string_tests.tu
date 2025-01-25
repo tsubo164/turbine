@@ -111,6 +111,18 @@
     s += ", World!"
     test.AssertS("Hello, World!", s)
 
+  ---
+    // constexpr
+    test.AssertS("Hello, World!", "Hello," + " World!")
+    test.AssertB(false, "Hello," == " World!")
+    test.AssertB(true,  "foo" != "bar")
+    test.AssertB(true,  "foo" >= "bar")
+    test.AssertB(false, "foo" <= "bar")
+    test.AssertB(true,  "foo" >  "bar")
+    test.AssertB(false, "foo" <  "bar")
+    test.AssertB(true,  "foo" >= "foo")
+    test.AssertB(true,  "foo" <= "foo")
+
   print(test._test_count_, "tests done.")
 
   return 0

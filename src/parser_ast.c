@@ -1,8 +1,11 @@
 #include "parser_ast.h"
 #include "parser_symbol.h"
 #include "parser_type.h"
+#include "data_strbuf.h"
+#include "data_intern.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 const struct parser_node_info *parser_get_node_info(int kind)
@@ -109,10 +112,25 @@ const char *parser_node_string(int kind)
 }
 
 /* eval */
+static int updated_kind(int orig_kind, int new_kind)
+{
+    switch (orig_kind) {
+    case NOD_EXPR_EQ:
+    case NOD_EXPR_NEQ:
+    case NOD_EXPR_GT:
+    case NOD_EXPR_LT:
+    case NOD_EXPR_GTE:
+    case NOD_EXPR_LTE:
+        return NOD_EXPR_BOOLLIT;
+    default:
+        return new_kind;
+    }
+}
+
 static void eval_bool(struct parser_expr *e)
 {
     e->kind_orig = e->kind;
-    e->kind = NOD_EXPR_INTLIT;
+    e->kind = updated_kind(e->kind, NOD_EXPR_BOOLLIT);
 
     switch (e->kind_orig) {
         case NOD_EXPR_LOGNOT: e->ival = !e->l->ival; break;
@@ -124,7 +142,7 @@ static void eval_bool(struct parser_expr *e)
 static void eval_int(struct parser_expr *e)
 {
     e->kind_orig = e->kind;
-    e->kind = NOD_EXPR_INTLIT;
+    e->kind = updated_kind(e->kind, NOD_EXPR_INTLIT);
 
     switch (e->kind_orig) {
         case NOD_EXPR_NEG: e->ival = -1 * e->l->ival; break;
@@ -154,7 +172,7 @@ static void eval_int(struct parser_expr *e)
 static void eval_float(struct parser_expr *e)
 {
     e->kind_orig = e->kind;
-    e->kind = NOD_EXPR_FLOATLIT;
+    e->kind = updated_kind(e->kind, NOD_EXPR_FLOATLIT);
 
     switch (e->kind_orig) {
         case NOD_EXPR_NEG: e->fval = -1 * e->l->fval; break;
@@ -174,6 +192,37 @@ static void eval_float(struct parser_expr *e)
     }
 }
 
+static const char *cats(const char *s1, const char *s2)
+{
+    struct data_strbuf sb = DATA_STRBUF_INIT;
+    const char *s3 = NULL;
+
+    data_strbuf_copy(&sb, s1);
+    data_strbuf_cat(&sb, s2);
+
+    s3 = data_string_intern(sb.data);
+    data_strbuf_free(&sb);
+
+    return s3;
+}
+
+static void eval_string(struct parser_expr *e)
+{
+    e->kind_orig = e->kind;
+    e->kind = updated_kind(e->kind, NOD_EXPR_STRINGLIT);
+
+    switch (e->kind_orig) {
+        case NOD_EXPR_ADD: e->sval = cats(e->l->sval, e->r->sval); break;
+
+        case NOD_EXPR_EQ:  e->ival = strcmp(e->l->sval, e->r->sval) == 0; break;
+        case NOD_EXPR_NEQ: e->ival = strcmp(e->l->sval, e->r->sval) != 0; break;
+        case NOD_EXPR_GT:  e->ival = strcmp(e->l->sval, e->r->sval) > 0; break;
+        case NOD_EXPR_LT:  e->ival = strcmp(e->l->sval, e->r->sval) < 0; break;
+        case NOD_EXPR_GTE: e->ival = strcmp(e->l->sval, e->r->sval) >= 0; break;
+        case NOD_EXPR_LTE: e->ival = strcmp(e->l->sval, e->r->sval) <= 0; break;
+    }
+}
+
 static void eval(struct parser_expr *e)
 {
     /* check operands type as relational ops resutl is always bool */
@@ -187,6 +236,9 @@ static void eval(struct parser_expr *e)
     }
     else if (parser_is_float_type(type)) {
         eval_float(e);
+    }
+    else if (parser_is_string_type(type)) {
+        eval_string(e);
     }
 }
 
@@ -245,6 +297,7 @@ struct parser_expr *parser_new_stringlit_expr(const char *s)
     struct parser_expr *e = new_expr(NOD_EXPR_STRINGLIT);
     e->type = parser_new_string_type();
     e->sval = s;
+    e->is_const = true;
     return e;
 }
 
