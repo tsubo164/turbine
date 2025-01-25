@@ -51,6 +51,22 @@
     test.AssertB(false, !true)
     test.AssertB(true, !false)
 
+  ---
+    test.AssertF(3000.0, 2000.0 + 1000.0)
+    test.AssertF(1000.0, 2000.0 - 1000.0)
+    test.AssertF(2000000.0, 2000.0 * 1000.0)
+    test.AssertF(2.0, 2000.0 / 1000.0)
+    test.AssertF(6.0, 2000.0 % 997.0)
+    test.AssertF(-42.0, -42.0)
+
+  ---
+    test.AssertB(false, 2000.0 == 1000.0)
+    test.AssertB(true, 2000.0 != 1000.0)
+    test.AssertB(true, 2000.0 >= 1000.0)
+    test.AssertB(false, 2000.0 <= 1000.0)
+    test.AssertB(true, 2000.0 > 1000.0)
+    test.AssertB(false, 2000.0 < 1000.0)
+
   print(test._test_count_, "tests done.")
 
   return 0

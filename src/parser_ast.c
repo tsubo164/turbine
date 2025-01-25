@@ -3,6 +3,7 @@
 #include "parser_type.h"
 
 #include <stdlib.h>
+#include <math.h>
 
 const struct parser_node_info *parser_get_node_info(int kind)
 {
@@ -150,6 +151,29 @@ static void eval_int(struct parser_expr *e)
     }
 }
 
+static void eval_float(struct parser_expr *e)
+{
+    e->kind_orig = e->kind;
+    e->kind = NOD_EXPR_FLOATLIT;
+
+    switch (e->kind_orig) {
+        case NOD_EXPR_NEG: e->fval = -1 * e->l->fval; break;
+
+        case NOD_EXPR_ADD: e->fval = e->l->fval + e->r->fval; break;
+        case NOD_EXPR_SUB: e->fval = e->l->fval - e->r->fval; break;
+        case NOD_EXPR_MUL: e->fval = e->l->fval * e->r->fval; break;
+        case NOD_EXPR_DIV: e->fval = e->l->fval / e->r->fval; break;
+        case NOD_EXPR_REM: e->fval = fmod(e->l->fval, e->r->fval); break;
+
+        case NOD_EXPR_EQ:  e->ival = e->l->fval == e->r->fval; break;
+        case NOD_EXPR_NEQ: e->ival = e->l->fval != e->r->fval; break;
+        case NOD_EXPR_GT:  e->ival = e->l->fval > e->r->fval; break;
+        case NOD_EXPR_LT:  e->ival = e->l->fval < e->r->fval; break;
+        case NOD_EXPR_GTE: e->ival = e->l->fval >= e->r->fval; break;
+        case NOD_EXPR_LTE: e->ival = e->l->fval <= e->r->fval; break;
+    }
+}
+
 static void eval(struct parser_expr *e)
 {
     /* check operands type as relational ops resutl is always bool */
@@ -160,6 +184,9 @@ static void eval(struct parser_expr *e)
     }
     else if (parser_is_int_type(type)) {
         eval_int(e);
+    }
+    else if (parser_is_float_type(type)) {
+        eval_float(e);
     }
 }
 
@@ -209,6 +236,7 @@ struct parser_expr *parser_new_floatlit_expr(double d)
     struct parser_expr *e = new_expr(NOD_EXPR_FLOATLIT);
     e->type = parser_new_float_type();
     e->fval = d;
+    e->is_const = true;
     return e;
 }
 
