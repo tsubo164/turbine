@@ -60,6 +60,8 @@
   | ---    | ---    | ---
   | R      | "red"  | (42 | 0x0F)
 */
+# foo($caller_line) int
+  return $caller_line
 
 # main(args []string) int
   - a = 32

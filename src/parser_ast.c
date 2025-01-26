@@ -403,11 +403,11 @@ struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
     return e;
 }
 
-struct parser_expr *parser_new_var_expr(struct parser_symbol *sym)
+struct parser_expr *parser_new_var_expr(struct parser_var *v)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_VAR);
-    e->type = sym->type;
-    e->var = sym->var;
+    e->type = v->type;
+    e->var = v;
     return e;
 }
 

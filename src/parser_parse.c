@@ -387,13 +387,13 @@ static struct parser_expr *caller_line_expr(struct parser *p)
     expect(p, TOK_CALLER_LINE);
     sym = parser_find_symbol(p->scope, tok_str(p));
 
-    if (!sym) {
+    if (!sym || sym->kind != SYM_VAR) {
         error(p, tok_pos(p),
                 "special variable '%s' not declared in parameters",
                 tok_str(p));
     }
 
-    return parser_new_var_expr(sym);
+    return parser_new_var_expr(sym->var);
 }
 
 static struct parser_expr *ident_expr(struct parser *p)
@@ -422,8 +422,12 @@ static struct parser_expr *ident_expr(struct parser *p)
     else if (sym->kind == SYM_MODULE) {
         expr = parser_new_modulelit_expr(sym);
     }
+    else if (sym->kind == SYM_VAR) {
+        expr = parser_new_var_expr(sym->var);
+    }
     else {
-        expr = parser_new_var_expr(sym);
+        printf("unknown identifier kind: %d\n", sym->kind);
+        assert(!"unreachable");
     }
 
     return expr;
@@ -1268,7 +1272,7 @@ struct loop_var {
     const struct parser_type *type;
 };
 
-static struct parser_symbol *define_loop_vars(struct parser_scope *scope,
+static struct parser_var *define_loop_vars(struct parser_scope *scope,
         const struct loop_var *loopvars)
 {
     struct parser_symbol *sym = NULL;
@@ -1284,7 +1288,7 @@ static struct parser_symbol *define_loop_vars(struct parser_scope *scope,
             sym = s;
     }
 
-    return sym;
+    return sym->var;
 }
 
 static int iter_list(struct parser *p, const struct parser_token **iters, int max_iters)
@@ -1345,7 +1349,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
             error(p, iters[1]->pos, "too many iterators");
         }
 
-        struct parser_symbol *sym = NULL;
+        struct parser_var *var = NULL;
         struct loop_var loop_vars[] = {
             { iters[0]->sval, parser_new_int_type() },
             { "_start", parser_new_int_type() },
@@ -1354,8 +1358,8 @@ static struct parser_stmt *for_stmt(struct parser *p)
             { NULL }
         };
 
-        sym = define_loop_vars(block_scope, loop_vars);
-        iter = parser_new_var_expr(sym);
+        var = define_loop_vars(block_scope, loop_vars);
+        iter = parser_new_var_expr(var);
 
         struct parser_stmt *body = block_stmt(p, block_scope);
         return parser_new_fornum_stmt(iter, collection, body);
@@ -1363,7 +1367,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
     else if (parser_is_array_type(collection->type)) {
         expect(p, TOK_NEWLINE);
 
-        struct parser_symbol *sym = NULL;
+        struct parser_var *var = NULL;
         struct loop_var loop_vars[] = {
             { "_idx", parser_new_int_type() },
             { "_val", collection->type->underlying },
@@ -1382,8 +1386,8 @@ static struct parser_stmt *for_stmt(struct parser *p)
             error(p, iters[2]->pos, "too many iterators");
         }
 
-        sym = define_loop_vars(block_scope, loop_vars);
-        iter = parser_new_var_expr(sym);
+        var = define_loop_vars(block_scope, loop_vars);
+        iter = parser_new_var_expr(var);
 
         struct parser_stmt *body = block_stmt(p, block_scope);
         return parser_new_forarray_stmt(iter, collection, body);
@@ -1391,7 +1395,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
     else if (parser_is_map_type(collection->type)) {
         expect(p, TOK_NEWLINE);
 
-        struct parser_symbol *sym = NULL;
+        struct parser_var *var = NULL;
         struct loop_var loop_vars[] = {
             { "_itr", parser_new_any_type() },
             { "_idx", parser_new_int_type() },
@@ -1417,8 +1421,8 @@ static struct parser_stmt *for_stmt(struct parser *p)
             error(p, iters[3]->pos, "too many iterators");
         }
 
-        sym = define_loop_vars(block_scope, loop_vars);
-        iter = parser_new_var_expr(sym);
+        var = define_loop_vars(block_scope, loop_vars);
+        iter = parser_new_var_expr(var);
 
         struct parser_stmt *body = block_stmt(p, block_scope);
         return parser_new_formap_stmt(iter, collection, body);
@@ -1707,7 +1711,7 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
     }
-    struct parser_expr *var = parser_new_var_expr(sym);
+    struct parser_expr *var = parser_new_var_expr(sym->var);
     /* TODO make new_assign_stmt() */
     if (init && parser_is_func_type(init->type) && init->type->func_sig->is_builtin) {
         assert(init->kind == NOD_EXPR_FUNCLIT);

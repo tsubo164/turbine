@@ -106,24 +106,26 @@ struct parser_expr {
     int kind;
     int kind_orig; /* constexpr */
     const struct parser_type *type;
+    /* this is mostly use for args */
+    struct parser_pos pos;
 
     struct parser_expr *l;
     struct parser_expr *r;
     struct parser_expr *next;
 
-    struct parser_symbol *sym;
-    struct parser_var *var;
-    struct parser_field *field;
-    struct parser_column *column;
-    /* this is mostly use for args */
-    struct parser_pos pos;
+    /* identifiers */
+    union {
+        struct parser_var *var;
+        struct parser_field *field;
+        struct parser_column *column;
+        struct parser_func *func;
+    };
 
     /* literals */
     union {
         int64_t ival;
         double fval;
         const char *sval;
-        struct parser_func *func;
     };
 
     /* constexpr */
@@ -172,7 +174,7 @@ struct parser_expr *parser_new_enum_access_expr(struct parser_expr *enm,
 struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
         struct parser_expr *member);
 
-struct parser_expr *parser_new_var_expr(struct parser_symbol *sym);
+struct parser_expr *parser_new_var_expr(struct parser_var *v);
 struct parser_expr *parser_new_field_expr(struct parser_field *f);
 struct parser_expr *parser_new_column_expr(struct parser_column *c);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args);
