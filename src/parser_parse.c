@@ -419,6 +419,9 @@ static struct parser_expr *ident_expr(struct parser *p)
     else if (sym->kind == SYM_TABLE) {
         expr = table_lit_expr(p, sym);
     }
+    else if (sym->kind == SYM_MODULE) {
+        expr = parser_new_modulelit_expr(sym);
+    }
     else {
         expr = parser_new_ident_expr(sym);
     }
@@ -710,7 +713,7 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
         struct parser_scope *cur = p->scope;
         struct parser_expr *expr;
         p->scope = base->type->module->scope;
-        expr = parser_new_module_expr(base, ident_expr(p));
+        expr = parser_new_module_access_expr(base, ident_expr(p));
         p->scope = cur;
         return expr;
     }

@@ -72,7 +72,7 @@ bool parser_eval_expr(const struct parser_expr *e, int64_t *result)
 {
     switch (e->kind) {
 
-    case NOD_EXPR_MODULE:
+    case NOD_EXPR_MODULEACCESS:
         return parser_eval_expr(e->r, result);
 
     case NOD_EXPR_BOOLLIT:

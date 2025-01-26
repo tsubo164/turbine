@@ -39,6 +39,7 @@ enum parser_node_kind {
     NOD_EXPR_MAPLIT,
     NOD_EXPR_STRUCTLIT,
     NOD_EXPR_TABLELIT,
+    NOD_EXPR_MODULELIT,
     /* binary */
     NOD_EXPR_ADD,
     NOD_EXPR_SUB,
@@ -74,9 +75,9 @@ enum parser_node_kind {
     NOD_EXPR_MAPINDEX,
     NOD_EXPR_STRUCTACCESS,
     NOD_EXPR_ENUMACCESS,
+    NOD_EXPR_MODULEACCESS,
     NOD_EXPR_CALL,
     NOD_EXPR_ELEMENT, /* TODO may not need */
-    NOD_EXPR_MODULE,
     /* assign */
     NOD_EXPR_ASSIGN,
     NOD_EXPR_ADDASSIGN,
@@ -157,20 +158,25 @@ struct parser_expr *parser_new_structlit_expr(const struct parser_struct *strct,
         struct parser_expr *fields);
 struct parser_expr *parser_new_tablelit_expr(const struct parser_table *table,
         int row_idx);
+struct parser_expr *parser_new_modulelit_expr(struct parser_symbol *sym);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
         struct parser_type *to);
 struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym);
+
+/* access */
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
 struct parser_expr *parser_new_mapindex_expr(struct parser_expr *map, struct parser_expr *key);
-struct parser_expr *parser_new_struct_access_expr(struct parser_expr *inst, struct parser_expr *fld);
+struct parser_expr *parser_new_struct_access_expr(struct parser_expr *inst,
+        struct parser_expr *fld);
 struct parser_expr *parser_new_enum_access_expr(struct parser_expr *enm,
         struct parser_expr *fld);
+struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
+        struct parser_expr *member);
+
 struct parser_expr *parser_new_field_expr(struct parser_field *f);
 struct parser_expr *parser_new_column_expr(struct parser_column *c);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args);
 struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);
-struct parser_expr *parser_new_module_expr(struct parser_expr *mod,
-        struct parser_expr *member);
 struct parser_expr *parser_new_const_expr(struct parser_expr *orig, struct parser_expr *cnst);
 
 /* unary expr */

@@ -337,7 +337,8 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         return reg0;
     }
 
-    if (lval->kind == NOD_EXPR_MODULE) {
+    if (lval->kind == NOD_EXPR_MODULEACCESS) {
+        /* m.a = x */
         int reg0 = gen_addr(code, lval);
         int reg1 = gen_expr(code, rval);
         code_emit_store_global(code, reg0, reg1);
@@ -560,11 +561,11 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             return code_emit_load_enum(code, dst, enm, fld);
         }
 
+    case NOD_EXPR_MODULEACCESS:
+        return gen_expr(code, e->r);
+
     case NOD_EXPR_CALL:
         return gen_call(code, e);
-
-    case NOD_EXPR_MODULE:
-        return gen_expr(code, e->r);
 
     case NOD_EXPR_LOGOR:
         {
@@ -719,7 +720,7 @@ static int gen_addr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_FIELD:
         return e->field->offset;
 
-    case NOD_EXPR_MODULE:
+    case NOD_EXPR_MODULEACCESS:
         return gen_addr(code, e->r);
 
     case NOD_EXPR_DEREF:

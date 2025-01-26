@@ -111,6 +111,10 @@ static void print_expr(const struct parser_expr *e, int depth)
         printf(" \"%s\"", e->column->name);
         break;
 
+    case NOD_EXPR_MODULELIT:
+        printf(" \"%s\"", e->type->module->name);
+        break;
+
     case NOD_EXPR_FUNCLIT:
         printf(" %s", e->func->fullname);
         break;

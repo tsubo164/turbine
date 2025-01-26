@@ -46,6 +46,7 @@ const char *parser_node_string(int kind)
     [NOD_EXPR_MAPLIT]         = "maplit",
     [NOD_EXPR_STRUCTLIT]      = "structlit",
     [NOD_EXPR_TABLELIT]       = "tablelit",
+    [NOD_EXPR_MODULELIT]      = "modulelit",
     /* binary */
     [NOD_EXPR_ADD]            = "+",
     [NOD_EXPR_SUB]            = "-",
@@ -81,9 +82,9 @@ const char *parser_node_string(int kind)
     [NOD_EXPR_MAPINDEX]       = "mapindex",
     [NOD_EXPR_STRUCTACCESS]   = "structaccess",
     [NOD_EXPR_ENUMACCESS]     = "enumaccess",
+    [NOD_EXPR_MODULEACCESS]   = "moduleaccess",
     [NOD_EXPR_CALL]           = "call",
     [NOD_EXPR_ELEMENT]        = "element",
-    [NOD_EXPR_MODULE]         = "module",
     /* assign */
     [NOD_EXPR_ASSIGN]         = "=",
     [NOD_EXPR_ADDASSIGN]      = "+=",
@@ -340,6 +341,13 @@ struct parser_expr *parser_new_tablelit_expr(const struct parser_table *table,
     return e;
 }
 
+struct parser_expr *parser_new_modulelit_expr(struct parser_symbol *sym)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_MODULELIT);
+    e->type = sym->type;
+    return e;
+}
+
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct parser_type *to)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_CONV);
@@ -394,6 +402,16 @@ struct parser_expr *parser_new_enum_access_expr(struct parser_expr *enm,
     return e;
 }
 
+struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
+        struct parser_expr *member)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_MODULEACCESS);
+    e->type = member->type;
+    e->l = mod;
+    e->r = member;
+    return e;
+}
+
 struct parser_expr *parser_new_field_expr(struct parser_field *f)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_FIELD);
@@ -425,15 +443,6 @@ struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct pars
     e->type = val->type;
     e->l = key;
     e->r = val;
-    return e;
-}
-
-struct parser_expr *parser_new_module_expr(struct parser_expr *mod, struct parser_expr *member)
-{
-    struct parser_expr *e = new_expr(NOD_EXPR_MODULE);
-    e->type = member->type;
-    e->l = mod;
-    e->r = member;
     return e;
 }
 

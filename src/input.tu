@@ -3,7 +3,7 @@
 //[json]
 //[opengl] (github.com/...)
 //[my_calc]
-//[math]
+[math]
 
 //:: Token
 //  | symbol   | name
@@ -12,6 +12,10 @@
 //  | T_FOR    | "for"
 //  | T_ELS    | "or"
 //  | T_BRK    | "break"
+
+## Point
+  - x int
+  - y int
 
 :: Color
   | symbol | name    | val
@@ -58,7 +62,10 @@
 */
 
 # main(args []string) int
+  - a = 32
+  - p Point
   //print(42, 3.14, "foo", Color.B)
   print(Color.B)
+  print(p.x, math._PI_)
   //print(42, 3.14, "foo", Color.B.val)
   return 42
