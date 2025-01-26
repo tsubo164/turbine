@@ -191,6 +191,9 @@ const char *parser_type_string(const struct parser_type *t)
         else if (parser_is_table_type(type)) {
             sprintf(buf, "%s%s", interned, type->table->name);
         }
+        else if (parser_is_module_type(type)) {
+            sprintf(buf, "%s%s", interned, type->module->name);
+        }
         else if (parser_is_template_type(type)) {
             sprintf(buf, "%stype%d", interned, type->template_id);
         }

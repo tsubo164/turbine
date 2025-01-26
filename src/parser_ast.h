@@ -25,7 +25,7 @@ enum parser_node_kind {
     NOD_STMT_INIT,
     NOD_STMT_BLOCK,
     /* identifier */
-    NOD_EXPR_IDENT,
+    NOD_EXPR_VAR,
     NOD_EXPR_FIELD,
     NOD_EXPR_COLUMN,
     /* literal */
@@ -161,7 +161,6 @@ struct parser_expr *parser_new_tablelit_expr(const struct parser_table *table,
 struct parser_expr *parser_new_modulelit_expr(struct parser_symbol *sym);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
         struct parser_type *to);
-struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym);
 
 /* access */
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
@@ -173,6 +172,7 @@ struct parser_expr *parser_new_enum_access_expr(struct parser_expr *enm,
 struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
         struct parser_expr *member);
 
+struct parser_expr *parser_new_var_expr(struct parser_symbol *sym);
 struct parser_expr *parser_new_field_expr(struct parser_field *f);
 struct parser_expr *parser_new_column_expr(struct parser_column *c);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args);

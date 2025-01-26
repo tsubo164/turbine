@@ -393,7 +393,7 @@ static struct parser_expr *caller_line_expr(struct parser *p)
                 tok_str(p));
     }
 
-    return parser_new_ident_expr(sym);
+    return parser_new_var_expr(sym);
 }
 
 static struct parser_expr *ident_expr(struct parser *p)
@@ -423,7 +423,7 @@ static struct parser_expr *ident_expr(struct parser *p)
         expr = parser_new_modulelit_expr(sym);
     }
     else {
-        expr = parser_new_ident_expr(sym);
+        expr = parser_new_var_expr(sym);
     }
 
     return expr;
@@ -1093,7 +1093,7 @@ static struct parser_expr *expression(struct parser *p)
 static const struct parser_var *find_root_object(const struct parser_expr *e)
 {
     switch (e->kind) {
-    case NOD_EXPR_IDENT:
+    case NOD_EXPR_VAR:
         return e->var;
 
     case NOD_EXPR_STRUCTACCESS:
@@ -1355,7 +1355,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         };
 
         sym = define_loop_vars(block_scope, loop_vars);
-        iter = parser_new_ident_expr(sym);
+        iter = parser_new_var_expr(sym);
 
         struct parser_stmt *body = block_stmt(p, block_scope);
         return parser_new_fornum_stmt(iter, collection, body);
@@ -1383,7 +1383,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         }
 
         sym = define_loop_vars(block_scope, loop_vars);
-        iter = parser_new_ident_expr(sym);
+        iter = parser_new_var_expr(sym);
 
         struct parser_stmt *body = block_stmt(p, block_scope);
         return parser_new_forarray_stmt(iter, collection, body);
@@ -1418,7 +1418,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         }
 
         sym = define_loop_vars(block_scope, loop_vars);
-        iter = parser_new_ident_expr(sym);
+        iter = parser_new_var_expr(sym);
 
         struct parser_stmt *body = block_stmt(p, block_scope);
         return parser_new_formap_stmt(iter, collection, body);
@@ -1707,7 +1707,7 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
         error(p, ident_pos,
                 "re-defined identifier: '%s'", name);
     }
-    struct parser_expr *ident = parser_new_ident_expr(sym);
+    struct parser_expr *var = parser_new_var_expr(sym);
     /* TODO make new_assign_stmt() */
     if (init && parser_is_func_type(init->type) && init->type->func_sig->is_builtin) {
         assert(init->kind == NOD_EXPR_FUNCLIT);
@@ -1716,7 +1716,7 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
                 "builtin function can not be assigned: '%s'",
                 func->name);
     }
-    return parser_new_init_stmt(ident, init);
+    return parser_new_init_stmt(var, init);
 }
 
 static void field_list(struct parser *p, struct parser_struct *strct)

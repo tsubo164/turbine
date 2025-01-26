@@ -32,7 +32,7 @@ const char *parser_node_string(int kind)
     [NOD_STMT_INIT]           = "init",
     [NOD_STMT_BLOCK]          = "block",
     /* identifier */
-    [NOD_EXPR_IDENT]          = "ident",
+    [NOD_EXPR_VAR]            = "var",
     [NOD_EXPR_FIELD]          = "field",
     [NOD_EXPR_COLUMN]         = "column",
     /* literal */
@@ -356,15 +356,6 @@ struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct 
     return e;
 }
 
-struct parser_expr *parser_new_ident_expr(struct parser_symbol *sym)
-{
-    struct parser_expr *e = new_expr(NOD_EXPR_IDENT);
-    e->type = sym->type;
-    e->var = sym->var;
-    e->sym = sym;
-    return e;
-}
-
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_INDEX);
@@ -409,6 +400,14 @@ struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
     e->type = member->type;
     e->l = mod;
     e->r = member;
+    return e;
+}
+
+struct parser_expr *parser_new_var_expr(struct parser_symbol *sym)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_VAR);
+    e->type = sym->type;
+    e->var = sym->var;
     return e;
 }
 

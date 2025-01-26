@@ -99,8 +99,8 @@ static void print_expr(const struct parser_expr *e, int depth)
         printf(" \"%s\"", e->sval);
         break;
 
-    case NOD_EXPR_IDENT:
-        printf(" \"%s\"", e->sym->name);
+    case NOD_EXPR_VAR:
+        printf(" \"%s\"", e->var->name);
         break;
 
     case NOD_EXPR_FIELD:
@@ -109,10 +109,6 @@ static void print_expr(const struct parser_expr *e, int depth)
 
     case NOD_EXPR_COLUMN:
         printf(" \"%s\"", e->column->name);
-        break;
-
-    case NOD_EXPR_MODULELIT:
-        printf(" \"%s\"", e->type->module->name);
         break;
 
     case NOD_EXPR_FUNCLIT:

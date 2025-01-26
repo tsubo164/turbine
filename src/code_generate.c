@@ -511,7 +511,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_CONV:
         return gen_convert(code, e);
 
-    case NOD_EXPR_IDENT:
+    case NOD_EXPR_VAR:
         if (e->var->is_global) {
             int id = code_emit_load_int(code, e->var->id);
             int dst = code_allocate_temporary_register(code);
@@ -711,7 +711,7 @@ static int gen_addr(struct code_bytecode *code, const struct parser_expr *e)
 
     switch (e->kind) {
 
-    case NOD_EXPR_IDENT:
+    case NOD_EXPR_VAR:
         if (e->var->is_global)
             return code_emit_load_int(code, e->var->id);
         else

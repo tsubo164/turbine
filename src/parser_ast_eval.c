@@ -5,7 +5,7 @@
 bool parser_ast_is_global(const struct parser_expr *e)
 {
     switch (e->kind) {
-    case NOD_EXPR_IDENT:
+    case NOD_EXPR_VAR:
         return e->var->is_global;
 
     case NOD_EXPR_STRUCTACCESS:
@@ -19,7 +19,7 @@ bool parser_ast_is_global(const struct parser_expr *e)
 bool parser_ast_is_mutable(const struct parser_expr *e)
 {
     switch (e->kind) {
-    case NOD_EXPR_IDENT:
+    case NOD_EXPR_VAR:
         if (e->var->is_param == true && parser_is_ptr_type(e->type))
             return true;
         return e->var->is_param == false;
@@ -102,7 +102,7 @@ bool parser_eval_addr(const struct parser_expr *e, int *result)
 {
     switch (e->kind) {
 
-    case NOD_EXPR_IDENT:
+    case NOD_EXPR_VAR:
         *result = e->var->id;
         return true;
 
