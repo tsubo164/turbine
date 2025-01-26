@@ -364,7 +364,7 @@ static struct parser_expr *table_lit_expr(struct parser *p, struct parser_symbol
                 "no row named '%s' in table '%s'", tok_str(p));
     }
 
-    return parser_new_tablelit_expr(table, index);
+    return parser_new_tablelit_expr(sym->type, index);
 }
 
 static struct parser_expr *string_lit_expr(struct parser *p)
@@ -1637,7 +1637,7 @@ static struct parser_expr *default_value(const struct parser_type *type)
         return default_struct_lit(type);
 
     case TYP_TABLE:
-        return parser_new_tablelit_expr(type->table, 0);
+        return parser_new_tablelit_expr(type, 0);
 
     case TYP_FUNC:
     case TYP_MODULE:

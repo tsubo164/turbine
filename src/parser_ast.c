@@ -332,11 +332,11 @@ struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_t
     return e;
 }
 
-struct parser_expr *parser_new_tablelit_expr(const struct parser_table *table,
+struct parser_expr *parser_new_tablelit_expr(const struct parser_type *table_type,
         int row_idx)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_TABLELIT);
-    e->type = parser_new_table_type(table);
+    e->type = table_type;
     e->ival = row_idx;
     return e;
 }
