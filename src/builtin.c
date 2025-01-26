@@ -97,6 +97,10 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
         }
         return;
 
+    case TYP_TABLE:
+        printf("%lld", val.inum);
+        return;
+
     default:
         assert(!"variadic argument error");
         return;

@@ -30,9 +30,16 @@
   - A      , "alpha" , 42
 
 :: Color
-  | symbol | name   | num
-  | ---    | ---    | ---
-  | R      | "red"  | (42 | 0x0F)
+  - symbol {name    , val}
+  - R      {"red"   , 42}
+  - G      {"green" , 99}
+  - B      {"blue"  , 4095}
+  - A      {"alpha" , 42}
+
+:: Color
+  * symbol , name    , num
+  * R      , "red"   , 42
+  * G      , "green" , 42
 
 :: Color
   : symbol : name   : num
@@ -45,13 +52,13 @@
   : G      : "green" : 42
 
 :: Color
-  * symbol , name    , num
-  * R      , "red"   , 42
-  * G      , "green" , 42
+  | symbol | name   | num
+  | ---    | ---    | ---
+  | R      | "red"  | (42 | 0x0F)
 */
 
 # main(args []string) int
   //print(42, 3.14, "foo", Color.B)
-  //print(Color.B)
-  print(42, 3.14, "foo", Color.B.val)
+  print(Color.B)
+  //print(42, 3.14, "foo", Color.B.val)
   return 42
