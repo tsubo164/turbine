@@ -156,7 +156,7 @@ struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type
         struct parser_expr *elems, int len);
 struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
-struct parser_expr *parser_new_structlit_expr(const struct parser_struct *strct,
+struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_type,
         struct parser_expr *fields);
 struct parser_expr *parser_new_tablelit_expr(const struct parser_table *table,
         int row_idx);

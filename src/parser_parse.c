@@ -348,7 +348,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
     }
 
     expect(p, TOK_RBRACE);
-    return parser_new_structlit_expr(strct, elemhead.next);
+    return parser_new_structlit_expr(sym->type, elemhead.next);
 }
 
 static struct parser_expr *table_lit_expr(struct parser *p, struct parser_symbol *sym)
@@ -1580,8 +1580,9 @@ static struct parser_stmt *nop_stmt(struct parser *p)
     return s;
 }
 
-static struct parser_expr *default_struct_lit(const struct parser_struct *strct)
+static struct parser_expr *default_struct_lit(const struct parser_type *type)
 {
+    const struct parser_struct *strct = type->strct;
     struct parser_expr elemhead = {0};
     struct parser_expr *elem = &elemhead;
 
@@ -1599,13 +1600,13 @@ static struct parser_expr *default_struct_lit(const struct parser_struct *strct)
 
         if (parser_is_struct_type(field->type)) {
             struct parser_expr *f = parser_new_field_expr(field);
-            struct parser_expr *e = default_struct_lit(field->type->strct);
+            struct parser_expr *e = default_struct_lit(field->type);
             elem = elem->next = parser_new_element_expr(f, e);
             continue;
         }
     }
 
-    return parser_new_structlit_expr(strct, elemhead.next);
+    return parser_new_structlit_expr(type, elemhead.next);
 }
 
 static struct parser_expr *default_value(const struct parser_type *type)
@@ -1633,7 +1634,7 @@ static struct parser_expr *default_value(const struct parser_type *type)
         return parser_new_maplit_expr(type->underlying, NULL, 0);
 
     case TYP_STRUCT:
-        return default_struct_lit(type->strct);
+        return default_struct_lit(type);
 
     case TYP_TABLE:
         return parser_new_tablelit_expr(type->table, 0);
