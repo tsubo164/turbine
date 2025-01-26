@@ -341,10 +341,10 @@ struct parser_expr *parser_new_tablelit_expr(const struct parser_type *table_typ
     return e;
 }
 
-struct parser_expr *parser_new_modulelit_expr(struct parser_symbol *sym)
+struct parser_expr *parser_new_modulelit_expr(const struct parser_type *module_type)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_MODULELIT);
-    e->type = sym->type;
+    e->type = module_type;
     return e;
 }
 

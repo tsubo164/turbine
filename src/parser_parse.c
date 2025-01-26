@@ -420,7 +420,7 @@ static struct parser_expr *ident_expr(struct parser *p)
         expr = table_lit_expr(p, sym);
     }
     else if (sym->kind == SYM_MODULE) {
-        expr = parser_new_modulelit_expr(sym);
+        expr = parser_new_modulelit_expr(sym->type);
     }
     else if (sym->kind == SYM_VAR) {
         expr = parser_new_var_expr(sym->var);

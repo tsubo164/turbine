@@ -160,7 +160,7 @@ struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_t
         struct parser_expr *fields);
 struct parser_expr *parser_new_tablelit_expr(const struct parser_type *table_type,
         int row_idx);
-struct parser_expr *parser_new_modulelit_expr(struct parser_symbol *sym);
+struct parser_expr *parser_new_modulelit_expr(const struct parser_type *module_type);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
         struct parser_type *to);
 
