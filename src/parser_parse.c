@@ -1813,8 +1813,8 @@ static struct parser_enum *enum_def(struct parser *p)
                 int idx = parser_add_enum_member(enm, name);
                 assert(idx == y);
 
-                struct parser_cell cell = {.sval = name};
-                parser_add_cell(enm, cell);
+                struct parser_enum_value val = {.sval = name};
+                parser_add_enum_value(enm, val);
             }
             else {
                 //struct parser_expr *expr = primary_expr(p);
@@ -1823,8 +1823,8 @@ static struct parser_enum *enum_def(struct parser *p)
                 if (y == 0)
                     enm->fields.data[x]->type = expr->type;
 
-                struct parser_cell cell = {.ival = expr->ival};
-                parser_add_cell(enm, cell);
+                struct parser_enum_value val = {.ival = expr->ival};
+                parser_add_enum_value(enm, val);
             }
 
         }

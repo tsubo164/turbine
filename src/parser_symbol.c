@@ -36,7 +36,7 @@ static void push_enum_field(struct parser_enum_fieldvec *v, struct parser_enum_f
     v->data[v->len++] = val;
 }
 
-static void push_cell(struct parser_cellvec *v, struct parser_cell val)
+static void push_enum_value(struct parser_enum_valuevec *v, struct parser_enum_value val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
@@ -433,16 +433,16 @@ int parser_get_enum_field_count(const struct parser_enum *enm)
     return enm->fields.len;
 }
 
-void parser_add_cell(struct parser_enum *enm, struct parser_cell cell)
+void parser_add_enum_value(struct parser_enum *enm, struct parser_enum_value val)
 {
-    push_cell(&enm->cells, cell);
+    push_enum_value(&enm->values, val);
 }
 
-struct parser_cell parser_get_enum_field_value(const struct parser_enum *enm, int x, int y)
+struct parser_enum_value parser_get_enum_value(const struct parser_enum *enm, int x, int y)
 {
     int fields = parser_get_enum_field_count(enm);
     int idx = x + y * fields;
-    return enm->cells.data[idx];
+    return enm->values.data[idx];
 }
 
 /* module */

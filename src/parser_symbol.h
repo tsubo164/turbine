@@ -80,7 +80,7 @@ struct parser_enum_fieldvec {
     int len;
 };
 
-struct parser_cell {
+struct parser_enum_value {
     union {
         int64_t ival;
         double fval;
@@ -88,8 +88,8 @@ struct parser_cell {
     };
 };
 
-struct parser_cellvec {
-    struct parser_cell *data;
+struct parser_enum_valuevec {
+    struct parser_enum_value *data;
     int cap;
     int len;
 };
@@ -98,7 +98,7 @@ struct parser_enum {
     const char *name;
     struct data_hashmap members;
     struct parser_enum_fieldvec fields;
-    struct parser_cellvec cells;
+    struct parser_enum_valuevec values;
 };
 
 /* module */
@@ -212,8 +212,8 @@ struct parser_enum_field *parser_find_enum_field(const struct parser_enum *enm, 
 struct parser_enum_field *parser_get_enum_field(const struct parser_enum *enm, int idx);
 int parser_get_enum_field_count(const struct parser_enum *enm);
 
-void parser_add_cell(struct parser_enum *enm, struct parser_cell cell);
-struct parser_cell parser_get_enum_field_value(const struct parser_enum *enm, int x, int y);
+void parser_add_enum_value(struct parser_enum *enm, struct parser_enum_value val);
+struct parser_enum_value parser_get_enum_value(const struct parser_enum *enm, int x, int y);
 
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,

@@ -107,7 +107,7 @@ static void print_expr(const struct parser_expr *e, int depth)
         printf(" \"%s\"", e->field->name);
         break;
 
-    case NOD_EXPR_COLUMN:
+    case NOD_EXPR_ENUMFIELD:
         printf(" \"%s\"", e->enum_field->name);
         break;
 
@@ -260,13 +260,13 @@ static void print_scope(const struct parser_scope *sc, int depth)
                 print_header(depth + 1);
                 for (int x = 0; x < nfields; x++) {
                     const struct parser_enum_field *f = enm->fields.data[x];
-                    const struct parser_cell cell = enm->cells.data[x + y * nfields];
+                    const struct parser_enum_value val = enm->values.data[x + y * nfields];
                     if (x == 0)
-                        printf("| %s", cell.sval);
+                        printf("| %s", val.sval);
                     else if (parser_is_string_type(f->type))
-                        printf("| \"%s\"", cell.sval);
+                        printf("| \"%s\"", val.sval);
                     else if (parser_is_int_type(f->type))
-                        printf("| %lld", cell.ival);
+                        printf("| %lld", val.ival);
 
                     printf("%c", x < nfields - 1 ? ' ' : '\n');
                 }

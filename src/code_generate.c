@@ -524,7 +524,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_FIELD:
         return e->field->offset;
 
-    case NOD_EXPR_COLUMN:
+    case NOD_EXPR_ENUMFIELD:
         return code_emit_load_int(code, e->enum_field->offset);
 
     case NOD_EXPR_INDEX:
@@ -1158,7 +1158,7 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                     field = parser_get_enum_field(enm, x);
 
                     for (int y = 0; y < nmembers; y++) {
-                        struct parser_cell val = parser_get_enum_field_value(enm, x, y);
+                        struct parser_enum_value val = parser_get_enum_value(enm, x, y);
                         int tmp_offset = 0;
 
                         if (parser_is_string_type(field->type)) {

@@ -27,7 +27,7 @@ enum parser_node_kind {
     /* identifier */
     NOD_EXPR_VAR,
     NOD_EXPR_FIELD,
-    NOD_EXPR_COLUMN,
+    NOD_EXPR_ENUMFIELD,
     /* literal */
     NOD_EXPR_NILLIT,
     NOD_EXPR_BOOLLIT,
