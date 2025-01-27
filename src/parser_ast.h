@@ -99,7 +99,7 @@ struct parser_var;
 struct parser_func;
 struct parser_field;
 struct parser_struct;
-struct parser_column;
+struct parser_enum_field;
 
 struct parser_expr {
     int kind;
@@ -116,7 +116,7 @@ struct parser_expr {
     union {
         struct parser_var *var;
         struct parser_field *field;
-        struct parser_column *column;
+        struct parser_enum_field *enum_field;
         struct parser_func *func;
     };
 
@@ -159,7 +159,7 @@ struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
 struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_type,
         struct parser_expr *fields);
 struct parser_expr *parser_new_enumlit_expr(const struct parser_type *enum_type,
-        int row_idx);
+        int member_idx);
 struct parser_expr *parser_new_modulelit_expr(const struct parser_type *module_type);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
         struct parser_type *to);
@@ -176,7 +176,7 @@ struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
 
 struct parser_expr *parser_new_var_expr(struct parser_var *v);
 struct parser_expr *parser_new_field_expr(struct parser_field *f);
-struct parser_expr *parser_new_column_expr(struct parser_column *c);
+struct parser_expr *parser_new_enum_field_expr(struct parser_enum_field *f);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args);
 struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);
 struct parser_expr *parser_new_const_expr(struct parser_expr *orig, struct parser_expr *cnst);

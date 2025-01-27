@@ -34,7 +34,7 @@ const char *parser_node_string(int kind)
     /* identifier */
     [NOD_EXPR_VAR]            = "var",
     [NOD_EXPR_FIELD]          = "field",
-    [NOD_EXPR_COLUMN]         = "column",
+    [NOD_EXPR_COLUMN]         = "enumfield",
     /* literal */
     [NOD_EXPR_NILLIT]         = "nillit",
     [NOD_EXPR_BOOLLIT]        = "boollit",
@@ -334,11 +334,11 @@ struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_t
 }
 
 struct parser_expr *parser_new_enumlit_expr(const struct parser_type *enum_type,
-        int row_idx)
+        int member_idx)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_ENUMLIT);
     e->type = enum_type;
-    e->ival = row_idx;
+    e->ival = member_idx;
     return e;
 }
 
@@ -420,11 +420,11 @@ struct parser_expr *parser_new_field_expr(struct parser_field *f)
     return e;
 }
 
-struct parser_expr *parser_new_column_expr(struct parser_column *c)
+struct parser_expr *parser_new_enum_field_expr(struct parser_enum_field *f)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_COLUMN);
-    e->type = c->type;
-    e->column = c;
+    e->type = f->type;
+    e->enum_field = f;
     return e;
 }
 

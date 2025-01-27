@@ -27,7 +27,7 @@ static void push_field(struct parser_fieldvec *v, struct parser_field *val)
     v->data[v->len++] = val;
 }
 
-static void push_column(struct parser_columnvec *v, struct parser_column *val)
+static void push_enum_field(struct parser_enum_fieldvec *v, struct parser_enum_field *val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
@@ -359,22 +359,22 @@ struct parser_enum *parser_find_enum(const struct parser_scope *sc,
     return NULL;
 }
 
-int parser_add_row(struct parser_enum *enm, const char *name)
+int parser_add_enum_member(struct parser_enum *enm, const char *name)
 {
-    int idx = parser_find_row(enm, name);
+    int idx = parser_find_enum_member(enm, name);
     if (idx >= 0)
         return -1;
 
-    int64_t new_idx = parser_enum_get_row_count(enm);
-    data_hashmap_insert(&enm->rows, name, (void*)new_idx);
+    int64_t new_idx = parser_get_enum_member_count(enm);
+    data_hashmap_insert(&enm->members, name, (void*)new_idx);
 
     return new_idx;
 }
 
-int parser_find_row(const struct parser_enum *enm, const char *name)
+int parser_find_enum_member(const struct parser_enum *enm, const char *name)
 {
     struct data_hashmap_entry *ent;
-    ent = data_hashmap_lookup(&enm->rows, name);
+    ent = data_hashmap_lookup(&enm->members, name);
 
     if (!ent)
         return -1;
@@ -383,54 +383,54 @@ int parser_find_row(const struct parser_enum *enm, const char *name)
     return idx;
 }
 
-static struct parser_column *new_column(const char *Name,
+int parser_get_enum_member_count(const struct parser_enum *enm)
+{
+    return data_hashmap_get_count(&enm->members);
+}
+
+static struct parser_enum_field *new_enum_field(const char *Name,
         const struct parser_type *type, int id)
 {
-    struct parser_column *c;
+    struct parser_enum_field *f;
 
-    c = calloc(1, sizeof(*c));
-    c->name = Name;
-    c->type = type;
-    c->id = id;
-    return c;
+    f = calloc(1, sizeof(*f));
+    f->name = Name;
+    f->type = type;
+    f->id = id;
+    return f;
 }
 
-struct parser_column *parser_add_column(struct parser_enum *enm, const char *name)
+struct parser_enum_field *parser_add_enum_field(struct parser_enum *enm, const char *name)
 {
-    if (parser_find_column(enm, name))
+    if (parser_find_enum_field(enm, name))
         return NULL;
 
-    int new_id = enm->columns.len;
-    struct parser_column *c = new_column(name, NULL, new_id);
+    int new_id = enm->fields.len;
+    struct parser_enum_field *f = new_enum_field(name, NULL, new_id);
 
-    push_column(&enm->columns, c);
-    return c;
+    push_enum_field(&enm->fields, f);
+    return f;
 }
 
-struct parser_column *parser_find_column(const struct parser_enum *enm, const char *name)
+struct parser_enum_field *parser_find_enum_field(const struct parser_enum *enm, const char *name)
 {
-    for (int i = 0; i < enm->columns.len; i++) {
-        struct parser_column *c = enm->columns.data[i];
-        if (!strcmp(c->name, name))
-            return c;
+    for (int i = 0; i < enm->fields.len; i++) {
+        struct parser_enum_field *f = enm->fields.data[i];
+        if (!strcmp(f->name, name))
+            return f;
     }
     return NULL;
 }
 
-struct parser_column *parser_get_column(const struct parser_enum *enm, int idx)
+struct parser_enum_field *parser_get_enum_field(const struct parser_enum *enm, int idx)
 {
-    assert(idx >= 0 && idx < parser_enum_get_column_count(enm));
-    return enm->columns.data[idx];
+    assert(idx >= 0 && idx < parser_get_enum_field_count(enm));
+    return enm->fields.data[idx];
 }
 
-int parser_enum_get_column_count(const struct parser_enum *enm)
+int parser_get_enum_field_count(const struct parser_enum *enm)
 {
-    return enm->columns.len;
-}
-
-int parser_enum_get_row_count(const struct parser_enum *enm)
-{
-    return data_hashmap_get_count(&enm->rows);
+    return enm->fields.len;
 }
 
 void parser_add_cell(struct parser_enum *enm, struct parser_cell cell)
@@ -438,10 +438,10 @@ void parser_add_cell(struct parser_enum *enm, struct parser_cell cell)
     push_cell(&enm->cells, cell);
 }
 
-struct parser_cell parser_get_enum_field(const struct parser_enum *enm, int x, int y)
+struct parser_cell parser_get_enum_field_value(const struct parser_enum *enm, int x, int y)
 {
-    int ncols = parser_enum_get_column_count(enm);
-    int idx = x + y * ncols;
+    int fields = parser_get_enum_field_count(enm);
+    int idx = x + y * fields;
     return enm->cells.data[idx];
 }
 

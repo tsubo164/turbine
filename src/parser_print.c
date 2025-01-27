@@ -108,7 +108,7 @@ static void print_expr(const struct parser_expr *e, int depth)
         break;
 
     case NOD_EXPR_COLUMN:
-        printf(" \"%s\"", e->column->name);
+        printf(" \"%s\"", e->enum_field->name);
         break;
 
     case NOD_EXPR_FUNCLIT:
@@ -235,40 +235,40 @@ static void print_scope(const struct parser_scope *sc, int depth)
         }
 
         if (sym->kind == SYM_TABLE) {
-            const struct parser_enum *t = sym->enm;
-            int nrows = parser_enum_get_row_count(t);
-            int ncols = parser_enum_get_column_count(t);
+            const struct parser_enum *enm = sym->enm;
+            int nfields = parser_get_enum_field_count(enm);
+            int nmembers = parser_get_enum_member_count(enm);
 
             print_header(depth);
-            printf("[enum] \"%s\"\n", t->name);
+            printf("[enum] \"%s\"\n", enm->name);
 
             print_header(depth + 1);
-            for (int x = 0; x < ncols; x++) {
-                const struct parser_column *col = t->columns.data[x];
-                printf("| %s(%s)", col->name, parser_type_string(col->type));
-                printf("%c", x < ncols - 1 ? ' ' : '\n');
+            for (int x = 0; x < nfields; x++) {
+                const struct parser_enum_field *f = enm->fields.data[x];
+                printf("| %s(%s)", f->name, parser_type_string(f->type));
+                printf("%c", x < nfields - 1 ? ' ' : '\n');
             }
 
             print_header(depth + 1);
-            for (int x = 0; x < ncols; x++) {
+            for (int x = 0; x < nfields; x++) {
                 printf("| ---");
-                printf("%c", x < ncols - 1 ? ' ' : '\n');
+                printf("%c", x < nfields - 1 ? ' ' : '\n');
             }
 
-            for (int y = 0; y < nrows; y++) {
+            for (int y = 0; y < nmembers; y++) {
 
                 print_header(depth + 1);
-                for (int x = 0; x < ncols; x++) {
-                    const struct parser_column *col = t->columns.data[x];
-                    const struct parser_cell cell = t->cells.data[x + y * ncols];
+                for (int x = 0; x < nfields; x++) {
+                    const struct parser_enum_field *f = enm->fields.data[x];
+                    const struct parser_cell cell = enm->cells.data[x + y * nfields];
                     if (x == 0)
                         printf("| %s", cell.sval);
-                    else if (parser_is_string_type(col->type))
+                    else if (parser_is_string_type(f->type))
                         printf("| \"%s\"", cell.sval);
-                    else if (parser_is_int_type(col->type))
+                    else if (parser_is_int_type(f->type))
                         printf("| %lld", cell.ival);
 
-                    printf("%c", x < ncols - 1 ? ' ' : '\n');
+                    printf("%c", x < nfields - 1 ? ' ' : '\n');
                 }
             }
         }

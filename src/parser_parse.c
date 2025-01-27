@@ -358,10 +358,10 @@ static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol 
     expect(p, TOK_PERIOD);
     expect(p, TOK_IDENT);
 
-    int index = parser_find_row(enm, tok_str(p));
+    int index = parser_find_enum_member(enm, tok_str(p));
     if (index < 0) {
         error(p, tok_pos(p),
-                "no row named '%s' in enum '%s'", tok_str(p));
+                "no member named '%s' in enum '%s'", tok_str(p));
     }
 
     return parser_new_enumlit_expr(sym->type, index);
@@ -705,12 +705,12 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
     if (parser_is_enum_type(base->type)) {
         expect(p, TOK_IDENT);
         const struct parser_enum *enm = base->type->enm;
-        struct parser_column *c = parser_find_column(enm, tok_str(p));
-        if (!c) {
+        struct parser_enum_field *f = parser_find_enum_field(enm, tok_str(p));
+        if (!f) {
             error(p, tok_pos(p),
-                    "no row named '%s' in enum '%s'", tok_str(p), enm->name);
+                    "no member named '%s' in enum '%s'", tok_str(p), enm->name);
         }
-        return parser_new_enum_access_expr(base, parser_new_column_expr(c));
+        return parser_new_enum_access_expr(base, parser_new_enum_field_expr(f));
     }
 
     if (parser_is_module_type(base->type)) {
@@ -1774,43 +1774,43 @@ static struct parser_enum *enum_def(struct parser *p)
     do {
         expect(p, TOK_VBAR);
         expect(p, TOK_IDENT);
-        parser_add_column(enm, tok_str(p));
+        parser_add_enum_field(enm, tok_str(p));
 
     } while (!consume(p, TOK_NEWLINE));
 
     /* separateor */
-    int ncols = parser_enum_get_column_count(enm);
+    int nfields = parser_get_enum_field_count(enm);
     int nseps = 0;
     do {
         expect(p, TOK_VBAR);
         expect(p, TOK_MINUS3);
         nseps++;
 
-        if (nseps > ncols) {
+        if (nseps > nfields) {
             error(p, tok_pos(p), "too many separators");
         }
     } while (!consume(p, TOK_NEWLINE));
 
-    if (nseps < ncols) {
+    if (nseps < nfields) {
         error(p, tok_pos(p), "too few separators");
     }
 
-    /* rows */
+    /* members */
     int y = 0;
     do {
-        for (int x = 0; x < ncols; x++) {
+        for (int x = 0; x < nfields; x++) {
             expect(p, TOK_VBAR);
 
             if (x == 0) {
-                /* symbol column */
+                /* symbol field */
                 expect(p, TOK_IDENT);
                 const char *name = tok_str(p);
 
                 if (y == 0)
-                    enm->columns.data[x]->type = parser_new_string_type();
+                    enm->fields.data[x]->type = parser_new_string_type();
 
                 /* symbol to index */
-                int idx = parser_add_row(enm, name);
+                int idx = parser_add_enum_member(enm, name);
                 assert(idx == y);
 
                 struct parser_cell cell = {.sval = name};
@@ -1821,7 +1821,7 @@ static struct parser_enum *enum_def(struct parser *p)
                 struct parser_expr *expr = unary_expr(p);
                 /* TODO need const calc */
                 if (y == 0)
-                    enm->columns.data[x]->type = expr->type;
+                    enm->fields.data[x]->type = expr->type;
 
                 struct parser_cell cell = {.ival = expr->ival};
                 parser_add_cell(enm, cell);

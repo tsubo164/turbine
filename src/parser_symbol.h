@@ -67,22 +67,17 @@ struct parser_struct {
 };
 
 /* enum */
-struct parser_column {
+struct parser_enum_field {
     const char *name;
     const struct parser_type *type;
     int id;
     int offset;
 };
 
-struct parser_columnvec {
-    struct parser_column **data;
+struct parser_enum_fieldvec {
+    struct parser_enum_field **data;
     int cap;
     int len;
-};
-
-/* TODO consider removing */
-struct parser_enum_row {
-    const char *name;
 };
 
 struct parser_cell {
@@ -101,8 +96,8 @@ struct parser_cellvec {
 
 struct parser_enum {
     const char *name;
-    struct data_hashmap rows;
-    struct parser_columnvec columns;
+    struct data_hashmap members;
+    struct parser_enum_fieldvec fields;
     struct parser_cellvec cells;
 };
 
@@ -207,17 +202,18 @@ struct parser_enum *parser_define_enum(struct parser_scope *sc,
         const char *name);
 struct parser_enum *parser_find_enum(const struct parser_scope *sc,
         const char *name);
-int parser_add_row(struct parser_enum *enm, const char *name);
-int parser_find_row(const struct parser_enum *enm, const char *name);
 
-struct parser_column *parser_add_column(struct parser_enum *enm, const char *name);
-struct parser_column *parser_find_column(const struct parser_enum *enm, const char *name);
-struct parser_column *parser_get_column(const struct parser_enum *enm, int idx);
-int parser_enum_get_column_count(const struct parser_enum *enm);
+int parser_add_enum_member(struct parser_enum *enm, const char *name);
+int parser_find_enum_member(const struct parser_enum *enm, const char *name);
+int parser_get_enum_member_count(const struct parser_enum *enm);
 
-int parser_enum_get_row_count(const struct parser_enum *enm);
+struct parser_enum_field *parser_add_enum_field(struct parser_enum *enm, const char *name);
+struct parser_enum_field *parser_find_enum_field(const struct parser_enum *enm, const char *name);
+struct parser_enum_field *parser_get_enum_field(const struct parser_enum *enm, int idx);
+int parser_get_enum_field_count(const struct parser_enum *enm);
+
 void parser_add_cell(struct parser_enum *enm, struct parser_cell cell);
-struct parser_cell parser_get_enum_field(const struct parser_enum *enm, int x, int y);
+struct parser_cell parser_get_enum_field_value(const struct parser_enum *enm, int x, int y);
 
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,

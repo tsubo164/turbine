@@ -525,7 +525,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         return e->field->offset;
 
     case NOD_EXPR_COLUMN:
-        return code_emit_load_int(code, e->column->offset);
+        return code_emit_load_int(code, e->enum_field->offset);
 
     case NOD_EXPR_INDEX:
         {
@@ -1149,30 +1149,30 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
         case SYM_TABLE:
             {
                 struct parser_enum *enm = sym->enm;
-                int ncols = parser_enum_get_column_count(enm);
-                int nrows = parser_enum_get_row_count(enm);
+                int nfields = parser_get_enum_field_count(enm);
+                int nmembers = parser_get_enum_member_count(enm);
 
-                for (int x = 0; x < ncols; x++) {
+                for (int x = 0; x < nfields; x++) {
                     int field_offset = 0;
-                    struct parser_column *column;
-                    column = parser_get_column(enm, x);
+                    struct parser_enum_field *field;
+                    field = parser_get_enum_field(enm, x);
 
-                    for (int y = 0; y < nrows; y++) {
-                        struct parser_cell field = parser_get_enum_field(enm, x, y);
+                    for (int y = 0; y < nmembers; y++) {
+                        struct parser_cell val = parser_get_enum_field_value(enm, x, y);
                         int tmp_offset = 0;
 
-                        if (parser_is_string_type(column->type)) {
-                            tmp_offset = code_push_enum_field_string(code, field.sval);
+                        if (parser_is_string_type(field->type)) {
+                            tmp_offset = code_push_enum_field_string(code, val.sval);
                         }
-                        else if (parser_is_int_type(column->type)) {
-                            tmp_offset = code_push_enum_field_int(code, field.ival);
+                        else if (parser_is_int_type(field->type)) {
+                            tmp_offset = code_push_enum_field_int(code, val.ival);
                         }
 
                         if (y == 0)
                             field_offset = tmp_offset;
                     }
 
-                    column->offset = field_offset;
+                    field->offset = field_offset;
                 }
             }
             break;
