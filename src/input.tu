@@ -13,10 +13,6 @@
 //  | T_ELS    | "or"
 //  | T_BRK    | "break"
 
-## Point
-  - x int
-  - y int
-
 :: Color
   | symbol | name    | val
   | ---    | ---     | ---
@@ -64,19 +60,6 @@
   return $caller_line
 
 # main(args []string) int
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  foo()
-  print(format("%d", 42.0))
+  - a = 33
+  - f = foo
   return 42

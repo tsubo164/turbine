@@ -45,7 +45,7 @@ const char *parser_node_string(int kind)
     [NOD_EXPR_ARRAYLIT]       = "arraylit",
     [NOD_EXPR_MAPLIT]         = "maplit",
     [NOD_EXPR_STRUCTLIT]      = "structlit",
-    [NOD_EXPR_TABLELIT]       = "tablelit",
+    [NOD_EXPR_ENUMLIT]        = "enumlit",
     [NOD_EXPR_MODULELIT]      = "modulelit",
     /* binary */
     [NOD_EXPR_ADD]            = "+",
@@ -333,11 +333,11 @@ struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_t
     return e;
 }
 
-struct parser_expr *parser_new_tablelit_expr(const struct parser_type *table_type,
+struct parser_expr *parser_new_enumlit_expr(const struct parser_type *enum_type,
         int row_idx)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_TABLELIT);
-    e->type = table_type;
+    struct parser_expr *e = new_expr(NOD_EXPR_ENUMLIT);
+    e->type = enum_type;
     e->ival = row_idx;
     return e;
 }

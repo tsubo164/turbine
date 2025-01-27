@@ -81,10 +81,10 @@ struct parser_type *parser_new_struct_type(const struct parser_struct *s)
     return t;
 }
 
-struct parser_type *parser_new_table_type(const struct parser_table *tab)
+struct parser_type *parser_new_enum_type(const struct parser_enum *e)
 {
-    struct parser_type *t = new_type(TYP_TABLE);
-    t->table = tab;
+    struct parser_type *t = new_type(TYP_ENUM);
+    t->enm = e;
     return t;
 }
 
@@ -132,7 +132,7 @@ bool parser_is_func_type(const struct parser_type *t)     { return t->kind == TY
 bool parser_is_array_type(const struct parser_type *t)    { return t->kind == TYP_ARRAY; }
 bool parser_is_map_type(const struct parser_type *t)      { return t->kind == TYP_MAP; }
 bool parser_is_struct_type(const struct parser_type *t)   { return t->kind == TYP_STRUCT; }
-bool parser_is_table_type(const struct parser_type *t)    { return t->kind == TYP_TABLE; }
+bool parser_is_enum_type(const struct parser_type *t)     { return t->kind == TYP_ENUM; }
 bool parser_is_module_type(const struct parser_type *t)   { return t->kind == TYP_MODULE; }
 bool parser_is_ptr_type(const struct parser_type *t)      { return t->kind == TYP_PTR; }
 bool parser_is_any_type(const struct parser_type *t)      { return t->kind == TYP_ANY; }
@@ -159,7 +159,7 @@ static const char *type_kind_string(int kind)
     case TYP_ARRAY:    return "[]";
     case TYP_MAP:      return "{}";
     case TYP_STRUCT:   return "struct";
-    case TYP_TABLE:    return "table";
+    case TYP_ENUM:     return "enum";
     case TYP_MODULE:   return "module";
     case TYP_PTR:      return "*";
     case TYP_ANY:      return "any";
@@ -188,8 +188,8 @@ const char *parser_type_string(const struct parser_type *t)
         else if (parser_is_struct_type(type)) {
             sprintf(buf, "%s%s", interned, type->strct->name);
         }
-        else if (parser_is_table_type(type)) {
-            sprintf(buf, "%s%s", interned, type->table->name);
+        else if (parser_is_enum_type(type)) {
+            sprintf(buf, "%s%s", interned, type->enm->name);
         }
         else if (parser_is_module_type(type)) {
             sprintf(buf, "%s%s", interned, type->module->name);
@@ -291,7 +291,7 @@ static const int table[] = {
     [TYP_ARRAY]    = 'A',
     [TYP_MAP]      = 'M',
     [TYP_STRUCT]   = 'S',
-    [TYP_TABLE]    = 'T',
+    [TYP_ENUM]     = 'E',
     [TYP_MODULE]   = 'm',
     [TYP_PTR]      = 'p',
     [TYP_ANY]      = 'a',

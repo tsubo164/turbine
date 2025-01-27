@@ -87,7 +87,7 @@ static void print_expr(const struct parser_expr *e, int depth)
 
     case NOD_EXPR_BOOLLIT:
     case NOD_EXPR_INTLIT:
-    case NOD_EXPR_TABLELIT:
+    case NOD_EXPR_ENUMLIT:
         printf(" %lld", e->ival);
         break;
 
@@ -235,12 +235,12 @@ static void print_scope(const struct parser_scope *sc, int depth)
         }
 
         if (sym->kind == SYM_TABLE) {
-            const struct parser_table *t = sym->table;
-            int nrows = parser_table_get_row_count(t);
-            int ncols = parser_table_get_column_count(t);
+            const struct parser_enum *t = sym->enm;
+            int nrows = parser_enum_get_row_count(t);
+            int ncols = parser_enum_get_column_count(t);
 
             print_header(depth);
-            printf("[table] \"%s\"\n", t->name);
+            printf("[enum] \"%s\"\n", t->name);
 
             print_header(depth + 1);
             for (int x = 0; x < ncols; x++) {

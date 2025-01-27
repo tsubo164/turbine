@@ -210,7 +210,7 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
 
 #define BINOP_S(code, ty, op, ops, r0, r1, r2) \
     do { \
-    if (parser_is_int_type((ty)) || parser_is_bool_type((ty)) || parser_is_table_type((ty))) \
+    if (parser_is_int_type((ty)) || parser_is_bool_type((ty)) || parser_is_enum_type((ty))) \
         code_emit_##op##_int((code), (r0), (r1), (r2)); \
     else if (parser_is_float_type((ty))) \
         code_emit_##op##_float((code), (r0), (r1), (r2)); \
@@ -502,7 +502,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_STRUCTLIT:
         return gen_struct_lit(code, e, -1);
 
-    case NOD_EXPR_TABLELIT:
+    case NOD_EXPR_ENUMLIT:
         return code_emit_load_int(code, e->ival);
 
     case NOD_EXPR_FUNCLIT:
@@ -1148,17 +1148,17 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
 
         case SYM_TABLE:
             {
-                struct parser_table *table = sym->table;
-                int ncols = parser_table_get_column_count(table);
-                int nrows = parser_table_get_row_count(table);
+                struct parser_enum *enm = sym->enm;
+                int ncols = parser_enum_get_column_count(enm);
+                int nrows = parser_enum_get_row_count(enm);
 
                 for (int x = 0; x < ncols; x++) {
                     int field_offset = 0;
                     struct parser_column *column;
-                    column = parser_get_column(table, x);
+                    column = parser_get_column(enm, x);
 
                     for (int y = 0; y < nrows; y++) {
-                        struct parser_cell field = parser_get_enum_field(table, x, y);
+                        struct parser_cell field = parser_get_enum_field(enm, x, y);
                         int tmp_offset = 0;
 
                         if (parser_is_string_type(column->type)) {

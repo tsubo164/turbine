@@ -38,7 +38,7 @@ enum parser_node_kind {
     NOD_EXPR_ARRAYLIT,
     NOD_EXPR_MAPLIT,
     NOD_EXPR_STRUCTLIT,
-    NOD_EXPR_TABLELIT,
+    NOD_EXPR_ENUMLIT,
     NOD_EXPR_MODULELIT,
     /* binary */
     NOD_EXPR_ADD,
@@ -99,7 +99,6 @@ struct parser_var;
 struct parser_func;
 struct parser_field;
 struct parser_struct;
-struct parser_table;
 struct parser_column;
 
 struct parser_expr {
@@ -159,7 +158,7 @@ struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
 struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_type,
         struct parser_expr *fields);
-struct parser_expr *parser_new_tablelit_expr(const struct parser_type *table_type,
+struct parser_expr *parser_new_enumlit_expr(const struct parser_type *enum_type,
         int row_idx);
 struct parser_expr *parser_new_modulelit_expr(const struct parser_type *module_type);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,

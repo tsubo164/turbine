@@ -744,7 +744,7 @@
     _array_[3] = 99
     test.AssertI(99, _array_[3])
 
-  // table
+  // enum
   ---
     - a = Color.R
     test.AssertB(true, a == Color.R)

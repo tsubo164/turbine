@@ -66,7 +66,7 @@ struct parser_struct {
     struct parser_fieldvec fields;
 };
 
-/* table */
+/* enum */
 struct parser_column {
     const char *name;
     const struct parser_type *type;
@@ -81,7 +81,7 @@ struct parser_columnvec {
 };
 
 /* TODO consider removing */
-struct parser_table_row {
+struct parser_enum_row {
     const char *name;
 };
 
@@ -99,7 +99,7 @@ struct parser_cellvec {
     int len;
 };
 
-struct parser_table {
+struct parser_enum {
     const char *name;
     struct data_hashmap rows;
     struct parser_columnvec columns;
@@ -139,7 +139,7 @@ struct parser_symbol {
         struct parser_var *var;
         struct parser_func *func;
         struct parser_struct *strct;
-        struct parser_table *table;
+        struct parser_enum *enm;
         struct parser_module *module;
         struct parser_scope *scope;
     };
@@ -202,22 +202,22 @@ struct parser_field *parser_find_field(const struct parser_struct *strct,
 int parser_struct_get_field_count(const struct parser_struct *s);
 struct parser_field *parser_struct_get_field(const struct parser_struct *s, int idx);
 
-/* table */
-struct parser_table *parser_define_table(struct parser_scope *sc,
+/* enum */
+struct parser_enum *parser_define_enum(struct parser_scope *sc,
         const char *name);
-struct parser_table *parser_find_table(const struct parser_scope *sc,
+struct parser_enum *parser_find_enum(const struct parser_scope *sc,
         const char *name);
-int parser_add_row(struct parser_table *tab, const char *name);
-int parser_find_row(const struct parser_table *tab, const char *name);
+int parser_add_row(struct parser_enum *enm, const char *name);
+int parser_find_row(const struct parser_enum *enm, const char *name);
 
-struct parser_column *parser_add_column(struct parser_table *tab, const char *name);
-struct parser_column *parser_find_column(const struct parser_table *tab, const char *name);
-struct parser_column *parser_get_column(const struct parser_table *tab, int idx);
-int parser_table_get_column_count(const struct parser_table *tab);
+struct parser_column *parser_add_column(struct parser_enum *enm, const char *name);
+struct parser_column *parser_find_column(const struct parser_enum *enm, const char *name);
+struct parser_column *parser_get_column(const struct parser_enum *enm, int idx);
+int parser_enum_get_column_count(const struct parser_enum *enm);
 
-int parser_table_get_row_count(const struct parser_table *tab);
-void parser_add_cell(struct parser_table *tab, struct parser_cell cell);
-struct parser_cell parser_get_enum_field(const struct parser_table *tab, int x, int y);
+int parser_enum_get_row_count(const struct parser_enum *enm);
+void parser_add_cell(struct parser_enum *enm, struct parser_cell cell);
+struct parser_cell parser_get_enum_field(const struct parser_enum *enm, int x, int y);
 
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,

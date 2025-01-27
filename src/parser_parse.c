@@ -351,20 +351,20 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
     return parser_new_structlit_expr(sym->type, elemhead.next);
 }
 
-static struct parser_expr *table_lit_expr(struct parser *p, struct parser_symbol *sym)
+static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol *sym)
 {
-    struct parser_table *table = sym->table;
+    struct parser_enum *enm = sym->enm;
 
     expect(p, TOK_PERIOD);
     expect(p, TOK_IDENT);
 
-    int index = parser_find_row(table, tok_str(p));
+    int index = parser_find_row(enm, tok_str(p));
     if (index < 0) {
         error(p, tok_pos(p),
-                "no row named '%s' in table '%s'", tok_str(p));
+                "no row named '%s' in enum '%s'", tok_str(p));
     }
 
-    return parser_new_tablelit_expr(sym->type, index);
+    return parser_new_enumlit_expr(sym->type, index);
 }
 
 static struct parser_expr *string_lit_expr(struct parser *p)
@@ -417,7 +417,7 @@ static struct parser_expr *ident_expr(struct parser *p)
         expr = struct_lit_expr(p, sym);
     }
     else if (sym->kind == SYM_TABLE) {
-        expr = table_lit_expr(p, sym);
+        expr = enum_lit_expr(p, sym);
     }
     else if (sym->kind == SYM_MODULE) {
         expr = parser_new_modulelit_expr(sym->type);
@@ -702,13 +702,13 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
         return parser_new_struct_access_expr(base, parser_new_field_expr(f));
     }
 
-    if (parser_is_table_type(base->type)) {
+    if (parser_is_enum_type(base->type)) {
         expect(p, TOK_IDENT);
-        const struct parser_table *table = base->type->table;
-        struct parser_column *c = parser_find_column(table, tok_str(p));
+        const struct parser_enum *enm = base->type->enm;
+        struct parser_column *c = parser_find_column(enm, tok_str(p));
         if (!c) {
             error(p, tok_pos(p),
-                    "no row named '%s' in table '%s'", tok_str(p), table->name);
+                    "no row named '%s' in enum '%s'", tok_str(p), enm->name);
         }
         return parser_new_enum_access_expr(base, parser_new_column_expr(c));
     }
@@ -722,7 +722,7 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
         return expr;
     }
 
-    error(p, tok_pos(p), "'.' must be used for struct, table or modlue type");
+    error(p, tok_pos(p), "'.' must be used for struct, enum or modlue type");
     return NULL;
 }
 
@@ -851,7 +851,7 @@ static const int VALID_INT[] = {TYP_INT, -1};
 static const int VALID_INT_FLOAT[] = {TYP_INT, TYP_FLOAT, -1};
 static const int VALID_INT_FLOAT_STRING[] = {TYP_INT, TYP_FLOAT, TYP_STRING, -1};
 static const int VALID_INT_FLOAT_STRING_BOOL_ENUM[] = {
-    TYP_INT, TYP_FLOAT, TYP_STRING, TYP_BOOL, TYP_TABLE, -1};
+    TYP_INT, TYP_FLOAT, TYP_STRING, TYP_BOOL, TYP_ENUM, -1};
 
 static void validate_binop_types(struct parser *p, struct parser_pos pos,
         const struct parser_type *type, const int *valid_types)
@@ -1636,8 +1636,8 @@ static struct parser_expr *default_value(const struct parser_type *type)
     case TYP_STRUCT:
         return default_struct_lit(type);
 
-    case TYP_TABLE:
-        return parser_new_tablelit_expr(type, 0);
+    case TYP_ENUM:
+        return parser_new_enumlit_expr(type, 0);
 
     case TYP_FUNC:
     case TYP_MODULE:
@@ -1758,14 +1758,14 @@ static struct parser_struct *struct_decl(struct parser *p)
     return strct;
 }
 
-static struct parser_table *table_def(struct parser *p)
+static struct parser_enum *enum_def(struct parser *p)
 {
     expect(p, TOK_COLON2);
     expect(p, TOK_IDENT);
 
-    struct parser_table *tab = parser_define_table(p->scope, tok_str(p));
-    if (!tab) {
-        error(p, tok_pos(p), "re-defined table: '%s'", tok_str(p));
+    struct parser_enum *enm = parser_define_enum(p->scope, tok_str(p));
+    if (!enm) {
+        error(p, tok_pos(p), "re-defined enum: '%s'", tok_str(p));
     }
     expect(p, TOK_NEWLINE);
     expect(p, TOK_BLOCKBEGIN);
@@ -1774,12 +1774,12 @@ static struct parser_table *table_def(struct parser *p)
     do {
         expect(p, TOK_VBAR);
         expect(p, TOK_IDENT);
-        parser_add_column(tab, tok_str(p));
+        parser_add_column(enm, tok_str(p));
 
     } while (!consume(p, TOK_NEWLINE));
 
     /* separateor */
-    int ncols = parser_table_get_column_count(tab);
+    int ncols = parser_enum_get_column_count(enm);
     int nseps = 0;
     do {
         expect(p, TOK_VBAR);
@@ -1807,24 +1807,24 @@ static struct parser_table *table_def(struct parser *p)
                 const char *name = tok_str(p);
 
                 if (y == 0)
-                    tab->columns.data[x]->type = parser_new_string_type();
+                    enm->columns.data[x]->type = parser_new_string_type();
 
                 /* symbol to index */
-                int idx = parser_add_row(tab, name);
+                int idx = parser_add_row(enm, name);
                 assert(idx == y);
 
                 struct parser_cell cell = {.sval = name};
-                parser_add_cell(tab, cell);
+                parser_add_cell(enm, cell);
             }
             else {
                 //struct parser_expr *expr = primary_expr(p);
                 struct parser_expr *expr = unary_expr(p);
                 /* TODO need const calc */
                 if (y == 0)
-                    tab->columns.data[x]->type = expr->type;
+                    enm->columns.data[x]->type = expr->type;
 
                 struct parser_cell cell = {.ival = expr->ival};
-                parser_add_cell(tab, cell);
+                parser_add_cell(enm, cell);
             }
 
         }
@@ -1833,7 +1833,7 @@ static struct parser_table *table_def(struct parser *p)
     }
     while(!consume(p, TOK_BLOCKEND));
 
-    return tab;
+    return enm;
 }
 
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope)
@@ -2011,8 +2011,8 @@ static struct parser_type *type_spec(struct parser *p)
         else if (parser_is_struct_type(sym->type)) {
             type = parser_new_struct_type(parser_find_struct(p->scope, tok_str(p)));
         }
-        else if (parser_is_table_type(sym->type)) {
-            type = parser_new_table_type(parser_find_table(p->scope, tok_str(p)));
+        else if (parser_is_enum_type(sym->type)) {
+            type = parser_new_enum_type(parser_find_enum(p->scope, tok_str(p)));
         }
         else {
             error(p, ident_pos, "not a type name: '%s'", sym->name);
@@ -2140,7 +2140,7 @@ static void program(struct parser *p)
             break;
 
         case TOK_COLON2:
-            table_def(p);
+            enum_def(p);
             break;
 
         case TOK_MINUS:

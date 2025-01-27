@@ -5,7 +5,7 @@
 
 struct parser_func_sig;
 struct parser_struct;
-struct parser_table;
+struct parser_enum;
 struct parser_module;
 
 enum parser_type_kind {
@@ -18,7 +18,7 @@ enum parser_type_kind {
     TYP_ARRAY,
     TYP_MAP,
     TYP_STRUCT,
-    TYP_TABLE,
+    TYP_ENUM,
     TYP_MODULE,
     TYP_PTR,
     TYP_ANY,
@@ -44,7 +44,7 @@ struct parser_type {
     union {
         const struct parser_func_sig *func_sig;
         const struct parser_struct *strct;
-        const struct parser_table *table;
+        const struct parser_enum *enm;
         const struct parser_module *module;
         int template_id;
     };
@@ -59,7 +59,7 @@ struct parser_type *parser_new_func_type(const struct parser_func_sig *func_sig)
 struct parser_type *parser_new_array_type(const struct parser_type *underlying);
 struct parser_type *parser_new_map_type(const struct parser_type *underlying);
 struct parser_type *parser_new_struct_type(const struct parser_struct *s);
-struct parser_type *parser_new_table_type(const struct parser_table *t);
+struct parser_type *parser_new_enum_type(const struct parser_enum *e);
 struct parser_type *parser_new_module_type(const struct parser_module *m);
 struct parser_type *parser_new_ptr_type(const struct parser_type *underlying);
 struct parser_type *parser_new_any_type(void);
@@ -75,7 +75,7 @@ bool parser_is_func_type(const struct parser_type *t);
 bool parser_is_array_type(const struct parser_type *t);
 bool parser_is_map_type(const struct parser_type *t);
 bool parser_is_struct_type(const struct parser_type *t);
-bool parser_is_table_type(const struct parser_type *t);
+bool parser_is_enum_type(const struct parser_type *t);
 bool parser_is_module_type(const struct parser_type *t);
 bool parser_is_ptr_type(const struct parser_type *t);
 bool parser_is_any_type(const struct parser_type *t);

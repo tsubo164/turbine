@@ -167,7 +167,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
     if (parser_find_symbol(parent, func->name))
         return NULL;
 
-    /* add func itself to symbol table */
+    /* add func itself to symbol enum */
     struct parser_symbol *sym = parser_new_symbol(SYM_FUNC,
             func->name, parser_new_func_type(func->sig));
     sym->func = func;
@@ -329,52 +329,52 @@ struct parser_field *parser_struct_get_field(const struct parser_struct *s, int 
     return s->fields.data[idx];
 }
 
-/* table */
-struct parser_table *parser_define_table(struct parser_scope *sc,
+/* enum */
+struct parser_enum *parser_define_enum(struct parser_scope *sc,
         const char *name)
 {
-    struct parser_table *tab;
+    struct parser_enum *enm;
 
-    tab = calloc(1, sizeof(*tab));
-    tab->name = name;
+    enm = calloc(1, sizeof(*enm));
+    enm->name = name;
 
     struct parser_symbol *sym = parser_new_symbol(SYM_TABLE,
-            name, parser_new_table_type(tab));
-    sym->table = tab;
+            name, parser_new_enum_type(enm));
+    sym->enm = enm;
 
     if (!data_hashmap_insert(&sc->symbols, name, sym))
         return NULL;
     push_symbol(&sc->syms, sym);
 
-    return tab;
+    return enm;
 }
 
-struct parser_table *parser_find_table(const struct parser_scope *sc,
+struct parser_enum *parser_find_enum(const struct parser_scope *sc,
         const char *name)
 {
     struct parser_symbol *sym = parser_find_symbol(sc, name);
     if (sym)
-        return sym->table;
+        return sym->enm;
 
     return NULL;
 }
 
-int parser_add_row(struct parser_table *tab, const char *name)
+int parser_add_row(struct parser_enum *enm, const char *name)
 {
-    int idx = parser_find_row(tab, name);
+    int idx = parser_find_row(enm, name);
     if (idx >= 0)
         return -1;
 
-    int64_t new_idx = parser_table_get_row_count(tab);
-    data_hashmap_insert(&tab->rows, name, (void*)new_idx);
+    int64_t new_idx = parser_enum_get_row_count(enm);
+    data_hashmap_insert(&enm->rows, name, (void*)new_idx);
 
     return new_idx;
 }
 
-int parser_find_row(const struct parser_table *tab, const char *name)
+int parser_find_row(const struct parser_enum *enm, const char *name)
 {
     struct data_hashmap_entry *ent;
-    ent = data_hashmap_lookup(&tab->rows, name);
+    ent = data_hashmap_lookup(&enm->rows, name);
 
     if (!ent)
         return -1;
@@ -395,54 +395,54 @@ static struct parser_column *new_column(const char *Name,
     return c;
 }
 
-struct parser_column *parser_add_column(struct parser_table *tab, const char *name)
+struct parser_column *parser_add_column(struct parser_enum *enm, const char *name)
 {
-    if (parser_find_column(tab, name))
+    if (parser_find_column(enm, name))
         return NULL;
 
-    int new_id = tab->columns.len;
+    int new_id = enm->columns.len;
     struct parser_column *c = new_column(name, NULL, new_id);
 
-    push_column(&tab->columns, c);
+    push_column(&enm->columns, c);
     return c;
 }
 
-struct parser_column *parser_find_column(const struct parser_table *tab, const char *name)
+struct parser_column *parser_find_column(const struct parser_enum *enm, const char *name)
 {
-    for (int i = 0; i < tab->columns.len; i++) {
-        struct parser_column *c = tab->columns.data[i];
+    for (int i = 0; i < enm->columns.len; i++) {
+        struct parser_column *c = enm->columns.data[i];
         if (!strcmp(c->name, name))
             return c;
     }
     return NULL;
 }
 
-struct parser_column *parser_get_column(const struct parser_table *tab, int idx)
+struct parser_column *parser_get_column(const struct parser_enum *enm, int idx)
 {
-    assert(idx >= 0 && idx < parser_table_get_column_count(tab));
-    return tab->columns.data[idx];
+    assert(idx >= 0 && idx < parser_enum_get_column_count(enm));
+    return enm->columns.data[idx];
 }
 
-int parser_table_get_column_count(const struct parser_table *tab)
+int parser_enum_get_column_count(const struct parser_enum *enm)
 {
-    return tab->columns.len;
+    return enm->columns.len;
 }
 
-int parser_table_get_row_count(const struct parser_table *tab)
+int parser_enum_get_row_count(const struct parser_enum *enm)
 {
-    return data_hashmap_get_count(&tab->rows);
+    return data_hashmap_get_count(&enm->rows);
 }
 
-void parser_add_cell(struct parser_table *tab, struct parser_cell cell)
+void parser_add_cell(struct parser_enum *enm, struct parser_cell cell)
 {
-    push_cell(&tab->cells, cell);
+    push_cell(&enm->cells, cell);
 }
 
-struct parser_cell parser_get_enum_field(const struct parser_table *tab, int x, int y)
+struct parser_cell parser_get_enum_field(const struct parser_enum *enm, int x, int y)
 {
-    int ncols = parser_table_get_column_count(tab);
+    int ncols = parser_enum_get_column_count(enm);
     int idx = x + y * ncols;
-    return tab->cells.data[idx];
+    return enm->cells.data[idx];
 }
 
 /* module */
