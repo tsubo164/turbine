@@ -68,8 +68,7 @@ int builtin_define_module_math(struct parser_scope *scope)
 
         parser_declare_param(func, "x", parser_new_float_type());
 
-        func->return_type = parser_new_float_type();
-        func->func_sig = parser_make_func_sig(func);
+        parser_add_return_type(func, parser_new_float_type());
         func->native_func_ptr = math_sqrt;
     }
     {
@@ -84,8 +83,7 @@ int builtin_define_module_math(struct parser_scope *scope)
         const char *name = data_string_intern("_init_math");
         struct parser_func *func = parser_declare_builtin_func(mod->scope, name);
 
-        func->return_type = parser_new_int_type();
-        func->func_sig = parser_make_func_sig(func);
+        parser_add_return_type(func, parser_new_int_type());
         func->native_func_ptr = init;
     }
 

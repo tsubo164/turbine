@@ -151,7 +151,8 @@ struct parser_expr *parser_new_boollit_expr(bool b);
 struct parser_expr *parser_new_intlit_expr(long l);
 struct parser_expr *parser_new_floatlit_expr(double d);
 struct parser_expr *parser_new_stringlit_expr(const char *s);
-struct parser_expr *parser_new_funclit_expr(struct parser_func *func);
+struct parser_expr *parser_new_funclit_expr(const struct parser_type *func_type,
+        struct parser_func *func);
 struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
 struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,

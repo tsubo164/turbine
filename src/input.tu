@@ -64,10 +64,19 @@
   return $caller_line
 
 # main(args []string) int
-  - a = 32
-  - p Point
-  //print(42, 3.14, "foo", Color.B)
-  print(Color.B)
-  print(p.x, math._PI_)
-  //print(42, 3.14, "foo", Color.B.val)
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  foo()
+  print(format("%d", 42.0))
   return 42

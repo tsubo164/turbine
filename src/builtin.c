@@ -415,8 +415,7 @@ void define_builtin_functions(struct parser_scope *builtin)
 
         parser_declare_param(func, "...", parser_new_any_type());
 
-        func->return_type = parser_new_nil_type();
-        func->func_sig = parser_make_func_sig(func);
+        parser_add_return_type(func, parser_new_nil_type());
         func->native_func_ptr = builtin_print;
     }
     {
@@ -425,8 +424,7 @@ void define_builtin_functions(struct parser_scope *builtin)
 
         parser_declare_param(func, "msg", parser_new_string_type());
 
-        func->return_type = parser_new_string_type();
-        func->func_sig = parser_make_func_sig(func);
+        parser_add_return_type(func, parser_new_string_type());
         func->native_func_ptr = builtin_input;
     }
     {
@@ -435,8 +433,7 @@ void define_builtin_functions(struct parser_scope *builtin)
 
         parser_declare_param(func, "code", parser_new_int_type());
 
-        func->return_type = parser_new_int_type();
-        func->func_sig = parser_make_func_sig(func);
+        parser_add_return_type(func, parser_new_int_type());
         func->native_func_ptr = builtin_exit;
     }
     {
@@ -528,10 +525,9 @@ void native_declare_func(struct parser_scope *scope,
         parser_declare_param(func, param->name, param->type);
 
         if (param->is_format)
-            func->has_format_param = true;
+            func->func_sig->has_format_param = true;
     }
 
-    func->return_type = return_type;
-    func->func_sig = parser_make_func_sig(func);
+    parser_add_return_type(func, return_type);
     func->native_func_ptr = native_func;
 }

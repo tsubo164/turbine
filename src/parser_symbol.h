@@ -194,9 +194,11 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
         const char *name, const char *modulename);
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name);
-struct parser_func_sig *parser_make_func_sig(struct parser_func *func);
+
 void parser_declare_param(struct parser_func *f, const char *name,
         const struct parser_type *type);
+void parser_add_return_type(struct parser_func *f, const struct parser_type *type);
+
 const struct parser_type *parser_get_param_type(const struct parser_func_sig *func_sig,
         int index);
 int parser_required_param_count(const struct parser_func_sig *func_sig);

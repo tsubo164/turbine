@@ -411,7 +411,7 @@ static struct parser_expr *ident_expr(struct parser *p)
     }
 
     if (sym->kind == SYM_FUNC) {
-        expr = parser_new_funclit_expr(sym->func);
+        expr = parser_new_funclit_expr(sym->type, sym->func);
     }
     else if (sym->kind == SYM_STRUCT) {
         expr = struct_lit_expr(p, sym);
@@ -1945,9 +1945,9 @@ static void ret_type(struct parser *p, struct parser_func *func)
     int next = peek(p);
 
     if (next == TOK_NEWLINE)
-        func->return_type = parser_new_nil_type();
+        parser_add_return_type(func, parser_new_nil_type());
     else
-        func->return_type = type_spec(p);
+        parser_add_return_type(func, type_spec(p));
 }
 
 /*
@@ -1978,8 +1978,6 @@ static struct parser_type *type_spec(struct parser *p)
         parser_module_add_func(p->module, func);
         param_list(p, func);
         ret_type(p, func);
-        /* func sig */
-        func->func_sig = parser_make_func_sig(func);
         return parser_new_func_type(func->func_sig);
     }
 
@@ -2051,9 +2049,6 @@ static void func_def(struct parser *p)
     param_list(p, func);
     ret_type(p, func);
     expect(p, TOK_NEWLINE);
-
-    /* func sig */
-    func->func_sig = parser_make_func_sig(func);
 
     /* func body */
     p->func = func;

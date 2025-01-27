@@ -295,10 +295,11 @@ struct parser_expr *parser_new_stringlit_expr(const char *s)
     return e;
 }
 
-struct parser_expr *parser_new_funclit_expr(struct parser_func *func)
+struct parser_expr *parser_new_funclit_expr(const struct parser_type *func_type,
+        struct parser_func *func)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_FUNCLIT);
-    e->type = parser_new_func_type(func->func_sig);
+    e->type = func_type;
     e->func = func;
     return e;
 }
