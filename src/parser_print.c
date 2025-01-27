@@ -158,7 +158,7 @@ static void print_func(const struct parser_func *func, int depth)
 
     /* basic info */
     printf("%d. <func> \"%s\"", depth, func->name);
-    printf(" %s", parser_type_string(func->func_sig->return_type));
+    printf(" %s", parser_type_string(func->sig->return_type));
     printf("\n");
 
     /* children */
@@ -210,14 +210,14 @@ static void print_scope(const struct parser_scope *sc, int depth)
             print_header(depth);
             printf("[var] \"%s\" %s @%d\n",
                     v->name, parser_type_string(v->type),
-                    v->id);
+                    v->offset);
         }
 
         if (sym->kind == SYM_FUNC) {
             const struct parser_func *func = sym->func;
             print_header(depth);
             printf("[fnc] \"%s\" %s (id:%d)\n",
-                    func->name, parser_type_string(func->func_sig->return_type), func->id);
+                    func->name, parser_type_string(func->sig->return_type), func->id);
             print_scope(func->scope, depth + 1);
         }
 

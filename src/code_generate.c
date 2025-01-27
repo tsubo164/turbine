@@ -513,12 +513,12 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_VAR:
         if (e->var->is_global) {
-            int id = code_emit_load_int(code, e->var->id);
+            int id = code_emit_load_int(code, e->var->offset);
             int dst = code_allocate_temporary_register(code);
             return code_emit_load_global(code, dst, id);
         }
         else {
-            return e->var->id;
+            return e->var->offset;
         }
 
     case NOD_EXPR_FIELD:
@@ -713,9 +713,9 @@ static int gen_addr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_VAR:
         if (e->var->is_global)
-            return code_emit_load_int(code, e->var->id);
+            return code_emit_load_int(code, e->var->offset);
         else
-            return e->var->id;
+            return e->var->offset;
 
     case NOD_EXPR_FIELD:
         return e->field->offset;
@@ -993,7 +993,7 @@ static void gen_func(struct code_bytecode *code, const struct parser_func *func,
 {
     /* TODO solve param count and reg count at a time */
     /* Local var registers */
-    int param_count = parser_required_param_count(func->func_sig);
+    int param_count = parser_required_param_count(func->sig);
     int lvar_count = func->scope->size;
     /* TODO rename code_reset_register_pointer() */
     code_init_registers(code, lvar_count + param_count);
@@ -1023,7 +1023,7 @@ static void gen_funcs(struct code_bytecode *code, const struct parser_module *mo
     /* self module next */
     for (int i = 0; i < mod->funcs.len; i++) {
         struct parser_func *func = mod->funcs.data[i];
-        if (!func->func_sig->is_builtin)
+        if (!func->sig->is_builtin)
             gen_func(code, func, func->id);
     }
 }
@@ -1059,7 +1059,7 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
             if (sym->kind == SYM_MODULE) {
                 const struct parser_module *m = sym->module;
                 int64_t init_func_id = -1;
-                int min_gvar_id = INT32_MAX;
+                int min_var_offset = INT32_MAX;
                 int gvar_count = 0;
 
                 for (int j = 0; j < m->scope->syms.len; j++) {
@@ -1077,15 +1077,15 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
                             continue;
 
                         gvar_count++;
-                        if (min_gvar_id > v->id)
-                            min_gvar_id = v->id;
+                        if (min_var_offset > v->offset)
+                            min_var_offset = v->offset;
                     }
                 }
 
                 if (init_func_id < 0)
                     continue;
 
-                int ret_reg = min_gvar_id;
+                int ret_reg = min_var_offset;
                 bool is_builtin = true;
                 code_emit_call_function(code, ret_reg, init_func_id, is_builtin);
             }
@@ -1102,7 +1102,7 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
     /* push args for main() */
     code_emit_move(code, reg0, 0);
     code_emit_call_function(code, reg0, mod->main_func->id,
-            mod->main_func->func_sig->is_builtin);
+            mod->main_func->sig->is_builtin);
     code_emit_return(code, reg0);
 }
 
@@ -1196,7 +1196,7 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
         case SYM_FUNC:
             {
                 struct parser_func *func = sym->func;
-                int param_count = parser_required_param_count(func->func_sig);
+                int param_count = parser_required_param_count(func->sig);
 
                 func->id = code_register_function(code, func->fullname, param_count);
 
@@ -1205,7 +1205,7 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
                             func->id,
                             (runtime_native_function_t) func->native_func_ptr);
 
-                    code_set_function_variadic(code, func->id, func->func_sig->is_variadic);
+                    code_set_function_variadic(code, func->id, func->sig->is_variadic);
                 }
             }
             break;
@@ -1246,7 +1246,7 @@ static int resolve_offset(struct parser_scope *scope, int start_offset)
             {
                 struct parser_var *var = sym->var;
                 /* offset */
-                var->id = cur_offset;
+                var->offset = cur_offset;
                 cur_offset++;
                 max_offset = max(max_offset, cur_offset);
                 /* size */

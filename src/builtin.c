@@ -525,7 +525,7 @@ void native_declare_func(struct parser_scope *scope,
         parser_declare_param(func, param->name, param->type);
 
         if (param->is_format)
-            func->func_sig->has_format_param = true;
+            func->sig->has_format_param = true;
     }
 
     parser_add_return_type(func, return_type);

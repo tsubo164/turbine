@@ -1544,10 +1544,10 @@ static struct parser_stmt *return_stmt(struct parser *p)
 
     assert(p->func);
 
-    if (expr && p->func->func_sig->return_type->kind != expr->type->kind) {
+    if (expr && p->func->sig->return_type->kind != expr->type->kind) {
         error(p, exprpos,
                 "type mismatch: function type '%s': expression type '%s'",
-                parser_type_string(p->func->func_sig->return_type),
+                parser_type_string(p->func->sig->return_type),
                 parser_type_string(expr->type), "");
     }
 
@@ -1978,7 +1978,7 @@ static struct parser_type *type_spec(struct parser *p)
         parser_module_add_func(p->module, func);
         param_list(p, func);
         ret_type(p, func);
-        return parser_new_func_type(func->func_sig);
+        return parser_new_func_type(func->sig);
     }
 
     if (consume(p, TOK_BOOL)) {

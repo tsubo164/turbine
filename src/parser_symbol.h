@@ -13,7 +13,7 @@
 struct parser_var {
     const char *name;
     const struct parser_type *type;
-    int id;
+    int offset;
     bool is_global;
     bool is_param;
 };
@@ -33,7 +33,7 @@ struct parser_func_sig {
 struct parser_func {
     const char *name;
     const char *fullname;
-    struct parser_func_sig *func_sig;
+    struct parser_func_sig *sig;
     int size;
     int id;
 
@@ -181,9 +181,9 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name);
 
-void parser_declare_param(struct parser_func *f, const char *name,
+void parser_declare_param(struct parser_func *func, const char *name,
         const struct parser_type *type);
-void parser_add_return_type(struct parser_func *f, const struct parser_type *type);
+void parser_add_return_type(struct parser_func *func, const struct parser_type *type);
 
 const struct parser_type *parser_get_param_type(const struct parser_func_sig *func_sig,
         int index);

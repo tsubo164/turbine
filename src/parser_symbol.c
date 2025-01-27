@@ -148,15 +148,15 @@ static const char *func_fullname(const char *modulename, const char *funcname)
 static struct parser_func *new_func(struct parser_scope *parent,
         const char *modulename, const char *name)
 {
-    struct parser_func *f;
+    struct parser_func *func;
 
-    f = calloc(1, sizeof(*f));
-    f->func_sig = calloc(1, sizeof(*f->func_sig));
-    f->name = name;
-    f->fullname = func_fullname(modulename, name);
-    f->scope = parser_new_scope(parent);
+    func = calloc(1, sizeof(*func));
+    func->sig = calloc(1, sizeof(*func->sig));
+    func->name = name;
+    func->fullname = func_fullname(modulename, name);
+    func->scope = parser_new_scope(parent);
 
-    return f;
+    return func;
 }
 
 struct parser_func *parser_declare_func(struct parser_scope *parent,
@@ -169,7 +169,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 
     /* add func itself to symbol table */
     struct parser_symbol *sym = parser_new_symbol(SYM_FUNC,
-            func->name, parser_new_func_type(func->func_sig));
+            func->name, parser_new_func_type(func->sig));
     sym->func = func;
 
     if (!data_hashmap_insert(&parent->symbols, func->name, sym))
@@ -183,35 +183,35 @@ struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name)
 {
     struct parser_func *func = parser_declare_func(parent, name, "_builtin");
-    func->func_sig->is_builtin = true;
+    func->sig->is_builtin = true;
     return func;
 }
 
-void parser_declare_param(struct parser_func *f,
+void parser_declare_param(struct parser_func *func,
         const char *name, const struct parser_type *type)
 {
-    struct parser_symbol *sym = parser_define_var(f->scope, name, type, false);
+    struct parser_symbol *sym = parser_define_var(func->scope, name, type, false);
     sym->var->is_param = true;
 
     if (!strcmp(name, "..."))
-        f->func_sig->is_variadic = true;
+        func->sig->is_variadic = true;
 
     if (parser_is_union_type(type))
-        f->func_sig->has_union_param = true;
+        func->sig->has_union_param = true;
 
     if (name[0] == '$')
-        f->func_sig->has_special_var = true;
+        func->sig->has_special_var = true;
 
     /* func sig */
-    parser_typevec_push(&f->func_sig->param_types, type);
+    parser_typevec_push(&func->sig->param_types, type);
 }
 
-void parser_add_return_type(struct parser_func *f, const struct parser_type *type)
+void parser_add_return_type(struct parser_func *func, const struct parser_type *type)
 {
-    f->func_sig->return_type = type;
+    func->sig->return_type = type;
 
-    if (parser_has_template_type(f->func_sig->return_type))
-        f->func_sig->has_template_return_type = true;
+    if (parser_has_template_type(func->sig->return_type))
+        func->sig->has_template_return_type = true;
 }
 
 const struct parser_type *parser_get_param_type(const struct parser_func_sig *func_sig,
