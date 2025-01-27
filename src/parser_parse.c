@@ -1544,10 +1544,10 @@ static struct parser_stmt *return_stmt(struct parser *p)
 
     assert(p->func);
 
-    if (expr && p->func->return_type->kind != expr->type->kind) {
+    if (expr && p->func->func_sig->return_type->kind != expr->type->kind) {
         error(p, exprpos,
                 "type mismatch: function type '%s': expression type '%s'",
-                parser_type_string(p->func->return_type),
+                parser_type_string(p->func->func_sig->return_type),
                 parser_type_string(expr->type), "");
     }
 

@@ -9,15 +9,6 @@
 #define MIN_CAP 8
 
 /* vec */
-static void push_var(struct parser_varvec *v, struct parser_var *val)
-{
-    if (v->len == v->cap) {
-        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
-        v->data = realloc(v->data, v->cap * sizeof(*v->data));
-    }
-    v->data[v->len++] = val;
-}
-
 static void push_func(struct parser_funcvec *v, struct parser_func *val)
 {
     if (v->len == v->cap) {
@@ -160,12 +151,10 @@ static struct parser_func *new_func(struct parser_scope *parent,
     struct parser_func *f;
 
     f = calloc(1, sizeof(*f));
+    f->func_sig = calloc(1, sizeof(*f->func_sig));
     f->name = name;
     f->fullname = func_fullname(modulename, name);
     f->scope = parser_new_scope(parent);
-    f->is_builtin = false;
-
-    f->func_sig = calloc(1, sizeof(*f->func_sig));
 
     return f;
 }
@@ -194,7 +183,6 @@ struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name)
 {
     struct parser_func *func = parser_declare_func(parent, name, "_builtin");
-    func->is_builtin = true;
     func->func_sig->is_builtin = true;
     return func;
 }
@@ -204,22 +192,15 @@ void parser_declare_param(struct parser_func *f,
 {
     struct parser_symbol *sym = parser_define_var(f->scope, name, type, false);
     sym->var->is_param = true;
-    push_var(&f->params, sym->var);
 
-    if (!strcmp(name, "...")) {
-        f->is_variadic = true;
+    if (!strcmp(name, "..."))
         f->func_sig->is_variadic = true;
-    }
 
-    if (parser_is_union_type(type)) {
-        f->has_union_param = true;
+    if (parser_is_union_type(type))
         f->func_sig->has_union_param = true;
-    }
 
-    if (name[0] == '$') {
-        f->has_special_var = true;
+    if (name[0] == '$')
         f->func_sig->has_special_var = true;
-    }
 
     /* func sig */
     parser_typevec_push(&f->func_sig->param_types, type);
@@ -227,7 +208,6 @@ void parser_declare_param(struct parser_func *f,
 
 void parser_add_return_type(struct parser_func *f, const struct parser_type *type)
 {
-    f->return_type = type;
     f->func_sig->return_type = type;
 
     if (parser_has_template_type(f->func_sig->return_type))

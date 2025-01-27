@@ -993,7 +993,7 @@ static void gen_func(struct code_bytecode *code, const struct parser_func *func,
 {
     /* TODO solve param count and reg count at a time */
     /* Local var registers */
-    int param_count = func->params.len;
+    int param_count = parser_required_param_count(func->func_sig);
     int lvar_count = func->scope->size;
     /* TODO rename code_reset_register_pointer() */
     code_init_registers(code, lvar_count + param_count);
@@ -1023,7 +1023,7 @@ static void gen_funcs(struct code_bytecode *code, const struct parser_module *mo
     /* self module next */
     for (int i = 0; i < mod->funcs.len; i++) {
         struct parser_func *func = mod->funcs.data[i];
-        if (!func->is_builtin)
+        if (!func->func_sig->is_builtin)
             gen_func(code, func, func->id);
     }
 }
@@ -1101,7 +1101,8 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
     int reg0 = code_allocate_temporary_register(code);
     /* push args for main() */
     code_emit_move(code, reg0, 0);
-    code_emit_call_function(code, reg0, mod->main_func->id, mod->main_func->is_builtin);
+    code_emit_call_function(code, reg0, mod->main_func->id,
+            mod->main_func->func_sig->is_builtin);
     code_emit_return(code, reg0);
 }
 
@@ -1195,16 +1196,16 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
         case SYM_FUNC:
             {
                 struct parser_func *func = sym->func;
+                int param_count = parser_required_param_count(func->func_sig);
 
-                func->id = code_register_function(code,
-                        func->fullname, func->params.len);
+                func->id = code_register_function(code, func->fullname, param_count);
 
                 if (func->native_func_ptr) {
                     code_set_native_function_pointer(code,
                             func->id,
                             (runtime_native_function_t) func->native_func_ptr);
 
-                    code_set_function_variadic(code, func->id, func->is_variadic);
+                    code_set_function_variadic(code, func->id, func->func_sig->is_variadic);
                 }
             }
             break;

@@ -18,15 +18,10 @@ struct parser_var {
     bool is_param;
 };
 
-struct parser_varvec {
-    struct parser_var **data;
-    int cap;
-    int len;
-};
-
 struct parser_func_sig {
     const struct parser_type *return_type;
     struct parser_typevec param_types;
+
     bool is_builtin;
     bool is_variadic;
     bool has_special_var;
@@ -38,21 +33,12 @@ struct parser_func_sig {
 struct parser_func {
     const char *name;
     const char *fullname;
-    const struct parser_type *return_type;
-    struct parser_varvec params;
+    struct parser_func_sig *func_sig;
     int size;
     int id;
 
-    /* TODO consider having struct func_attrib */
-    bool is_builtin;
-    bool is_variadic;
-    bool has_format_param;
-    bool has_union_param;
-    bool has_special_var;
-
     struct parser_scope *scope;
     struct parser_stmt *body;
-    struct parser_func_sig *func_sig;
     runtime_native_function_t native_func_ptr;
 };
 
