@@ -61,11 +61,10 @@
   _gvar_ = 119
 
 :: Color
-  | symbol
-  | ---
-  | R // 0
-  | G // 1
-  | B // 2
+  - symbol
+  - R // 0
+  - G // 1
+  - B // 2
 
 # main() int
 

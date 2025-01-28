@@ -1,12 +1,11 @@
 [test]
 
 :: Color
-  | symbol | name    | val
-  | ---    | ---     | ---
-  | R      | "red"   | 42
-  | G      | "green" | 99
-  | B      | "blue"  | 4095
-  | A      | "alpha" | 42
+  - symbol , name    , val
+  - R      , "red"   , 42
+  - G      , "green" , 99
+  - B      , "blue"  , 4095
+  - A      , "alpha" , 42
 
 # main(args []string) int
 

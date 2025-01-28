@@ -1771,35 +1771,21 @@ static struct parser_enum *enum_def(struct parser *p)
     expect(p, TOK_BLOCKBEGIN);
 
     /* header */
+    expect(p, TOK_MINUS);
     do {
-        expect(p, TOK_VBAR);
         expect(p, TOK_IDENT);
         parser_add_enum_field(enm, tok_str(p));
-
-    } while (!consume(p, TOK_NEWLINE));
-
-    /* separateor */
-    int nfields = parser_get_enum_field_count(enm);
-    int nseps = 0;
-    do {
-        expect(p, TOK_VBAR);
-        expect(p, TOK_MINUS3);
-        nseps++;
-
-        if (nseps > nfields) {
-            error(p, tok_pos(p), "too many separators");
-        }
-    } while (!consume(p, TOK_NEWLINE));
-
-    if (nseps < nfields) {
-        error(p, tok_pos(p), "too few separators");
-    }
+    } while (consume(p, TOK_COMMA));
+    expect(p, TOK_NEWLINE);
 
     /* members */
+    int nfields = parser_get_enum_field_count(enm);
     int y = 0;
+
     do {
+        expect(p, TOK_MINUS);
+
         for (int x = 0; x < nfields; x++) {
-            expect(p, TOK_VBAR);
 
             if (x == 0) {
                 /* symbol field */
@@ -1820,6 +1806,7 @@ static struct parser_enum *enum_def(struct parser *p)
                 //struct parser_expr *expr = primary_expr(p);
                 struct parser_expr *expr = unary_expr(p);
                 /* TODO need const calc */
+                /* TODO type check */
                 if (y == 0)
                     enm->fields.data[x]->type = expr->type;
 
@@ -1827,6 +1814,8 @@ static struct parser_enum *enum_def(struct parser *p)
                 parser_add_enum_value(enm, val);
             }
 
+            if (x < nfields - 1)
+                expect(p, TOK_COMMA);
         }
         expect(p, TOK_NEWLINE);
         y++;
