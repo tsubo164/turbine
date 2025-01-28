@@ -18,7 +18,7 @@ static void push_func(struct parser_funcvec *v, struct parser_func *val)
     v->data[v->len++] = val;
 }
 
-static void push_field(struct parser_fieldvec *v, struct parser_field *val)
+static void push_struct_field(struct parser_struct_fieldvec *v, struct parser_struct_field *val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
@@ -282,10 +282,10 @@ struct parser_struct *parser_find_struct(const struct parser_scope *sc,
     return NULL;
 }
 
-static struct parser_field *new_field(const char *Name,
+static struct parser_struct_field *new_struct_field(const char *Name,
         const struct parser_type *type, int offset)
 {
-    struct parser_field *f;
+    struct parser_struct_field *f;
 
     f = calloc(1, sizeof(*f));
     f->name = Name;
@@ -294,24 +294,24 @@ static struct parser_field *new_field(const char *Name,
     return f;
 }
 
-struct parser_field *parser_add_field(struct parser_struct *strct,
+struct parser_struct_field *parser_add_struct_field(struct parser_struct *strct,
         const char *name, const struct parser_type *type)
 {
-    if (parser_find_field(strct, name))
+    if (parser_find_struct_field(strct, name))
         return NULL;
 
     int offset = strct->fields.len;
-    struct parser_field *f = new_field(name, type, offset);
+    struct parser_struct_field *f = new_struct_field(name, type, offset);
 
-    push_field(&strct->fields, f);
+    push_struct_field(&strct->fields, f);
     return f;
 }
 
-struct parser_field *parser_find_field(const struct parser_struct *strct,
+struct parser_struct_field *parser_find_struct_field(const struct parser_struct *strct,
         const char *name)
 {
     for (int i = 0; i < strct->fields.len; i++) {
-        struct parser_field *f = strct->fields.data[i];
+        struct parser_struct_field *f = strct->fields.data[i];
         if (!strcmp(f->name, name))
             return f;
     }
@@ -323,7 +323,7 @@ int parser_struct_get_field_count(const struct parser_struct *s)
     return s->fields.len;
 }
 
-struct parser_field *parser_struct_get_field(const struct parser_struct *s, int idx)
+struct parser_struct_field *parser_get_struct_field(const struct parser_struct *s, int idx)
 {
     assert(idx >= 0 && idx < s->fields.len);
     return s->fields.data[idx];

@@ -1,5 +1,4 @@
 #include "parser_ast.h"
-#include "parser_symbol.h"
 #include "parser_type.h"
 #include "data_strbuf.h"
 #include "data_intern.h"
@@ -33,7 +32,7 @@ const char *parser_node_string(int kind)
     [NOD_STMT_BLOCK]          = "block",
     /* identifier */
     [NOD_EXPR_VAR]            = "var",
-    [NOD_EXPR_FIELD]          = "field",
+    [NOD_EXPR_STRUCTFIELD]    = "structfield",
     [NOD_EXPR_ENUMFIELD]      = "enumfield",
     /* literal */
     [NOD_EXPR_NILLIT]         = "nillit",
@@ -412,11 +411,11 @@ struct parser_expr *parser_new_var_expr(struct parser_var *v)
     return e;
 }
 
-struct parser_expr *parser_new_field_expr(struct parser_field *f)
+struct parser_expr *parser_new_struct_field_expr(struct parser_struct_field *f)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_FIELD);
+    struct parser_expr *e = new_expr(NOD_EXPR_STRUCTFIELD);
     e->type = f->type;
-    e->field = f;
+    e->struct_field = f;
     return e;
 }
 

@@ -521,8 +521,8 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             return e->var->offset;
         }
 
-    case NOD_EXPR_FIELD:
-        return e->field->offset;
+    case NOD_EXPR_STRUCTFIELD:
+        return e->struct_field->offset;
 
     case NOD_EXPR_ENUMFIELD:
         return code_emit_load_int(code, e->enum_field->offset);
@@ -717,8 +717,8 @@ static int gen_addr(struct code_bytecode *code, const struct parser_expr *e)
         else
             return e->var->offset;
 
-    case NOD_EXPR_FIELD:
-        return e->field->offset;
+    case NOD_EXPR_STRUCTFIELD:
+        return e->struct_field->offset;
 
     case NOD_EXPR_MODULEACCESS:
         return gen_addr(code, e->r);

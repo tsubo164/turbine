@@ -106,8 +106,8 @@ bool parser_eval_addr(const struct parser_expr *e, int *result)
         *result = e->var->offset;
         return true;
 
-    case NOD_EXPR_FIELD:
-        *result = e->field->offset;
+    case NOD_EXPR_STRUCTFIELD:
+        *result = e->struct_field->offset;
         return true;
 
     default:

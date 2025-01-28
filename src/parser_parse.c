@@ -295,7 +295,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
         do {
             expect(p, TOK_IDENT);
 
-            struct parser_field *field = parser_find_field(strct, tok_str(p));
+            struct parser_struct_field *field = parser_find_struct_field(strct, tok_str(p));
             if (!field) {
                 error(p, tok_pos(p),
                         "struct '%s' has no field '%s'", strct->name, tok_str(p));
@@ -303,7 +303,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
 
             expect(p, TOK_EQUAL);
 
-            struct parser_expr *fld = parser_new_field_expr(field);
+            struct parser_expr *fld = parser_new_struct_field_expr(field);
             struct parser_expr *val = expression(p);
 
             if (!parser_match_type(fld->type, val->type)) {
@@ -320,11 +320,11 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
         struct parser_expr *dflt = &dflthead;
 
         for (int i = 0; i < strct->fields.len; i++) {
-            struct parser_field *field = parser_struct_get_field(strct, i);
+            struct parser_struct_field *field = parser_get_struct_field(strct, i);
             bool already_init = false;
 
             for (const struct parser_expr *init = elemhead.next; init; init = init->next) {
-                struct parser_field *init_field = init->l->field;
+                struct parser_struct_field *init_field = init->l->struct_field;
                 if (field == init_field) {
                     already_init = true;
                     break;
@@ -339,7 +339,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
                 continue;
             }
 
-            struct parser_expr *fld = parser_new_field_expr(field);
+            struct parser_expr *fld = parser_new_struct_field_expr(field);
             struct parser_expr *val = default_value(field->type);
             dflt = dflt->next = parser_new_element_expr(fld, val);
         }
@@ -686,20 +686,20 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
     if (parser_is_ptr_type(base->type) &&
             parser_is_struct_type(base->type->underlying)) {
         expect(p, TOK_IDENT);
-        struct parser_field *f;
-        f = parser_find_field(base->type->underlying->strct, tok_str(p));
-        return parser_new_struct_access_expr(base, parser_new_field_expr(f));
+        struct parser_struct_field *f;
+        f = parser_find_struct_field(base->type->underlying->strct, tok_str(p));
+        return parser_new_struct_access_expr(base, parser_new_struct_field_expr(f));
     }
 
     if (parser_is_struct_type(base->type)) {
         expect(p, TOK_IDENT);
         const struct parser_struct *strct = base->type->strct;
-        struct parser_field *f = parser_find_field(strct, tok_str(p));
+        struct parser_struct_field *f = parser_find_struct_field(strct, tok_str(p));
         if (!f) {
             error(p, tok_pos(p), "no field named '%s' in struct '%s'",
                     tok_str(p), strct->name);
         }
-        return parser_new_struct_access_expr(base, parser_new_field_expr(f));
+        return parser_new_struct_access_expr(base, parser_new_struct_field_expr(f));
     }
 
     if (parser_is_enum_type(base->type)) {
@@ -1588,10 +1588,10 @@ static struct parser_expr *default_struct_lit(const struct parser_type *type)
 
     for (int i = 0; i < strct->fields.len; i++) {
 
-        struct parser_field *field = parser_struct_get_field(strct, i);
+        struct parser_struct_field *field = parser_get_struct_field(strct, i);
 
         if (parser_is_array_type(field->type)) {
-            struct parser_expr *f = parser_new_field_expr(field);
+            struct parser_expr *f = parser_new_struct_field_expr(field);
             struct parser_expr *e = parser_new_arraylit_expr(field->type->underlying,
                     NULL, 0);
             elem = elem->next = parser_new_element_expr(f, e);
@@ -1599,7 +1599,7 @@ static struct parser_expr *default_struct_lit(const struct parser_type *type)
         }
 
         if (parser_is_struct_type(field->type)) {
-            struct parser_expr *f = parser_new_field_expr(field);
+            struct parser_expr *f = parser_new_struct_field_expr(field);
             struct parser_expr *e = default_struct_lit(field->type);
             elem = elem->next = parser_new_element_expr(f, e);
             continue;
@@ -1732,7 +1732,7 @@ static void field_list(struct parser *p, struct parser_struct *strct)
         expect(p, TOK_IDENT);
         const char *name = tok_str(p);
 
-        parser_add_field(strct, name, type_spec(p));
+        parser_add_struct_field(strct, name, type_spec(p));
         expect(p, TOK_NEWLINE);
     }
     while (consume(p, TOK_MINUS));

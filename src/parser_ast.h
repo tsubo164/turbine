@@ -2,6 +2,7 @@
 #define PARSER_AST_H
 
 #include "parser_token.h"
+#include "parser_symbol.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -26,7 +27,7 @@ enum parser_node_kind {
     NOD_STMT_BLOCK,
     /* identifier */
     NOD_EXPR_VAR,
-    NOD_EXPR_FIELD,
+    NOD_EXPR_STRUCTFIELD,
     NOD_EXPR_ENUMFIELD,
     /* literal */
     NOD_EXPR_NILLIT,
@@ -94,12 +95,6 @@ enum parser_node_kind {
 };
 
 struct parser_type;
-struct parser_symbol;
-struct parser_var;
-struct parser_func;
-struct parser_field;
-struct parser_struct;
-struct parser_enum_field;
 
 struct parser_expr {
     int kind;
@@ -115,7 +110,7 @@ struct parser_expr {
     /* identifiers */
     union {
         struct parser_var *var;
-        struct parser_field *field;
+        struct parser_struct_field *struct_field;
         struct parser_enum_field *enum_field;
         struct parser_func *func;
     };
@@ -175,7 +170,7 @@ struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
         struct parser_expr *member);
 
 struct parser_expr *parser_new_var_expr(struct parser_var *v);
-struct parser_expr *parser_new_field_expr(struct parser_field *f);
+struct parser_expr *parser_new_struct_field_expr(struct parser_struct_field *f);
 struct parser_expr *parser_new_enum_field_expr(struct parser_enum_field *f);
 struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args);
 struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);

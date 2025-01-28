@@ -103,8 +103,8 @@ static void print_expr(const struct parser_expr *e, int depth)
         printf(" \"%s\"", e->var->name);
         break;
 
-    case NOD_EXPR_FIELD:
-        printf(" \"%s\"", e->field->name);
+    case NOD_EXPR_STRUCTFIELD:
+        printf(" \"%s\"", e->struct_field->name);
         break;
 
     case NOD_EXPR_ENUMFIELD:
@@ -227,7 +227,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
             printf("[struct] \"%s\"\n", strct->name);
 
             for (int j = 0; j < strct->fields.len; j++) {
-                const struct parser_field *f = strct->fields.data[j];
+                const struct parser_struct_field *f = strct->fields.data[j];
                 print_header(depth + 1);
                 printf("[field] \"%s\" @%d %s\n",
                         f->name, f->offset, parser_type_string(f->type));

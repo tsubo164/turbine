@@ -75,9 +75,9 @@ int builtin_define_module_math(struct parser_scope *scope)
         const char *name = data_string_intern("Vec3");
         struct parser_struct *strct = parser_define_struct(mod->scope, name);
 
-        parser_add_field(strct, data_string_intern("x"), parser_new_float_type());
-        parser_add_field(strct, data_string_intern("y"), parser_new_float_type());
-        parser_add_field(strct, data_string_intern("z"), parser_new_float_type());
+        parser_add_struct_field(strct, data_string_intern("x"), parser_new_float_type());
+        parser_add_struct_field(strct, data_string_intern("y"), parser_new_float_type());
+        parser_add_struct_field(strct, data_string_intern("z"), parser_new_float_type());
     }
     {
         const char *name = data_string_intern("_init_math");

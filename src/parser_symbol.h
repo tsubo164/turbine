@@ -49,21 +49,21 @@ struct parser_funcvec {
 };
 
 /* struct */
-struct parser_field {
+struct parser_struct_field {
     const char *name;
     const struct parser_type *type;
     int offset;
 };
 
-struct parser_fieldvec {
-    struct parser_field **data;
+struct parser_struct_fieldvec {
+    struct parser_struct_field **data;
     int cap;
     int len;
 };
 
 struct parser_struct {
     const char *name;
-    struct parser_fieldvec fields;
+    struct parser_struct_fieldvec fields;
 };
 
 /* enum */
@@ -190,12 +190,12 @@ struct parser_struct *parser_define_struct(struct parser_scope *sc,
         const char *name);
 struct parser_struct *parser_find_struct(const struct parser_scope *sc,
         const char *name);
-struct parser_field *parser_add_field(struct parser_struct *strct,
+struct parser_struct_field *parser_add_struct_field(struct parser_struct *strct,
         const char *name, const struct parser_type *type);
-struct parser_field *parser_find_field(const struct parser_struct *strct,
+struct parser_struct_field *parser_find_struct_field(const struct parser_struct *strct,
         const char *name);
 int parser_struct_get_field_count(const struct parser_struct *s);
-struct parser_field *parser_struct_get_field(const struct parser_struct *s, int idx);
+struct parser_struct_field *parser_get_struct_field(const struct parser_struct *s, int idx);
 
 /* enum */
 struct parser_enum *parser_define_enum(struct parser_scope *sc,

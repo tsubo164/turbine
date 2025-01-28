@@ -365,8 +365,8 @@ void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t)
         int count = parser_struct_get_field_count(strct);
 
         for (int i = 0; i < count; i++) {
-            const struct parser_field *field;
-            field = parser_struct_get_field(strct, i);
+            const struct parser_struct_field *field;
+            field = parser_get_struct_field(strct, i);
             parser_typelist_push(sb, field->type);
         }
         data_strbuf_push(sb, '.');
