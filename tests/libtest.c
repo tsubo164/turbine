@@ -315,7 +315,7 @@ int main(int argc, char **argv)
     }
     {
         const char *input = 
-            "## Point\n"
+            "## Point struct\n"
             "  - x int\n"
             "  - y int\n"
             "\n"

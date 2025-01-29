@@ -1,18 +1,18 @@
 [test]
 [math]
 
-## Pos
+## Pos struct
   - x int
   - y int
 
-## Point
+## Point struct
   - x float
   - y float
 
 # length(p Point) float
   return math.sqrt(p.x * p.x + p.y * p.y)
 
-## Circle
+## Circle struct
   - center Pos
   - radius int
   - samples []int

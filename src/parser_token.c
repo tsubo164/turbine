@@ -24,6 +24,8 @@ const char *parser_get_token_string(int kind)
     [TOK_INT]           = "int",
     [TOK_FLOAT]         = "float",
     [TOK_STRING]        = "string",
+    [TOK_STRUCT]        = "struct",
+    [TOK_ENUM]          = "enum",
     [TOK_IF]            = "if",
     [TOK_ELSE]          = "or",
     [TOK_WHILE]         = "while",

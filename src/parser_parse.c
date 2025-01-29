@@ -1738,19 +1738,15 @@ static void field_list(struct parser *p, struct parser_struct *strct)
     while (consume(p, TOK_MINUS));
 }
 
-static struct parser_struct *struct_decl(struct parser *p)
+static struct parser_struct *struct_decl(struct parser *p, const struct parser_token *ident)
 {
-    expect(p, TOK_HASH2);
-    expect(p, TOK_IDENT);
+    struct parser_struct *strct = parser_define_struct(p->scope, ident->sval);
+    if (!strct)
+        error(p, ident->pos, "re-defined struct: '%s'", ident->sval);
 
-    /* struct name */
-    struct parser_struct *strct = parser_define_struct(p->scope, tok_str(p));
-    if (!strct) {
-        fprintf(stderr, "error: re-defined struct: '%s'\n", tok_str(p));
-        exit(EXIT_FAILURE);
-    }
-
+    expect(p, TOK_STRUCT);
     expect(p, TOK_NEWLINE);
+
     expect(p, TOK_BLOCKBEGIN);
     field_list(p, strct);
     expect(p, TOK_BLOCKEND);
@@ -1758,15 +1754,13 @@ static struct parser_struct *struct_decl(struct parser *p)
     return strct;
 }
 
-static struct parser_enum *enum_def(struct parser *p)
+static struct parser_enum *enum_def(struct parser *p, const struct parser_token *ident)
 {
-    expect(p, TOK_COLON2);
-    expect(p, TOK_IDENT);
+    struct parser_enum *enm = parser_define_enum(p->scope, ident->sval);
+    if (!enm)
+        error(p, ident->pos, "re-defined enum: '%s'", ident->sval);
 
-    struct parser_enum *enm = parser_define_enum(p->scope, tok_str(p));
-    if (!enm) {
-        error(p, tok_pos(p), "re-defined enum: '%s'", tok_str(p));
-    }
+    expect(p, TOK_ENUM);
     expect(p, TOK_NEWLINE);
     expect(p, TOK_BLOCKBEGIN);
 
@@ -1803,8 +1797,7 @@ static struct parser_enum *enum_def(struct parser *p)
                 parser_add_enum_value(enm, val);
             }
             else {
-                //struct parser_expr *expr = primary_expr(p);
-                struct parser_expr *expr = unary_expr(p);
+                struct parser_expr *expr = primary_expr(p);
                 /* TODO need const calc */
                 /* TODO type check */
                 if (y == 0)
@@ -1823,6 +1816,19 @@ static struct parser_enum *enum_def(struct parser *p)
     while(!consume(p, TOK_BLOCKEND));
 
     return enm;
+}
+
+static void struct_or_enum_def(struct parser *p)
+{
+    expect(p, TOK_HASH2);
+    expect(p, TOK_IDENT);
+
+    const struct parser_token *ident = curtok(p);
+
+    if (peek(p) == TOK_STRUCT)
+        struct_decl(p, ident);
+    else if (peek(p) == TOK_ENUM)
+        enum_def(p, ident);
 }
 
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope)
@@ -2125,11 +2131,7 @@ static void program(struct parser *p)
             break;
 
         case TOK_HASH2:
-            struct_decl(p);
-            break;
-
-        case TOK_COLON2:
-            enum_def(p);
+            struct_or_enum_def(p);
             break;
 
         case TOK_MINUS:

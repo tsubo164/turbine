@@ -27,7 +27,7 @@
 # bar()
   return
 
-## Point
+## Point struct
   - x int
   - y int
 
@@ -60,7 +60,7 @@
 # set_gvar() int
   _gvar_ = 119
 
-:: Color
+## Color enum
   - symbol
   - R // 0
   - G // 1
