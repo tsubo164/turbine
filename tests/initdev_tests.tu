@@ -135,7 +135,7 @@
     a = 42
     if a == 12
       b = 11
-    or
+    else
       b = 22
     test.AssertI(22, b)
 
@@ -145,7 +145,7 @@
     a = 42
     if a == 42
       b = 11
-    or
+    else
       b = 22
     test.AssertI(11, b)
 
@@ -155,7 +155,7 @@
     a = 42
     if a == 42
       b = 1
-    or
+    else
       b = 0
     test.AssertI(1, b)
 
@@ -165,7 +165,7 @@
     a = 42
     if a == 41
       b = 1
-    or
+    else
       b = 0
     test.AssertI(0, b)
 
@@ -178,7 +178,7 @@
     a = 42 // comment after vaid statement
     if a == 42
       b = 1
-    or
+    else
       b = 0
     // comment with the same indetation
     test.AssertI(1, b)
@@ -192,7 +192,7 @@
     a = 42 // comment after vaid statement
     if a == 42
       b = seven()
-    or
+    else
       b = 0
     // comment with the same indetation
     test.AssertI(7, b)
@@ -255,7 +255,7 @@
     - i int
     if 13 == 13
       i = 42
-    or
+    else
       i = 99
     test.AssertI(42, i)
 
@@ -269,7 +269,7 @@
     str = s0 + s1
     if str == "Hello, World!"
       i = 42
-    or
+    else
       i = 0
     test.AssertI(42, i)
 
@@ -277,7 +277,7 @@
     - i int
     if 42 != 42
       i = 0
-    or
+    else
       i = 11
     test.AssertI(11, i)
 

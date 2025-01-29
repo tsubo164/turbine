@@ -18,6 +18,7 @@ enum parser_token_kind {
     TOK_ENUM,
     TOK_IF,
     TOK_ELSE,
+    TOK_ELIF,
     TOK_WHILE,
     TOK_FOR,
     TOK_IN,

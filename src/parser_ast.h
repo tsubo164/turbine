@@ -10,11 +10,11 @@ enum parser_node_kind {
     /* stmt */
     NOD_STMT_NOP,
     NOD_STMT_IF,
+    NOD_STMT_ELSE,
     NOD_STMT_WHILE,
     NOD_STMT_FORNUM,
     NOD_STMT_FORARRAY,
     NOD_STMT_FORMAP,
-    NOD_STMT_ELSE,
     NOD_STMT_BREAK,
     NOD_STMT_CONTINUE,
     NOD_STMT_SWITCH,

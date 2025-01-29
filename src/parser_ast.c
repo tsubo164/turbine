@@ -15,11 +15,11 @@ const char *parser_node_string(int kind)
     /* stmt */
     [NOD_STMT_NOP]            = "nop",
     [NOD_STMT_IF]             = "if",
+    [NOD_STMT_ELSE]           = "else",
     [NOD_STMT_WHILE]          = "while",
     [NOD_STMT_FORNUM]         = "for (num)",
     [NOD_STMT_FORARRAY]       = "for (array)",
     [NOD_STMT_FORMAP]         = "for (map)",
-    [NOD_STMT_ELSE]           = "else",
     [NOD_STMT_BREAK]          = "break",
     [NOD_STMT_CONTINUE]       = "continue",
     [NOD_STMT_SWITCH]         = "switch",

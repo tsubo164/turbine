@@ -1217,21 +1217,12 @@ static struct parser_scope *new_child_scope(struct parser *p)
     return child;
 }
 
-static struct parser_stmt *or_stmt(struct parser *p)
+static struct parser_stmt *cond_clause(struct parser *p, struct parser_expr *cond)
 {
-    struct parser_expr *cond = NULL;
+    struct parser_stmt *body = NULL;
 
-    if (consume(p, TOK_NEWLINE)) {
-        /* or (else) */
-        cond = NULL;
-    }
-    else {
-        /* or if (else if) */
-        cond = expression(p);
-        expect(p, TOK_NEWLINE);
-    }
-
-    struct parser_stmt *body = block_stmt(p, new_child_scope(p));
+    expect(p, TOK_NEWLINE);
+    body = block_stmt(p, new_child_scope(p));
 
     return parser_new_else_stmt(cond, body);
 }
@@ -1239,28 +1230,21 @@ static struct parser_stmt *or_stmt(struct parser *p)
 static struct parser_stmt *if_stmt(struct parser *p)
 {
     expect(p, TOK_IF);
-    struct parser_expr *cond = expression(p);
-    expect(p, TOK_NEWLINE);
-
     struct parser_stmt head = {0};
     struct parser_stmt *tail = &head;
 
-    struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    tail = tail->next = parser_new_else_stmt(cond, body);
+    tail = tail->next = cond_clause(p, expression(p));
 
-    bool endor = false;
-
-    while (!endor) {
-        if (consume(p, TOK_ELSE)) {
-            if (peek(p) == TOK_NEWLINE) {
-                /* last 'or' (else) */
-                endor = true;
-            }
-
-            tail = tail->next = or_stmt(p);
+    while (true) {
+        if (consume(p, TOK_ELIF)) {
+            tail = tail->next = cond_clause(p, expression(p));
+        }
+        else if (consume(p, TOK_ELSE)) {
+            tail = tail->next = cond_clause(p, NULL);
+            break;
         }
         else {
-            endor = true;
+            break;
         }
     }
 

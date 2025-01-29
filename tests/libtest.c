@@ -153,7 +153,7 @@ int main(int argc, char **argv)
             "    a = 42\n"
             "    if a == 42\n"
             "        return 1\n"
-            "    or\n"
+            "    else\n"
             "        return 0\n"
             "    return 33\n"
             ;
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
             "    a = 42\n"
             "    if a == 41\n"
             "        return 1\n"
-            "    or\n"
+            "    else\n"
             "        return 0\n"
             "    return 33\n"
             ;
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
             "    a = 42 // comment after vaid statement\n"
             "    if a == 42\n"
             "        return 1\n"
-            "    or\n"
+            "    else\n"
             "        return 0\n"
             "    // comment with the same indetation\n"
             "    return 33\n"
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
             "    a = 42 // comment after vaid statement\n"
             "    if a == 42\n"
             "        return seven()\n"
-            "    or\n"
+            "    else\n"
             "        return 0\n"
             "    // comment with the same indetation\n"
             "    return 33\n"
@@ -341,7 +341,7 @@ int main(int argc, char **argv)
             "  f = 3.14\n"
             "  if f == 3.14\n"
             "    return 1\n"
-            "  or\n"
+            "  else\n"
             "    return 0\n"
             ;
 
@@ -364,7 +364,7 @@ int main(int argc, char **argv)
             "  g = 0.86\n"
             "  if f + g == 4.0\n"
             "    return 1\n"
-            "  or\n"
+            "  else\n"
             "    return 0\n"
             ;
 
@@ -376,7 +376,7 @@ int main(int argc, char **argv)
             "  - i int\n"
             "  if 13 == 13\n"
             "    i = 42\n"
-            "  or\n"
+            "  else\n"
             "    i = 99\n"
             "  return i\n"
             ;
@@ -394,7 +394,7 @@ int main(int argc, char **argv)
             "  str = s0 + s1\n"
             "  if str == \"Hello, World!\"\n"
             "    return 42\n"
-            "  or\n"
+            "  else\n"
             "    return 0\n"
             ;
 
@@ -406,7 +406,7 @@ int main(int argc, char **argv)
             "  - i int\n"
             "  if 42 != 42\n"
             "    i = 0\n"
-            "  or\n"
+            "  else\n"
             "    i = 11\n"
             "  return i\n"
             ;
