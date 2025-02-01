@@ -1495,15 +1495,19 @@ static struct parser_stmt *continue_stmt(struct parser *p)
     return parser_new_continue_stmt();
 }
 
-static struct parser_stmt *case_stmt(struct parser *p)
+static struct parser_stmt *case_stmt(struct parser *p, const struct parser_type *switch_type)
 {
     struct parser_expr conds = {0};
     struct parser_expr *cond = &conds;
 
     do {
         struct parser_expr *expr = expression(p);
-        /* TODO const int check */
         cond = cond->next = expr;
+
+        if (!parser_match_type(cond->type, switch_type)) {
+            error(p, tok_pos(p), "case expression must be of type '%s'",
+                    parser_type_string(switch_type));
+        }
     }
     while (consume(p, TOK_COMMA));
 
@@ -1532,7 +1536,10 @@ static struct parser_stmt *switch_stmt(struct parser *p)
     p->uncond_ret = false;
 
     expr = expression(p);
-    /* TODO int check */
+    if (!parser_is_int_type(expr->type) && !parser_is_enum_type(expr->type)) {
+        error(p, tok_pos(p), "switch expression must be of type 'int' or 'enum'");
+    }
+
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt head = {0};
@@ -1544,9 +1551,10 @@ static struct parser_stmt *switch_stmt(struct parser *p)
 
         if (consume(p, TOK_CASE)) {
             if (default_count > 0) {
-                error(p, tok_pos(p), "No 'case' should come after 'default'");
+                error(p, tok_pos(p),
+                        "no 'case' labels are allowed after 'default' label");
             }
-            tail = tail->next = case_stmt(p);
+            tail = tail->next = case_stmt(p, expr->type);
             uncond_ret &= p->uncond_ret;
         }
         else if (consume(p, TOK_DEFAULT)) {

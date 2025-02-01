@@ -114,6 +114,20 @@
     test.AssertS("NIL", TokenKind.NIL.symbol)
     test.AssertS("block_begin", TokenKind.BLOCKBEGIN.str)
 
+  ---
+    - i = 3
+    - c = Color.G
+    switch c
+    case Color.B
+      i = 33
+    case Color.R
+      i = 44
+    case Color.G
+      i = 55
+    default
+      nop
+    test.AssertI(55, i)
+
   print(test._test_count_, "tests done.")
 
   return 0

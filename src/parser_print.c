@@ -136,15 +136,15 @@ static void print_stmt(const struct parser_stmt *s, int depth)
     printf("%d. <%s>", depth, parser_node_string(s->kind));
     printf("\n");
 
-    /* children */
-    for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
-        print_stmt(stmt, depth + 1);
-
     print_expr(s->expr, depth + 1);
     print_stmt(s->init, depth + 1);
     print_expr(s->cond, depth + 1);
     print_stmt(s->post, depth + 1);
     print_stmt(s->body, depth + 1);
+
+    /* children */
+    for (struct parser_stmt *stmt = s->children; stmt; stmt = stmt->next)
+        print_stmt(stmt, depth + 1);
 }
 
 static void print_func(const struct parser_func *func, int depth)
