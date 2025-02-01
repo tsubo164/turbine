@@ -33,14 +33,10 @@
   else
     return i
   */
-  for i in 0..10
+  while i < 50
     print(i, "Foo")
+    i += 1
     //return i
-    if i == 9
-      return i
-    else
-      nop
-      return i - 1
 
 
-  //return i
+  return i

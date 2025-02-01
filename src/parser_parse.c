@@ -1463,16 +1463,21 @@ while_stmt ::= "while" expression "\n" block_stmt
 */
 static struct parser_stmt *while_stmt(struct parser *p)
 {
+    expect(p, TOK_WHILE);
+
     struct parser_expr *cond;
     struct parser_stmt *body;
-
-    expect(p, TOK_WHILE);
+    bool uncond_exe = p->uncond_exe;
+    p->uncond_exe = false;
+    p->uncond_ret = false;
 
     cond = expression(p);
 
     expect(p, TOK_NEWLINE);
 
     body = block_stmt(p, new_child_scope(p));
+
+    p->uncond_exe = uncond_exe;
     return parser_new_while_stmt(cond, body);
 }
 
