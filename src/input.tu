@@ -15,16 +15,21 @@
 //# foo($caller_line) int
 //  return $caller_line
 
+# foo()
+  nop
+
 # main(args []string) int
   //- a = 33
   //- f = foo
 
-  - i int
-  if 13 == 12
-    i = 42
-  elif 12 == 12
-    i = 77
-  else
-    i = 99
+  - i = 42
 
-  return i
+  if i == 41
+    return 3
+  elif i == 99
+    nop
+    return 6
+  else
+    return i
+
+  //return i

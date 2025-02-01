@@ -55,6 +55,11 @@ struct parser {
     const struct parser_search_path *paths;
 
     struct parser_module *module;
+
+    /* semantics */
+    struct parser_stmt *block_tail;
+    bool uncond_exe;
+    bool uncond_ret;
 };
 
 static void error(const struct parser *p, struct parser_pos pos, const char *fmt, ...)
@@ -1229,18 +1234,26 @@ static struct parser_stmt *cond_clause(struct parser *p, struct parser_expr *con
 
 static struct parser_stmt *if_stmt(struct parser *p)
 {
-    expect(p, TOK_IF);
     struct parser_stmt head = {0};
     struct parser_stmt *tail = &head;
+    bool uncond_ret;
+    bool uncond_exe = p->uncond_exe;
+    p->uncond_exe = false;
 
+    expect(p, TOK_IF);
     tail = tail->next = cond_clause(p, expression(p));
+    uncond_ret = p->uncond_ret;
 
     while (true) {
+        p->uncond_ret = false;
+
         if (consume(p, TOK_ELIF)) {
             tail = tail->next = cond_clause(p, expression(p));
+            uncond_ret &= p->uncond_ret;
         }
         else if (consume(p, TOK_ELSE)) {
             tail = tail->next = cond_clause(p, NULL);
+            uncond_ret &= p->uncond_ret;
             break;
         }
         else {
@@ -1248,6 +1261,8 @@ static struct parser_stmt *if_stmt(struct parser *p)
         }
     }
 
+    p->uncond_exe = uncond_exe;
+    p->uncond_ret = uncond_ret;
     return parser_new_if_stmt(head.next);
 }
 
@@ -1535,6 +1550,7 @@ static struct parser_stmt *return_stmt(struct parser *p)
                 parser_type_string(expr->type), "");
     }
 
+    p->uncond_ret = true;
     return parser_new_return_stmt(expr);
 }
 
@@ -1596,6 +1612,10 @@ static struct parser_expr *default_struct_lit(const struct parser_type *type)
 static struct parser_expr *default_value(const struct parser_type *type)
 {
     switch ((enum parser_type_kind) type->kind) {
+
+    case TYP_NIL:
+        return parser_new_nillit_expr();
+
     case TYP_BOOL:
         return parser_new_boollit_expr(false);
 
@@ -1628,7 +1648,6 @@ static struct parser_expr *default_value(const struct parser_type *type)
         /* TODO */
         return parser_new_nillit_expr();
 
-    case TYP_NIL:
     case TYP_ANY:
     case TYP_UNION:
     case TYP_TEMPLATE:
@@ -1884,6 +1903,8 @@ static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *blo
         }
     }
 
+    p->block_tail = tail;
+
     /* leave scope */
     p->scope = p->scope->parent;
     expect(p, TOK_BLOCKEND);
@@ -2007,9 +2028,27 @@ static struct parser_type *type_spec(struct parser *p)
     return type;
 }
 
+static void validate_return_stmt(struct parser *p, const struct parser_func *func)
+{
+    if (p->uncond_ret)
+        return;
+
+    const struct parser_type *ret_type = func->sig->return_type;
+    if (parser_is_nil_type(ret_type)) {
+        struct parser_expr *dflt_val = default_value(ret_type);
+        p->block_tail->next = parser_new_return_stmt(dflt_val);
+        return;
+    }
+
+    struct parser_pos end_pos = tok_pos(p);
+    end_pos.y--;
+    error(p, end_pos, "function must return a value of type: '%s'",
+            parser_type_string(ret_type));
+}
+
 /*
- * func_def = "#" identifier param_list type_spec? newline block_stmt
- */
+func_def ::= "#" identifier param_list type_spec? newline block_stmt
+*/
 static void func_def(struct parser *p)
 {
     expect(p, TOK_HASH);
@@ -2031,16 +2070,14 @@ static void func_def(struct parser *p)
 
     /* func body */
     p->func = func;
+    p->uncond_exe = true;
+    p->uncond_ret = false;
     struct parser_stmt *body = block_stmt(p, func->scope);
-    /* TODO control flow check to allow implicit return */
-    for (struct parser_stmt *s = body->children; s; s = s->next) {
-        if (!s->next) {
-            s->next = parser_new_return_stmt(NULL);
-            break;
-        }
-    }
+    validate_return_stmt(p, func);
+
     func->body = body;
     p->func = NULL;
+    p->block_tail = NULL;
 
     /* TODO remove this */
     if (!strcmp(func->name, "main"))
