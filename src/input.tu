@@ -24,6 +24,7 @@
 
   - i = 42
 
+  /*
   if i == 41
     return 3
   elif i == 99
@@ -31,5 +32,15 @@
     return 6
   else
     return i
+  */
+  for i in 0..10
+    print(i, "Foo")
+    //return i
+    if i == 9
+      return i
+    else
+      nop
+      return i - 1
+
 
   //return i

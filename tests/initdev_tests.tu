@@ -57,7 +57,7 @@
 - _gvar_ int
 - _g_ int = 39
     
-# set_gvar() int
+# set_gvar()
   _gvar_ = 119
 
 ## Color enum
