@@ -1236,13 +1236,13 @@ static struct parser_stmt *if_stmt(struct parser *p)
 {
     struct parser_stmt head = {0};
     struct parser_stmt *tail = &head;
-    bool uncond_ret;
+    bool uncond_ret = true;
     bool uncond_exe = p->uncond_exe;
     p->uncond_exe = false;
 
     expect(p, TOK_IF);
     tail = tail->next = cond_clause(p, expression(p));
-    uncond_ret = p->uncond_ret;
+    uncond_ret &= p->uncond_ret;
 
     while (true) {
         p->uncond_ret = false;
@@ -1525,7 +1525,13 @@ static struct parser_stmt *switch_stmt(struct parser *p)
 {
     expect(p, TOK_SWITCH);
 
-    struct parser_expr *expr = expression(p);
+    struct parser_expr *expr;
+    bool uncond_ret = true;
+    bool uncond_exe = p->uncond_exe;
+    p->uncond_exe = false;
+    p->uncond_ret = false;
+
+    expr = expression(p);
     /* TODO int check */
     expect(p, TOK_NEWLINE);
 
@@ -1533,28 +1539,29 @@ static struct parser_stmt *switch_stmt(struct parser *p)
     struct parser_stmt *tail = &head;
     int default_count = 0;
 
-    for (;;) {
-        const struct parser_token *tok = gettok(p);
+    while (true) {
+        p->uncond_ret = false;
 
-        switch (tok->kind) {
-
-        case TOK_CASE:
+        if (consume(p, TOK_CASE)) {
             if (default_count > 0) {
-                error(p, tok->pos, "No 'case' should come after 'default'");
+                error(p, tok_pos(p), "No 'case' should come after 'default'");
             }
             tail = tail->next = case_stmt(p);
-            break;
-
-        case TOK_DEFAULT:
+            uncond_ret &= p->uncond_ret;
+        }
+        else if (consume(p, TOK_DEFAULT)) {
             tail = tail->next = default_stmt(p);
+            uncond_ret &= p->uncond_ret;
             default_count++;
+        }
+        else {
             break;
-
-        default:
-            ungettok(p);
-            return parser_new_switch_stmt(expr, head.next);
         }
     }
+
+    p->uncond_exe = uncond_exe;
+    p->uncond_ret = uncond_ret;
+    return parser_new_switch_stmt(expr, head.next);
 }
 
 static struct parser_stmt *return_stmt(struct parser *p)

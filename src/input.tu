@@ -24,19 +24,15 @@
 
   - i = 42
 
-  /*
-  if i == 41
-    return 3
-  elif i == 99
-    nop
-    return 6
-  else
+  switch i
+  case 32
+    print("foo")
     return i
-  */
-  while i < 50
-    print(i, "Foo")
-    i += 1
-    //return i
+  case 52
+    print("boo")
+    return i
+  default
+    print("baz")
+    return i
 
-
-  return i
+  //return i
