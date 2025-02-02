@@ -16,10 +16,10 @@
 # foo()
   print("foo")
 
-# bar() int
+# bar() //int
   //return 2 * x
-  //nop
-  return 3
+  nop
+  //return 3
 
 # main(args []string) int
   - f = foo

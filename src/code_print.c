@@ -6,6 +6,7 @@
 
 void code_print_bytecode(const struct code_bytecode *code)
 {
+    /* constant pool */
     if (code_constant_pool_get_int_count(&code->const_pool) > 0) {
         printf("* constant int:\n");
         int count = code_constant_pool_get_int_count(&code->const_pool);
@@ -52,7 +53,8 @@ void code_print_bytecode(const struct code_bytecode *code)
         }
     }
 
-    /* functions */
+    /* function address */
+    printf("* function address:\n");
     struct data_intvec labels = {0};
     int64_t code_size = code_get_size(code);
 
@@ -61,15 +63,16 @@ void code_print_bytecode(const struct code_bytecode *code)
         labels.data[i] = -1;
 
     for (int i = 0; i < code->funcs.len; i++) {
-        /* TODO come up with better way */
         const struct code_function *func = &code->funcs.data[i];
-        printf("* function id:%-3d @%-4lld (%s)\n", func->id, func->addr, func->fullname);
+        printf("[%6d] %-10lld (%s)\n", func->id, func->addr, func->fullname);
 
         if (func->addr >= 0)
             labels.data[func->addr] = func->id;
     }
     printf("\n");
 
+    /* function code */
+    printf("* function code:\n");
     int64_t addr = 0;
 
     while (addr < code_size) {
@@ -94,6 +97,8 @@ void code_print_bytecode(const struct code_bytecode *code)
 
         addr += inc;
     }
+
+    data_intvec_free(&labels);
 }
 
 static void print_operand(const struct code_bytecode *code,
