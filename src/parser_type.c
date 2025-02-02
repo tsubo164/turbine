@@ -233,6 +233,9 @@ bool parser_match_type(const struct parser_type *t1, const struct parser_type *t
     if (!parser_is_union_type(t1) && parser_is_union_type(t2))
         return find_in_union(t2, t1);
 
+    if (parser_is_func_type(t1) && parser_is_func_type(t2))
+        return parser_match_func_signature(t1->func_sig, t2->func_sig);
+
     return t1->kind == t2->kind;
 }
 

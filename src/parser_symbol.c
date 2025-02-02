@@ -246,6 +246,29 @@ bool parser_require_type_sequence(const struct parser_func_sig *func_sig)
     return func_sig->is_variadic || func_sig->has_union_param;
 }
 
+bool parser_match_func_signature(const struct parser_func_sig *sig1,
+        const struct parser_func_sig *sig2)
+{
+    if (!parser_match_type(sig1->return_type, sig2->return_type))
+        return false;
+
+    int len1 = parser_required_param_count(sig1);
+    int len2 = parser_required_param_count(sig2);
+
+    if (len1 != len2)
+        return false;
+
+    for (int i = 0; i < len1; i++) {
+        const struct parser_type *t1 = parser_get_param_type(sig1, i);
+        const struct parser_type *t2 = parser_get_param_type(sig2, i);
+
+        if (!parser_match_type(t1, t2))
+            return false;
+    }
+
+    return true;
+}
+
 /* struct */
 static struct parser_struct *new_struct(const char *name)
 {

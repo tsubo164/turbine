@@ -1096,17 +1096,29 @@ static const struct parser_var *find_root_object(const struct parser_expr *e)
 static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
         const struct parser_expr *lval, const struct parser_expr *rval)
 {
-    if (!parser_match_type(lval->type, rval->type)) {
-        error(p, pos, "type mismatch: l-value '%s': r-value '%s'",
-                parser_type_string(lval->type), parser_type_string(rval->type));
-    }
-    /* TODO make new_assign_stmt() */
+    /* builtin function check first */
     if (parser_is_func_type(rval->type) && rval->type->func_sig->is_builtin) {
         assert(rval->kind == NOD_EXPR_FUNCLIT);
         struct parser_func *func = rval->func;
         error(p, pos, "builtin function can not be assigned: '%s'",
                 func->name);
     }
+
+    /* function signature check comes before type match */
+    if (parser_is_func_type(lval->type) && parser_is_func_type(rval->type)) {
+        if (!parser_match_type(lval->type, rval->type)) {
+            error(p, pos,
+                    "type mismatch: function signature does not match the expected type");
+        }
+    }
+
+    /* type check */
+    if (!parser_match_type(lval->type, rval->type)) {
+        error(p, pos, "type mismatch: l-value '%s': r-value '%s'",
+                parser_type_string(lval->type), parser_type_string(rval->type));
+    }
+
+    /* mutable check */
     if (!parser_ast_is_mutable(lval)) {
         const struct parser_var *var = find_root_object(lval);
         assert(var);
@@ -1733,20 +1745,13 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
 
     expect(p, TOK_NEWLINE);
 
+    /* define sym */
     struct parser_symbol *sym = parser_define_var(p->scope, name, type, isglobal);
-    if (!sym) {
-        error(p, ident_pos,
-                "re-defined identifier: '%s'", name);
-    }
+    if (!sym)
+        error(p, ident_pos, "re-defined identifier: '%s'", name);
     struct parser_expr *var = parser_new_var_expr(sym->var);
-    /* TODO make new_assign_stmt() */
-    if (init && parser_is_func_type(init->type) && init->type->func_sig->is_builtin) {
-        assert(init->kind == NOD_EXPR_FUNCLIT);
-        struct parser_func *func = init->func;
-        error(p, init_pos,
-                "builtin function can not be assigned: '%s'",
-                func->name);
-    }
+    semantic_check_assign_stmt(p, init_pos, var, init);
+
     return parser_new_init_stmt(var, init);
 }
 

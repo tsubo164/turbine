@@ -184,6 +184,8 @@ const struct parser_type *parser_get_param_type(const struct parser_func_sig *fu
         int index);
 int parser_required_param_count(const struct parser_func_sig *func_sig);
 bool parser_require_type_sequence(const struct parser_func_sig *func_sig);
+bool parser_match_func_signature(const struct parser_func_sig *sig1,
+        const struct parser_func_sig *sig2);
 
 /* struct */
 struct parser_struct *parser_define_struct(struct parser_scope *sc,
