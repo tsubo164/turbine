@@ -34,10 +34,10 @@
 # get_point_y(p Point) int
   return p.y
 
-# set_point_x(p *Point, x int)
+# set_point_x(p Point, x int)
   p.x = x
 
-# set_point_y(p *Point, y int)
+# set_point_y(p Point, y int)
   p.y = y
 
 - _pt_ Point
@@ -47,9 +47,6 @@
 
 // global pointer to function
 - _addfp_ = add
-
-# twice(n *int)
-  *n = *n * 2
 
 - _array_ []int = [0, 0, 0, 0]
 
@@ -700,22 +697,6 @@
     test.AssertB(true, b == false)
     test.AssertB(true, c != false)
 
-  // pointer variable
-  ---
-    - i int = 42
-    - p *int
-    p = &i
-    test.AssertI(42, *p)
-
-  // TODO disable for now. because deref store uses set_global()
-  // the result is written in global area not local register
-  // referenced by the pointer
-  // pointer argument
-  //---
-  //  - i int = 13
-  //  twice(&i)
-  //  test.AssertI(26, i)
-
   // array variable
   ---
     - a []int = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -766,16 +747,6 @@
   // global pointer to function
   ---
     test.AssertI(2222, _addfp_(19, 2203))
-
-  // TODO disable for now. because deref store uses set_global()
-  // the result is written in global area not local register
-  // referenced by the pointer
-  // local pointer to function
-  //---
-  //  - twicefp = twice
-  //  - xxxxxxxxxxxxxxxxxxxxxxxxxxxx = -128
-  //  twicefp(&xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
-  //  test.AssertI(-256, xxxxxxxxxxxxxxxxxxxxxxxxxxxx)
 
   // array initialization
   ---
@@ -853,9 +824,9 @@
     test.AssertI(37, p.x)
     test.AssertI(79, p.y)
 
-    set_point_x(&p, 19)
+    set_point_x(p, 19)
     test.AssertI(19, p.x)
-    set_point_y(&p, 4299)
+    set_point_y(p, 4299)
     test.AssertI(4299, p.y)
 
   //------------------------------

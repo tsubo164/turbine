@@ -20,7 +20,6 @@ enum parser_type_kind {
     TYP_STRUCT,
     TYP_ENUM,
     TYP_MODULE,
-    TYP_PTR,
     TYP_ANY,
     TYP_UNION,
     TYP_TEMPLATE,
@@ -61,7 +60,6 @@ struct parser_type *parser_new_map_type(const struct parser_type *underlying);
 struct parser_type *parser_new_struct_type(const struct parser_struct *s);
 struct parser_type *parser_new_enum_type(const struct parser_enum *e);
 struct parser_type *parser_new_module_type(const struct parser_module *m);
-struct parser_type *parser_new_ptr_type(const struct parser_type *underlying);
 struct parser_type *parser_new_any_type(void);
 struct parser_type *parser_new_union_type(int id);
 struct parser_type *parser_new_template_type(int id);
@@ -77,7 +75,6 @@ bool parser_is_map_type(const struct parser_type *t);
 bool parser_is_struct_type(const struct parser_type *t);
 bool parser_is_enum_type(const struct parser_type *t);
 bool parser_is_module_type(const struct parser_type *t);
-bool parser_is_ptr_type(const struct parser_type *t);
 bool parser_is_any_type(const struct parser_type *t);
 bool parser_is_union_type(const struct parser_type *t);
 bool parser_is_template_type(const struct parser_type *t);

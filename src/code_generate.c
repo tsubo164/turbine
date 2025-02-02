@@ -329,14 +329,6 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         return code_emit_store_struct(code, obj, fld, src);
     }
 
-    if (lval->kind == NOD_EXPR_DEREF) {
-        /* TODO remove */
-        int reg0 = gen_addr(code, lval);
-        int reg1 = gen_expr(code, rval);
-        code_emit_store_global(code, reg0, reg1);
-        return reg0;
-    }
-
     if (lval->kind == NOD_EXPR_MODULEACCESS) {
         /* m.a = x */
         int reg0 = gen_addr(code, lval);
@@ -644,16 +636,6 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             return code_emit_bitwise_not(code, dst, src);
         }
 
-    case NOD_EXPR_ADDRESS:
-        if (parser_is_struct_type(e->l->type)) {
-            return gen_expr(code, e->l);
-        }
-        else {
-            int src = gen_addr(code, e->l);
-            int dst = gen_dst_register1(code, src);
-            return code_emit_load_address(code, dst, src);
-        }
-
     case NOD_EXPR_POS:
         return gen_expr(code, e->l);
 
@@ -673,13 +655,6 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             int src = gen_expr(code, e->l);
             int dst = gen_dst_register1(code, src);
             return code_emit_set_if_zero(code, dst, src);
-        }
-
-    case NOD_EXPR_DEREF:
-        {
-            int src = gen_expr(code, e->l);
-            int dst = gen_dst_register1(code, src);
-            return code_emit_dereference(code, dst, src);
         }
 
     case NOD_EXPR_ASSIGN:
@@ -722,9 +697,6 @@ static int gen_addr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_MODULEACCESS:
         return gen_addr(code, e->r);
-
-    case NOD_EXPR_DEREF:
-        return gen_expr(code, e->l);
     }
 
     return -1;

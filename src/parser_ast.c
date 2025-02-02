@@ -72,8 +72,6 @@ const char *parser_node_string(int kind)
     /* unary */
     [NOD_EXPR_POS]            = "+(pos)",
     [NOD_EXPR_NEG]            = "-(neg)",
-    [NOD_EXPR_ADDRESS]        = "address",
-    [NOD_EXPR_DEREF]          = "deref",
     [NOD_EXPR_NOT]            = "~",
     [NOD_EXPR_CONV]           = "conversion",
     /* array, struct, func */
@@ -476,22 +474,6 @@ struct parser_expr *parser_new_lognot_expr(struct parser_expr *l)
 struct parser_expr *parser_new_not_expr(struct parser_expr *l)
 {
     return new_unary_expr(l, NOD_EXPR_NOT);
-}
-
-struct parser_expr *parser_new_addr_expr(struct parser_expr *l)
-{
-    struct parser_expr *e = new_expr(NOD_EXPR_ADDRESS);
-    e->type = parser_new_ptr_type(e->type);
-    e->l = l;
-    return e;
-}
-
-struct parser_expr *parser_new_deref_expr(struct parser_expr *l)
-{
-    struct parser_expr *e = new_expr(NOD_EXPR_DEREF);
-    e->type = parser_duplicate_type(l->type->underlying);
-    e->l = l;
-    return e;
 }
 
 static struct parser_expr *new_binary_expr(struct parser_expr *l, struct parser_expr *r,

@@ -20,12 +20,7 @@ bool parser_ast_is_mutable(const struct parser_expr *e)
 {
     switch (e->kind) {
     case NOD_EXPR_VAR:
-        if (e->var->is_param == true && parser_is_ptr_type(e->type))
-            return true;
         return e->var->is_param == false;
-
-    case NOD_EXPR_STRUCTACCESS:
-        return parser_ast_is_mutable(e->l);
 
     default:
         return true;

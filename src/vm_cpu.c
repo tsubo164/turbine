@@ -356,28 +356,6 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_LOADADDR:
-            {
-                int dst = inst.A;
-                int src = inst.B;
-                struct runtime_value addrval;
-
-                addrval.inum = id_to_addr(vm, src);
-                set_local(vm, dst, addrval);
-            }
-            break;
-
-        case OP_DEREF:
-            {
-                int dst = inst.A;
-                int src = inst.B;
-                struct runtime_value addrval = fetch_register_value(vm, src);
-                struct runtime_value srcval = read_stack(vm, addrval.inum);
-
-                set_local(vm, dst, srcval);
-            }
-            break;
-
         /* array, map, struct */
         case OP_NEWARRAY:
             {

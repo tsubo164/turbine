@@ -315,18 +315,6 @@ int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_
     return dst;
 }
 
-int code_emit_load_address(struct code_bytecode *code, int dst, int src)
-{
-    push_inst_ab(code, OP_LOADADDR, dst, src);
-    return dst;
-}
-
-int code_emit_dereference(struct code_bytecode *code, int dst, int src)
-{
-    push_inst_ab(code, OP_DEREF, dst, src);
-    return dst;
-}
-
 /* array, map, struct */
 int code_emit_new_array(struct code_bytecode *code, int dst, int len)
 {

@@ -20,9 +20,6 @@ enum code_opcode {
     OP_LOADSTRUCT,
     OP_STORESTRUCT,
     OP_LOADENUM,
-    /* TODO remove address operations */
-    OP_LOADADDR,
-    OP_DEREF,
     /* ------------------------------ */
     /* array, map, struct */
     OP_NEWARRAY,

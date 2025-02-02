@@ -688,14 +688,6 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
 {
     expect(p, TOK_PERIOD);
 
-    if (parser_is_ptr_type(base->type) &&
-            parser_is_struct_type(base->type->underlying)) {
-        expect(p, TOK_IDENT);
-        struct parser_struct_field *f;
-        f = parser_find_struct_field(base->type->underlying->strct, tok_str(p));
-        return parser_new_struct_access_expr(base, parser_new_struct_field_expr(f));
-    }
-
     if (parser_is_struct_type(base->type)) {
         expect(p, TOK_IDENT);
         const struct parser_struct *strct = base->type->strct;
@@ -808,18 +800,6 @@ static struct parser_expr *unary_expr(struct parser *p)
     struct parser_expr *e = NULL;
 
     switch (tok->kind) {
-
-    case TOK_ASTER:
-        e = unary_expr(p);
-        if (!parser_is_ptr_type(e->type)) {
-            error(p, tok->pos,
-                    "type mismatch: * must be used for pointer type");
-        }
-        return parser_new_deref_expr(e);
-
-    case TOK_AMPERSAND:
-        e = unary_expr(p);
-        return parser_new_addr_expr(e);
 
     case TOK_PLUS:
         e = unary_expr(p);
@@ -1130,7 +1110,7 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
     if (!parser_ast_is_mutable(lval)) {
         const struct parser_var *var = find_root_object(lval);
         assert(var);
-        error(p, pos, "parameter object can not be modified: '%s'",
+        error(p, pos, "parameter value can not be modified: '%s'",
                 var->name);
     }
 }
@@ -1674,9 +1654,6 @@ static struct parser_expr *default_value(const struct parser_type *type)
     case TYP_STRING:
         return parser_new_stringlit_expr("");
 
-    case TYP_PTR:
-        return parser_new_nillit_expr();
-
     case TYP_ARRAY:
         return parser_new_arraylit_expr(type->underlying, NULL, 0);
 
@@ -1997,16 +1974,12 @@ static void ret_type(struct parser *p, struct parser_func *func)
 }
 
 /*
- * type_spec = "bool" | "int" | "float" | "string" | identifier ("." type_spec)*
- * func_sig = "#" param_list type_spec?
- */
+type_spec = "bool" | "int" | "float" | "string" | identifier ("." type_spec)*
+func_sig = "#" param_list type_spec?
+*/
 static struct parser_type *type_spec(struct parser *p)
 {
     struct parser_type *type = NULL;
-
-    if (consume(p, TOK_ASTER)) {
-        return parser_new_ptr_type(type_spec(p));
-    }
 
     if (consume(p, TOK_LBRACK)) {
         expect(p, TOK_RBRACK);

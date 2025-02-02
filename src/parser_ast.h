@@ -67,8 +67,6 @@ enum parser_node_kind {
     /* unary */
     NOD_EXPR_POS,
     NOD_EXPR_NEG,
-    NOD_EXPR_ADDRESS,
-    NOD_EXPR_DEREF,
     NOD_EXPR_NOT,
     NOD_EXPR_CONV,
     /* array, struct, map, func */
@@ -181,8 +179,6 @@ struct parser_expr *parser_new_posi_expr(struct parser_expr *l);
 struct parser_expr *parser_new_nega_expr(struct parser_expr *l);
 struct parser_expr *parser_new_lognot_expr(struct parser_expr *l);
 struct parser_expr *parser_new_not_expr(struct parser_expr *l);
-struct parser_expr *parser_new_addr_expr(struct parser_expr *l);
-struct parser_expr *parser_new_deref_expr(struct parser_expr *l);
 
 /* binary expr */
 struct parser_expr *parser_new_add_expr(struct parser_expr *l, struct parser_expr *r);

@@ -95,13 +95,6 @@ struct parser_type *parser_new_module_type(const struct parser_module *mod)
     return t;
 }
 
-struct parser_type *parser_new_ptr_type(const struct parser_type *underlying)
-{
-    struct parser_type *t = new_type(TYP_PTR);
-    t->underlying = underlying;
-    return t;
-}
-
 struct parser_type *parser_new_any_type(void)
 {
     static struct parser_type t;
@@ -134,7 +127,6 @@ bool parser_is_map_type(const struct parser_type *t)      { return t->kind == TY
 bool parser_is_struct_type(const struct parser_type *t)   { return t->kind == TYP_STRUCT; }
 bool parser_is_enum_type(const struct parser_type *t)     { return t->kind == TYP_ENUM; }
 bool parser_is_module_type(const struct parser_type *t)   { return t->kind == TYP_MODULE; }
-bool parser_is_ptr_type(const struct parser_type *t)      { return t->kind == TYP_PTR; }
 bool parser_is_any_type(const struct parser_type *t)      { return t->kind == TYP_ANY; }
 bool parser_is_union_type(const struct parser_type *t)    { return t->kind == TYP_UNION; }
 bool parser_is_template_type(const struct parser_type *t) { return t->kind == TYP_TEMPLATE; }
@@ -161,7 +153,6 @@ static const char *type_kind_string(int kind)
     case TYP_STRUCT:   return "struct";
     case TYP_ENUM:     return "enum";
     case TYP_MODULE:   return "module";
-    case TYP_PTR:      return "*";
     case TYP_ANY:      return "any";
     case TYP_UNION:    return "union";
     case TYP_TEMPLATE: return "template";
@@ -181,9 +172,6 @@ const char *parser_type_string(const struct parser_type *t)
 
         if (parser_is_array_type(type)) {
             sprintf(buf, "[]%s", interned);
-        }
-        else if (parser_is_ptr_type(type)) {
-            sprintf(buf, "%s*", interned);
         }
         else if (parser_is_struct_type(type)) {
             sprintf(buf, "%s%s", interned, type->strct->name);
@@ -224,11 +212,6 @@ static bool find_in_union(const struct parser_type *uni, const struct parser_typ
 
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2)
 {
-    /* TODO remove this when remove ptr type */
-    if ((parser_is_ptr_type(t1) && parser_is_nil_type(t2)) ||
-        (parser_is_nil_type(t1) && parser_is_ptr_type(t2)))
-        return true;
-
     if (parser_is_any_type(t1) || parser_is_any_type(t2))
         return true;
 
@@ -293,7 +276,6 @@ static const int table[] = {
     [TYP_STRUCT]   = 'S',
     [TYP_ENUM]     = 'E',
     [TYP_MODULE]   = 'm',
-    [TYP_PTR]      = 'p',
     [TYP_ANY]      = 'a',
     [TYP_UNION]    = 'u',
     [TYP_TEMPLATE] = 't',
