@@ -59,7 +59,6 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
         int64_t addr, int id, int *imm_size);
 
 /* allocate */
-void code_emit_allocate(struct code_bytecode *code, int count);
 void code_emit_allocate_global(struct code_bytecode *code, int count);
 
 /* load, store, move */

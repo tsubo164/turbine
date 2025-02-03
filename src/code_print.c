@@ -38,7 +38,7 @@ void code_print_bytecode(const struct code_bytecode *code)
     }
 
     /* enum fields */
-    {
+    if (code_get_enum_field_count(code) > 0) {
         printf("* enum fields:\n");
         int nfields = code_get_enum_field_count(code);
         for (int i = 0; i < nfields; i++) {
@@ -173,10 +173,7 @@ void code_print_instruction(const struct code_bytecode *code,
         break;
 
     case OPERAND_A__:
-        if (inst->op == OP_ALLOCATE)
-            print_operand16(code, inst->A);
-        else
-            print_operand(code, addr, inst->A, 0, imm_size);
+        print_operand(code, addr, inst->A, 0, imm_size);
         break;
 
     case OPERAND_AB_:

@@ -220,13 +220,6 @@ static void run_cpu(struct vm_cpu *vm)
 
         switch (inst.op) {
 
-        case OP_ALLOCATE:
-            {
-                int64_t size = inst.A;
-                set_sp(vm, vm->sp + size);
-            }
-            break;
-
         case OP_ALLOCGLOBAL:
             {
                 int count = inst.BB;

@@ -195,14 +195,6 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
 }
 
 /* allocate */
-void code_emit_allocate(struct code_bytecode *code, int count)
-{
-    if (count == 0)
-        return;
-
-    push_inst_a(code, OP_ALLOCATE, count);
-}
-
 void code_emit_allocate_global(struct code_bytecode *code, int count)
 {
     if (count == 0)

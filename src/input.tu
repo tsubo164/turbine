@@ -6,27 +6,8 @@
 //[math]
 // > math
 
-## Color enum
-  - symbol , name    , val
-  - R      , "red"   , 42
-  - G      , "green" , 99
-  - B      , "blue"  , 4095
-  - A      , "alpha" , 42
-
-# foo()
-  print("foo")
-
-# bar() //int
-  //return 2 * x
-  nop
-  //return 3
+- _g_ = "global"
 
 # main(args []string) int
-  - f = foo
-  f()
-
-  f = bar
-  f()
-
-  //f = print
+  print(_g_)
   return 42
