@@ -1019,10 +1019,6 @@ static void gen_gvars(struct code_bytecode *code, const struct parser_module *mo
 
 static void gen_start_func_body(struct code_bytecode *code, const struct parser_module *mod)
 {
-    /* allocate global vars */
-    int gvar_count = mod->scope->size;
-    code_emit_allocate_global(code, gvar_count);
-
     /* TODO TEST emitting call module init functions */
     {
         for (int i = 0; i < mod->scope->syms.len; i++) {
@@ -1191,9 +1187,19 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
 
 void code_generate(struct code_bytecode *code, const struct parser_module *mod)
 {
+    /* globals */
+    code_set_global_count(code, mod->scope->size);
+
+    /* enums */
     gen_enum_values(code, mod->scope);
+
+    /* functions */
     register_functions(code, mod->scope->parent);
+
+    /* modules */
     gen_module(code, mod);
+
+    /* halt */
     code_emit_halt(code);
 }
 

@@ -29,6 +29,9 @@ struct code_bytecode {
     int curr_reg;
     int max_reg;
 
+    /* globals */
+    int global_count;
+
     /* constants */
     struct data_intstack immediate_ints;
     struct code_constant_pool const_pool;
@@ -52,14 +55,15 @@ int code_get_register_pointer(const struct code_bytecode *code);
 int code_set_register_pointer(struct code_bytecode *code, int dst);
 bool code_is_temporary_register(const struct code_bytecode *code, int id);
 
+/* globals */
+void code_set_global_count(struct code_bytecode *code, int count);
+int code_get_global_count(const struct code_bytecode *code);
+
 /* immediate value */
 bool code_is_smallint_register(int id);
 bool code_is_immediate_value(int id);
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
         int64_t addr, int id, int *imm_size);
-
-/* allocate */
-void code_emit_allocate_global(struct code_bytecode *code, int count);
 
 /* load, store, move */
 int code_emit_move(struct code_bytecode *code, int dst, int src);

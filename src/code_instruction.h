@@ -6,8 +6,6 @@
 
 enum code_opcode {
     OP_NOP,
-    /* allocate */
-    OP_ALLOCGLOBAL,
     /* load/store/move */
     OP_MOVE,
     OP_LOADGLOBAL,

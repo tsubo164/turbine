@@ -4,8 +4,6 @@
 
 static const struct code_opcode_info opecode_table[] = {
     [OP_NOP]            = { "nop",            OPERAND____ },
-    /* allocate */
-    [OP_ALLOCGLOBAL]    = { "allocglobal",    OPERAND_ABB },
     /* load, store, move */
     [OP_MOVE]           = { "move",           OPERAND_AB_ },
     [OP_LOADGLOBAL]     = { "loadglobal",     OPERAND_AB_ },

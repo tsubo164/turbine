@@ -220,13 +220,6 @@ static void run_cpu(struct vm_cpu *vm)
 
         switch (inst.op) {
 
-        case OP_ALLOCGLOBAL:
-            {
-                int count = inst.BB;
-                runtime_valuevec_resize(vm->globals, count);
-            }
-            break;
-
         case OP_MOVE:
             {
                 int dst = inst.A;
@@ -995,7 +988,10 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
     vm->eoc = code_get_size(vm->code);
 
     /* global vars */
+    int ngvars;
     vm->globals = &vm->globals__;
+    ngvars = code_get_global_count(vm->code);
+    runtime_valuevec_resize(vm->globals, ngvars);
 
     /* empty data at the bottom of stacks */
     struct runtime_value empty = {0};

@@ -104,6 +104,19 @@ bool code_is_temporary_register(const struct code_bytecode *code, int id)
     return id > code->base_reg && !code_is_immediate_value(id);
 }
 
+/* globals */
+void code_set_global_count(struct code_bytecode *code, int count)
+{
+    assert(count >= 0);
+    code->global_count = count;
+}
+
+int code_get_global_count(const struct code_bytecode *code)
+{
+    return code->global_count;
+}
+
+/* immediate value */
 bool code_is_smallint_register(int id)
 {
     return id >= IMMEDIATE_SMALLINT_BEGIN && id <= IMMEDIATE_SMALLINT_END;
@@ -192,15 +205,6 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
     }
 
     return value;
-}
-
-/* allocate */
-void code_emit_allocate_global(struct code_bytecode *code, int count)
-{
-    if (count == 0)
-        return;
-
-    push_inst_abb(code, OP_ALLOCGLOBAL, 0, count);
 }
 
 /* load, store, move */
