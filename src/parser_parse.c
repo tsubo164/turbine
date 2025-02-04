@@ -288,6 +288,38 @@ static struct parser_expr *map_lit_expr(struct parser *p)
     return parser_new_maplit_expr(elem_type, elemhead.next, len);
 }
 
+static struct parser_expr *set_lit_expr(struct parser *p)
+{
+    struct parser_expr elemhead = {0};
+    struct parser_expr *elem = &elemhead;
+    const struct parser_type *elem_type = NULL;
+    int len = 0;
+
+    expect(p, TOK_SET);
+    expect(p, TOK_LBRACE);
+
+    do {
+        struct parser_expr *val = expression(p);
+
+        if (!elem_type) {
+            elem_type = val->type;
+        }
+        else if (!parser_match_type(elem_type, val->type)) {
+            error(p, tok_pos(p),
+                    "type mismatch: first value '%s': this value '%s'",
+                    parser_type_string(elem_type),
+                    parser_type_string(val->type));
+        }
+
+        elem = elem->next = val;
+        len++;
+    }
+    while (consume(p, TOK_COMMA));
+
+    expect(p, TOK_RBRACE);
+    return parser_new_setlit_expr(elem_type, elemhead.next, len);
+}
+
 static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbol *sym)
 {
     struct parser_struct *strct = sym->strct;
@@ -487,6 +519,9 @@ static struct parser_expr *primary_expr(struct parser *p)
             expect(p, TOK_RPAREN);
             return expr;
         }
+
+    case TOK_SET:
+        return set_lit_expr(p);
 
     case TOK_IDENT:
         return ident_expr(p);
@@ -1671,6 +1706,9 @@ static struct parser_expr *default_value(const struct parser_type *type)
 
     case TYP_MAP:
         return parser_new_maplit_expr(type->underlying, NULL, 0);
+
+    case TYP_SET:
+        return parser_new_setlit_expr(type->underlying, NULL, 0);
 
     case TYP_STRUCT:
         return default_struct_lit(type);

@@ -27,6 +27,9 @@ test: all
 	@echo "[map tests]"
 	../turbine map_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[set tests]"
+	../turbine set_tests.tu
+	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[struct tests]"
 	../turbine struct_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"

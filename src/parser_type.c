@@ -74,6 +74,13 @@ struct parser_type *parser_new_map_type(const struct parser_type *underlying)
     return t;
 }
 
+struct parser_type *parser_new_set_type(const struct parser_type *underlying)
+{
+    struct parser_type *t = new_type(TYP_SET);
+    t->underlying = underlying;
+    return t;
+}
+
 struct parser_type *parser_new_struct_type(const struct parser_struct *s)
 {
     struct parser_type *t = new_type(TYP_STRUCT);
@@ -124,6 +131,7 @@ bool parser_is_string_type(const struct parser_type *t)   { return t->kind == TY
 bool parser_is_func_type(const struct parser_type *t)     { return t->kind == TYP_FUNC; }
 bool parser_is_array_type(const struct parser_type *t)    { return t->kind == TYP_ARRAY; }
 bool parser_is_map_type(const struct parser_type *t)      { return t->kind == TYP_MAP; }
+bool parser_is_set_type(const struct parser_type *t)      { return t->kind == TYP_SET; }
 bool parser_is_struct_type(const struct parser_type *t)   { return t->kind == TYP_STRUCT; }
 bool parser_is_enum_type(const struct parser_type *t)     { return t->kind == TYP_ENUM; }
 bool parser_is_module_type(const struct parser_type *t)   { return t->kind == TYP_MODULE; }
@@ -150,6 +158,7 @@ static const char *type_kind_string(int kind)
     case TYP_FUNC:     return "func";
     case TYP_ARRAY:    return "[]";
     case TYP_MAP:      return "{}";
+    case TYP_SET:      return "set{}";
     case TYP_STRUCT:   return "struct";
     case TYP_ENUM:     return "enum";
     case TYP_MODULE:   return "module";
@@ -276,7 +285,8 @@ static const int table[] = {
     [TYP_FUNC]     = 'F',
     [TYP_ARRAY]    = 'A',
     [TYP_MAP]      = 'M',
-    [TYP_STRUCT]   = 'S',
+    [TYP_SET]      = 'S',
+    [TYP_STRUCT]   = 'R',
     [TYP_ENUM]     = 'E',
     [TYP_MODULE]   = 'm',
     [TYP_ANY]      = 'a',
