@@ -144,6 +144,35 @@ static int gen_map_lit(struct code_bytecode *code,
     return dst;
 }
 
+static int gen_set_lit(struct code_bytecode *code,
+        const struct parser_expr *e, int dst_reg)
+{
+    //const struct parser_expr *elem;
+    int len = 0;
+    int dst = 0;
+
+    /* dst register */
+    if (dst_reg == -1)
+        dst = code_allocate_temporary_register(code);
+    else
+        dst = dst_reg;
+
+    /* make map */
+    len = gen_expr(code, e->l);
+    code_emit_new_set(code, dst, len);
+
+    /* set elements */
+    /*
+    for (elem = e->r; elem; elem = elem->next) {
+        int key = gen_expr(code, elem->l);
+        int src = gen_expr(code, elem->r);
+        code_emit_store_map(code, dst, key, src);
+    }
+    */
+
+    return dst;
+}
+
 static int gen_struct_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
@@ -187,6 +216,11 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
     if (e->r->kind == NOD_EXPR_MAPLIT) {
         int dst = gen_addr(code, e->l);
         return gen_map_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_SETLIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_set_lit(code, e->r, dst);
     }
 
     if (e->r->kind == NOD_EXPR_STRUCTLIT) {

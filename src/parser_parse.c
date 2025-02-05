@@ -512,6 +512,9 @@ static struct parser_expr *primary_expr(struct parser *p)
     case TOK_LBRACE:
         return map_lit_expr(p);
 
+    case TOK_SET:
+        return set_lit_expr(p);
+
     case TOK_LPAREN:
         {
             expect(p, TOK_LPAREN);
@@ -519,9 +522,6 @@ static struct parser_expr *primary_expr(struct parser *p)
             expect(p, TOK_RPAREN);
             return expr;
         }
-
-    case TOK_SET:
-        return set_lit_expr(p);
 
     case TOK_IDENT:
         return ident_expr(p);
@@ -2032,6 +2032,14 @@ static struct parser_type *type_spec(struct parser *p)
     if (consume(p, TOK_LBRACE)) {
         expect(p, TOK_RBRACE);
         return parser_new_map_type(type_spec(p));
+    }
+
+    if (consume(p, TOK_SET)) {
+        struct parser_type *underlying;
+        expect(p, TOK_LBRACE);
+        underlying = type_spec(p);
+        expect(p, TOK_RBRACE);
+        return parser_new_set_type(underlying);
     }
 
     if (consume(p, TOK_HASH)) {

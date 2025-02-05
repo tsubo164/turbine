@@ -8,6 +8,7 @@ enum runtime_object_kind {
     OBJ_STRING,
     OBJ_ARRAY,
     OBJ_MAP,
+    OBJ_SET,
     OBJ_STRUCT,
 };
 

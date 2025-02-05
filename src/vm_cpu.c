@@ -1,5 +1,6 @@
 #include "vm_cpu.h"
 #include "runtime_map.h"
+#include "runtime_set.h"
 #include "runtime_array.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
@@ -367,6 +368,20 @@ static void run_cpu(struct vm_cpu *vm)
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.map = obj};
+                set_local(vm, dst, srcobj);
+            }
+            break;
+
+        case OP_NEWSET:
+            {
+                int dst = inst.A;
+                int len = inst.B;
+                struct runtime_value lenval = fetch_register_value(vm, len);
+
+                struct runtime_set *obj = runtime_set_new(lenval.inum);
+                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+
+                struct runtime_value srcobj = {.set = obj};
                 set_local(vm, dst, srcobj);
             }
             break;

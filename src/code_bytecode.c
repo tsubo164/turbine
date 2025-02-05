@@ -311,7 +311,7 @@ int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_
     return dst;
 }
 
-/* array, map, struct */
+/* array, map, set, struct */
 int code_emit_new_array(struct code_bytecode *code, int dst, int len)
 {
     push_inst_ab(code, OP_NEWARRAY, dst, len);
@@ -321,6 +321,12 @@ int code_emit_new_array(struct code_bytecode *code, int dst, int len)
 int code_emit_new_map(struct code_bytecode *code, int dst, int len)
 {
     push_inst_ab(code, OP_NEWMAP, dst, len);
+    return dst;
+}
+
+int code_emit_new_set(struct code_bytecode *code, int dst, int len)
+{
+    push_inst_ab(code, OP_NEWSET, dst, len);
     return dst;
 }
 

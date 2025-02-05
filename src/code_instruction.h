@@ -6,7 +6,7 @@
 
 enum code_opcode {
     OP_NOP,
-    /* load/store/move */
+    /* load, store, move */
     OP_MOVE,
     OP_LOADGLOBAL,
     OP_STOREGLOBAL,
@@ -17,10 +17,10 @@ enum code_opcode {
     OP_LOADSTRUCT,
     OP_STORESTRUCT,
     OP_LOADENUM,
-    /* ------------------------------ */
-    /* array, map, struct */
+    /* array, map, set, struct */
     OP_NEWARRAY,
     OP_NEWMAP,
+    OP_NEWSET,
     OP_NEWSTRUCT,
     /* arithmetic */
     OP_ADDINT,
