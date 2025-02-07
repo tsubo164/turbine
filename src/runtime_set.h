@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 struct set_node {
-    struct runtime_value value;
+    struct runtime_value val;
     int height;
     struct set_node *l, *r;
 };
@@ -23,9 +23,8 @@ void runtime_set_free(struct runtime_set *s);
 int64_t runtime_set_len(const struct runtime_set *s);
 /*
 struct runtime_value runtime_set_get(const struct runtime_set *s, struct runtime_value key);
-void runtime_set_set(struct runtime_set *s, struct runtime_value key, struct runtime_value val);
-
 */
+void runtime_set_add(struct runtime_set *s, struct runtime_value val);
 
 /* iteration */
 /*

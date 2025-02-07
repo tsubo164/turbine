@@ -10,6 +10,11 @@
   //- s = set{11, 22, 33}
   - s set{int}
 
-  //print(setlen(s))
+
+  print("len:", setlen(s))
+
+  setadd(s, 2)
+  setadd(s, -1)
+  print("len:", setlen(s))
 
   return 42

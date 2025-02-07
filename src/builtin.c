@@ -9,6 +9,7 @@
 #include "runtime_array.h"
 #include "runtime_value.h"
 #include "runtime_map.h"
+#include "runtime_set.h"
 #include "format.h"
 
 #include <assert.h>
@@ -395,6 +396,26 @@ static int builtin_resize(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int builtin_setlen(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value val = regs->locals[0];
+
+    val.inum = runtime_set_len(val.set);
+    regs->locals[0] = val;
+
+    return RESULT_SUCCESS;
+}
+
+static int builtin_setadd(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value val = regs->locals[1];
+
+    runtime_set_add(obj.set, val);
+
+    return RESULT_SUCCESS;
+}
+
 struct native_func_param {
     const char *name;
     const struct parser_type *type;
@@ -507,6 +528,35 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_resize);
+    }
+    {
+        const char *name = "setlen";
+        struct parser_type *ret_type = parser_new_int_type();
+        struct native_func_param params[] = {
+            { "set",   parser_new_set_type(parser_new_template_type(0)) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_setlen);
+    }
+    {
+        const char *name = "setadd";
+        struct parser_type *ret_type = parser_new_int_type();
+        struct native_func_param params[] = {
+            { "set",   parser_new_set_type(parser_new_template_type(0)) },
+            { "val",   parser_new_int_type() },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_setadd);
     }
 }
 
