@@ -21,10 +21,8 @@ struct runtime_set *runtime_set_new(int64_t len);
 void runtime_set_free(struct runtime_set *s);
 
 int64_t runtime_set_len(const struct runtime_set *s);
-/*
-struct runtime_value runtime_set_get(const struct runtime_set *s, struct runtime_value key);
-*/
 void runtime_set_add(struct runtime_set *s, struct runtime_value val);
+bool runtime_set_contains(const struct runtime_set *s, struct runtime_value key);
 
 /* iteration */
 /*

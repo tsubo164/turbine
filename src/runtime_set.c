@@ -151,6 +151,25 @@ void runtime_set_add(struct runtime_set *s, struct runtime_value val)
     s->root = insert(s, s->root, val);
 }
 
+bool runtime_set_contains(const struct runtime_set *s, struct runtime_value key)
+{
+    struct set_node *node = s->root;
+
+    while (node) {
+        int cmp = comp_int(node->val, key);
+
+        if (cmp < 0)
+            node = node->l;
+        else if (cmp > 0)
+            node = node->r;
+        else
+            return true;
+    }
+
+    return false;
+}
+
+
 static void print_tree(const struct set_node *n, int depth)
 {
     if (!n)
