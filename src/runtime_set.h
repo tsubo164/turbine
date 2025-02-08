@@ -7,8 +7,8 @@
 
 struct set_node {
     struct runtime_value val;
-    int height;
     struct set_node *l, *r;
+    int height;
 };
 
 struct runtime_set {
@@ -31,5 +31,7 @@ void runtime_set_add(struct runtime_set *s, struct runtime_value val);
 struct runtime_set_entry *runtime_set_entry_begin(const struct runtime_set *s);
 struct runtime_set_entry *runtime_set_entry_next(const struct runtime_set_entry *ent);
 */
+
+void runtime_print_set_tree(const struct runtime_set *s);
 
 #endif /* _H */
