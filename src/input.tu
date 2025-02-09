@@ -7,13 +7,15 @@
 // > math
 
 # main(args []string) int
-  //- s = set{11, 22, 33}
-  - s set{int}
+  - s = set{11, 22, 33}
+  //- s set{int}
 
-  //setadd(s, 5)
-  //setadd(s, 3)
-  //setadd(s, 1)
+  print(">>>>> len:", setlen(s))
+  print("constains:", setcontains(s, 11))
+  print("constains:", setcontains(s, 22))
+  print("constains:", setcontains(s, 33))
 
+  /*
   setadd(s, 5)
   setadd(s, 7)
   setadd(s, 9)
@@ -38,5 +40,6 @@
   print("------", setremove(s, 3))
   print("------", setremove(s, 111))
   print("------", setremove(s, 40))
+  */
 
   return 42

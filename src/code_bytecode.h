@@ -185,6 +185,7 @@ int64_t code_get_next_addr(const struct code_bytecode *code);
 /* functions */
 /* TODO remove each setter/getter by exposing struct code_function? */
 int code_register_function(struct code_bytecode *code, const char *fullname, int argc);
+int code_find_builtin_function(struct code_bytecode *code, const char *name);
 
 void code_set_function_register_count(struct code_bytecode *code, int func_id);
 int code_get_function_register_count(const struct code_bytecode *code, int func_id);

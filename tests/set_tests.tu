@@ -39,6 +39,14 @@
 
   ---
     - s = set{11, 22, 33}
+    test.AssertI(3, setlen(s))
+    test.AssertB(false, setcontains(s, 4))
+    test.AssertB(true,  setcontains(s, 11))
+    test.AssertB(true,  setcontains(s, 22))
+    test.AssertB(true,  setcontains(s, 33))
+    test.AssertB(false, setremove(s, 17))
+    test.AssertB(true,  setremove(s, 22))
+    test.AssertI(2, setlen(s))
 
   print(test._test_count_, "tests done.")
 

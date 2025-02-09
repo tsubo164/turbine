@@ -574,7 +574,7 @@ void define_builtin_functions(struct parser_scope *builtin)
         struct parser_type *ret_type = parser_new_bool_type();
         struct native_func_param params[] = {
             { "set",   parser_new_set_type(parser_new_template_type(0)) },
-            { "val",   parser_new_int_type() },
+            { "val",   parser_new_template_type(0) },
             { NULL },
         };
 

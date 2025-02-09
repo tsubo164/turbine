@@ -147,7 +147,7 @@ static int gen_map_lit(struct code_bytecode *code,
 static int gen_set_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
-    //const struct parser_expr *elem;
+    const struct parser_expr *elem;
     int len = 0;
     int dst = 0;
 
@@ -162,13 +162,17 @@ static int gen_set_lit(struct code_bytecode *code,
     code_emit_new_set(code, dst, len);
 
     /* set elements */
-    /*
+    /* TODO remove code_find_builtin_function() when OP_SETADD available */
+    int64_t func_id = code_find_builtin_function(code, "setadd");
+    bool is_builtin = true;
+    int ret_reg = code_allocate_temporary_register(code);
+    int src_reg = code_allocate_temporary_register(code);
     for (elem = e->r; elem; elem = elem->next) {
-        int key = gen_expr(code, elem->l);
-        int src = gen_expr(code, elem->r);
-        code_emit_store_map(code, dst, key, src);
+        code_emit_move(code, ret_reg, dst);
+        int src = gen_expr(code, elem);
+        code_emit_move(code, src_reg, src);
+        code_emit_call_function(code, ret_reg, func_id, is_builtin);
     }
-    */
 
     return dst;
 }

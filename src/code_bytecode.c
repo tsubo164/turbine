@@ -1,6 +1,7 @@
 #include "code_bytecode.h"
 
 #include <assert.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -814,6 +815,21 @@ int code_register_function(struct code_bytecode *code, const char *fullname, int
     int new_id = code_push_function(&code->funcs, fullname, argc);
 
     return new_id;
+}
+
+int code_find_builtin_function(struct code_bytecode *code, const char *name)
+{
+    for (int i = 0; i < code->funcs.len; i++) {
+        const struct code_function *func = code_lookup_const_function(&code->funcs, i);
+
+        if (strncmp("_builtin:", func->fullname, 9))
+            continue;
+        if (strcmp(name, func->fullname + 9))
+            continue;
+        return i;
+    }
+
+    return -1;
 }
 
 void code_set_function_register_count(struct code_bytecode *code, int func_id)
