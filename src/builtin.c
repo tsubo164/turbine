@@ -410,8 +410,10 @@ static int builtin_setadd(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value obj = regs->locals[0];
     struct runtime_value val = regs->locals[1];
+    struct runtime_value ret;
 
-    runtime_set_add(obj.set, val);
+    ret.inum = runtime_set_add(obj.set, val);
+    regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
 }
@@ -423,6 +425,18 @@ static int builtin_setcontains(struct runtime_gc *gc, struct runtime_registers *
     struct runtime_value ret;
 
     ret.inum = runtime_set_contains(obj.set, key);
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
+static int builtin_setremove(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value key = regs->locals[1];
+    struct runtime_value ret;
+
+    ret.inum = runtime_set_remove(obj.set, key);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
@@ -557,7 +571,7 @@ void define_builtin_functions(struct parser_scope *builtin)
     }
     {
         const char *name = "setadd";
-        struct parser_type *ret_type = parser_new_int_type();
+        struct parser_type *ret_type = parser_new_bool_type();
         struct native_func_param params[] = {
             { "set",   parser_new_set_type(parser_new_template_type(0)) },
             { "val",   parser_new_int_type() },
@@ -584,6 +598,21 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_setcontains);
+    }
+    {
+        const char *name = "setremove";
+        struct parser_type *ret_type = parser_new_bool_type();
+        struct native_func_param params[] = {
+            { "set",   parser_new_set_type(parser_new_template_type(0)) },
+            { "key",   parser_new_template_type(0) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_setremove);
     }
 }
 

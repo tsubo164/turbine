@@ -63,7 +63,7 @@ static void update_height(struct set_node *n)
     n->height = 1 + max(height(n->l), height(n->r));
 }
 
-static struct set_node *rotate_left(struct set_node *pivot)
+static struct set_node *left_rotate(struct set_node *pivot)
 {
     struct set_node *p = pivot;
     struct set_node *r = p->r;
@@ -78,7 +78,7 @@ static struct set_node *rotate_left(struct set_node *pivot)
     return r;
 }
 
-static struct set_node *rotate_right(struct set_node *pivot)
+static struct set_node *right_rotate(struct set_node *pivot)
 {
     struct set_node *p = pivot;
     struct set_node *l = p->l;
@@ -102,7 +102,7 @@ static int comp_int(struct runtime_value val1, struct runtime_value val2)
     return 0;
 }
 
-static struct set_node *insert(struct runtime_set *s,
+static struct set_node *insert_node(struct runtime_set *s,
         struct set_node *node, struct runtime_value val)
 {
     if (!node) {
@@ -110,45 +110,118 @@ static struct set_node *insert(struct runtime_set *s,
         return new_node(val);
     }
 
-    int bf = 0;
     int cmp = comp_int(node->val, val);
 
     if (cmp < 0)
-        node->l = insert(s, node->l, val);
+        node->l = insert_node(s, node->l, val);
     else if (cmp > 0)
-        node->r = insert(s, node->r, val);
+        node->r = insert_node(s, node->r, val);
     else
         return node;
 
     update_height(node);
-    bf = balance_factor(node);
+    int bf = balance_factor(node);
 
     /* LL */
     if (bf < -1 && comp_int(node->l->val, val) < 0)
-        return rotate_right(node);
+        return right_rotate(node);
 
     /* RR */
     if (bf >  1 && comp_int(node->r->val, val) > 0)
-        return rotate_left(node);
+        return left_rotate(node);
 
     /* LR */
     if (bf < -1 && comp_int(node->l->val, val) > 0) {
-        node->l = rotate_left(node->l);
-        return rotate_right(node);
+        node->l = left_rotate(node->l);
+        return right_rotate(node);
     }
 
     /* RL */
     if (bf >  1 && comp_int(node->r->val, val) < 0) {
-        node->r = rotate_right(node->r);
-        return rotate_left(node);
+        node->r = right_rotate(node->r);
+        return left_rotate(node);
     }
 
     return node;
 }
 
-void runtime_set_add(struct runtime_set *s, struct runtime_value val)
+struct set_node *min_value_node(struct set_node *node)
 {
-    s->root = insert(s, s->root, val);
+    struct set_node *n = node;
+    while (n->l)
+        n = n->l;
+    return n;
+}
+
+static struct set_node *remove_node(struct runtime_set *s,
+        struct set_node *node, struct runtime_value key)
+{
+    if (!node)
+        return NULL;
+
+    int cmp = comp_int(node->val, key);
+
+    if (cmp < 0)
+        node->l = remove_node(s, node->l, key);
+    else if (cmp > 0)
+        node->r = remove_node(s, node->r, key);
+    else {
+        /* found key */
+        if (node->l == NULL) {
+            struct set_node *tmp = node->r;
+            free(node);
+            s->len--;
+            return tmp;
+        }
+        if (node->r == NULL) {
+            struct set_node *tmp = node->l;
+            free(node);
+            s->len--;
+            return tmp;
+        }
+        struct set_node *tmp = min_value_node(node->r);
+        node->val = tmp->val;
+        node->r = remove_node(s, node->r, tmp->val);
+    }
+
+    update_height(node);
+    int bf = balance_factor(node);
+
+    /* LL */
+    if (bf < -1 && balance_factor(node->l) < 0)
+        return right_rotate(node);
+
+    /* RR */
+    if (bf >  1 && balance_factor(node->r) > 0)
+        return left_rotate(node);
+
+    /* LR */
+    if (bf < -1 && balance_factor(node->l) > 0) {
+        node->l = left_rotate(node->l);
+        return right_rotate(node);
+    }
+
+    /* RL */
+    if (bf >  1 && balance_factor(node->r) < 0) {
+        node->r = right_rotate(node->r);
+        return left_rotate(node);
+    }
+
+    return node;
+}
+
+bool runtime_set_add(struct runtime_set *s, struct runtime_value val)
+{
+    int oldlen = runtime_set_len(s);
+    s->root = insert_node(s, s->root, val);
+    return runtime_set_len(s) == oldlen + 1;
+}
+
+bool runtime_set_remove(struct runtime_set *s, struct runtime_value key)
+{
+    int oldlen = runtime_set_len(s);
+    s->root = remove_node(s, s->root, key);
+    return runtime_set_len(s) == oldlen - 1;
 }
 
 bool runtime_set_contains(const struct runtime_set *s, struct runtime_value key)
@@ -168,7 +241,6 @@ bool runtime_set_contains(const struct runtime_set *s, struct runtime_value key)
 
     return false;
 }
-
 
 static void print_tree(const struct set_node *n, int depth)
 {

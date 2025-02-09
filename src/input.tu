@@ -27,4 +27,16 @@
   setadd(s, 50)
   setadd(s, 60)
 
+  print(setcontains(s, 4))
+  setremove(s, 4)
+  print(setcontains(s, 4))
+  setremove(s, 9)
+  setremove(s, 10)
+  setremove(s, 1)
+  setremove(s, 5)
+  print("------", setremove(s, 3))
+  print("------", setremove(s, 3))
+  print("------", setremove(s, 111))
+  print("------", setremove(s, 40))
+
   return 42
