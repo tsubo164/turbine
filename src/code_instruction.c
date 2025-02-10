@@ -73,6 +73,8 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_FORARRAYEND]    = { "forarrayend",    OPERAND_ABB },
     [OP_FORMAPBEGIN]    = { "formapbegin",    OPERAND_ABB },
     [OP_FORMAPEND]      = { "formapend",      OPERAND_ABB },
+    [OP_FORSETBEGIN]    = { "forsetbegin",    OPERAND_ABB },
+    [OP_FORSETEND]      = { "forsetend",      OPERAND_ABB },
     /* conversion */
     [OP_BOOLTOINT]      = { "booltoint",      OPERAND_AB_ },
     [OP_BOOLTOFLOAT]    = { "booltofloat",    OPERAND_AB_ },

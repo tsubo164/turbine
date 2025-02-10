@@ -7,13 +7,21 @@
 // > math
 
 # main(args []string) int
+  - m = {"Foo":13}
   - s = set{11, 22, 33}
   //- s set{int}
 
-  print(">>>>> len:", setlen(s))
-  print("constains:", setcontains(s, 11))
-  print("constains:", setcontains(s, 22))
-  print("constains:", setcontains(s, 33))
+  //print(">>>>> len:", setlen(s))
+  //print("constains:", setcontains(s, 11))
+  //print("constains:", setcontains(s, 22))
+  //print("constains:", setcontains(s, 33))
+  for val in m
+    print(val)
+
+  - x = -99
+
+  for val in s
+    print(val)
 
   /*
   setadd(s, 5)

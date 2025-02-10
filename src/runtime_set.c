@@ -154,19 +154,19 @@ struct set_node *min_value_node(struct set_node *node)
 }
 
 static struct set_node *remove_node(struct runtime_set *s,
-        struct set_node *node, struct runtime_value key)
+        struct set_node *node, struct runtime_value val)
 {
     if (!node)
         return NULL;
 
-    int cmp = comp_int(node->val, key);
+    int cmp = comp_int(node->val, val);
 
     if (cmp < 0)
-        node->l = remove_node(s, node->l, key);
+        node->l = remove_node(s, node->l, val);
     else if (cmp > 0)
-        node->r = remove_node(s, node->r, key);
+        node->r = remove_node(s, node->r, val);
     else {
-        /* found key */
+        /* found val */
         if (node->l == NULL) {
             struct set_node *tmp = node->r;
             free(node);
@@ -217,19 +217,19 @@ bool runtime_set_add(struct runtime_set *s, struct runtime_value val)
     return runtime_set_len(s) == oldlen + 1;
 }
 
-bool runtime_set_remove(struct runtime_set *s, struct runtime_value key)
+bool runtime_set_remove(struct runtime_set *s, struct runtime_value val)
 {
     int oldlen = runtime_set_len(s);
-    s->root = remove_node(s, s->root, key);
+    s->root = remove_node(s, s->root, val);
     return runtime_set_len(s) == oldlen - 1;
 }
 
-bool runtime_set_contains(const struct runtime_set *s, struct runtime_value key)
+bool runtime_set_contains(const struct runtime_set *s, struct runtime_value val)
 {
     struct set_node *node = s->root;
 
     while (node) {
-        int cmp = comp_int(node->val, key);
+        int cmp = comp_int(node->val, val);
 
         if (cmp < 0)
             node = node->l;

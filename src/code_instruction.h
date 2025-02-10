@@ -75,6 +75,8 @@ enum code_opcode {
     OP_FORARRAYEND,
     OP_FORMAPBEGIN,
     OP_FORMAPEND,
+    OP_FORSETBEGIN,
+    OP_FORSETEND,
     /* conversion */
     OP_BOOLTOINT,
     OP_BOOLTOFLOAT,

@@ -686,6 +686,20 @@ int64_t code_emit_formap_end(struct code_bytecode *code, int itr, int64_t begin)
     return operand_addr;
 }
 
+int64_t code_emit_forset_begin(struct code_bytecode *code, int itr)
+{
+    int64_t operand_addr = code_get_next_addr(code);
+    push_inst_abb(code, OP_FORSETBEGIN, itr, -1);
+    return operand_addr;
+}
+
+int64_t code_emit_forset_end(struct code_bytecode *code, int itr, int64_t begin)
+{
+    int64_t operand_addr = code_get_next_addr(code);
+    push_inst_abb(code, OP_FORSETEND, itr, begin);
+    return operand_addr;
+}
+
 /* conversion */
 int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src)
 {
