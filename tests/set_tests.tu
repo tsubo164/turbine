@@ -48,6 +48,19 @@
     test.AssertB(true,  setremove(s, 22))
     test.AssertI(2, setlen(s))
 
+  ---
+    - s set{int}
+    setadd(s, 5)
+    setadd(s, 7)
+    setadd(s, 9)
+    setadd(s, 1)
+    setadd(s, 3)
+    setadd(s, 4)
+    - sum = 0
+    for val in s
+      sum += val
+    test.AssertI(29, sum)
+
   print(test._test_count_, "tests done.")
 
   return 0

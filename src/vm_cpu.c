@@ -635,6 +635,54 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_FORSETBEGIN:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value itr = fetch_register_value(vm, src);
+                struct runtime_value idx = fetch_register_value(vm, src + 1);
+                struct runtime_value val = fetch_register_value(vm, src + 2);
+                struct runtime_value obj = fetch_register_value(vm, src + 3);
+                struct runtime_set_node *node = runtime_set_node_begin(obj.set);
+
+                if (node) {
+                    itr.data = node;
+                    idx.inum = 0;
+                    val = node->val;
+
+                    set_local(vm, src    , itr);
+                    set_local(vm, src + 1, idx);
+                    set_local(vm, src + 2, val);
+                }
+                else {
+                    set_ip(vm, dst);
+                }
+            }
+            break;
+
+        case OP_FORSETEND:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value itr = fetch_register_value(vm, src);
+                struct runtime_value idx = fetch_register_value(vm, src + 1);
+                struct runtime_value val = fetch_register_value(vm, src + 2);
+                struct runtime_set_node *node = runtime_set_node_next(itr.data);
+
+                if (node) {
+                    itr.data = node;
+                    idx.inum++;
+                    val = node->val;
+
+                    set_local(vm, src    , itr);
+                    set_local(vm, src + 1, idx);
+                    set_local(vm, src + 2, val);
+
+                    set_ip(vm, dst);
+                }
+            }
+            break;
+
 #define DO_BINOP(num0, num1, op, num2, zerocheck) \
 do { \
     int dst = inst.A; \

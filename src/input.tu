@@ -15,15 +15,14 @@
   //print("constains:", setcontains(s, 11))
   //print("constains:", setcontains(s, 22))
   //print("constains:", setcontains(s, 33))
+  /*
   for val in m
     print(val)
 
   - x = -99
+  */
 
-  for val in s
-    print(val)
 
-  /*
   setadd(s, 5)
   setadd(s, 7)
   setadd(s, 9)
@@ -36,7 +35,13 @@
   setadd(s, 40)
   setadd(s, 50)
   setadd(s, 60)
+  /*
+  */
 
+  for val in s
+    print(val)
+
+  /*
   print(setcontains(s, 4))
   setremove(s, 4)
   print(setcontains(s, 4))
