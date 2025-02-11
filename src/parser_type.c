@@ -355,6 +355,9 @@ void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t)
     else if (parser_is_map_type(t)) {
         parser_typelist_push(sb, t->underlying);
     }
+    else if (parser_is_set_type(t)) {
+        parser_typelist_push(sb, t->underlying);
+    }
     else if (parser_is_struct_type(t)) {
         const struct parser_struct *strct = t->strct;
         int count = parser_struct_get_field_count(strct);

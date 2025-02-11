@@ -61,6 +61,14 @@
       sum += val
     test.AssertI(29, sum)
 
+  ---
+    - s = set{5, 7, 9, 1, 3, 4, 10, 20, 30, 40, 50, 60}
+    test.AssertI(12,    setlen(s))
+    - sum = 0
+    for i, val in s
+      sum += i
+    test.AssertI(66, sum)
+
   print(test._test_count_, "tests done.")
 
   return 0

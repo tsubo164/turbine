@@ -38,8 +38,10 @@
   /*
   */
 
-  for val in s
-    print(val)
+  for i, val in s
+    print(i, val)
+
+  print(s)
 
   /*
   print(setcontains(s, 4))

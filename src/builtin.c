@@ -81,6 +81,24 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
         }
         return;
 
+    case TYP_SET:
+        {
+            parser_typelist_next(it);
+
+            printf("set{");
+            struct runtime_set_node *node;
+            for (node = runtime_set_node_begin(val.set);
+                    node; node = runtime_set_node_next(node)) {
+
+                print_value(node->val, it);
+
+                if (runtime_set_node_next(node))
+                    printf(", ");
+            }
+            printf("}");
+        }
+        return;
+
     case TYP_STRUCT:
         {
             int len = runtime_struct_field_count(val.strct);
