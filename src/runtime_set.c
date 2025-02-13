@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct runtime_set *runtime_set_new(int64_t len)
+struct runtime_set *runtime_set_new(int val_type, int64_t len)
 {
     struct runtime_set *s;
 
     s = calloc(1, sizeof(*s));
     s->obj.kind = OBJ_SET;
+    s->val_type = val_type;
+    s->compare = runtime_get_compare_function(s->val_type);
 
     return s;
 }
@@ -67,7 +69,7 @@ static int height(const struct runtime_set_node *n)
 
 static int balance_factor(const struct runtime_set_node *n)
 {
-    return n ? height(n->r) - height(n->l) : 0;
+    return n ? height(n->l) - height(n->r) : 0;
 }
 
 static void update_height(struct runtime_set_node *n)
@@ -105,15 +107,6 @@ static struct runtime_set_node *right_rotate(struct runtime_set_node *pivot)
     return l;
 }
 
-static int comp_int(struct runtime_value val1, struct runtime_value val2)
-{
-    if (val1.inum > val2.inum)
-        return -1;
-    if (val1.inum < val2.inum)
-        return 1;
-    return 0;
-}
-
 static struct runtime_set_node *insert_node(struct runtime_set *s,
         struct runtime_set_node *node, struct runtime_value val)
 {
@@ -124,15 +117,15 @@ static struct runtime_set_node *insert_node(struct runtime_set *s,
         if (!s->min)
             s->min = n;
         else
-            s->min = comp_int(n->val, s->min->val) > 0 ? n : s->min;
+            s->min = s->compare(n->val, s->min->val) < 0 ? n : s->min;
         return n;
     }
 
-    int cmp = comp_int(node->val, val);
+    int cmp = s->compare(node->val, val);
 
-    if (cmp < 0)
+    if (cmp > 0)
         connect_left(node, insert_node(s, node->l, val));
-    else if (cmp > 0)
+    else if (cmp < 0)
         connect_right(node, insert_node(s, node->r, val));
     else
         return node;
@@ -141,21 +134,21 @@ static struct runtime_set_node *insert_node(struct runtime_set *s,
     int bf = balance_factor(node);
 
     /* LL */
-    if (bf < -1 && comp_int(node->l->val, val) < 0)
+    if (bf >  1 && s->compare(node->l->val, val) > 0)
         return right_rotate(node);
 
     /* RR */
-    if (bf >  1 && comp_int(node->r->val, val) > 0)
+    if (bf < -1 && s->compare(node->r->val, val) < 0)
         return left_rotate(node);
 
     /* LR */
-    if (bf < -1 && comp_int(node->l->val, val) > 0) {
+    if (bf >  1 && s->compare(node->l->val, val) < 0) {
         connect_left(node, left_rotate(node->l));
         return right_rotate(node);
     }
 
     /* RL */
-    if (bf >  1 && comp_int(node->r->val, val) < 0) {
+    if (bf < -1 && s->compare(node->r->val, val) > 0) {
         connect_right(node, right_rotate(node->r));
         return left_rotate(node);
     }
@@ -177,11 +170,11 @@ static struct runtime_set_node *remove_node(struct runtime_set *s,
     if (!node)
         return NULL;
 
-    int cmp = comp_int(node->val, val);
+    int cmp = s->compare(node->val, val);
 
-    if (cmp < 0)
+    if (cmp > 0)
         connect_left(node, remove_node(s, node->l, val));
-    else if (cmp > 0)
+    else if (cmp < 0)
         connect_right(node, remove_node(s, node->r, val));
     else {
         /* found val */
@@ -206,21 +199,21 @@ static struct runtime_set_node *remove_node(struct runtime_set *s,
     int bf = balance_factor(node);
 
     /* LL */
-    if (bf < -1 && balance_factor(node->l) < 0)
+    if (bf >  1 && balance_factor(node->l) >= 0)
         return right_rotate(node);
 
     /* RR */
-    if (bf >  1 && balance_factor(node->r) > 0)
+    if (bf < -1 && balance_factor(node->r) <= 0)
         return left_rotate(node);
 
     /* LR */
-    if (bf < -1 && balance_factor(node->l) > 0) {
+    if (bf >  1 && balance_factor(node->l) < 0) {
         connect_left(node, left_rotate(node->l));
         return right_rotate(node);
     }
 
     /* RL */
-    if (bf >  1 && balance_factor(node->r) < 0) {
+    if (bf < -1 && balance_factor(node->r) > 0) {
         connect_right(node, right_rotate(node->r));
         return left_rotate(node);
     }
@@ -232,7 +225,8 @@ bool runtime_set_add(struct runtime_set *s, struct runtime_value val)
 {
     int oldlen = runtime_set_len(s);
     s->root = insert_node(s, s->root, val);
-    s->root->parent = NULL;
+    if (s->root)
+        s->root->parent = NULL;
     return runtime_set_len(s) == oldlen + 1;
 }
 
@@ -240,7 +234,8 @@ bool runtime_set_remove(struct runtime_set *s, struct runtime_value val)
 {
     int oldlen = runtime_set_len(s);
     s->root = remove_node(s, s->root, val);
-    s->root->parent = NULL;
+    if (s->root)
+        s->root->parent = NULL;
     return runtime_set_len(s) == oldlen - 1;
 }
 
@@ -249,11 +244,11 @@ bool runtime_set_contains(const struct runtime_set *s, struct runtime_value val)
     struct runtime_set_node *node = s->root;
 
     while (node) {
-        int cmp = comp_int(node->val, val);
+        int cmp = s->compare(node->val, val);
 
-        if (cmp < 0)
+        if (cmp > 0)
             node = node->l;
-        else if (cmp > 0)
+        else if (cmp < 0)
             node = node->r;
         else
             return true;

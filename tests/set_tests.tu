@@ -69,6 +69,65 @@
       sum += i
     test.AssertI(66, sum)
 
+  ---
+    - s set{string} = set{
+      "Alpha",
+      "Beta",
+      "Charlie",
+      "Delta",
+      "Echo",
+      "Foxtrot",
+      "Golf",
+      "Hotel",
+      "India",
+      "Juliet",
+      "Kilo",
+      "Lima",
+      "Mike",
+      "November",
+      "Oscar",
+      "Papa",
+      "Quebec",
+      "Romeo",
+      "Sierra",
+      "Tango",
+      "Uniform",
+      "Victor",
+      "Whiskey",
+      "X-ray",
+      "Yankee",
+      "Zebra"
+    }
+    test.AssertI(26, setlen(s))
+
+    setremove(s, "Alpha")
+    setremove(s, "Beta")
+    setremove(s, "Charlie")
+    setremove(s, "Delta")
+    setremove(s, "Echo")
+    setremove(s, "Foxtrot")
+    setremove(s, "Golf")
+    setremove(s, "Hotel")
+    setremove(s, "India")
+    setremove(s, "Juliet")
+    setremove(s, "Kilo")
+    setremove(s, "Lima")
+    setremove(s, "Mike")
+    setremove(s, "November")
+    setremove(s, "Oscar")
+    setremove(s, "Papa")
+    setremove(s, "Quebec")
+    setremove(s, "Romeo")
+    setremove(s, "Sierra")
+    setremove(s, "Tango")
+    setremove(s, "Uniform")
+    setremove(s, "Victor")
+    setremove(s, "Whiskey")
+    setremove(s, "X-ray")
+    setremove(s, "Yankee")
+    setremove(s, "Zebra")
+    test.AssertI(0, setlen(s))
+
   print(test._test_count_, "tests done.")
 
   return 0

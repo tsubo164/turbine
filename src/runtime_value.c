@@ -1,6 +1,9 @@
 #include "runtime_value.h"
-#include <stdlib.h>
+#include "runtime_string.h"
+#include <assert.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #define MIN_CAP 8
 
@@ -72,4 +75,42 @@ void runtime_valuevec_free(struct runtime_valuevec *v)
     v->data = NULL;
     v->cap = 0;
     v->len = 0;
+}
+
+static int comp_int(struct runtime_value val1, struct runtime_value val2)
+{
+    if (val1.inum < val2.inum)
+        return -1;
+    if (val1.inum > val2.inum)
+        return 1;
+    return 0;
+}
+
+static int comp_float(struct runtime_value val1, struct runtime_value val2)
+{
+    if (val1.inum < val2.inum)
+        return -1;
+    if (val1.inum > val2.inum)
+        return 1;
+    return 0;
+}
+
+static int comp_string(struct runtime_value val1, struct runtime_value val2)
+{
+    return strcmp(
+            runtime_string_get_cstr(val1.string),
+            runtime_string_get_cstr(val2.string));
+}
+
+compare_function_t runtime_get_compare_function(int val_type)
+{
+    switch (val_type) {
+    case VAL_INT:    return comp_int;
+    case VAL_FLOAT:  return comp_float;
+    case VAL_STRING: return comp_string;
+    default:
+         printf("unsupported type for comparison: %d\n", val_type);
+         assert(0);
+         return NULL;
+    }
 }

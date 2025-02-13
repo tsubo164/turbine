@@ -325,9 +325,9 @@ int code_emit_new_map(struct code_bytecode *code, int dst, int len)
     return dst;
 }
 
-int code_emit_new_set(struct code_bytecode *code, int dst, int len)
+int code_emit_new_set(struct code_bytecode *code, int dst, int type, int len)
 {
-    push_inst_ab(code, OP_NEWSET, dst, len);
+    push_inst_abc(code, OP_NEWSET, dst, type, len);
     return dst;
 }
 

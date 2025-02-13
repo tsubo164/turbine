@@ -16,10 +16,13 @@ struct runtime_set {
     struct runtime_object obj;
     struct runtime_set_node *root;
     struct runtime_set_node *min;
+    int val_type;
     int len;
+
+    compare_function_t compare;
 };
 
-struct runtime_set *runtime_set_new(int64_t len);
+struct runtime_set *runtime_set_new(int val_type, int64_t len);
 void runtime_set_free(struct runtime_set *s);
 
 int64_t runtime_set_len(const struct runtime_set *s);
