@@ -143,8 +143,20 @@ bool parser_has_template_type(const struct parser_type *t)
 {
     if (parser_is_array_type(t))
         return parser_has_template_type(t->underlying);
+    else if (parser_is_map_type(t))
+        return parser_has_template_type(t->underlying);
+    else if (parser_is_set_type(t))
+        return parser_has_template_type(t->underlying);
     else
         return parser_is_template_type(t);
+}
+
+bool parser_is_collection_type(const struct parser_type *t)
+{
+    return
+        parser_is_array_type(t) ||
+        parser_is_map_type(t) ||
+        parser_is_set_type(t);
 }
 
 static const char *type_kind_string(int kind)

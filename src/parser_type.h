@@ -82,6 +82,7 @@ bool parser_is_any_type(const struct parser_type *t);
 bool parser_is_union_type(const struct parser_type *t);
 bool parser_is_template_type(const struct parser_type *t);
 bool parser_has_template_type(const struct parser_type *t);
+bool parser_is_collection_type(const struct parser_type *t);
 
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2);
 struct parser_type *parser_duplicate_type(const struct parser_type *t);

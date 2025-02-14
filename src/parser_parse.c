@@ -149,9 +149,37 @@ static struct parser_expr *expression(struct parser *p);
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
 static struct parser_expr *default_value(const struct parser_type *type);
 
+static int instanciate_template_types(
+        const struct parser_type *param_type, const struct parser_type *arg_type,
+        const struct parser_type **instanced_types, int *instanced_count)
+{
+    if (parser_is_template_type(param_type)) {
+        int id = param_type->template_id;
+        if (id == *instanced_count) {
+            instanced_types[id] = arg_type;
+            (*instanced_count)++;
+        }
+        else if (!parser_match_type(instanced_types[id], arg_type)) {
+            return id;
+        }
+        return -1;
+    }
+    else if (parser_is_collection_type(param_type)) {
+        return instanciate_template_types(param_type->underlying, arg_type->underlying,
+                instanced_types, instanced_count);
+    }
+    else {
+        return -1;
+    }
+}
+
 static struct parser_expr *arg_list(struct parser *p,
         const struct parser_func_sig *func_sig)
 {
+    /* TODO consider using parser_typevec */
+    const struct parser_type *instanced_types[8] = {NULL};
+    int instanced_count = 0;
+
     struct parser_pos caller_pos = tok_pos(p);
     struct parser_expr arghead = {0};
     struct parser_expr *arg = &arghead;
@@ -173,7 +201,18 @@ static struct parser_expr *arg_list(struct parser *p,
             if (!param_type)
                 error(p, arg_pos, "too many arguments");
 
-            if (!parser_match_type(arg->type, param_type)) {
+            if (parser_has_template_type(param_type)) {
+                int err_id = instanciate_template_types(
+                        param_type, arg->type, instanced_types, &instanced_count);
+
+                if (err_id >= 0) {
+                    error(p, arg_pos,
+                            "type mismatch: parameter '%s': argument '%s'",
+                            parser_type_string(instanced_types[err_id]),
+                            parser_type_string(arg->type));
+                }
+            }
+            else if (!parser_match_type(arg->type, param_type)) {
                 error(p, arg_pos,
                         "type mismatch: parameter '%s': argument '%s'",
                         parser_type_string(param_type),
