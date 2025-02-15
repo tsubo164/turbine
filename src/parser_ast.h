@@ -40,6 +40,7 @@ enum parser_node_kind {
     NOD_EXPR_ARRAYLIT,
     NOD_EXPR_MAPLIT,
     NOD_EXPR_SETLIT,
+    NOD_EXPR_STACKLIT,
     NOD_EXPR_STRUCTLIT,
     NOD_EXPR_ENUMLIT,
     NOD_EXPR_MODULELIT,
@@ -152,6 +153,8 @@ struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type
 struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
 struct parser_expr *parser_new_setlit_expr(const struct parser_type *elem_type,
+        struct parser_expr *elems, int len);
+struct parser_expr *parser_new_stacklit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
 struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_type,
         struct parser_expr *fields);

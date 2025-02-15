@@ -1785,6 +1785,9 @@ static struct parser_expr *default_value(const struct parser_type *type)
     case TYP_SET:
         return parser_new_setlit_expr(type->underlying, NULL, 0);
 
+    case TYP_STACK:
+        return parser_new_stacklit_expr(type->underlying, NULL, 0);
+
     case TYP_STRUCT:
         return default_struct_lit(type);
 
@@ -2115,6 +2118,14 @@ static struct parser_type *type_spec(struct parser *p)
         underlying = type_spec(p);
         expect(p, TOK_RBRACE);
         return parser_new_set_type(underlying);
+    }
+
+    if (consume(p, TOK_STACK)) {
+        struct parser_type *underlying;
+        expect(p, TOK_LBRACE);
+        underlying = type_spec(p);
+        expect(p, TOK_RBRACE);
+        return parser_new_stack_type(underlying);
     }
 
     if (consume(p, TOK_HASH)) {

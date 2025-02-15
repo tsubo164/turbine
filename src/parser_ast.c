@@ -45,6 +45,7 @@ const char *parser_node_string(int kind)
     [NOD_EXPR_ARRAYLIT]       = "arraylit",
     [NOD_EXPR_MAPLIT]         = "maplit",
     [NOD_EXPR_SETLIT]         = "setlit",
+    [NOD_EXPR_STACKLIT]       = "stacklit",
     [NOD_EXPR_STRUCTLIT]      = "structlit",
     [NOD_EXPR_ENUMLIT]        = "enumlit",
     [NOD_EXPR_MODULELIT]      = "modulelit",
@@ -328,6 +329,16 @@ struct parser_expr *parser_new_setlit_expr(const struct parser_type *elem_type,
 {
     struct parser_expr *e = new_expr(NOD_EXPR_SETLIT);
     e->type = parser_new_set_type(elem_type);
+    e->l = parser_new_intlit_expr(len);
+    e->r = elems;
+    return e;
+}
+
+struct parser_expr *parser_new_stacklit_expr(const struct parser_type *elem_type,
+        struct parser_expr *elems, int len)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_STACKLIT);
+    e->type = parser_new_stack_type(elem_type);
     e->l = parser_new_intlit_expr(len);
     e->r = elems;
     return e;

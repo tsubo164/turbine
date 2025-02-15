@@ -156,6 +156,7 @@ static int parser_type_to_value_type(const struct parser_type *t)
     case TYP_ARRAY:    return VAL_VEC;
     case TYP_MAP:      return VAL_MAP;
     case TYP_SET:      return VAL_SET;
+    case TYP_STACK:    return VAL_STACK;
     case TYP_STRUCT:   return VAL_STRUCT;
     case TYP_ENUM:     return VAL_NIL;
     case TYP_MODULE:   return VAL_NIL;

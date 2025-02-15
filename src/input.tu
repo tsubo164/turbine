@@ -7,20 +7,6 @@
 // > math
 
 # main(args []string) int
-  - s = set{"foo", "bar", "baz", "aaa"}
-
-  //setremove(s, 42)
-  setremove(s, "bas")
-  /*
-  for val in s
-    print(val)
-
-  print(s)
-
-  setremove(s, "foo")
-  setremove(s, "bar")
-  setremove(s, "baz")
-  setremove(s, "aaa")
-  */
+  - s stack{int}
 
   return 42
