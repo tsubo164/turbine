@@ -17,11 +17,10 @@ struct runtime_stack *runtime_stack_new(int val_type, int64_t len);
 void runtime_stack_free(struct runtime_stack *s);
 
 int64_t runtime_stack_len(const struct runtime_stack *s);
-/*
-bool runtime_stack_add(struct runtime_stack *s, struct runtime_value val);
-bool runtime_stack_remove(struct runtime_stack *s, struct runtime_value val);
-bool runtime_stack_contains(const struct runtime_stack *s, struct runtime_value val);
-*/
+bool runtime_stack_empty(const struct runtime_stack *s);
+void runtime_stack_push(struct runtime_stack *s, struct runtime_value val);
+struct runtime_value runtime_stack_pop(struct runtime_stack *s);
+struct runtime_value runtime_stack_top(const struct runtime_stack *s);
 
 /* iteration */
 /*

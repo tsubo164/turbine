@@ -26,3 +26,40 @@ int64_t runtime_stack_len(const struct runtime_stack *s)
 {
     return runtime_valuevec_len(&s->values);
 }
+
+bool runtime_stack_empty(const struct runtime_stack *s)
+{
+    return runtime_valuevec_len(&s->values) == 0;
+}
+
+void runtime_stack_push(struct runtime_stack *s, struct runtime_value val)
+{
+    runtime_valuevec_push(&s->values, val);
+}
+
+struct runtime_value runtime_stack_pop(struct runtime_stack *s)
+{
+    struct runtime_valuevec *values = &s->values;
+    struct runtime_value val = {0};
+
+    if (runtime_stack_empty(s))
+        return val;
+
+    int len = runtime_valuevec_len(values);
+    val = runtime_valuevec_get(values, len - 1);
+    runtime_valuevec_resize(values, len - 1);
+
+    return val;
+}
+
+struct runtime_value runtime_stack_top(const struct runtime_stack *s)
+{
+    const struct runtime_valuevec *values = &s->values;
+    struct runtime_value val = {0};
+
+    if (runtime_stack_empty(s))
+        return val;
+
+    int len = runtime_valuevec_len(values);
+    return runtime_valuevec_get(values, len - 1);
+}

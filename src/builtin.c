@@ -7,6 +7,7 @@
 #include "runtime_string.h"
 #include "runtime_struct.h"
 #include "runtime_array.h"
+#include "runtime_stack.h"
 #include "runtime_value.h"
 #include "runtime_map.h"
 #include "runtime_set.h"
@@ -460,6 +461,26 @@ static int builtin_setremove(struct runtime_gc *gc, struct runtime_registers *re
     return RESULT_SUCCESS;
 }
 
+static int builtin_stacklen(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value val = regs->locals[0];
+
+    val.inum = runtime_stack_len(val.stack);
+    regs->locals[0] = val;
+
+    return RESULT_SUCCESS;
+}
+
+static int builtin_stackpush(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value val = regs->locals[1];
+
+    runtime_stack_push(obj.stack, val);
+
+    return RESULT_SUCCESS;
+}
+
 struct native_func_param {
     const char *name;
     const struct parser_type *type;
@@ -631,6 +652,35 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_setremove);
+    }
+    {
+        const char *name = "stacklen";
+        struct parser_type *ret_type = parser_new_int_type();
+        struct native_func_param params[] = {
+            { "stack",   parser_new_stack_type(parser_new_template_type(0)) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_stacklen);
+    }
+    {
+        const char *name = "stackpush";
+        struct parser_type *ret_type = parser_new_int_type();
+        struct native_func_param params[] = {
+            { "stack", parser_new_stack_type(parser_new_template_type(0)) },
+            { "val",   parser_new_template_type(0) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_stackpush);
     }
 }
 
