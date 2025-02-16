@@ -331,6 +331,12 @@ int code_emit_new_set(struct code_bytecode *code, int dst, int type, int len)
     return dst;
 }
 
+int code_emit_new_stack(struct code_bytecode *code, int dst, int type, int len)
+{
+    push_inst_abc(code, OP_NEWSTACK, dst, type, len);
+    return dst;
+}
+
 int code_emit_new_struct(struct code_bytecode *code, int dst, int len)
 {
     push_inst_abb(code, OP_NEWSTRUCT, dst, len);

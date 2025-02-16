@@ -181,7 +181,7 @@ static int gen_set_lit(struct code_bytecode *code,
     else
         dst = dst_reg;
 
-    /* make map */
+    /* make set */
     val_type = parser_type_to_value_type(e->type->underlying);
     len = gen_expr(code, e->l);
     code_emit_new_set(code, dst, val_type, len);
@@ -198,6 +198,44 @@ static int gen_set_lit(struct code_bytecode *code,
         code_emit_move(code, src_reg, src);
         code_emit_call_function(code, ret_reg, func_id, is_builtin);
     }
+
+    return dst;
+}
+
+static int gen_stack_lit(struct code_bytecode *code,
+        const struct parser_expr *e, int dst_reg)
+{
+    //const struct parser_expr *elem;
+    int len = 0;
+    int dst = 0;
+    int val_type = 0;
+
+    /* dst register */
+    if (dst_reg == -1)
+        dst = code_allocate_temporary_register(code);
+    else
+        dst = dst_reg;
+
+    /* make stack */
+    val_type = parser_type_to_value_type(e->type->underlying);
+    val_type = code_emit_load_int(code, val_type);
+    len = gen_expr(code, e->l);
+    code_emit_new_stack(code, dst, val_type, len);
+
+    /* set elements */
+    /* TODO remove code_find_builtin_function() when OP_SETADD available */
+    /*
+    int64_t func_id = code_find_builtin_function(code, "setadd");
+    bool is_builtin = true;
+    int ret_reg = code_allocate_temporary_register(code);
+    int src_reg = code_allocate_temporary_register(code);
+    for (elem = e->r; elem; elem = elem->next) {
+        code_emit_move(code, ret_reg, dst);
+        int src = gen_expr(code, elem);
+        code_emit_move(code, src_reg, src);
+        code_emit_call_function(code, ret_reg, func_id, is_builtin);
+    }
+    */
 
     return dst;
 }
@@ -250,6 +288,11 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
     if (e->r->kind == NOD_EXPR_SETLIT) {
         int dst = gen_addr(code, e->l);
         return gen_set_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_STACKLIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_stack_lit(code, e->r, dst);
     }
 
     if (e->r->kind == NOD_EXPR_STRUCTLIT) {

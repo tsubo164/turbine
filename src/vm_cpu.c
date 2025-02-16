@@ -1,6 +1,7 @@
 #include "vm_cpu.h"
 #include "runtime_map.h"
 #include "runtime_set.h"
+#include "runtime_stack.h"
 #include "runtime_array.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
@@ -377,12 +378,29 @@ static void run_cpu(struct vm_cpu *vm)
                 int dst = inst.A;
                 int typ = inst.B;
                 int len = inst.C;
+                /* TODO use fetch_register_value() for typ */
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
                 struct runtime_set *obj = runtime_set_new(typ, lenval.inum);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.set = obj};
+                set_local(vm, dst, srcobj);
+            }
+            break;
+
+        case OP_NEWSTACK:
+            {
+                int dst = inst.A;
+                int typ = inst.B;
+                int len = inst.C;
+                struct runtime_value typval = fetch_register_value(vm, typ);
+                struct runtime_value lenval = fetch_register_value(vm, len);
+
+                struct runtime_stack *obj = runtime_stack_new(typval.inum, lenval.inum);
+                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+
+                struct runtime_value srcobj = {.stack = obj};
                 set_local(vm, dst, srcobj);
             }
             break;

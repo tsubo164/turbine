@@ -19,6 +19,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_NEWARRAY]       = { "newarray",       OPERAND_AB_ },
     [OP_NEWMAP]         = { "newmap",         OPERAND_AB_ },
     [OP_NEWSET]         = { "newset",         OPERAND_ABC },
+    [OP_NEWSTACK]       = { "newstack",       OPERAND_ABC },
     [OP_NEWSTRUCT]      = { "newstruct",      OPERAND_ABB },
     /* arithmetic */
     [OP_ADDINT]         = { "addint",         OPERAND_ABC },

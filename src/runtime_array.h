@@ -21,4 +21,4 @@ int64_t runtime_array_len(const struct runtime_array *a);
 void runtime_array_resize(struct runtime_array *a, int64_t new_len);
 bool runtime_array_is_valid_index(const struct runtime_array *a, int64_t idx);
 
-#endif // _H
+#endif /* _H */

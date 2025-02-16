@@ -17,4 +17,4 @@ int64_t runtime_struct_field_count(const struct runtime_struct *s);
 struct runtime_value runtime_struct_get(const struct runtime_struct *s, int64_t field_idx);
 void runtime_struct_set(struct runtime_struct *s, int64_t field_idx, struct runtime_value val);
 
-#endif // _H
+#endif /* _H */

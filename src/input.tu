@@ -4,7 +4,7 @@
 //[opengl] (github.com/...)
 //[my_calc]
 //[math]
-// > math
+//> math
 
 # main(args []string) int
   - s stack{int}

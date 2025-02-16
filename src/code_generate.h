@@ -9,4 +9,4 @@ struct parser_module;
 void code_resolve_offset(struct parser_module *mod);
 void code_generate(struct code_bytecode *code, const struct parser_module *mod);
 
-#endif // _H
+#endif /* _H */

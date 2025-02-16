@@ -21,6 +21,7 @@ enum code_opcode {
     OP_NEWARRAY,
     OP_NEWMAP,
     OP_NEWSET,
+    OP_NEWSTACK,
     OP_NEWSTRUCT,
     /* arithmetic */
     OP_ADDINT,

@@ -35,4 +35,4 @@ int64_t runtime_map_len(const struct runtime_map *m);
 struct runtime_map_entry *runtime_map_entry_begin(const struct runtime_map *m);
 struct runtime_map_entry *runtime_map_entry_next(const struct runtime_map_entry *ent);
 
-#endif // _H
+#endif /* _H */
