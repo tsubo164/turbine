@@ -23,6 +23,21 @@
     test.AssertI(0, stacklen(s))
     test.AssertB(true, stackempty(s))
 
+  ---
+    - s = stack{"foo", "bar", "baz"}
+    test.AssertI(3, stacklen(s))
+    test.AssertB(false, stackempty(s))
+
+    test.AssertS("baz", stackpop(s))
+    test.AssertI(2, stacklen(s))
+
+    test.AssertS("bar", stackpop(s))
+    test.AssertI(1, stacklen(s))
+
+    test.AssertS("foo", stackpop(s))
+    test.AssertI(0, stacklen(s))
+    test.AssertB(true, stackempty(s))
+
   print(test._test_count_, "tests done.")
 
   return 0
