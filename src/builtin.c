@@ -463,10 +463,22 @@ static int builtin_setremove(struct runtime_gc *gc, struct runtime_registers *re
 
 static int builtin_stacklen(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    struct runtime_value val = regs->locals[0];
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value ret;
 
-    val.inum = runtime_stack_len(val.stack);
-    regs->locals[0] = val;
+    ret.inum = runtime_stack_len(obj.stack);
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
+static int builtin_stackempty(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value ret;
+
+    ret.inum = runtime_stack_empty(obj.stack);
+    regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
 }
@@ -477,6 +489,28 @@ static int builtin_stackpush(struct runtime_gc *gc, struct runtime_registers *re
     struct runtime_value val = regs->locals[1];
 
     runtime_stack_push(obj.stack, val);
+
+    return RESULT_SUCCESS;
+}
+
+static int builtin_stackpop(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value ret;
+
+    ret = runtime_stack_pop(obj.stack);
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
+static int builtin_stacktop(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value ret;
+
+    ret = runtime_stack_top(obj.stack);
+    regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
 }
@@ -668,8 +702,22 @@ void define_builtin_functions(struct parser_scope *builtin)
                 builtin_stacklen);
     }
     {
+        const char *name = "stackempty";
+        struct parser_type *ret_type = parser_new_bool_type();
+        struct native_func_param params[] = {
+            { "stack",   parser_new_stack_type(parser_new_template_type(0)) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_stackempty);
+    }
+    {
         const char *name = "stackpush";
-        struct parser_type *ret_type = parser_new_int_type();
+        struct parser_type *ret_type = parser_new_nil_type();
         struct native_func_param params[] = {
             { "stack", parser_new_stack_type(parser_new_template_type(0)) },
             { "val",   parser_new_template_type(0) },
@@ -681,6 +729,34 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_stackpush);
+    }
+    {
+        const char *name = "stackpop";
+        struct parser_type *ret_type = parser_new_template_type(0);
+        struct native_func_param params[] = {
+            { "stack", parser_new_stack_type(parser_new_template_type(0)) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_stackpop);
+    }
+    {
+        const char *name = "stacktop";
+        struct parser_type *ret_type = parser_new_template_type(0);
+        struct native_func_param params[] = {
+            { "stack", parser_new_stack_type(parser_new_template_type(0)) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_stacktop);
     }
 }
 
