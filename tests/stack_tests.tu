@@ -38,6 +38,21 @@
     test.AssertI(0, stacklen(s))
     test.AssertB(true, stackempty(s))
 
+  ---
+    - s = stack{"foo", "bar", "baz"}
+    - t string
+
+    for val in s
+      t = t + val
+    test.AssertS("foobarbaz", t)
+    test.AssertI(3, stacklen(s))
+
+    - sum = 0
+    for i, val in s
+      sum += i
+    test.AssertI(3, sum)
+    test.AssertI(3, stacklen(s))
+
   print(test._test_count_, "tests done.")
 
   return 0

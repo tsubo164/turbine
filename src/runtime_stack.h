@@ -22,10 +22,7 @@ void runtime_stack_push(struct runtime_stack *s, struct runtime_value val);
 struct runtime_value runtime_stack_pop(struct runtime_stack *s);
 struct runtime_value runtime_stack_top(const struct runtime_stack *s);
 
-/* iteration */
-/*
-struct runtime_stack_node *runtime_stack_node_begin(const struct runtime_stack *s);
-struct runtime_stack_node *runtime_stack_node_next(const struct runtime_stack_node *n);
-*/
+/* No index range check */
+struct runtime_value runtime_stack_get(const struct runtime_stack *s, int64_t idx);
 
 #endif /* _H */
