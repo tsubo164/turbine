@@ -61,34 +61,28 @@ void runtime_queue_push(struct runtime_queue *q, struct runtime_value val)
     q->len++;
 }
 
-/*
 struct runtime_value runtime_queue_pop(struct runtime_queue *q)
 {
-    struct runtime_valuevec *values = &q->values;
     struct runtime_value val = {0};
 
     if (runtime_queue_empty(q))
         return val;
 
-    int len = runtime_valuevec_len(values);
-    val = runtime_valuevec_get(values, len - 1);
-    runtime_valuevec_resize(values, len - 1);
-
+    val = q->data[q->front];
+    q->front = (q->front + 1) % q->cap;
+    q->len--;
     return val;
 }
 
-struct runtime_value runtime_queue_top(const struct runtime_queue *q)
+struct runtime_value runtime_queue_front(const struct runtime_queue *q)
 {
-    const struct runtime_valuevec *values = &q->values;
     struct runtime_value val = {0};
 
     if (runtime_queue_empty(q))
         return val;
 
-    int len = runtime_valuevec_len(values);
-    return runtime_valuevec_get(values, len - 1);
+    return q->data[q->front];
 }
-*/
 
 /* No index range check */
 /*

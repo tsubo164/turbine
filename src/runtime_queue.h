@@ -23,10 +23,8 @@ void runtime_queue_free(struct runtime_queue *q);
 int64_t runtime_queue_len(const struct runtime_queue *q);
 bool runtime_queue_empty(const struct runtime_queue *q);
 void runtime_queue_push(struct runtime_queue *q, struct runtime_value val);
-/*
 struct runtime_value runtime_queue_pop(struct runtime_queue *q);
-struct runtime_value runtime_queue_top(const struct runtime_queue *q);
-*/
+struct runtime_value runtime_queue_front(const struct runtime_queue *q);
 
 /* No index range check */
 //struct runtime_value runtime_queue_get(const struct runtime_queue *q, int64_t idx);
