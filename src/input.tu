@@ -7,6 +7,8 @@
 //> math
 
 # main(args []string) int
-  - s queue{int}
+  - q queue{int}
+
+  queuepush(q, 11)
 
   return 42

@@ -8,6 +8,7 @@
 #include "runtime_struct.h"
 #include "runtime_array.h"
 #include "runtime_stack.h"
+#include "runtime_queue.h"
 #include "runtime_value.h"
 #include "runtime_map.h"
 #include "runtime_set.h"
@@ -530,6 +531,27 @@ static int builtin_stacktop(struct runtime_gc *gc, struct runtime_registers *reg
     return RESULT_SUCCESS;
 }
 
+static int builtin_queuelen(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value ret;
+
+    ret.inum = runtime_queue_len(obj.queue);
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
+static int builtin_queuepush(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value val = regs->locals[1];
+
+    runtime_queue_push(obj.queue, val);
+
+    return RESULT_SUCCESS;
+}
+
 struct native_func_param {
     const char *name;
     const struct parser_type *type;
@@ -772,6 +794,35 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_stacktop);
+    }
+    {
+        const char *name = "queuelen";
+        struct parser_type *ret_type = parser_new_int_type();
+        struct native_func_param params[] = {
+            { "_queue",   parser_new_queue_type(parser_new_template_type(0)) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_queuelen);
+    }
+    {
+        const char *name = "queuepush";
+        struct parser_type *ret_type = parser_new_nil_type();
+        struct native_func_param params[] = {
+            { "queue", parser_new_queue_type(parser_new_template_type(0)) },
+            { "val",   parser_new_template_type(0) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_queuepush);
     }
 }
 
