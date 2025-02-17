@@ -2,6 +2,7 @@
 #include "runtime_map.h"
 #include "runtime_set.h"
 #include "runtime_stack.h"
+#include "runtime_queue.h"
 #include "runtime_array.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
@@ -401,6 +402,22 @@ static void run_cpu(struct vm_cpu *vm)
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.stack = obj};
+                set_local(vm, dst, srcobj);
+            }
+            break;
+
+        case OP_NEWQUEUE:
+            {
+                int dst = inst.A;
+                int typ = inst.B;
+                int len = inst.C;
+                struct runtime_value typval = fetch_register_value(vm, typ);
+                struct runtime_value lenval = fetch_register_value(vm, len);
+
+                struct runtime_queue *obj = runtime_queue_new(typval.inum, lenval.inum);
+                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+
+                struct runtime_value srcobj = {.queue = obj};
                 set_local(vm, dst, srcobj);
             }
             break;

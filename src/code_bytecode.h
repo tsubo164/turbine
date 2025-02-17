@@ -85,6 +85,7 @@ int code_emit_new_array(struct code_bytecode *code, int dst, int len);
 int code_emit_new_map(struct code_bytecode *code, int dst, int len);
 int code_emit_new_set(struct code_bytecode *code, int dst, int type, int len);
 int code_emit_new_stack(struct code_bytecode *code, int dst, int type, int len);
+int code_emit_new_queue(struct code_bytecode *code, int dst, int type, int len);
 int code_emit_new_struct(struct code_bytecode *code, int dst, int len);
 
 /* arithmetic */

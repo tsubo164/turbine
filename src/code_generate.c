@@ -239,6 +239,44 @@ static int gen_stack_lit(struct code_bytecode *code,
     return dst;
 }
 
+static int gen_queue_lit(struct code_bytecode *code,
+        const struct parser_expr *e, int dst_reg)
+{
+    //const struct parser_expr *elem;
+    int len = 0;
+    int dst = 0;
+    int val_type = 0;
+
+    /* dst register */
+    if (dst_reg == -1)
+        dst = code_allocate_temporary_register(code);
+    else
+        dst = dst_reg;
+
+    /* make queue */
+    val_type = parser_type_to_value_type(e->type->underlying);
+    val_type = code_emit_load_int(code, val_type);
+    len = gen_expr(code, e->l);
+    code_emit_new_queue(code, dst, val_type, len);
+
+    /* set elements */
+    /* TODO remove code_find_builtin_function() when OP_STACKPUSH available */
+    /*
+    int64_t func_id = code_find_builtin_function(code, "stackpush");
+    bool is_builtin = true;
+    int ret_reg = code_allocate_temporary_register(code);
+    int src_reg = code_allocate_temporary_register(code);
+    for (elem = e->r; elem; elem = elem->next) {
+        code_emit_move(code, ret_reg, dst);
+        int src = gen_expr(code, elem);
+        code_emit_move(code, src_reg, src);
+        code_emit_call_function(code, ret_reg, func_id, is_builtin);
+    }
+    */
+
+    return dst;
+}
+
 static int gen_struct_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
@@ -292,6 +330,11 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
     if (e->r->kind == NOD_EXPR_STACKLIT) {
         int dst = gen_addr(code, e->l);
         return gen_stack_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_QUEUELIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_queue_lit(code, e->r, dst);
     }
 
     if (e->r->kind == NOD_EXPR_STRUCTLIT) {

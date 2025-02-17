@@ -10,6 +10,7 @@ typedef double   value_float_t;
 struct runtime_map;
 struct runtime_set;
 struct runtime_stack;
+struct runtime_queue;
 struct runtime_array;
 struct runtime_string;
 struct runtime_struct;
@@ -36,6 +37,7 @@ struct runtime_value {
         struct runtime_map *map;
         struct runtime_set *set;
         struct runtime_stack *stack;
+        struct runtime_queue *queue;
         struct runtime_struct *strct;
         void *data;
     };
