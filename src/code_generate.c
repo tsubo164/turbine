@@ -242,7 +242,7 @@ static int gen_stack_lit(struct code_bytecode *code,
 static int gen_queue_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
-    //const struct parser_expr *elem;
+    const struct parser_expr *elem;
     int len = 0;
     int dst = 0;
     int val_type = 0;
@@ -260,9 +260,8 @@ static int gen_queue_lit(struct code_bytecode *code,
     code_emit_new_queue(code, dst, val_type, len);
 
     /* set elements */
-    /* TODO remove code_find_builtin_function() when OP_STACKPUSH available */
-    /*
-    int64_t func_id = code_find_builtin_function(code, "stackpush");
+    /* TODO remove code_find_builtin_function() when OP_QUEUEPUSH available */
+    int64_t func_id = code_find_builtin_function(code, "queuepush");
     bool is_builtin = true;
     int ret_reg = code_allocate_temporary_register(code);
     int src_reg = code_allocate_temporary_register(code);
@@ -272,7 +271,6 @@ static int gen_queue_lit(struct code_bytecode *code,
         code_emit_move(code, src_reg, src);
         code_emit_call_function(code, ret_reg, func_id, is_builtin);
     }
-    */
 
     return dst;
 }
