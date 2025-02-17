@@ -1057,6 +1057,32 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
         }
         break;
 
+    case NOD_STMT_FORQUEUE:
+        {
+            code_begin_for(code);
+
+            int idx = gen_addr(code, s->expr);
+            int obj = gen_expr(code, s->cond);
+
+            /* the collection is located 2 registers away from the iterator */
+            code_emit_move(code, idx + 2, obj);
+
+            /* begin */
+            int64_t init = code_emit_forqueue_begin(code, idx);
+            int64_t begin = code_get_next_addr(code);
+
+            /* body */
+            gen_stmt(code, s->body);
+
+            /* end */
+            code_back_patch_continues(code);
+            code_emit_forqueue_end(code, idx, begin);
+
+            code_back_patch(code, init);
+            code_back_patch_breaks(code);
+        }
+        break;
+
     case NOD_STMT_BREAK:
         {
             int64_t addr = code_emit_jump(code, -1);

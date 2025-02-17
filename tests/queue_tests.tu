@@ -42,6 +42,21 @@
     test.AssertS("baz", queuepop(q))
     test.AssertI(5, queuelen(q))
 
+  ---
+    - s = queue{"foo", "bar", "baz", "zzz"}
+    - t string
+
+    for val in s
+      t = t + val
+    test.AssertS("foobarbazzzz", t)
+    test.AssertI(4, queuelen(s))
+
+    - sum = 0
+    for i, val in s
+      sum += i
+    test.AssertI(6, sum)
+    test.AssertI(4, queuelen(s))
+
   print(test._test_count_, "tests done.")
 
   return 0

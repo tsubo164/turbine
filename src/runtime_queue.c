@@ -85,9 +85,8 @@ struct runtime_value runtime_queue_front(const struct runtime_queue *q)
 }
 
 /* No index range check */
-/*
 struct runtime_value runtime_queue_get(const struct runtime_queue *q, int64_t idx)
 {
-    return runtime_valuevec_get(&q->values, idx);
+    int64_t i = (q->front + idx) % q->cap;
+    return q->data[i];
 }
-*/

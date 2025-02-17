@@ -81,6 +81,8 @@ enum code_opcode {
     OP_FORSETEND,
     OP_FORSTACKBEGIN,
     OP_FORSTACKEND,
+    OP_FORQUEUEBEGIN,
+    OP_FORQUEUEEND,
     /* conversion */
     OP_BOOLTOINT,
     OP_BOOLTOFLOAT,

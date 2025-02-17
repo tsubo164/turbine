@@ -1616,6 +1616,38 @@ static struct parser_stmt *forstack_stmt(struct parser *p, struct parser_scope *
     return parser_new_forstack_stmt(iter, collection, body);
 }
 
+static struct parser_stmt *forqueue_stmt(struct parser *p, struct parser_scope *block_scope,
+        struct parser_expr *collection, const struct parser_token **iters, int iter_count)
+{
+    expect(p, TOK_NEWLINE);
+
+    struct parser_expr *iter = NULL;
+    struct parser_var *var = NULL;
+    struct loop_var loop_vars[] = {
+        { "_idx", parser_new_int_type() },
+        { "_val", collection->type->underlying },
+        { "_queue", collection->type },
+        { NULL }
+    };
+
+    if (iter_count == 1) {
+        loop_vars[1].name = iters[0]->sval;
+    }
+    else if (iter_count == 2) {
+        loop_vars[0].name = iters[0]->sval;
+        loop_vars[1].name = iters[1]->sval;
+    }
+    else {
+        error(p, iters[2]->pos, "too many iterators");
+    }
+
+    var = define_loop_vars(block_scope, loop_vars);
+    iter = parser_new_var_expr(var);
+
+    struct parser_stmt *body = block_stmt(p, block_scope);
+    return parser_new_forqueue_stmt(iter, collection, body);
+}
+
 /*
 for_stmt  ::= "for" iter_list "in" expression "\n" block_stmt
 iter_list ::= ident { "," ident }
@@ -1656,6 +1688,9 @@ static struct parser_stmt *for_stmt(struct parser *p)
     }
     else if (parser_is_stack_type(collection->type)) {
         fors = forstack_stmt(p, block_scope, collection, iters, iter_count);
+    }
+    else if (parser_is_queue_type(collection->type)) {
+        fors = forqueue_stmt(p, block_scope, collection, iters, iter_count);
     }
     else {
         error(p, tok_pos(p), "not an iteratable object");

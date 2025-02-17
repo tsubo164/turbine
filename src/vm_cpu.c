@@ -757,6 +757,44 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_FORQUEUEBEGIN:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value idx = {.inum = 0};
+                struct runtime_value obj = fetch_register_value(vm, src + 2);
+
+                if (idx.inum < runtime_queue_len(obj.queue)) {
+                    struct runtime_value val;
+                    val = runtime_queue_get(obj.queue, idx.inum);
+                    set_local(vm, src    , idx);
+                    set_local(vm, src + 1, val);
+                }
+                else {
+                    set_ip(vm, dst);
+                }
+            }
+            break;
+
+        case OP_FORQUEUEEND:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value idx = fetch_register_value(vm, src);
+                struct runtime_value obj = fetch_register_value(vm, src + 2);
+
+                idx.inum++;
+
+                if (idx.inum < runtime_queue_len(obj.queue)) {
+                    struct runtime_value val;
+                    val = runtime_queue_get(obj.queue, idx.inum);
+                    set_local(vm, src    , idx);
+                    set_local(vm, src + 1, val);
+                    set_ip(vm, dst);
+                }
+            }
+            break;
+
 #define DO_BINOP(num0, num1, op, num2, zerocheck) \
 do { \
     int dst = inst.A; \
