@@ -28,6 +28,7 @@ const char *parser_get_token_string(int kind)
     [TOK_ENUM]          = "enum",
     [TOK_SET]           = "set",
     [TOK_STACK]         = "stack",
+    [TOK_QUEUE]         = "queue",
     [TOK_IF]            = "if",
     [TOK_ELSE]          = "else",
     [TOK_ELIF]          = "elif",

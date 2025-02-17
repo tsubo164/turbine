@@ -7,14 +7,6 @@
 //> math
 
 # main(args []string) int
-  - s = stack{"foo", "bar", "baz"}
-  - m = {"hoge": s}
-
-  for i, val in s
-    print(i, val)
-
-  print(s)
-
-  print(m)
+  - s queue{int}
 
   return 42

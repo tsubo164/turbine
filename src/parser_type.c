@@ -88,6 +88,13 @@ struct parser_type *parser_new_stack_type(const struct parser_type *underlying)
     return t;
 }
 
+struct parser_type *parser_new_queue_type(const struct parser_type *underlying)
+{
+    struct parser_type *t = new_type(TYP_QUEUE);
+    t->underlying = underlying;
+    return t;
+}
+
 struct parser_type *parser_new_struct_type(const struct parser_struct *s)
 {
     struct parser_type *t = new_type(TYP_STRUCT);
@@ -140,6 +147,7 @@ bool parser_is_array_type(const struct parser_type *t)    { return t->kind == TY
 bool parser_is_map_type(const struct parser_type *t)      { return t->kind == TYP_MAP; }
 bool parser_is_set_type(const struct parser_type *t)      { return t->kind == TYP_SET; }
 bool parser_is_stack_type(const struct parser_type *t)    { return t->kind == TYP_STACK; }
+bool parser_is_queue_type(const struct parser_type *t)    { return t->kind == TYP_QUEUE; }
 bool parser_is_struct_type(const struct parser_type *t)   { return t->kind == TYP_STRUCT; }
 bool parser_is_enum_type(const struct parser_type *t)     { return t->kind == TYP_ENUM; }
 bool parser_is_module_type(const struct parser_type *t)   { return t->kind == TYP_MODULE; }
@@ -157,6 +165,8 @@ bool parser_has_template_type(const struct parser_type *t)
         return parser_has_template_type(t->underlying);
     else if (parser_is_stack_type(t))
         return parser_has_template_type(t->underlying);
+    else if (parser_is_queue_type(t))
+        return parser_has_template_type(t->underlying);
     else
         return parser_is_template_type(t);
 }
@@ -167,7 +177,8 @@ bool parser_is_collection_type(const struct parser_type *t)
         parser_is_array_type(t) ||
         parser_is_map_type(t) ||
         parser_is_set_type(t) ||
-        parser_is_stack_type(t);
+        parser_is_stack_type(t) ||
+        parser_is_queue_type(t);
 }
 
 static const char *type_kind_string(int kind)
@@ -183,6 +194,7 @@ static const char *type_kind_string(int kind)
     case TYP_MAP:      return "{}";
     case TYP_SET:      return "set{}";
     case TYP_STACK:    return "stack{}";
+    case TYP_QUEUE:    return "queue{}";
     case TYP_STRUCT:   return "struct";
     case TYP_ENUM:     return "enum";
     case TYP_MODULE:   return "module";
@@ -311,6 +323,7 @@ static const int table[] = {
     [TYP_MAP]      = 'M',
     [TYP_SET]      = 'T',
     [TYP_STACK]    = 'K',
+    [TYP_QUEUE]    = 'Q',
     [TYP_STRUCT]   = 'S',
     [TYP_ENUM]     = 'E',
     [TYP_MODULE]   = 'm',
@@ -384,6 +397,9 @@ void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t)
         parser_typelist_push(sb, t->underlying);
     }
     else if (parser_is_stack_type(t)) {
+        parser_typelist_push(sb, t->underlying);
+    }
+    else if (parser_is_queue_type(t)) {
         parser_typelist_push(sb, t->underlying);
     }
     else if (parser_is_struct_type(t)) {

@@ -19,6 +19,7 @@ enum parser_type_kind {
     TYP_MAP,
     TYP_SET,
     TYP_STACK,
+    TYP_QUEUE,
     TYP_STRUCT,
     TYP_ENUM,
     TYP_MODULE,
@@ -61,6 +62,7 @@ struct parser_type *parser_new_array_type(const struct parser_type *underlying);
 struct parser_type *parser_new_map_type(const struct parser_type *underlying);
 struct parser_type *parser_new_set_type(const struct parser_type *underlying);
 struct parser_type *parser_new_stack_type(const struct parser_type *underlying);
+struct parser_type *parser_new_queue_type(const struct parser_type *underlying);
 struct parser_type *parser_new_struct_type(const struct parser_struct *s);
 struct parser_type *parser_new_enum_type(const struct parser_enum *e);
 struct parser_type *parser_new_module_type(const struct parser_module *m);
@@ -78,6 +80,7 @@ bool parser_is_array_type(const struct parser_type *t);
 bool parser_is_map_type(const struct parser_type *t);
 bool parser_is_set_type(const struct parser_type *t);
 bool parser_is_stack_type(const struct parser_type *t);
+bool parser_is_queue_type(const struct parser_type *t);
 bool parser_is_struct_type(const struct parser_type *t);
 bool parser_is_enum_type(const struct parser_type *t);
 bool parser_is_module_type(const struct parser_type *t);
