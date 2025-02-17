@@ -22,4 +22,6 @@
   for i, val in q
     print(i, val)
 
+  print(q)
+
   return 42

@@ -116,6 +116,21 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
         }
         return;
 
+    case TYP_QUEUE:
+        {
+            int len = runtime_queue_len(val.queue);
+            parser_typelist_next(it);
+
+            printf("queue{");
+            for (int i = 0; i < len; i++) {
+                print_value(runtime_queue_get(val.queue, i), it);
+                if (i < len - 1)
+                    printf(", ");
+            }
+            printf("}");
+        }
+        return;
+
     case TYP_STRUCT:
         {
             int len = runtime_struct_field_count(val.strct);
