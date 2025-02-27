@@ -54,13 +54,13 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
             int len = runtime_array_len(val.array);
             parser_typelist_next(it);
 
-            printf("[");
+            printf("vec{");
             for (int i = 0; i < len; i++) {
                 print_value(runtime_array_get(val.array, i), it);
                 if (i < len - 1)
                     printf(", ");
             }
-            printf("]");
+            printf("}");
         }
         return;
 

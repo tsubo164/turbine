@@ -63,7 +63,7 @@
 
   ---
     // for array value
-    - array = [11, 23, 204, 2]
+    - array = vec{11, 23, 204, 2}
     - sum = 0
     for val in array
       sum += val
@@ -71,7 +71,7 @@
 
   ---
     // for array value and index
-    - array = [11, 23, 204, 2]
+    - array = vec{11, 23, 204, 2}
     - sum = 0
     for i, val in array
       sum += i * val

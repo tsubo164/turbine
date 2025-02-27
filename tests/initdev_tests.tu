@@ -48,7 +48,7 @@
 // global pointer to function
 - _addfp_ = add
 
-- _array_ []int = [0, 0, 0, 0]
+- _array_ vec{int} = vec{0, 0, 0, 0}
 
 - _gcount_ int
 - _gvar_ int
@@ -699,7 +699,7 @@
 
   // array variable
   ---
-    - a []int = [0, 0, 0, 0, 0, 0, 0, 0]
+    - a vec{int} = vec{0, 0, 0, 0, 0, 0, 0, 0}
     - i = 9
     a[2] = 87
     test.AssertI(87, a[2])
@@ -710,7 +710,7 @@
 
   // array variable with const expression
   ---
-    - a []int = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    - a vec{int} = vec{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
     - i = 7
     a[2] = 8
     test.AssertI(8, a[2])
@@ -750,7 +750,7 @@
 
   // array initialization
   ---
-    - a = [99, 11, 22, 33 + 9]
+    - a = vec{99, 11, 22, 33 + 9}
     test.AssertI(64, a[2] + a[3])
 
   // struct initialization

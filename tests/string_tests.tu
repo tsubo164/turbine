@@ -1,6 +1,6 @@
 [test]
 
-# main(args []string) int
+# main(args vec{string}) int
 
   ---
     - a = 42

@@ -264,7 +264,8 @@ static struct parser_expr *array_lit_expr(struct parser *p)
     const struct parser_type *elem_type = NULL;
     int len = 0;
 
-    expect(p, TOK_LBRACK);
+    expect(p, TOK_VEC);
+    expect(p, TOK_LBRACE);
 
     do {
         struct parser_expr *val = expression(p);
@@ -284,7 +285,7 @@ static struct parser_expr *array_lit_expr(struct parser *p)
     }
     while (consume(p, TOK_COMMA));
 
-    expect(p, TOK_RBRACK);
+    expect(p, TOK_RBRACE);
     return parser_new_arraylit_expr(elem_type, elemhead.next, len);
 }
 
@@ -609,7 +610,7 @@ static struct parser_expr *primary_expr(struct parser *p)
     case TOK_STRINGLIT:
         return string_lit_expr(p);
 
-    case TOK_LBRACK:
+    case TOK_VEC:
         return array_lit_expr(p);
 
     case TOK_LBRACE:
@@ -2245,9 +2246,12 @@ static struct parser_type *type_spec(struct parser *p)
 {
     struct parser_type *type = NULL;
 
-    if (consume(p, TOK_LBRACK)) {
-        expect(p, TOK_RBRACK);
-        return parser_new_array_type(type_spec(p));
+    if (consume(p, TOK_VEC)) {
+        struct parser_type *underlying;
+        expect(p, TOK_LBRACE);
+        underlying = type_spec(p);
+        expect(p, TOK_RBRACE);
+        return parser_new_array_type(underlying);
     }
 
     if (consume(p, TOK_LBRACE)) {

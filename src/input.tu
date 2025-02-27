@@ -6,22 +6,13 @@
 //[math]
 //> math
 
-# main(args []string) int
-  - q = queue{11, 22, 33}
+# main(args vec{string}) int
+  - x vec{int}
+  - v vec{vec{int}}
+  //- v = vec{11, 22, 33}
+  - y = vec { 1, 2, 3, 4 }
 
-  queuepush(q, 44)
-  queuepush(q, 55)
-  queuepush(q, 66)
-  queuepush(q, 77)
-  queuepush(q, 88)
-
-  print("...", queuepop(q))
-  print("...", queuepop(q))
-  queuepush(q, -9223)
-
-  for i, val in q
-    print(i, val)
-
-  print(q)
+  print(y)
+  print(v)
 
   return 42

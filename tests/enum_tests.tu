@@ -100,7 +100,7 @@
   // eof
   - EOF           , "EOF"
 
-# main(args []string) int
+# main(args vec{string}) int
 
   ---
     - c = Color.A

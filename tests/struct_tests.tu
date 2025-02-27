@@ -15,9 +15,9 @@
 ## Circle struct
   - center Pos
   - radius int
-  - samples []int
+  - samples vec{int}
 
-# main(args []string) int
+# main(args vec{string}) int
 
   ---
     // struct literal
@@ -50,7 +50,7 @@
 
   ---
     // array of struct
-    - positions = [Pos{}]
+    - positions = vec{Pos{}}
     test.AssertI(0, positions[0].x)
     test.AssertI(0, positions[0].y)
     positions[0].x = 123
