@@ -1,6 +1,6 @@
 #include "runtime_gc.h"
+#include "runtime_vec.h"
 #include "runtime_map.h"
-#include "runtime_array.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
 
@@ -41,7 +41,7 @@ static void print_obj(const struct runtime_object *obj)
 
     case OBJ_ARRAY:
         {
-            const struct runtime_array *a = (struct runtime_array *) obj;
+            const struct runtime_vec *a = (struct runtime_vec *) obj;
             printf("[array] => len: %d, cap: %d\n", a->values.len, a->values.cap);
         }
         break;

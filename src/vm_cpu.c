@@ -1,9 +1,9 @@
 #include "vm_cpu.h"
+#include "runtime_vec.h"
 #include "runtime_map.h"
 #include "runtime_set.h"
 #include "runtime_stack.h"
 #include "runtime_queue.h"
-#include "runtime_array.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
 #include "code_print.h"
@@ -262,7 +262,7 @@ static void run_cpu(struct vm_cpu *vm)
                 int idx = inst.C;
                 struct runtime_value srcobj = fetch_register_value(vm, src);
                 struct runtime_value idxval = fetch_register_value(vm, idx);
-                struct runtime_value srcval = runtime_array_get(srcobj.array, idxval.inum);
+                struct runtime_value srcval = runtime_vec_get(srcobj.array, idxval.inum);
 
                 set_local(vm, dst, srcval);
             }
@@ -277,7 +277,7 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value idxval = fetch_register_value(vm, idx);
                 struct runtime_value srcval = fetch_register_value(vm, src);
 
-                runtime_array_set(dstobj.array, idxval.inum, srcval);
+                runtime_vec_set(dstobj.array, idxval.inum, srcval);
             }
             break;
 
@@ -352,7 +352,7 @@ static void run_cpu(struct vm_cpu *vm)
                 int len = inst.B;
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_array *obj = runtime_array_new(lenval.inum);
+                struct runtime_vec *obj = runtime_vec_new(lenval.inum);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.array = obj};
@@ -588,8 +588,8 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value idx = {.inum = 0};
                 struct runtime_value obj = fetch_register_value(vm, src + 2);
 
-                if (idx.inum < runtime_array_len(obj.array)) {
-                    struct runtime_value val = runtime_array_get(obj.array, idx.inum);
+                if (idx.inum < runtime_vec_len(obj.array)) {
+                    struct runtime_value val = runtime_vec_get(obj.array, idx.inum);
                     set_local(vm, src + 1, val);
                     set_local(vm, src, idx);
                 }
@@ -608,8 +608,8 @@ static void run_cpu(struct vm_cpu *vm)
 
                 idx.inum++;
 
-                if (idx.inum < runtime_array_len(obj.array)) {
-                    struct runtime_value val = runtime_array_get(obj.array, idx.inum);
+                if (idx.inum < runtime_vec_len(obj.array)) {
+                    struct runtime_value val = runtime_vec_get(obj.array, idx.inum);
                     set_local(vm, src + 1, val);
                     set_local(vm, src, idx);
                     set_ip(vm, dst);
@@ -1139,16 +1139,16 @@ do { \
 
 static struct runtime_value make_args_value(struct runtime_gc *gc, const struct vm_args *args)
 {
-    struct runtime_array *array;
+    struct runtime_vec *array;
 
-    array = runtime_array_new(args->count);
+    array = runtime_vec_new(args->count);
     runtime_gc_push_object(gc, (struct runtime_object *) array);
 
     for (int i = 0; i < args->count; i++) {
         struct runtime_string *s = runtime_gc_string_new(gc, args->values[i]);
         struct runtime_value elem = {.string = s};
 
-        runtime_array_set(array, i, elem);
+        runtime_vec_set(array, i, elem);
     }
 
     struct runtime_value val = {.array = array};

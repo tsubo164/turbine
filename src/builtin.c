@@ -4,14 +4,14 @@
 #include "parser_symbol.h"
 #include "parser_type.h"
 #include "runtime_function.h"
-#include "runtime_string.h"
-#include "runtime_struct.h"
-#include "runtime_array.h"
-#include "runtime_stack.h"
-#include "runtime_queue.h"
-#include "runtime_value.h"
+#include "runtime_vec.h"
 #include "runtime_map.h"
 #include "runtime_set.h"
+#include "runtime_stack.h"
+#include "runtime_queue.h"
+#include "runtime_string.h"
+#include "runtime_struct.h"
+#include "runtime_value.h"
 #include "format.h"
 
 #include <assert.h>
@@ -51,12 +51,12 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
 
     case TYP_ARRAY:
         {
-            int len = runtime_array_len(val.array);
+            int len = runtime_vec_len(val.array);
             parser_typelist_next(it);
 
             printf("vec{");
             for (int i = 0; i < len; i++) {
-                print_value(runtime_array_get(val.array, i), it);
+                print_value(runtime_vec_get(val.array, i), it);
                 if (i < len - 1)
                     printf(", ");
             }
@@ -410,7 +410,7 @@ static int builtin_len(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value val = regs->locals[0];
 
-    val.inum = runtime_array_len(val.array);
+    val.inum = runtime_vec_len(val.array);
     regs->locals[0] = val;
 
     return RESULT_SUCCESS;
@@ -441,7 +441,7 @@ static int builtin_resize(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value val = regs->locals[0];
     struct runtime_value len = regs->locals[1];
 
-    runtime_array_resize(val.array, len.inum);
+    runtime_vec_resize(val.array, len.inum);
 
     return RESULT_SUCCESS;
 }
