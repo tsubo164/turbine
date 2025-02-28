@@ -51,12 +51,12 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
 
     case TYP_VEC:
         {
-            int len = runtime_vec_len(val.array);
+            int len = runtime_vec_len(val.vec);
             parser_typelist_next(it);
 
             printf("vec{");
             for (int i = 0; i < len; i++) {
-                print_value(runtime_vec_get(val.array, i), it);
+                print_value(runtime_vec_get(val.vec, i), it);
                 if (i < len - 1)
                     printf(", ");
             }
@@ -410,7 +410,7 @@ static int builtin_len(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value val = regs->locals[0];
 
-    val.inum = runtime_vec_len(val.array);
+    val.inum = runtime_vec_len(val.vec);
     regs->locals[0] = val;
 
     return RESULT_SUCCESS;
@@ -441,7 +441,7 @@ static int builtin_resize(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value val = regs->locals[0];
     struct runtime_value len = regs->locals[1];
 
-    runtime_vec_resize(val.array, len.inum);
+    runtime_vec_resize(val.vec, len.inum);
 
     return RESULT_SUCCESS;
 }

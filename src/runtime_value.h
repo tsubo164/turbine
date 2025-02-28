@@ -33,7 +33,7 @@ struct runtime_value {
         value_int_t inum;
         value_float_t fpnum;
         struct runtime_string *string;
-        struct runtime_vec *array;
+        struct runtime_vec *vec;
         struct runtime_map *map;
         struct runtime_set *set;
         struct runtime_stack *stack;
