@@ -345,8 +345,8 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        /* array, map, struct */
-        case OP_NEWARRAY:
+        /* vec, map, set, stack, queue, struct */
+        case OP_NEWVEC:
             {
                 int dst = inst.A;
                 int len = inst.B;

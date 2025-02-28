@@ -270,13 +270,13 @@ int code_emit_store_global(struct code_bytecode *code, int dst, int src)
     return dst;
 }
 
-int code_emit_load_array(struct code_bytecode *code, int dst, int src, int idx)
+int code_emit_load_vec(struct code_bytecode *code, int dst, int src, int idx)
 {
     push_inst_abc(code, OP_LOADARRAY, dst, src, idx);
     return dst;
 }
 
-int code_emit_store_array(struct code_bytecode *code, int dst, int idx, int src)
+int code_emit_store_vec(struct code_bytecode *code, int dst, int idx, int src)
 {
     push_inst_abc(code, OP_STOREARRAY, dst, idx, src);
     return dst;
@@ -312,10 +312,10 @@ int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_
     return dst;
 }
 
-/* array, map, set, struct */
-int code_emit_new_array(struct code_bytecode *code, int dst, int len)
+/* vec, map, set, stack, queue, struct */
+int code_emit_new_vec(struct code_bytecode *code, int dst, int len)
 {
-    push_inst_ab(code, OP_NEWARRAY, dst, len);
+    push_inst_ab(code, OP_NEWVEC, dst, len);
     return dst;
 }
 
@@ -670,14 +670,14 @@ int64_t code_emit_fornum_end(struct code_bytecode *code, int itr, int64_t begin)
     return operand_addr;
 }
 
-int64_t code_emit_forarray_begin(struct code_bytecode *code, int itr)
+int64_t code_emit_forvec_begin(struct code_bytecode *code, int itr)
 {
     int64_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORARRAYBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_forarray_end(struct code_bytecode *code, int itr, int64_t begin)
+int64_t code_emit_forvec_end(struct code_bytecode *code, int itr, int64_t begin)
 {
     int64_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORARRAYEND, itr, begin);

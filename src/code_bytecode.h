@@ -72,16 +72,16 @@ int code_emit_load_float(struct code_bytecode *code, double val);
 int code_emit_load_string(struct code_bytecode *code, const char *cstr);
 int code_emit_load_global(struct code_bytecode *code, int dst, int src);
 int code_emit_store_global(struct code_bytecode *code, int dst, int src);
-int code_emit_load_array(struct code_bytecode *code, int dst, int src, int idx);
-int code_emit_store_array(struct code_bytecode *code, int dst, int idx, int src);
+int code_emit_load_vec(struct code_bytecode *code, int dst, int src, int idx);
+int code_emit_store_vec(struct code_bytecode *code, int dst, int idx, int src);
 int code_emit_load_map(struct code_bytecode *code, int dst, int src, int key);
 int code_emit_store_map(struct code_bytecode *code, int dst, int key, int src);
 int code_emit_load_struct(struct code_bytecode *code, int dst, int src, int field_idx);
 int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, int src);
 int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_offset);
 
-/* array, map, struct */
-int code_emit_new_array(struct code_bytecode *code, int dst, int len);
+/* vec, map, set, stack, queue, struct */
+int code_emit_new_vec(struct code_bytecode *code, int dst, int len);
 int code_emit_new_map(struct code_bytecode *code, int dst, int len);
 int code_emit_new_set(struct code_bytecode *code, int dst, int type, int len);
 int code_emit_new_stack(struct code_bytecode *code, int dst, int type, int len);
@@ -154,8 +154,8 @@ int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int src, int64_t 
 /* loop */
 int64_t code_emit_fornum_begin(struct code_bytecode *code, int itr);
 int64_t code_emit_fornum_end(struct code_bytecode *code, int itr, int64_t begin);
-int64_t code_emit_forarray_begin(struct code_bytecode *code, int itr);
-int64_t code_emit_forarray_end(struct code_bytecode *code, int itr, int64_t begin);
+int64_t code_emit_forvec_begin(struct code_bytecode *code, int itr);
+int64_t code_emit_forvec_end(struct code_bytecode *code, int itr, int64_t begin);
 int64_t code_emit_formap_begin(struct code_bytecode *code, int itr);
 int64_t code_emit_formap_end(struct code_bytecode *code, int itr, int64_t begin);
 int64_t code_emit_forset_begin(struct code_bytecode *code, int itr);

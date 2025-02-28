@@ -17,8 +17,8 @@ enum code_opcode {
     OP_LOADSTRUCT,
     OP_STORESTRUCT,
     OP_LOADENUM,
-    /* array, map, set, struct */
-    OP_NEWARRAY,
+    /* vec, map, set, stack, queue, struct */
+    OP_NEWVEC,
     OP_NEWMAP,
     OP_NEWSET,
     OP_NEWSTACK,

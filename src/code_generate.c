@@ -88,7 +88,7 @@ static int gen_convert(struct code_bytecode *code, const struct parser_expr *e)
     return src;
 }
 
-static int gen_array_lit(struct code_bytecode *code,
+static int gen_vec_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
     const struct parser_expr *elem;
@@ -102,15 +102,15 @@ static int gen_array_lit(struct code_bytecode *code,
     else
         dst = dst_reg;
 
-    /* make array */
+    /* make vec */
     len = gen_expr(code, e->l);
-    code_emit_new_array(code, dst, len);
+    code_emit_new_vec(code, dst, len);
 
     /* set elements */
     for (elem = e->r; elem; elem = elem->next) {
         int src = gen_expr(code, elem);
         int idx = code_emit_load_int(code, index);
-        code_emit_store_array(code, dst, idx, src);
+        code_emit_store_vec(code, dst, idx, src);
         index++;
     }
 
@@ -312,7 +312,7 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
 
     if (e->r->kind == NOD_EXPR_ARRAYLIT) {
         int dst = gen_addr(code, e->l);
-        return gen_array_lit(code, e->r, dst);
+        return gen_vec_lit(code, e->r, dst);
     }
 
     if (e->r->kind == NOD_EXPR_MAPLIT) {
@@ -456,7 +456,7 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         int obj = gen_expr(code, lval->l);
         int idx = gen_expr(code, lval->r);
         int src = gen_expr(code, rval);
-        return code_emit_store_array(code, obj, idx, src);
+        return code_emit_store_vec(code, obj, idx, src);
     }
 
     if (lval->kind == NOD_EXPR_MAPINDEX) {
@@ -541,7 +541,7 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         int tmp2 = gen_expr(code, rval);
         int src = gen_dst_register2(code, tmp1, tmp2);
         gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
-        return code_emit_store_array(code, obj, idx, src);
+        return code_emit_store_vec(code, obj, idx, src);
     }
 
     if (lval->kind == NOD_EXPR_MAPINDEX) {
@@ -635,7 +635,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         return code_emit_load_string(code, e->sval);
 
     case NOD_EXPR_ARRAYLIT:
-        return gen_array_lit(code, e, -1);
+        return gen_vec_lit(code, e, -1);
 
     case NOD_EXPR_STRUCTLIT:
         return gen_struct_lit(code, e, -1);
@@ -670,7 +670,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             int obj = gen_expr(code, e->l);
             int idx = gen_expr(code, e->r);
             int dst = gen_dst_register2(code, obj, idx);
-            code_emit_load_array(code, dst, obj, idx);
+            code_emit_load_vec(code, dst, obj, idx);
             return dst;
         }
 
@@ -964,7 +964,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, idx + 2, obj);
 
             /* begin */
-            int64_t init = code_emit_forarray_begin(code, idx);
+            int64_t init = code_emit_forvec_begin(code, idx);
             int64_t begin = code_get_next_addr(code);
 
             /* body */
@@ -972,7 +972,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
             /* end */
             code_back_patch_continues(code);
-            code_emit_forarray_end(code, idx, begin);
+            code_emit_forvec_end(code, idx, begin);
 
             code_back_patch(code, init);
             code_back_patch_breaks(code);
