@@ -49,7 +49,7 @@
     test.AssertF(8.57, p.x)
 
   ---
-    // array of struct
+    // vector of struct
     - positions = vec{Pos{}}
     test.AssertI(0, positions[0].x)
     test.AssertI(0, positions[0].y)

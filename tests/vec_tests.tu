@@ -1,6 +1,6 @@
 [test]
 
-- _array_ vec{int} = vec{0, 0, 0, 0}
+- _vec_ vec{int} = vec{0, 0, 0, 0}
 
 - _a_ vec{int}
 - _b_ vec{int}
@@ -37,9 +37,9 @@
 
   // global var
   ---
-    _array_[3] = 99
-    test.AssertI(99, _array_[3])
-    test.AssertI(4, len(_array_))
+    _vec_[3] = 99
+    test.AssertI(99, _vec_[3])
+    test.AssertI(4, len(_vec_))
 
   // resize
   ---
@@ -60,7 +60,7 @@
     test.AssertI(8, len(a))
 
   ---
-    // array init with resize
+    // vector init with resize
     - x = resize(vec{1.1}, 4)
     test.AssertI(4, len(x))
     test.AssertF(1.1, x[0])
@@ -68,136 +68,136 @@
     test.AssertF(3.9, x[1])
 
   ---
-    // array and arithmetic operators
+    // vector and arithmetic operators
     - a = vec{2, 3, 4}
     a[1] <<= 1
     test.AssertI(6, a[1])
 
-    // array and arithmetic operators with addition
+    // vector and arithmetic operators with addition
     - b = vec{5, 6, 7}
     b[0] += 10
     test.AssertI(15, b[0])
 
-    // array and arithmetic operators with subtraction
+    // vector and arithmetic operators with subtraction
     - c = vec{10, 20, 30}
     c[2] -= 5
     test.AssertI(25, c[2])
 
-    // array and arithmetic operators with multiplication
+    // vector and arithmetic operators with multiplication
     - d = vec{1, 2, 3}
     d[1] *= 4
     test.AssertI(8, d[1])
 
-    // array and arithmetic operators with division
+    // vector and arithmetic operators with division
     - e = vec{8, 16, 32}
     e[0] /= 4
     test.AssertI(2, e[0])
 
-    // array and arithmetic operators with modulo
+    // vector and arithmetic operators with modulo
     - f = vec{10, 15, 20}
     f[1] %= 4
     test.AssertI(3, f[1])
 
-    // array and bitwise OR
+    // vector and bitwise OR
     - g = vec{1, 2, 4}
     g[2] |= 2
     test.AssertI(6, g[2])
 
-    // array and bitwise AND
+    // vector and bitwise AND
     - h = vec{7, 8, 15}
     h[2] &= 6
     test.AssertI(6, h[2])
 
-    // array and bitwise XOR
+    // vector and bitwise XOR
     - i = vec{5, 10, 15}
     i[0] ^= 2
     test.AssertI(7, i[0])
 
-    // array and bitwise NOT (unary)
+    // vector and bitwise NOT (unary)
     - j = vec{1, 2, 3}
     j[1] = ~j[1]
     test.AssertI(-3, j[1])
 
-    // array and right shift
+    // vector and right shift
     - k = vec{8, 16, 32}
     k[0] >>= 2
     test.AssertI(2, k[0])
 
-    // combined array and arithmetic logic
+    // combined vector and arithmetic logic
     - l = vec{1, 2, 3}
     l[0] = (l[1] * l[2]) + l[0]
     test.AssertI(7, l[0])
 
-    // nested arrays and operations
+    // nested vectors and operations
     - m = vec{vec{1, 2}, vec{3, 4}, vec{5, 6}}
     m[2][1] += m[1][0] * m[0][1]
     test.AssertI(12, m[2][1])
 
-    // updating array elements with a function
+    // updating vector elements with a function
     - n = vec{10, 20, 30}
     n[1] = n[0] + n[2] - 5
     test.AssertI(35, n[1])
 
-    // array index based on another array element
+    // vector index based on another vector element
     - o = vec{0, 1, 2, 3}
     - p = vec{10, 20, 30, 40}
     o[2] = p[o[1]]
     test.AssertI(20, o[2])
 
-    // array length-based operations
+    // vector length-based operations
     - q = vec{10, 20, 30, 40}
     q[3] += len(q)
     test.AssertI(44, q[3])
 
   ---
-    // array and arithmetic operators with addition
+    // vector and arithmetic operators with addition
     - a = vec{5.43, 6.11, 7.95}
     a[0] += 10.22
     test.AssertF(15.65, a[0])
 
-    // array and arithmetic operators with subtraction
+    // vector and arithmetic operators with subtraction
     - b = vec{10.5, 20.8, 30.3}
     b[2] -= 5.7
     test.AssertF(24.6, b[2])
 
-    // array and arithmetic operators with multiplication
+    // vector and arithmetic operators with multiplication
     - c = vec{1.2, 2.3, 3.4}
     c[1] *= 4.0
     test.AssertF(9.2, c[1])
 
-    // array and arithmetic operators with division
+    // vector and arithmetic operators with division
     - d = vec{8.8, 16.4, 32.1}
     d[0] /= 4.0
     test.AssertF(2.2, d[0])
 
-    // array and arithmetic operators with modulo (using floating-point)
+    // vector and arithmetic operators with modulo (using floating-point)
     - e = vec{10.5, 15.8, 20.2}
     e[1] %= 4.3
     //test.AssertF(2.9, e[1])
     test.AssertB(true, e[1] - 2.9 < 1e-14)
 
-    // array and combined arithmetic operations
+    // vector and combined arithmetic operations
     - f = vec{1.1, 2.2, 3.3}
     f[0] = (f[1] * f[2]) + f[0]
     test.AssertF(8.36, f[0])
 
-    // nested arrays and operations
+    // nested vectors and operations
     - g = vec{vec{1.1, 2.2}, vec{3.3, 4.4}, vec{5.5, 6.6}}
     g[2][1] += g[1][0] * g[0][1]
     test.AssertF(13.86, g[2][1])
 
-    // updating array elements with a function
+    // updating vector elements with a function
     - h = vec{10.7, 20.3, 30.6}
     h[1] = h[0] + h[2] - 5.5
     test.AssertF(35.8, h[1])
 
-    // array index based on another array element (floats used for computation)
+    // vector index based on another vector element (floats used for computation)
     - i = vec{0.0, 1.0, 2.0, 3.0}
     - j = vec{10.1, 20.2, 30.3, 40.4}
     i[2] = j[int(i[1])]
     test.AssertF(20.2, i[2])
 
-    // array length-based operations
+    // vector length-based operations
     - k = vec{10.1, 20.2, 30.3, 40.4}
     k[3] += float(len(k)) * 1.1
     test.AssertF(44.8, k[3])
@@ -229,58 +229,58 @@
     test.AssertF(15.0, q[2])
   
   ---
-    // global variable array of ints with addition
+    // global variable vector of ints with addition
     _a_ = vec{1, 2, 3}
     _a_[0] += 5
     test.AssertI(6, _a_[0])
 
-    // global variable array of ints with subtraction
+    // global variable vector of ints with subtraction
     _b_ = vec{10, 20, 30}
     _b_[2] -= 15
     test.AssertI(15, _b_[2])
 
-    // global variable array of ints with multiplication
+    // global variable vector of ints with multiplication
     _a_ = vec{2, 3, 4}  // reusing _a_
     _a_[1] *= 3
     test.AssertI(9, _a_[1])
 
-    // global variable array of ints with division
+    // global variable vector of ints with division
     _b_ = vec{8, 16, 32}  // reusing _b_
     _b_[0] /= 2
     test.AssertI(4, _b_[0])
 
-    // global variable array of ints with modulo
+    // global variable vector of ints with modulo
     _a_ = vec{10, 15, 20}  // reusing _a_
     _a_[1] %= 4
     test.AssertI(3, _a_[1])
 
-    // global variable array with a new array literal
+    // global variable vector with a new vector literal
     _b_ = vec{100, 200, 300}  // reusing _b_
     _b_[0] -= 50
     test.AssertI(50, _b_[0])
 
-    // global variable array combined arithmetic operations
+    // global variable vector combined arithmetic operations
     _a_ = vec{1, 2, 3}  // reusing _a_
     _a_[0] = (_a_[1] * _a_[2]) + _a_[0]
     test.AssertI(7, _a_[0])
 
-    // nested global variable arrays (using subscript with _a_ and _b_)
+    // nested global variable vectors (using subscript with _a_ and _b_)
     _c_ = vec{vec{1, 2}, vec{3, 4}, vec{5, 6}}
     _c_[2][1] += _c_[1][0] * _c_[0][1]
     test.AssertI(12, _c_[2][1])
 
-    // updating global variable array elements with a function
+    // updating global variable vector elements with a function
     _b_ = vec{10, 20, 30}  // reusing _b_
     _b_[1] = _b_[0] + _b_[2] - 5
     test.AssertI(35, _b_[1])
 
-    // global variable array index based on another global array element
+    // global variable vector index based on another global vector element
     _a_ = vec{0, 1, 2, 3}  // reusing _a_
     _b_ = vec{10, 20, 30, 40}  // reusing _b_
     _a_[2] = _b_[_a_[1]]
     test.AssertI(20, _a_[2])
 
-    // global variable array length-based operations
+    // global variable vector length-based operations
     _a_ = vec{10, 20, 30, 40}  // reusing _a_
     _a_[3] += len(_a_)
     test.AssertI(44, _a_[3])
@@ -290,7 +290,7 @@
     _b_[2] += int(2.5 * float(_b_[0]))
     test.AssertI(27, _b_[2])
 
-    // global variable with new array literal
+    // global variable with new vector literal
     _a_ = vec{50, 60, 70}  // reusing _a_
     _a_[0] = 100
     test.AssertI(100, _a_[0])

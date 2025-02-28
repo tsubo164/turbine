@@ -21,8 +21,8 @@ test: all
 	@echo "[string tests]"
 	@../turbine string_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
-	@echo "[array tests]"
-	@../turbine array_tests.tu foo bar baz
+	@echo "[vec tests]"
+	@../turbine vec_tests.tu foo bar baz
 	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[map tests]"
 	@../turbine map_tests.tu

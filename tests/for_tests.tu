@@ -62,18 +62,18 @@
     test.AssertI(20, sum)
 
   ---
-    // for array value
-    - array = vec{11, 23, 204, 2}
+    // for vector value
+    - v = vec{11, 23, 204, 2}
     - sum = 0
-    for val in array
+    for val in v
       sum += val
     test.AssertI(240, sum)
 
   ---
-    // for array value and index
-    - array = vec{11, 23, 204, 2}
+    // for vector value and index
+    - v = vec{11, 23, 204, 2}
     - sum = 0
-    for i, val in array
+    for i, val in v
       sum += i * val
     test.AssertI(437, sum)
 

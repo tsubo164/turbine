@@ -48,7 +48,7 @@
 // global pointer to function
 - _addfp_ = add
 
-- _array_ vec{int} = vec{0, 0, 0, 0}
+- _vec_ vec{int} = vec{0, 0, 0, 0}
 
 - _gcount_ int
 - _gvar_ int
@@ -697,32 +697,32 @@
     test.AssertB(true, b == false)
     test.AssertB(true, c != false)
 
-  // array variable
+  // vector variable
   ---
-    - a vec{int} = vec{0, 0, 0, 0, 0, 0, 0, 0}
+    - v vec{int} = vec{0, 0, 0, 0, 0, 0, 0, 0}
     - i = 9
-    a[2] = 87
-    test.AssertI(87, a[2])
-    a[5] = 92
-    test.AssertI(92, a[5])
-    i = a[2] + a[5]
+    v[2] = 87
+    test.AssertI(87, v[2])
+    v[5] = 92
+    test.AssertI(92, v[5])
+    i = v[2] + v[5]
     test.AssertI(179, i)
 
-  // array variable with const expression
+  // vector variable with const expression
   ---
-    - a vec{int} = vec{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+    - v vec{int} = vec{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
     - i = 7
-    a[2] = 8
-    test.AssertI(8, a[2])
-    a[5] = 2
-    test.AssertI(2, a[5])
-    i = a[2] + a[5]
+    v[2] = 8
+    test.AssertI(8, v[2])
+    v[5] = 2
+    test.AssertI(2, v[5])
+    i = v[2] + v[5]
     test.AssertI(10, i)
 
-  // global array variable
+  // global vector variable
   ---
-    _array_[3] = 99
-    test.AssertI(99, _array_[3])
+    _vec_[3] = 99
+    test.AssertI(99, _vec_[3])
 
   // enum
   ---
@@ -748,10 +748,10 @@
   ---
     test.AssertI(2222, _addfp_(19, 2203))
 
-  // array initialization
+  // vector initialization
   ---
-    - a = vec{99, 11, 22, 33 + 9}
-    test.AssertI(64, a[2] + a[3])
+    - v = vec{99, 11, 22, 33 + 9}
+    test.AssertI(64, v[2] + v[3])
 
   // struct initialization
   ---
