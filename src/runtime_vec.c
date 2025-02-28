@@ -6,7 +6,7 @@ struct runtime_vec *runtime_vec_new(int64_t len)
     struct runtime_vec *v;
 
     v = calloc(1, sizeof(*v));
-    v->obj.kind = OBJ_ARRAY;
+    v->obj.kind = OBJ_VEC;
 
     runtime_valuevec_init(&v->values);
     runtime_valuevec_resize(&v->values, len);

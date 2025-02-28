@@ -39,7 +39,7 @@ static void print_obj(const struct runtime_object *obj)
         }
         break;
 
-    case OBJ_ARRAY:
+    case OBJ_VEC:
         {
             const struct runtime_vec *a = (struct runtime_vec *) obj;
             printf("[vec] => len: %d, cap: %d\n", a->values.len, a->values.cap);

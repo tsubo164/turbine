@@ -18,7 +18,7 @@ const char *parser_node_string(int kind)
     [NOD_STMT_ELSE]           = "else",
     [NOD_STMT_WHILE]          = "while",
     [NOD_STMT_FORNUM]         = "for (num)",
-    [NOD_STMT_FORARRAY]       = "for (vec)",
+    [NOD_STMT_FORVEC]         = "for (vec)",
     [NOD_STMT_FORMAP]         = "for (map)",
     [NOD_STMT_FORSET]         = "for (set)",
     [NOD_STMT_FORSTACK]       = "for (stack)",
@@ -44,7 +44,7 @@ const char *parser_node_string(int kind)
     [NOD_EXPR_FLOATLIT]       = "floatlit",
     [NOD_EXPR_STRINGLIT]      = "stringlit",
     [NOD_EXPR_FUNCLIT]        = "funclit",
-    [NOD_EXPR_ARRAYLIT]       = "veclit",
+    [NOD_EXPR_VECLIT]         = "veclit",
     [NOD_EXPR_MAPLIT]         = "maplit",
     [NOD_EXPR_SETLIT]         = "setlit",
     [NOD_EXPR_STACKLIT]       = "stacklit",
@@ -310,7 +310,7 @@ struct parser_expr *parser_new_funclit_expr(const struct parser_type *func_type,
 struct parser_expr *parser_new_veclit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_ARRAYLIT);
+    struct parser_expr *e = new_expr(NOD_EXPR_VECLIT);
     e->type = parser_new_vec_type(elem_type);
     e->l = parser_new_intlit_expr(len);
     e->r = elems;
@@ -680,7 +680,7 @@ struct parser_stmt *parser_new_fornum_stmt(struct parser_expr *iter,
 struct parser_stmt *parser_new_forvec_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FORARRAY);
+    struct parser_stmt *s = new_stmt(NOD_STMT_FORVEC);
     s->expr = iter;
     s->cond = collection;
     s->body = body;

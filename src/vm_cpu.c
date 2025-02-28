@@ -255,7 +255,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_LOADARRAY:
+        case OP_LOADVEC:
             {
                 int dst = inst.A;
                 int src = inst.B;
@@ -268,7 +268,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_STOREARRAY:
+        case OP_STOREVEC:
             {
                 uint8_t dst = inst.A;
                 uint8_t idx = inst.B;
@@ -581,7 +581,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_FORARRAYBEGIN:
+        case OP_FORVECBEGIN:
             {
                 int src = inst.A;
                 int dst = inst.BB;
@@ -599,7 +599,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_FORARRAYEND:
+        case OP_FORVECEND:
             {
                 int src = inst.A;
                 int dst = inst.BB;

@@ -310,7 +310,7 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
         return code_emit_store_global(code, dst, tmp);
     }
 
-    if (e->r->kind == NOD_EXPR_ARRAYLIT) {
+    if (e->r->kind == NOD_EXPR_VECLIT) {
         int dst = gen_addr(code, e->l);
         return gen_vec_lit(code, e->r, dst);
     }
@@ -634,7 +634,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_STRINGLIT:
         return code_emit_load_string(code, e->sval);
 
-    case NOD_EXPR_ARRAYLIT:
+    case NOD_EXPR_VECLIT:
         return gen_vec_lit(code, e, -1);
 
     case NOD_EXPR_STRUCTLIT:
@@ -953,7 +953,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
         }
         break;
 
-    case NOD_STMT_FORARRAY:
+    case NOD_STMT_FORVEC:
         {
             code_begin_for(code);
 
