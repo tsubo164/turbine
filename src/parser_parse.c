@@ -257,7 +257,7 @@ static struct parser_expr *conv_expr(struct parser *p)
     return parser_new_conversion_expr(expr, to_type);
 }
 
-static struct parser_expr *array_lit_expr(struct parser *p)
+static struct parser_expr *vec_lit_expr(struct parser *p)
 {
     struct parser_expr elemhead = {0};
     struct parser_expr *elem = &elemhead;
@@ -286,7 +286,7 @@ static struct parser_expr *array_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_arraylit_expr(elem_type, elemhead.next, len);
+    return parser_new_veclit_expr(elem_type, elemhead.next, len);
 }
 
 static struct parser_expr *map_lit_expr(struct parser *p)
@@ -476,7 +476,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
             if (already_init)
                 continue;
 
-            if (!parser_is_array_type(field->type) &&
+            if (!parser_is_vec_type(field->type) &&
                 !parser_is_struct_type(field->type)) {
                 continue;
             }
@@ -577,7 +577,7 @@ static struct parser_expr *ident_expr(struct parser *p)
 
 /*
 primary_expr ::= "nil" | "true" | "false"
-    | int_lit | float_lit | string_lit | array_lit | struct_lit
+    | int_lit | float_lit | string_lit | vec_lit | struct_lit
     | "(" expression ")"
     | indentifier
     | conv_expr
@@ -612,7 +612,7 @@ static struct parser_expr *primary_expr(struct parser *p)
         return string_lit_expr(p);
 
     case TOK_VEC:
-        return array_lit_expr(p);
+        return vec_lit_expr(p);
 
     case TOK_MAP:
         return map_lit_expr(p);
@@ -656,11 +656,11 @@ static const struct parser_type *replace_template_type(
         const struct parser_type *target_type,
         const struct parser_type *replacement_type)
 {
-    if (parser_is_array_type(target_type)) {
+    if (parser_is_vec_type(target_type)) {
         const struct parser_type *replaced;
         replaced = replace_template_type(target_type->underlying, replacement_type);
         if (replaced)
-            return parser_new_array_type(replaced);
+            return parser_new_vec_type(replaced);
         else
             return NULL;
     }
@@ -873,9 +873,9 @@ static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *b
 {
     expect(p, TOK_LBRACK);
 
-    if (!parser_is_array_type(base->type) &&
+    if (!parser_is_vec_type(base->type) &&
         !parser_is_map_type(base->type)) {
-        error(p, tok_pos(p), "`[]` must be used for array or map type");
+        error(p, tok_pos(p), "`[]` must be used for vec or map type");
     }
 
     struct parser_expr *idx = expression(p);
@@ -889,7 +889,7 @@ static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *b
 
     struct parser_expr *expr = NULL;
 
-    if (parser_is_array_type(base->type))
+    if (parser_is_vec_type(base->type))
         expr = parser_new_index_expr(base, idx);
     else if (parser_is_map_type(base->type))
         expr = parser_new_mapindex_expr(base, idx);
@@ -1482,7 +1482,7 @@ static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *bl
     return parser_new_fornum_stmt(iter, collection, body);
 }
 
-static struct parser_stmt *forarray_stmt(struct parser *p, struct parser_scope *block_scope,
+static struct parser_stmt *forvec_stmt(struct parser *p, struct parser_scope *block_scope,
         struct parser_expr *collection, const struct parser_token **iters, int iter_count)
 {
     expect(p, TOK_NEWLINE);
@@ -1492,7 +1492,7 @@ static struct parser_stmt *forarray_stmt(struct parser *p, struct parser_scope *
     struct loop_var loop_vars[] = {
         { "_idx", parser_new_int_type() },
         { "_val", collection->type->underlying },
-        { "_arrayy", collection->type },
+        { "_vec", collection->type },
         { NULL }
     };
 
@@ -1511,7 +1511,7 @@ static struct parser_stmt *forarray_stmt(struct parser *p, struct parser_scope *
     iter = parser_new_var_expr(var);
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forarray_stmt(iter, collection, body);
+    return parser_new_forvec_stmt(iter, collection, body);
 }
 
 static struct parser_stmt *formap_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1679,8 +1679,8 @@ static struct parser_stmt *for_stmt(struct parser *p)
     if (parser_is_int_type(collection->type)) {
         fors = fornum_stmt(p, block_scope, collection, iters, iter_count);
     }
-    else if (parser_is_array_type(collection->type)) {
-        fors = forarray_stmt(p, block_scope, collection, iters, iter_count);
+    else if (parser_is_vec_type(collection->type)) {
+        fors = forvec_stmt(p, block_scope, collection, iters, iter_count);
     }
     else if (parser_is_map_type(collection->type)) {
         fors = formap_stmt(p, block_scope, collection, iters, iter_count);
@@ -1880,9 +1880,9 @@ static struct parser_expr *default_struct_lit(const struct parser_type *type)
 
         struct parser_struct_field *field = parser_get_struct_field(strct, i);
 
-        if (parser_is_array_type(field->type)) {
+        if (parser_is_vec_type(field->type)) {
             struct parser_expr *f = parser_new_struct_field_expr(field);
-            struct parser_expr *e = parser_new_arraylit_expr(field->type->underlying,
+            struct parser_expr *e = parser_new_veclit_expr(field->type->underlying,
                     NULL, 0);
             elem = elem->next = parser_new_element_expr(f, e);
             continue;
@@ -1918,8 +1918,8 @@ static struct parser_expr *default_value(const struct parser_type *type)
     case TYP_STRING:
         return parser_new_stringlit_expr("");
 
-    case TYP_ARRAY:
-        return parser_new_arraylit_expr(type->underlying, NULL, 0);
+    case TYP_VEC:
+        return parser_new_veclit_expr(type->underlying, NULL, 0);
 
     case TYP_MAP:
         return parser_new_maplit_expr(type->underlying, NULL, 0);
@@ -2252,7 +2252,7 @@ static struct parser_type *type_spec(struct parser *p)
         expect(p, TOK_LBRACE);
         underlying = type_spec(p);
         expect(p, TOK_RBRACE);
-        return parser_new_array_type(underlying);
+        return parser_new_vec_type(underlying);
     }
 
     if (consume(p, TOK_MAP)) {

@@ -153,7 +153,7 @@ static int parser_type_to_value_type(const struct parser_type *t)
     case TYP_FLOAT:    return VAL_FLOAT;
     case TYP_STRING:   return VAL_STRING;
     case TYP_FUNC:     return VAL_NIL;
-    case TYP_ARRAY:    return VAL_VEC;
+    case TYP_VEC:      return VAL_VEC;
     case TYP_MAP:      return VAL_MAP;
     case TYP_SET:      return VAL_SET;
     case TYP_STACK:    return VAL_STACK;

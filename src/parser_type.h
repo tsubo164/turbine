@@ -15,7 +15,7 @@ enum parser_type_kind {
     TYP_FLOAT,
     TYP_STRING,
     TYP_FUNC,
-    TYP_ARRAY,
+    TYP_VEC,
     TYP_MAP,
     TYP_SET,
     TYP_STACK,
@@ -58,7 +58,7 @@ struct parser_type *parser_new_int_type(void);
 struct parser_type *parser_new_float_type(void);
 struct parser_type *parser_new_string_type(void);
 struct parser_type *parser_new_func_type(const struct parser_func_sig *func_sig);
-struct parser_type *parser_new_array_type(const struct parser_type *underlying);
+struct parser_type *parser_new_vec_type(const struct parser_type *underlying);
 struct parser_type *parser_new_map_type(const struct parser_type *underlying);
 struct parser_type *parser_new_set_type(const struct parser_type *underlying);
 struct parser_type *parser_new_stack_type(const struct parser_type *underlying);
@@ -76,7 +76,7 @@ bool parser_is_int_type(const struct parser_type *t);
 bool parser_is_float_type(const struct parser_type *t);
 bool parser_is_string_type(const struct parser_type *t);
 bool parser_is_func_type(const struct parser_type *t);
-bool parser_is_array_type(const struct parser_type *t);
+bool parser_is_vec_type(const struct parser_type *t);
 bool parser_is_map_type(const struct parser_type *t);
 bool parser_is_set_type(const struct parser_type *t);
 bool parser_is_stack_type(const struct parser_type *t);

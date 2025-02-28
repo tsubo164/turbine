@@ -75,7 +75,7 @@ enum parser_node_kind {
     NOD_EXPR_NEG,
     NOD_EXPR_NOT,
     NOD_EXPR_CONV,
-    /* array, struct, map, func */
+    /* vec, map, struct, func */
     NOD_EXPR_INDEX,
     NOD_EXPR_MAPINDEX,
     NOD_EXPR_STRUCTACCESS,
@@ -151,7 +151,7 @@ struct parser_expr *parser_new_floatlit_expr(double d);
 struct parser_expr *parser_new_stringlit_expr(const char *s);
 struct parser_expr *parser_new_funclit_expr(const struct parser_type *func_type,
         struct parser_func *func);
-struct parser_expr *parser_new_arraylit_expr(const struct parser_type *elem_type,
+struct parser_expr *parser_new_veclit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
 struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
         struct parser_expr *elems, int len);
@@ -225,7 +225,7 @@ struct parser_stmt *parser_new_while_stmt(struct parser_expr *cond, struct parse
 
 struct parser_stmt *parser_new_fornum_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);
-struct parser_stmt *parser_new_forarray_stmt(struct parser_expr *iter,
+struct parser_stmt *parser_new_forvec_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);
 struct parser_stmt *parser_new_formap_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);

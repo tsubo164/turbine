@@ -60,9 +60,9 @@ struct parser_type *parser_new_func_type(const struct parser_func_sig *func_sig)
     return t;
 }
 
-struct parser_type *parser_new_array_type(const struct parser_type *underlying)
+struct parser_type *parser_new_vec_type(const struct parser_type *underlying)
 {
-    struct parser_type *t = new_type(TYP_ARRAY);
+    struct parser_type *t = new_type(TYP_VEC);
     t->underlying = underlying;
     return t;
 }
@@ -143,7 +143,7 @@ bool parser_is_int_type(const struct parser_type *t)      { return t->kind == TY
 bool parser_is_float_type(const struct parser_type *t)    { return t->kind == TYP_FLOAT; }
 bool parser_is_string_type(const struct parser_type *t)   { return t->kind == TYP_STRING; }
 bool parser_is_func_type(const struct parser_type *t)     { return t->kind == TYP_FUNC; }
-bool parser_is_array_type(const struct parser_type *t)    { return t->kind == TYP_ARRAY; }
+bool parser_is_vec_type(const struct parser_type *t)      { return t->kind == TYP_VEC; }
 bool parser_is_map_type(const struct parser_type *t)      { return t->kind == TYP_MAP; }
 bool parser_is_set_type(const struct parser_type *t)      { return t->kind == TYP_SET; }
 bool parser_is_stack_type(const struct parser_type *t)    { return t->kind == TYP_STACK; }
@@ -157,7 +157,7 @@ bool parser_is_template_type(const struct parser_type *t) { return t->kind == TY
 
 bool parser_has_template_type(const struct parser_type *t)
 {
-    if (parser_is_array_type(t))
+    if (parser_is_vec_type(t))
         return parser_has_template_type(t->underlying);
     else if (parser_is_map_type(t))
         return parser_has_template_type(t->underlying);
@@ -174,7 +174,7 @@ bool parser_has_template_type(const struct parser_type *t)
 bool parser_is_collection_type(const struct parser_type *t)
 {
     return
-        parser_is_array_type(t) ||
+        parser_is_vec_type(t) ||
         parser_is_map_type(t) ||
         parser_is_set_type(t) ||
         parser_is_stack_type(t) ||
@@ -190,7 +190,7 @@ static const char *type_kind_string(int kind)
     case TYP_FLOAT:    return "float";
     case TYP_STRING:   return "string";
     case TYP_FUNC:     return "func";
-    case TYP_ARRAY:    return "[]";
+    case TYP_VEC:      return "[]";
     case TYP_MAP:      return "{}";
     case TYP_SET:      return "set{}";
     case TYP_STACK:    return "stack{}";
@@ -215,7 +215,7 @@ const char *parser_type_string(const struct parser_type *t)
         /* TODO take care of buffer overflow */
         char buf[128] = {'\0'};
 
-        if (parser_is_array_type(type)) {
+        if (parser_is_vec_type(type)) {
             sprintf(buf, "[]%s", interned);
         }
         else if (parser_is_struct_type(type)) {
@@ -269,7 +269,7 @@ bool parser_match_type(const struct parser_type *t1, const struct parser_type *t
     if (parser_is_template_type(t1) && parser_is_template_type(t2))
         return t1->template_id == t2->template_id;
 
-    if (parser_is_array_type(t1) && parser_is_array_type(t2))
+    if (parser_is_vec_type(t1) && parser_is_vec_type(t2))
         return parser_match_type(t1->underlying, t2->underlying);
 
     if (parser_is_union_type(t1) && !parser_is_union_type(t2))
@@ -319,7 +319,7 @@ static const int table[] = {
     [TYP_FLOAT]    = 'f',
     [TYP_STRING]   = 's',
     [TYP_FUNC]     = 'F',
-    [TYP_ARRAY]    = 'A',
+    [TYP_VEC]      = 'V',
     [TYP_MAP]      = 'M',
     [TYP_SET]      = 'T',
     [TYP_STACK]    = 'K',
@@ -387,7 +387,7 @@ void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t)
     char ch = kind_to_char(t->kind);
     data_strbuf_push(sb, ch);
 
-    if (parser_is_array_type(t)) {
+    if (parser_is_vec_type(t)) {
         parser_typelist_push(sb, t->underlying);
     }
     else if (parser_is_map_type(t)) {
