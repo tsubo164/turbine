@@ -3,7 +3,7 @@
 # main(args vec{string}) int
 
   ---
-    - m {}int
+    - m map{int}
     test.AssertI(0, maplen(m))
 
     m["foo"] = 42
@@ -14,7 +14,7 @@
 
   ---
     // map literal
-    - m = { "Go":923, "Python":4261, "Lua":1453, "Turbine":777 }
+    - m = map{ "Go":923, "Python":4261, "Lua":1453, "Turbine":777 }
     test.AssertI(923,  m["Go"])
     test.AssertI(4261, m["Python"])
     test.AssertI(1453, m["Lua"])
@@ -22,7 +22,7 @@
     test.AssertI(4, maplen(m))
 
   ---
-    - m = {
+    - m = map{
       "foo":42,
       "bar":1212,
       "baz":284,

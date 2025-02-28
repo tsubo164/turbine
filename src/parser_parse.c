@@ -296,6 +296,7 @@ static struct parser_expr *map_lit_expr(struct parser *p)
     const struct parser_type *elem_type = NULL;
     int len = 0;
 
+    expect(p, TOK_MAP);
     expect(p, TOK_LBRACE);
 
     do {
@@ -613,7 +614,7 @@ static struct parser_expr *primary_expr(struct parser *p)
     case TOK_VEC:
         return array_lit_expr(p);
 
-    case TOK_LBRACE:
+    case TOK_MAP:
         return map_lit_expr(p);
 
     case TOK_SET:
@@ -2254,9 +2255,12 @@ static struct parser_type *type_spec(struct parser *p)
         return parser_new_array_type(underlying);
     }
 
-    if (consume(p, TOK_LBRACE)) {
+    if (consume(p, TOK_MAP)) {
+        struct parser_type *underlying;
+        expect(p, TOK_LBRACE);
+        underlying = type_spec(p);
         expect(p, TOK_RBRACE);
-        return parser_new_map_type(type_spec(p));
+        return parser_new_map_type(underlying);
     }
 
     if (consume(p, TOK_SET)) {

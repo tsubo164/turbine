@@ -97,7 +97,7 @@
 
   ---
     // for map value
-    - m = { "Go":923, "Python":4261, "Lua":1453, "Turbine":777 }
+    - m = map{ "Go":923, "Python":4261, "Lua":1453, "Turbine":777 }
     - sum = 0
     for val in m
       sum += val
@@ -105,7 +105,7 @@
 
   ---
     // for map index, key and value
-    - m = {
+    - m = map{
       "foo":42,
       "bar":1212,
       "baz":284,
