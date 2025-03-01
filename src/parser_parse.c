@@ -2401,7 +2401,7 @@ static void func_def(struct parser *p)
 
 static void module_import(struct parser *p)
 {
-    expect(p, TOK_LBRACK);
+    expect(p, TOK_GT);
     expect(p, TOK_IDENT);
 
     /* module file name */
@@ -2447,7 +2447,6 @@ static void module_import(struct parser *p)
         free(text);
     } /* file module end */
 
-    expect(p, TOK_RBRACK);
     expect(p, TOK_NEWLINE);
 }
 
@@ -2474,7 +2473,7 @@ static void program(struct parser *p)
             tail = tail->next = var_decl(p, true);
             break;
 
-        case TOK_LBRACK:
+        case TOK_GT:
             module_import(p);
             break;
 

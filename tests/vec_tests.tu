@@ -1,4 +1,4 @@
-[test]
+> test
 
 - _vec_ vec{int} = vec{0, 0, 0, 0}
 

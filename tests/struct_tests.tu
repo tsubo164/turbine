@@ -1,5 +1,5 @@
-[test]
-[math]
+> test
+> math
 
 ## Pos struct
   - x int

@@ -1,4 +1,4 @@
-[test]
+> test
 
 # main() int
 

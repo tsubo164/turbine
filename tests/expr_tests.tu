@@ -1,4 +1,4 @@
-[test]
+> test
 
 # return_large_int() int
   return 4422

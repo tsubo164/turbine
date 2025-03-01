@@ -1,4 +1,4 @@
-[test]
+> test
 
 # main(args vec{string}) int
 

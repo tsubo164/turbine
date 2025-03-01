@@ -1,4 +1,4 @@
-[test]
+> test
 
 # seven() int
   return 7

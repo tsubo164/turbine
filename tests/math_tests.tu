@@ -1,5 +1,5 @@
-[math]
-[test]
+> math
+> test
 
 # main() int
 

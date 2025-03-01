@@ -4,7 +4,7 @@
 //[opengl] (github.com/...)
 //[my_calc]
 //[math]
-//> math
+> math
 
 # main(args vec{string}) int
   - x vec{int}
@@ -16,7 +16,8 @@
 
   print(y)
   print(veclen(y))
-
   print(m)
+
+  print(math._PI_)
 
   return 42
