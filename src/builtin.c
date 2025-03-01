@@ -406,7 +406,7 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
-static int builtin_len(struct runtime_gc *gc, struct runtime_registers *regs)
+static int builtin_veclen(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value val = regs->locals[0];
 
@@ -657,7 +657,7 @@ void define_builtin_functions(struct parser_scope *builtin)
                 builtin_format);
     }
     {
-        const char *name = "len";
+        const char *name = "veclen";
         struct native_func_param params[] = {
             { "vec", parser_new_vec_type(parser_new_any_type()) },
             { NULL },
@@ -668,7 +668,7 @@ void define_builtin_functions(struct parser_scope *builtin)
                 name,
                 params,
                 ret_type,
-                builtin_len);
+                builtin_veclen);
     }
     {
         const char *name = "maplen";

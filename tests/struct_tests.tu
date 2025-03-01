@@ -64,7 +64,7 @@
     test.AssertI(0, c.center.x)
     test.AssertI(0, c.center.y)
     test.AssertI(0, c.radius)
-    test.AssertI(0, len(c.samples))
+    test.AssertI(0, veclen(c.samples))
 
   print(test._test_count_, "tests done.")
 

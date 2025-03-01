@@ -10,7 +10,7 @@
 
   // args
   ---
-    test.AssertI(4, len(args))
+    test.AssertI(4, veclen(args))
     test.AssertS("foo", args[1])
     test.AssertS("bar", args[2])
     test.AssertS("baz", args[3])
@@ -39,16 +39,16 @@
   ---
     _vec_[3] = 99
     test.AssertI(99, _vec_[3])
-    test.AssertI(4, len(_vec_))
+    test.AssertI(4, veclen(_vec_))
 
   // resize
   ---
     - a = vec{99, 11, 22, 33 + 9}
     test.AssertI(64, a[2] + a[3])
 
-    test.AssertI(4, len(a))
+    test.AssertI(4, veclen(a))
     resize(a, 8)
-    test.AssertI(8, len(a))
+    test.AssertI(8, veclen(a))
 
   // resize in for
   ---
@@ -57,12 +57,12 @@
     for i, x in resize(a, 8)
       if (i == 2)
         test.AssertI(33, x)
-    test.AssertI(8, len(a))
+    test.AssertI(8, veclen(a))
 
   ---
     // vector init with resize
     - x = resize(vec{1.1}, 4)
-    test.AssertI(4, len(x))
+    test.AssertI(4, veclen(x))
     test.AssertF(1.1, x[0])
     x[1] = 3.9
     test.AssertF(3.9, x[1])
@@ -146,7 +146,7 @@
 
     // vector length-based operations
     - q = vec{10, 20, 30, 40}
-    q[3] += len(q)
+    q[3] += veclen(q)
     test.AssertI(44, q[3])
 
   ---
@@ -199,7 +199,7 @@
 
     // vector length-based operations
     - k = vec{10.1, 20.2, 30.3, 40.4}
-    k[3] += float(len(k)) * 1.1
+    k[3] += float(veclen(k)) * 1.1
     test.AssertF(44.8, k[3])
 
     // floating-point precision tests
@@ -282,7 +282,7 @@
 
     // global variable vector length-based operations
     _a_ = vec{10, 20, 30, 40}  // reusing _a_
-    _a_[3] += len(_a_)
+    _a_[3] += veclen(_a_)
     test.AssertI(44, _a_[3])
 
     // global variable float mixed with int operation

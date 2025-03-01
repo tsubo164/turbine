@@ -15,7 +15,7 @@
   - m = map{"foo": 11, "bar": 22}
 
   print(y)
-  print(v)
+  print(veclen(y))
 
   print(m)
 
