@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 /* TODO consider allocate basic types */
 struct parser_type *parser_new_nil_type(void)
@@ -412,5 +413,16 @@ void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t)
             parser_typelist_push(sb, field->type);
         }
         data_strbuf_push(sb, '.');
+    }
+}
+
+void parser_typelist_skip_next(struct parser_typelist_iterator *it)
+{
+    while (true) {
+        int ch = kind_to_char(it->kind);
+        if (isupper(ch))
+            parser_typelist_next(it);
+        else
+            break;
     }
 }

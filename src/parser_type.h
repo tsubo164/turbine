@@ -113,4 +113,6 @@ bool parser_typelist_end(const struct parser_typelist_iterator *it);
 bool parser_typelist_struct_end(const struct parser_typelist_iterator *it);
 void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t);
 
+void parser_typelist_skip_next(struct parser_typelist_iterator *it);
+
 #endif /* _H */

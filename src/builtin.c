@@ -51,16 +51,23 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
 
     case TYP_VEC:
         {
+            struct parser_typelist_iterator elem_it;
             int len = runtime_vec_len(val.vec);
-            parser_typelist_next(it);
 
-            printf("vec{");
+            parser_typelist_next(it);
+            elem_it = *it;
+
+            printf("{");
             for (int i = 0; i < len; i++) {
+                *it = elem_it;
                 print_value(runtime_vec_get(val.vec, i), it);
                 if (i < len - 1)
                     printf(", ");
             }
             printf("}");
+
+            if (len == 0)
+                parser_typelist_skip_next(it);
         }
         return;
 
