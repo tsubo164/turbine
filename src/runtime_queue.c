@@ -9,7 +9,6 @@ struct runtime_queue *runtime_queue_new(int val_type, int64_t len)
     q = calloc(1, sizeof(*q));
     q->obj.kind = OBJ_QUEUE;
     q->val_type = val_type;
-    q->compare = runtime_get_compare_function(q->val_type);
 
     return q;
 }

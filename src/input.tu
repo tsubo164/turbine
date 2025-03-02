@@ -24,9 +24,14 @@
 
   - w vec{int}
   - v = vec{w}
-  */
   - v vec{vec{int}}
 
   print(v)
+  */
+  - w vec{int}
+  //- m queue{vec{int}}
+  - m = queue{w}
+  //- m = queue{vec{11, 22}, vec{33, 44}}
+  print(m)
 
   return 42

@@ -9,7 +9,6 @@ struct runtime_stack *runtime_stack_new(int val_type, int64_t len)
     s = calloc(1, sizeof(*s));
     s->obj.kind = OBJ_STACK;
     s->val_type = val_type;
-    s->compare = runtime_get_compare_function(s->val_type);
 
     return s;
 }
