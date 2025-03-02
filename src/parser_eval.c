@@ -1,31 +1,4 @@
-#include "parser_ast_eval.h"
-#include "parser_symbol.h"
-#include "parser_type.h"
-
-bool parser_ast_is_global(const struct parser_expr *e)
-{
-    switch (e->kind) {
-    case NOD_EXPR_VAR:
-        return e->var->is_global;
-
-    case NOD_EXPR_STRUCTACCESS:
-        return parser_ast_is_global(e->l);
-
-    default:
-        return false;
-    }
-}
-
-bool parser_ast_is_mutable(const struct parser_expr *e)
-{
-    switch (e->kind) {
-    case NOD_EXPR_VAR:
-        return e->var->is_param == false;
-
-    default:
-        return true;
-    }
-}
+#include "parser_eval.h"
 
 static bool eval_binary(const struct parser_expr *e, int64_t *result)
 {
@@ -86,24 +59,6 @@ bool parser_eval_expr(const struct parser_expr *e, int64_t *result)
     case NOD_EXPR_POS: case NOD_EXPR_NEG:
     case NOD_EXPR_LOGNOT: case NOD_EXPR_NOT:
         return eval_unary(e, result);
-
-    default:
-        return false;
-    }
-}
-
-/* TODO remove this */
-bool parser_eval_addr(const struct parser_expr *e, int *result)
-{
-    switch (e->kind) {
-
-    case NOD_EXPR_VAR:
-        *result = e->var->offset;
-        return true;
-
-    case NOD_EXPR_STRUCTFIELD:
-        *result = e->struct_field->offset;
-        return true;
 
     default:
         return false;

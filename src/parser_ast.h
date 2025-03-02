@@ -262,4 +262,8 @@ struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct pars
 /* node string */
 const char *parser_node_string(int kind);
 
+/* global */
+bool parser_ast_is_global(const struct parser_expr *e);
+bool parser_ast_is_mutable(const struct parser_expr *e);
+
 #endif /* _H */

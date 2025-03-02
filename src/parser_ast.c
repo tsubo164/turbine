@@ -855,3 +855,28 @@ struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct pars
 {
     return new_assign_stmt(l, r, NOD_EXPR_XORASSIGN);
 }
+
+bool parser_ast_is_global(const struct parser_expr *e)
+{
+    switch (e->kind) {
+    case NOD_EXPR_VAR:
+        return e->var->is_global;
+
+    case NOD_EXPR_STRUCTACCESS:
+        return parser_ast_is_global(e->l);
+
+    default:
+        return false;
+    }
+}
+
+bool parser_ast_is_mutable(const struct parser_expr *e)
+{
+    switch (e->kind) {
+    case NOD_EXPR_VAR:
+        return e->var->is_param == false;
+
+    default:
+        return true;
+    }
+}
