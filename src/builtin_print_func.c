@@ -1,4 +1,4 @@
-#include "builtin_print.h"
+#include "builtin_print_func.h"
 #include "parser_type.h"
 #include "runtime_vec.h"
 #include "runtime_map.h"
@@ -186,7 +186,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
     }
 }
 
-void builtin_print(const struct runtime_value *args, const char *typelist)
+void builtin_print_func(const struct runtime_value *args, const char *typelist)
 {
     const struct runtime_value *arg;
     struct parser_typelist_iterator it;

@@ -3,6 +3,6 @@
 
 struct runtime_value;
 
-void builtin_print(const struct runtime_value *args, const char *typelist);
+void builtin_print_func(const struct runtime_value *args, const char *typelist);
 
 #endif /* _H */
