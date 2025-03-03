@@ -30,8 +30,9 @@
   */
   - w vec{int}
   //- m queue{vec{int}}
-  - m = queue{w}
-  //- m = queue{vec{11, 22}, vec{33, 44}}
+  //- m = queue{w}
+  - m = queue{vec{11, 22}, vec{33, 44}}
   print(m)
+  print(vec{1, 2, 3, 4})
 
   return 42
