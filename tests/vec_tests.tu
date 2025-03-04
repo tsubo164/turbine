@@ -335,6 +335,67 @@
     test.AssertI(3, veclen(_d_))
     test.AssertI(300, _d_[2])
 
+  // vec clear
+  ---
+    - a = vec{1, 2, 3, 4, 5}
+    test.AssertI(5, veclen(a))
+
+    vecclear(a)
+    test.AssertI(0, veclen(a))
+
+    vecpush(a, 10)
+    test.AssertI(1, veclen(a))
+    test.AssertI(10, a[0])
+
+    vecpush(a, 20)
+    test.AssertI(2, veclen(a))
+    test.AssertI(20, a[1])
+
+    vecclear(a)
+    test.AssertI(0, veclen(a))
+
+    // Add a new element after clearing
+    vecpush(a, 99)
+    test.AssertI(1, veclen(a))
+    test.AssertI(99, a[0])
+
+  // vec clear with different types
+  ---
+    - b = vec{"foo", "bar", "baz"}
+    test.AssertI(3, veclen(b))
+
+    vecclear(b)
+    test.AssertI(0, veclen(b))
+
+    vecpush(b, "new")
+    test.AssertI(1, veclen(b))
+    test.AssertS("new", b[0])
+
+  // vec clear and resizing
+  ---
+    - c = vec{100, 200, 300}
+    test.AssertI(3, veclen(c))
+
+    vecclear(c)
+    test.AssertI(0, veclen(c))
+
+    resize(c, 5)
+    test.AssertI(5, veclen(c))
+
+  // vec clear and nested vectors
+  ---
+    - d = vec{vec{1, 2}, vec{3, 4}, vec{5, 6}}
+    test.AssertI(3, veclen(d))
+
+    vecclear(d)
+    test.AssertI(0, veclen(d))
+
+    vecpush(d, vec{7, 8})
+    test.AssertI(1, veclen(d))
+    test.AssertI(2, veclen(d[0]))
+    test.AssertI(7, d[0][0])
+    test.AssertI(8, d[0][1])
+
   print(test._test_count_, "tests done.")
 
   return 0

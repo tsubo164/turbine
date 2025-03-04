@@ -97,10 +97,11 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 /* vec */
 static int builtin_veclen(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    struct runtime_value val = regs->locals[0];
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value ret;
 
-    val.inum = runtime_vec_len(val.vec);
-    regs->locals[0] = val;
+    ret.inum = runtime_vec_len(obj.vec);
+    regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
 }
@@ -111,6 +112,15 @@ static int builtin_vecpush(struct runtime_gc *gc, struct runtime_registers *regs
     struct runtime_value val = regs->locals[1];
 
     runtime_vec_push(obj.vec, val);
+
+    return RESULT_SUCCESS;
+}
+
+static int builtin_vecclear(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+
+    runtime_vec_clear(obj.vec);
 
     return RESULT_SUCCESS;
 }
@@ -358,12 +368,13 @@ void define_builtin_functions(struct parser_scope *builtin)
     }
     /* vec */
     {
+        /* veclen(v vec{T}) int */
         const char *name = "veclen";
+        struct parser_type *ret_type = parser_new_int_type();
         struct native_func_param params[] = {
             { "vec", parser_new_vec_type(parser_new_any_type()) },
             { NULL },
         };
-        struct parser_type *ret_type = parser_new_int_type();
 
         native_declare_func(builtin,
                 name,
@@ -372,8 +383,9 @@ void define_builtin_functions(struct parser_scope *builtin)
                 builtin_veclen);
     }
     {
+        /* vecpush(v vec{T}, val T) */
         const char *name = "vecpush";
-        struct parser_type *ret_type = parser_new_bool_type();
+        struct parser_type *ret_type = parser_new_nil_type();
         struct native_func_param params[] = {
             { "vec",   parser_new_vec_type(parser_new_template_type(0)) },
             { "val",   parser_new_template_type(0) },
@@ -385,6 +397,21 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_vecpush);
+    }
+    {
+        /* vecclear(v vec{T}) */
+        const char *name = "vecclear";
+        struct parser_type *ret_type = parser_new_nil_type();
+        struct native_func_param params[] = {
+            { "vec",   parser_new_vec_type(parser_new_template_type(0)) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_vecclear);
     }
     /* map */
     {

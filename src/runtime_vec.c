@@ -39,6 +39,11 @@ void runtime_vec_push(struct runtime_vec *v, struct runtime_value val)
     runtime_valuevec_push(&v->values, val);
 }
 
+void runtime_vec_clear(struct runtime_vec *v)
+{
+    runtime_valuevec_resize(&v->values, 0);
+}
+
 int64_t runtime_vec_len(const struct runtime_vec *v)
 {
     return v->values.len;
