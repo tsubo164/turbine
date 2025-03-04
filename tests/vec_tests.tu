@@ -5,6 +5,7 @@
 - _a_ vec{int}
 - _b_ vec{int}
 - _c_ vec{vec{int}}
+- _d_ vec{int}
 
 # main(args vec{string}) int
 
@@ -294,6 +295,45 @@
     _a_ = vec{50, 60, 70}  // reusing _a_
     _a_[0] = 100
     test.AssertI(100, _a_[0])
+
+  // vecpush() tests
+  ---
+    - a = vec{1, 2, 3}
+    vecpush(a, 4)
+    test.AssertI(4, veclen(a))
+    test.AssertI(4, a[3])
+
+  ---
+    - b = vec{"apple", "banana"}
+    vecpush(b, "cherry")
+    test.AssertI(3, veclen(b))
+    test.AssertS("cherry", b[2])
+
+  ---
+    - c = vec{10.5, 20.5}
+    vecpush(c, 30.5)
+    test.AssertI(3, veclen(c))
+    test.AssertF(30.5, c[2])
+
+  ---
+    - d vec{int}
+    vecpush(d, 42)
+    test.AssertI(1, veclen(d))
+    test.AssertI(42, d[0])
+
+  ---
+    - e = vec{vec{1, 2}, vec{3, 4}}
+    vecpush(e, vec{5, 6})
+    test.AssertI(3, veclen(e))
+    test.AssertI(5, e[2][0])
+    test.AssertI(6, e[2][1])
+
+  ---
+    // vecpush with global variable
+    _d_ = vec{100, 200}
+    vecpush(_d_, 300)
+    test.AssertI(3, veclen(_d_))
+    test.AssertI(300, _d_[2])
 
   print(test._test_count_, "tests done.")
 

@@ -34,6 +34,11 @@ void runtime_vec_set(struct runtime_vec *v, int64_t idx, struct runtime_value va
     v->values.data[idx] = val;
 }
 
+void runtime_vec_push(struct runtime_vec *v, struct runtime_value val)
+{
+    runtime_valuevec_push(&v->values, val);
+}
+
 int64_t runtime_vec_len(const struct runtime_vec *v)
 {
     return v->values.len;

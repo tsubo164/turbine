@@ -94,6 +94,7 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+/* vec */
 static int builtin_veclen(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value val = regs->locals[0];
@@ -104,6 +105,17 @@ static int builtin_veclen(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int builtin_vecpush(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value obj = regs->locals[0];
+    struct runtime_value val = regs->locals[1];
+
+    runtime_vec_push(obj.vec, val);
+
+    return RESULT_SUCCESS;
+}
+
+/* map */
 static int builtin_maplen(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value val = regs->locals[0];
@@ -344,6 +356,7 @@ void define_builtin_functions(struct parser_scope *builtin)
                 ret_type,
                 builtin_format);
     }
+    /* vec */
     {
         const char *name = "veclen";
         struct native_func_param params[] = {
@@ -358,6 +371,22 @@ void define_builtin_functions(struct parser_scope *builtin)
                 ret_type,
                 builtin_veclen);
     }
+    {
+        const char *name = "vecpush";
+        struct parser_type *ret_type = parser_new_bool_type();
+        struct native_func_param params[] = {
+            { "vec",   parser_new_vec_type(parser_new_template_type(0)) },
+            { "val",   parser_new_template_type(0) },
+            { NULL },
+        };
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_vecpush);
+    }
+    /* map */
     {
         const char *name = "maplen";
         struct native_func_param params[] = {
