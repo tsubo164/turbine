@@ -146,16 +146,6 @@ static int builtin_strlen(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
-static int builtin_resize(struct runtime_gc *gc, struct runtime_registers *regs)
-{
-    struct runtime_value val = regs->locals[0];
-    struct runtime_value len = regs->locals[1];
-
-    runtime_vec_resize(val.vec, len.inum);
-
-    return RESULT_SUCCESS;
-}
-
 static int builtin_setlen(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value val = regs->locals[0];
@@ -324,32 +314,48 @@ void native_declare_func(struct parser_scope *scope,
 
 void define_builtin_functions(struct parser_scope *builtin)
 {
+    /* I/O */
     {
-        const char *name = data_string_intern("print");
-        struct parser_func *func = parser_declare_builtin_func(builtin, name);
+        const char *name = "print";
+        struct parser_type *ret_type = parser_new_nil_type();
+        struct native_func_param params[] = {
+            { "...", parser_new_any_type() },
+            { NULL },
+        };
 
-        parser_declare_param(func, "...", parser_new_any_type());
-
-        parser_add_return_type(func, parser_new_nil_type());
-        func->native_func_ptr = builtin_print;
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_print);
     }
     {
-        const char *name = data_string_intern("input");
-        struct parser_func *func = parser_declare_builtin_func(builtin, name);
+        const char *name = "input";
+        struct parser_type *ret_type = parser_new_string_type();
+        struct native_func_param params[] = {
+            { "msg", parser_new_string_type() },
+            { NULL },
+        };
 
-        parser_declare_param(func, "msg", parser_new_string_type());
-
-        parser_add_return_type(func, parser_new_string_type());
-        func->native_func_ptr = builtin_input;
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_input);
     }
     {
-        const char *name = data_string_intern("exit");
-        struct parser_func *func = parser_declare_builtin_func(builtin, name);
+        const char *name = "exit";
+        struct parser_type *ret_type = parser_new_int_type();
+        struct native_func_param params[] = {
+            { "code", parser_new_int_type() },
+            { NULL },
+        };
 
-        parser_declare_param(func, "code", parser_new_int_type());
-
-        parser_add_return_type(func, parser_new_int_type());
-        func->native_func_ptr = builtin_exit;
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_exit);
     }
     {
         const char *name = "format";
@@ -365,6 +371,22 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_format);
+    }
+    /* string */
+    {
+        /* strlen(s string) int */
+        const char *name = "strlen";
+        struct native_func_param params[] = {
+            { "str", parser_new_string_type() },
+            { NULL },
+        };
+        struct parser_type *ret_type = parser_new_int_type();
+
+        native_declare_func(builtin,
+                name,
+                params,
+                ret_type,
+                builtin_strlen);
     }
     /* vec */
     {
@@ -427,35 +449,6 @@ void define_builtin_functions(struct parser_scope *builtin)
                 params,
                 ret_type,
                 builtin_maplen);
-    }
-    {
-        const char *name = "strlen";
-        struct native_func_param params[] = {
-            { "str", parser_new_string_type() },
-            { NULL },
-        };
-        struct parser_type *ret_type = parser_new_int_type();
-
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_strlen);
-    }
-    {
-        const char *name = "resize";
-        struct native_func_param params[] = {
-            { "vec",   parser_new_vec_type(parser_new_template_type(0)) },
-            { "new_len", parser_new_int_type() },
-            { NULL },
-        };
-        struct parser_type *ret_type = parser_new_vec_type(parser_new_template_type(0));
-
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_resize);
     }
     {
         const char *name = "setlen";

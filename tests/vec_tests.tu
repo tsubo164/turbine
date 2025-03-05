@@ -42,27 +42,21 @@
     test.AssertI(99, _vec_[3])
     test.AssertI(4, veclen(_vec_))
 
-  // resize
   ---
     - a = vec{99, 11, 22, 33 + 9}
     test.AssertI(64, a[2] + a[3])
-
     test.AssertI(4, veclen(a))
-    resize(a, 8)
-    test.AssertI(8, veclen(a))
 
-  // resize in for
   ---
     - a = vec{11, 22, 33, 44}
 
-    for i, x in resize(a, 8)
+    for i, x in a
       if (i == 2)
         test.AssertI(33, x)
-    test.AssertI(8, veclen(a))
+    test.AssertI(4, veclen(a))
 
   ---
-    // vector init with resize
-    - x = resize(vec{1.1}, 4)
+    - x = vec{1.1, 2.2, 3.3, 4.4}
     test.AssertI(4, veclen(x))
     test.AssertF(1.1, x[0])
     x[1] = 3.9
@@ -379,7 +373,8 @@
     vecclear(c)
     test.AssertI(0, veclen(c))
 
-    resize(c, 5)
+    for i in 0..5
+      vecpush(c, i)
     test.AssertI(5, veclen(c))
 
   // vec clear and nested vectors
