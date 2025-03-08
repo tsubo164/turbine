@@ -1,4 +1,5 @@
 #include "builtin_module.h"
+#include "builtin_module_file.h"
 #include "builtin_module_math.h"
 
 #include <assert.h>
@@ -21,10 +22,10 @@ void builtin_register_modules(struct builtin_module_list *modules)
 {
     static const struct builtin_module table[] = {
 /*
-        { .name = "file",  .define_module = builtin_define_module_file },
         { .name = "path",  .define_module = builtin_define_module_path },
         { .name = "regex", .define_module = builtin_define_module_path },
 */
+        { .name = "file",  .define_module = builtin_define_module_file },
         { .name = "math",  .define_module = builtin_define_module_math },
     };
 
