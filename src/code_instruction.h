@@ -64,7 +64,7 @@ enum code_opcode {
     /* function call */
     OP_CALL,
     OP_CALLPOINTER,
-    OP_CALLBUILTIN,
+    OP_CALLNATIVE,
     OP_RETURN,
     /* jump */
     OP_JUMP,

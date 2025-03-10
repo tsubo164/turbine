@@ -190,14 +190,14 @@ static int gen_set_lit(struct code_bytecode *code,
     /* set elements */
     /* TODO remove code_find_builtin_function() when OP_SETADD available */
     int64_t func_id = code_find_builtin_function(code, "setadd");
-    bool is_builtin = true;
+    bool is_native = true;
     int ret_reg = code_allocate_temporary_register(code);
     int src_reg = code_allocate_temporary_register(code);
     for (elem = e->r; elem; elem = elem->next) {
         code_emit_move(code, ret_reg, dst);
         int src = gen_expr(code, elem);
         code_emit_move(code, src_reg, src);
-        code_emit_call_function(code, ret_reg, func_id, is_builtin);
+        code_emit_call_function(code, ret_reg, func_id, is_native);
     }
 
     return dst;
@@ -226,14 +226,14 @@ static int gen_stack_lit(struct code_bytecode *code,
     /* set elements */
     /* TODO remove code_find_builtin_function() when OP_STACKPUSH available */
     int64_t func_id = code_find_builtin_function(code, "stackpush");
-    bool is_builtin = true;
+    bool is_native = true;
     int ret_reg = code_allocate_temporary_register(code);
     int src_reg = code_allocate_temporary_register(code);
     for (elem = e->r; elem; elem = elem->next) {
         code_emit_move(code, ret_reg, dst);
         int src = gen_expr(code, elem);
         code_emit_move(code, src_reg, src);
-        code_emit_call_function(code, ret_reg, func_id, is_builtin);
+        code_emit_call_function(code, ret_reg, func_id, is_native);
     }
 
     return dst;
@@ -262,14 +262,14 @@ static int gen_queue_lit(struct code_bytecode *code,
     /* set elements */
     /* TODO remove code_find_builtin_function() when OP_QUEUEPUSH available */
     int64_t func_id = code_find_builtin_function(code, "queuepush");
-    bool is_builtin = true;
+    bool is_native = true;
     int ret_reg = code_allocate_temporary_register(code);
     int src_reg = code_allocate_temporary_register(code);
     for (elem = e->r; elem; elem = elem->next) {
         code_emit_move(code, ret_reg, dst);
         int src = gen_expr(code, elem);
         code_emit_move(code, src_reg, src);
-        code_emit_call_function(code, ret_reg, func_id, is_builtin);
+        code_emit_call_function(code, ret_reg, func_id, is_native);
     }
 
     return dst;
@@ -1278,8 +1278,8 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
                     continue;
 
                 int ret_reg = min_var_offset;
-                bool is_builtin = true;
-                code_emit_call_function(code, ret_reg, init_func_id, is_builtin);
+                bool is_native = true;
+                code_emit_call_function(code, ret_reg, init_func_id, is_native);
             }
         }
     }
@@ -1322,7 +1322,8 @@ static void gen_module(struct code_bytecode *code, const struct parser_module *m
 
     /* start func */
     int start_id = code_register_function(code, "_start", 0);
-    code_emit_call_function(code, 0, start_id, false);
+    bool is_native = false;
+    code_emit_call_function(code, 0, start_id, is_native);
     code_emit_halt(code);
 
     gen_start_func(code, mod, start_id);

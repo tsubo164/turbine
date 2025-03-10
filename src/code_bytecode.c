@@ -563,12 +563,12 @@ int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, in
 
 /* function call */
 int code_emit_call_function(struct code_bytecode *code, int ret_reg,
-        int func_index, bool builtin)
+        int func_index, bool is_native)
 {
     int reg0 = ret_reg;
 
-    if (builtin) {
-        push_inst_abb(code, OP_CALLBUILTIN, reg0, func_index);
+    if (is_native) {
+        push_inst_abb(code, OP_CALLNATIVE, reg0, func_index);
     }
     else {
         push_inst_abb(code, OP_CALL, reg0, func_index);

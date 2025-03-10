@@ -62,7 +62,7 @@ static const struct code_opcode_info opecode_table[] = {
     /* function call */
     [OP_CALL]           = { "call",           OPERAND_ABB },
     [OP_CALLPOINTER]    = { "callpointer",    OPERAND_AB_ },
-    [OP_CALLBUILTIN]    = { "callbuiltin",    OPERAND_ABB },
+    [OP_CALLNATIVE]     = { "callnative",     OPERAND_ABB },
     [OP_RETURN]         = { "return",         OPERAND_A__ },
     /* jump */
     [OP_JUMP]           = { "jump",           OPERAND_ABB },

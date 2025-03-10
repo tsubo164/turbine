@@ -456,7 +456,7 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
-        case OP_CALLBUILTIN:
+        case OP_CALLNATIVE:
             {
                 int ret_reg = inst.A;
                 int func_id = inst.BB;
