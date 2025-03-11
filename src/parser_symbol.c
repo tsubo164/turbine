@@ -183,7 +183,16 @@ struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name)
 {
     struct parser_func *func = parser_declare_func(parent, name, "_builtin");
-    func->sig->is_builtin = true;
+    func->sig->is_native = true;
+    return func;
+}
+
+struct parser_func *parser_declare_native_func(struct parser_scope *parent,
+        const char *modulename, const char *name, runtime_native_function_t func_ptr)
+{
+    struct parser_func *func = parser_declare_func(parent, name, modulename);
+    func->native_func_ptr = func_ptr;
+    func->sig->is_native = true;
     return func;
 }
 

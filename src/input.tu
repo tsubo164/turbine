@@ -1,8 +1,3 @@
-//[os]
-//[csv]
-//[json]
-//[opengl] (github.com/...)
-//[my_calc]
 //> math
 > file
 
@@ -17,8 +12,7 @@
   //-f file.FileWriteAppend
   //-f file.FileReadWriteAppend
 
-  //- txt = file.read_text("input.tu")
-  - txt = file.read_text("Makefile")
+  - txt = file.read_text("input.tu")
   print(txt)
 
   return 42

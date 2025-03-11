@@ -604,7 +604,7 @@ static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
     /* call */
     int64_t func_id = 0;
     if (parser_eval_expr(call->l, &func_id)) {
-        code_emit_call_function(code, retval_reg, func_id, func_sig->is_builtin);
+        code_emit_call_function(code, retval_reg, func_id, func_sig->is_native);
     }
     else {
         int src = gen_expr(code, call->l);
@@ -1219,7 +1219,7 @@ static void gen_funcs(struct code_bytecode *code, const struct parser_module *mo
     /* self module next */
     for (int i = 0; i < mod->funcs.len; i++) {
         struct parser_func *func = mod->funcs.data[i];
-        if (!func->sig->is_builtin)
+        if (!func->sig->is_native)
             gen_func(code, func, func->id);
     }
 }
@@ -1294,7 +1294,7 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
     /* push args for main() */
     code_emit_move(code, reg0, 0);
     code_emit_call_function(code, reg0, mod->main_func->id,
-            mod->main_func->sig->is_builtin);
+            mod->main_func->sig->is_native);
     code_emit_return(code, reg0);
 }
 

@@ -22,7 +22,7 @@ struct parser_func_sig {
     const struct parser_type *return_type;
     struct parser_typevec param_types;
 
-    bool is_builtin;
+    bool is_native;
     bool is_variadic;
     bool has_special_var;
     bool has_format_param;
@@ -175,6 +175,8 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
         const char *name, const char *modulename);
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name);
+struct parser_func *parser_declare_native_func(struct parser_scope *parent,
+        const char *modulename, const char *name, runtime_native_function_t func_ptr);
 
 void parser_declare_param(struct parser_func *func, const char *name,
         const struct parser_type *type);

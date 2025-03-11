@@ -1242,11 +1242,12 @@ static const struct parser_var *find_root_object(const struct parser_expr *e)
 static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
         const struct parser_expr *lval, const struct parser_expr *rval)
 {
-    /* builtin function check first */
-    if (parser_is_func_type(rval->type) && rval->type->func_sig->is_builtin) {
+    /* native function check first */
+    if (parser_is_func_type(rval->type) && rval->type->func_sig->is_native) {
         assert(rval->kind == NOD_EXPR_FUNCLIT);
         struct parser_func *func = rval->func;
-        error(p, pos, "builtin function can not be assigned: '%s'",
+        /* TODO consider removing: natvie func cannot be assigned */
+        error(p, pos, "natvie function can not be assigned: '%s'",
                 func->name);
     }
 
