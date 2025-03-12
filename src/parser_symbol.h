@@ -39,7 +39,7 @@ struct parser_func {
 
     struct parser_scope *scope;
     struct parser_stmt *body;
-    native_function_t native_func_ptr;
+    native_func_t native_func_ptr;
 };
 
 struct parser_funcvec {
@@ -176,7 +176,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name);
 struct parser_func *parser_declare_native_func(struct parser_scope *parent,
-        const char *modulename, const char *name, native_function_t func_ptr);
+        const char *modulename, const char *name, native_func_t func_ptr);
 
 void parser_declare_param(struct parser_func *func, const char *name,
         const struct parser_type *type);

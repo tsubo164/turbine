@@ -188,7 +188,7 @@ struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
 }
 
 struct parser_func *parser_declare_native_func(struct parser_scope *parent,
-        const char *modulename, const char *name, native_function_t func_ptr)
+        const char *modulename, const char *name, native_func_t func_ptr)
 {
     struct parser_func *func = parser_declare_func(parent, name, modulename);
     func->native_func_ptr = func_ptr;

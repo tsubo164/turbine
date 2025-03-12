@@ -199,9 +199,8 @@ void code_set_function_register_count(struct code_bytecode *code, int func_id);
 int code_get_function_register_count(const struct code_bytecode *code, int func_id);
 
 void code_set_native_function_pointer(struct code_bytecode *code,
-        int func_id, native_function_t fp);
-native_function_t code_get_native_function_pointer(
-        const struct code_bytecode *code,
+        int func_id, native_func_t fp);
+native_func_t code_get_native_function_pointer(const struct code_bytecode *code,
         int func_id);
 
 void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr);

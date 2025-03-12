@@ -3,6 +3,9 @@
 
 #include "runtime_value.h"
 
+struct parser_scope;
+struct parser_type;
+
 enum native_function_result {
     RESULT_NORETURN,
     RESULT_SUCCESS,
@@ -18,7 +21,18 @@ struct runtime_registers {
     int global_count;
 };
 
-typedef int (*native_function_t)(struct runtime_gc *gc,
-        struct runtime_registers *regs);
+typedef int (*native_func_t)(struct runtime_gc *gc, struct runtime_registers *regs);
+
+struct native_func_param {
+    const char *name;
+    const struct parser_type *type;
+    bool is_format;
+};
+
+void native_declare_func(struct parser_scope *scope,
+        const char *name,
+        const struct native_func_param *params,
+        const struct parser_type *return_type,
+        native_func_t native_func);
 
 #endif /* _H */

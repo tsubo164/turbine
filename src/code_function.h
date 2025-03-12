@@ -10,7 +10,7 @@ struct code_function {
     int reg_count;
     int64_t addr;
     const char *fullname;
-    native_function_t native_func_ptr;
+    native_func_t native_func_ptr;
 
     bool is_variadic;
 };

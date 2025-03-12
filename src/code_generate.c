@@ -1394,9 +1394,8 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
                 func->id = code_register_function(code, func->fullname, param_count);
 
                 if (func->native_func_ptr) {
-                    code_set_native_function_pointer(code,
-                            func->id,
-                            (native_function_t) func->native_func_ptr);
+                    code_set_native_function_pointer(code, func->id,
+                            (native_func_t) func->native_func_ptr);
 
                     code_set_function_variadic(code, func->id, func->sig->is_variadic);
                 }
