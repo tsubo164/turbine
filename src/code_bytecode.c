@@ -903,7 +903,7 @@ int code_get_function_register_count(const struct code_bytecode *code, int func_
 }
 
 void code_set_native_function_pointer(struct code_bytecode *code,
-        int func_id, runtime_native_function_t fp)
+        int func_id, native_function_t fp)
 {
     struct code_function *func = code_lookup_function(&code->funcs, func_id);
     assert(func);
@@ -911,7 +911,7 @@ void code_set_native_function_pointer(struct code_bytecode *code,
     func->native_func_ptr = fp;
 }
 
-runtime_native_function_t code_get_native_function_pointer(
+native_function_t code_get_native_function_pointer(
         const struct code_bytecode *code,
         int func_id)
 {

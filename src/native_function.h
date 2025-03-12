@@ -1,9 +1,9 @@
-#ifndef RUNTIME_FUNCTION_H
-#define RUNTIME_FUNCTION_H
+#ifndef NATIVE_FUNCTION_H
+#define NATIVE_FUNCTION_H
 
 #include "runtime_value.h"
 
-enum runtime_function_result {
+enum native_function_result {
     RESULT_NORETURN,
     RESULT_SUCCESS,
     RESULT_FAIL,
@@ -18,7 +18,7 @@ struct runtime_registers {
     int global_count;
 };
 
-typedef int (*runtime_native_function_t)(struct runtime_gc *gc,
+typedef int (*native_function_t)(struct runtime_gc *gc,
         struct runtime_registers *regs);
 
 #endif /* _H */

@@ -2,7 +2,7 @@
 #define CODE_FUNC_H
 
 #include <stdint.h>
-#include "runtime_function.h"
+#include "native_function.h"
 
 struct code_function {
     int id;
@@ -10,7 +10,7 @@ struct code_function {
     int reg_count;
     int64_t addr;
     const char *fullname;
-    runtime_native_function_t native_func_ptr;
+    native_function_t native_func_ptr;
 
     bool is_variadic;
 };

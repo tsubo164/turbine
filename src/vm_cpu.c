@@ -470,7 +470,7 @@ static void run_cpu(struct vm_cpu *vm)
                 set_sp(vm, vm->bp + max_reg_count);
 
                 /* call */
-                runtime_native_function_t native_func;
+                native_function_t native_func;
                 native_func = code_get_native_function_pointer(vm->code, func_id);
                 assert(native_func);
 

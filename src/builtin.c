@@ -1,11 +1,11 @@
 #include "builtin.h"
 #include "builtin_format_func.h"
 #include "builtin_print_func.h"
+#include "native_function.h"
 #include "data_intern.h"
 #include "data_strbuf.h"
 #include "parser_symbol.h"
 #include "parser_type.h"
-#include "runtime_function.h"
 #include "runtime_vec.h"
 #include "runtime_map.h"
 #include "runtime_set.h"
@@ -310,7 +310,7 @@ void native_declare_func(struct parser_scope *scope,
         const char *name,
         const struct native_func_param *params,
         const struct parser_type *return_type,
-        runtime_native_function_t native_func);
+        native_function_t native_func);
 
 void define_builtin_functions(struct parser_scope *builtin)
 {
@@ -657,7 +657,7 @@ void native_declare_func(struct parser_scope *scope,
         const char *name,
         const struct native_func_param *params,
         const struct parser_type *return_type,
-        runtime_native_function_t native_func)
+        native_function_t native_func)
 {
     const struct native_func_param *param;
     struct parser_func *func;

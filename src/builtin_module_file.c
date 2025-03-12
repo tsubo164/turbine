@@ -1,7 +1,7 @@
 #include "builtin_module_file.h"
+#include "native_function.h"
 #include "parser_symbol.h"
 #include "parser_type.h"
-#include "runtime_function.h"
 #include "runtime_string.h"
 #include "runtime_gc.h"
 #include "data_intern.h"

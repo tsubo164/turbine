@@ -4,10 +4,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "native_function.h"
+#include "parser_type.h"
 #include "data_hashmap.h"
 #include "data_vec.h"
-#include "parser_type.h"
-#include "runtime_function.h"
 
 /* var */
 struct parser_var {
@@ -39,7 +39,7 @@ struct parser_func {
 
     struct parser_scope *scope;
     struct parser_stmt *body;
-    runtime_native_function_t native_func_ptr;
+    native_function_t native_func_ptr;
 };
 
 struct parser_funcvec {
@@ -176,7 +176,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name);
 struct parser_func *parser_declare_native_func(struct parser_scope *parent,
-        const char *modulename, const char *name, runtime_native_function_t func_ptr);
+        const char *modulename, const char *name, native_function_t func_ptr);
 
 void parser_declare_param(struct parser_func *func, const char *name,
         const struct parser_type *type);
