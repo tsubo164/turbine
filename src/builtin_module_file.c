@@ -90,11 +90,13 @@ int builtin_define_module_file(struct parser_scope *scope)
 #endif
     {
         const char *name = "read_text";
-        struct parser_func *func;
+        struct native_func_param params[] = {
+            { "path", parser_new_string_type() },
+            { "_ret", parser_new_string_type() },
+            { NULL },
+        };
 
-        func = parser_declare_native_func(mod->scope, mod->name, name, file_read_text);
-        parser_declare_param(func, "path", parser_new_string_type());
-        parser_add_return_type(func, parser_new_string_type());
+        native_declare_func_(mod->scope, mod->name, name, params, file_read_text);
     }
     /*
     {
@@ -107,11 +109,13 @@ int builtin_define_module_file(struct parser_scope *scope)
     }
     */
     {
-        const char *name = "_init_file";
-        struct parser_func *func;
+        const char *name = "_init";
+        struct native_func_param params[] = {
+            { "_ret", parser_new_int_type() },
+            { NULL },
+        };
 
-        func = parser_declare_native_func(mod->scope, mod->name, name, init);
-        parser_add_return_type(func, parser_new_int_type());
+        native_declare_func_(mod->scope, mod->name, name, params, init);
     }
 
     return 0;
