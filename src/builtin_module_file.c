@@ -16,9 +16,10 @@
 /* TODO anotehr way is to call designated function to init module,
  * in that case we might need to have dedicated instruction to init modules,
  * which might couple vm and module */
-static int init(struct runtime_gc *gc, struct runtime_registers *regs)
+static int file_init(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     /*
+    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>> file module\n");
     if (regs->globals) {
         struct runtime_value pi = { .fpnum = 3.141592653589793 };
         struct runtime_value e  = { .fpnum = 2.718281828459045 };
@@ -70,24 +71,15 @@ int builtin_define_module_file(struct parser_scope *scope)
     /* this may help calling init function in code generator easier
     mod->is_builtin = true;
     */
-
-#if 0
     {
-        /* TODO ensure global names have leading and traing underscore */
-        const char *name = "_PI_";
-        const struct parser_type *type = parser_new_float_type();
-        bool isglobal = true;
+        const char *name = "init";
+        struct native_func_param params[] = {
+            { "_ret", parser_new_int_type() },
+            { NULL },
+        };
 
-        parser_define_var(mod->scope, name, type, isglobal);
+        native_declare_func_(mod->scope, mod->name, name, params, file_init);
     }
-    {
-        const char *name = "_E_";
-        const struct parser_type *type = parser_new_float_type();
-        bool isglobal = true;
-
-        parser_define_var(mod->scope, name, type, isglobal);
-    }
-#endif
     {
         const char *name = "read_text";
         struct native_func_param params[] = {
@@ -108,15 +100,23 @@ int builtin_define_module_file(struct parser_scope *scope)
         parser_add_struct_field(strct, data_string_intern("z"), parser_new_float_type());
     }
     */
+#if 0
     {
-        const char *name = "_init";
-        struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
-            { NULL },
-        };
+        /* TODO ensure global names have leading and traing underscore */
+        const char *name = "_PI_";
+        const struct parser_type *type = parser_new_float_type();
+        bool isglobal = true;
 
-        native_declare_func_(mod->scope, mod->name, name, params, init);
+        parser_define_var(mod->scope, name, type, isglobal);
     }
+    {
+        const char *name = "_E_";
+        const struct parser_type *type = parser_new_float_type();
+        bool isglobal = true;
+
+        parser_define_var(mod->scope, name, type, isglobal);
+    }
+#endif
 
     return 0;
 }

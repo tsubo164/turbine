@@ -1241,6 +1241,18 @@ static void gen_gvars(struct code_bytecode *code, const struct parser_module *mo
         gen_stmt(code, gvar);
 }
 
+static bool is_module_init_name(const char *fullname)
+{
+    if (!strncmp(fullname, "_builtin:_init", 14))
+        return true;
+
+    const char *sep = strrchr(fullname, ':');
+    if (sep)
+        return !strcmp(sep + 1, "init");
+
+    return false;
+}
+
 static void gen_start_func_body(struct code_bytecode *code, const struct parser_module *mod)
 {
     /* TODO TEST emitting call module init functions */
@@ -1259,7 +1271,7 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
 
                     if (s->kind == SYM_FUNC) {
                         const struct parser_func *f = s->func;
-                        if (!strncmp(f->fullname, "_builtin:_init", 14)) {
+                        if (is_module_init_name(f->fullname)) {
                             init_func_id = f->id;
                         }
                     }
