@@ -2289,7 +2289,10 @@ static struct parser_type *type_spec(struct parser *p)
     }
 
     if (consume(p, TOK_HASH)) {
-        struct parser_func *func = parser_declare_func(p->scope, "_", p->module->filename);
+        const char *func_name = "_lambda";
+        struct parser_func *func;
+
+        func = parser_declare_func(p->scope, p->module->filename, func_name);
         /* TODO check NULL func */
         parser_module_add_func(p->module, func);
         param_list(p, func);
@@ -2373,7 +2376,7 @@ static void func_def(struct parser *p)
     /* func */
     const char *name = tok_str(p);
     struct parser_pos ident_pos = tok_pos(p);
-    struct parser_func *func = parser_declare_func(p->scope, name, p->module->filename);
+    struct parser_func *func = parser_declare_func(p->scope, p->module->filename, name);
     if (!func) {
         error(p, ident_pos, "re-defined identifier: '%s'", name);
     }

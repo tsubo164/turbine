@@ -172,7 +172,7 @@ struct parser_symbol *parser_define_var(struct parser_scope *sc, const char *nam
 
 /* func */
 struct parser_func *parser_declare_func(struct parser_scope *parent,
-        const char *name, const char *modulename);
+        const char *modulename, const char *name);
 struct parser_func *parser_declare_builtin_func(struct parser_scope *parent,
         const char *name);
 struct parser_func *parser_declare_native_func(struct parser_scope *parent,
