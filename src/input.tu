@@ -16,4 +16,7 @@
   - txt = file.read_text("input.tu")
   print(txt)
 
+  -s = input("Y/N? ")
+  print(s)
+
   return 42

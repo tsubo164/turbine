@@ -54,7 +54,7 @@ int module_define_math(struct parser_scope *scope)
             { NULL },
         };
 
-        native_declare_func_(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp);
     }
     {
         /* TODO ensure global names have leading and traing underscore */
@@ -80,7 +80,7 @@ int module_define_math(struct parser_scope *scope)
             { NULL },
         };
 
-        native_declare_func_(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp);
     }
     {
         const char *name = data_string_intern("Vec3");

@@ -30,12 +30,6 @@ struct native_func_param {
 };
 
 void native_declare_func(struct parser_scope *scope,
-        const char *name,
-        const struct native_func_param *params,
-        const struct parser_type *return_type,
-        native_func_t native_func);
-
-void native_declare_func_(struct parser_scope *scope,
         const char *modulename,
         const char *funcname,
         const struct native_func_param *params,

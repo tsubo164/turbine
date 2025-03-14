@@ -69,7 +69,7 @@ int module_define_file(struct parser_scope *scope)
             { NULL },
         };
 
-        native_declare_func_(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp);
     }
     {
         const char *name = "read_text";
@@ -80,7 +80,7 @@ int module_define_file(struct parser_scope *scope)
             { NULL },
         };
 
-        native_declare_func_(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp);
     }
 
     return 0;

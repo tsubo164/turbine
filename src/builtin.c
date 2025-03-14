@@ -302,341 +302,277 @@ static int builtin_queuefront(struct runtime_gc *gc, struct runtime_registers *r
 
 void define_builtin_functions(struct parser_scope *builtin)
 {
+    const char *modulename = "_builtin";
+
     /* I/O */
     {
         const char *name = "print";
-        struct parser_type *ret_type = parser_new_nil_type();
+        native_func_t fp = builtin_print;
         struct native_func_param params[] = {
-            { "...", parser_new_any_type() },
+            { "...",  parser_new_any_type() },
+            { "_ret", parser_new_nil_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_print);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "input";
-        struct parser_type *ret_type = parser_new_string_type();
+        native_func_t fp = builtin_input;
         struct native_func_param params[] = {
-            { "msg", parser_new_string_type() },
+            { "msg",  parser_new_string_type() },
+            { "_ret", parser_new_string_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_input);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "exit";
-        struct parser_type *ret_type = parser_new_int_type();
+        native_func_t fp = builtin_exit;
         struct native_func_param params[] = {
             { "code", parser_new_int_type() },
+            { "_ret", parser_new_int_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_exit);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "format";
+        native_func_t fp = builtin_format;
         struct native_func_param params[] = {
-            { "fmt", parser_new_string_type(), true },
-            { "...", parser_new_any_type() },
+            { "fmt",  parser_new_string_type(), true },
+            { "...",  parser_new_any_type() },
+            { "_ret", parser_new_string_type() },
             { NULL },
         };
-        struct parser_type *ret_type = parser_new_string_type();
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_format);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     /* string */
     {
         /* strlen(s string) int */
         const char *name = "strlen";
+        native_func_t fp = builtin_strlen;
         struct native_func_param params[] = {
-            { "str", parser_new_string_type() },
+            { "str",  parser_new_string_type() },
+            { "_ret", parser_new_int_type() },
             { NULL },
         };
-        struct parser_type *ret_type = parser_new_int_type();
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_strlen);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     /* vec */
     {
         /* veclen(v vec{T}) int */
         const char *name = "veclen";
-        struct parser_type *ret_type = parser_new_int_type();
+        native_func_t fp = builtin_veclen;
         struct native_func_param params[] = {
-            { "vec", parser_new_vec_type(parser_new_any_type()) },
+            { "vec",  parser_new_vec_type(parser_new_any_type()) },
+            { "_ret", parser_new_int_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_veclen);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         /* vecpush(v vec{T}, val T) */
         const char *name = "vecpush";
-        struct parser_type *ret_type = parser_new_nil_type();
+        native_func_t fp = builtin_vecpush;
         struct native_func_param params[] = {
-            { "vec",   parser_new_vec_type(parser_new_template_type(0)) },
-            { "val",   parser_new_template_type(0) },
+            { "vec",  parser_new_vec_type(parser_new_template_type(0)) },
+            { "val",  parser_new_template_type(0) },
+            { "_ret", parser_new_nil_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_vecpush);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         /* vecclear(v vec{T}) */
         const char *name = "vecclear";
-        struct parser_type *ret_type = parser_new_nil_type();
+        native_func_t fp = builtin_vecclear;
         struct native_func_param params[] = {
-            { "vec",   parser_new_vec_type(parser_new_template_type(0)) },
+            { "vec",  parser_new_vec_type(parser_new_template_type(0)) },
+            { "_ret", parser_new_nil_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_vecclear);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     /* map */
     {
         const char *name = "maplen";
+        native_func_t fp = builtin_maplen;
         struct native_func_param params[] = {
-            { "map", parser_new_map_type(parser_new_any_type()) },
+            { "map",  parser_new_map_type(parser_new_any_type()) },
+            { "_ret", parser_new_int_type() },
             { NULL },
         };
-        struct parser_type *ret_type = parser_new_int_type();
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_maplen);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
+    /* set */
     {
         const char *name = "setlen";
-        struct parser_type *ret_type = parser_new_int_type();
+        native_func_t fp = builtin_setlen;
         struct native_func_param params[] = {
-            { "set",   parser_new_set_type(parser_new_template_type(0)) },
+            { "set",  parser_new_set_type(parser_new_template_type(0)) },
+            { "_ret", parser_new_int_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_setlen);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "setadd";
-        struct parser_type *ret_type = parser_new_bool_type();
+        native_func_t fp = builtin_setadd;
         struct native_func_param params[] = {
-            { "set",   parser_new_set_type(parser_new_template_type(0)) },
-            { "val",   parser_new_template_type(0) },
+            { "set",  parser_new_set_type(parser_new_template_type(0)) },
+            { "val",  parser_new_template_type(0) },
+            { "_ret", parser_new_bool_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_setadd);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "setcontains";
-        struct parser_type *ret_type = parser_new_bool_type();
+        native_func_t fp = builtin_setcontains;
         struct native_func_param params[] = {
-            { "set",   parser_new_set_type(parser_new_template_type(0)) },
-            { "key",   parser_new_template_type(0) },
+            { "set",  parser_new_set_type(parser_new_template_type(0)) },
+            { "key",  parser_new_template_type(0) },
+            { "_ret", parser_new_bool_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_setcontains);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "setremove";
-        struct parser_type *ret_type = parser_new_bool_type();
+        native_func_t fp = builtin_setremove;
         struct native_func_param params[] = {
-            { "set",   parser_new_set_type(parser_new_template_type(0)) },
-            { "key",   parser_new_template_type(0) },
+            { "set",  parser_new_set_type(parser_new_template_type(0)) },
+            { "key",  parser_new_template_type(0) },
+            { "_ret", parser_new_bool_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_setremove);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
+    /* stack */
     {
         const char *name = "stacklen";
-        struct parser_type *ret_type = parser_new_int_type();
+        native_func_t fp = builtin_stacklen;
         struct native_func_param params[] = {
-            { "stack",   parser_new_stack_type(parser_new_template_type(0)) },
+            { "stack", parser_new_stack_type(parser_new_template_type(0)) },
+            { "_ret",  parser_new_int_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_stacklen);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "stackempty";
-        struct parser_type *ret_type = parser_new_bool_type();
+        native_func_t fp = builtin_stackempty;
         struct native_func_param params[] = {
-            { "stack",   parser_new_stack_type(parser_new_template_type(0)) },
+            { "stack", parser_new_stack_type(parser_new_template_type(0)) },
+            { "_ret",  parser_new_bool_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_stackempty);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "stackpush";
-        struct parser_type *ret_type = parser_new_nil_type();
+        native_func_t fp = builtin_stackpush;
         struct native_func_param params[] = {
             { "stack", parser_new_stack_type(parser_new_template_type(0)) },
             { "val",   parser_new_template_type(0) },
+            { "_ret",  parser_new_nil_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_stackpush);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "stackpop";
-        struct parser_type *ret_type = parser_new_template_type(0);
+        native_func_t fp = builtin_stackpop;
         struct native_func_param params[] = {
             { "stack", parser_new_stack_type(parser_new_template_type(0)) },
+            { "_ret",  parser_new_template_type(0) },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_stackpop);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "stacktop";
-        struct parser_type *ret_type = parser_new_template_type(0);
+        native_func_t fp = builtin_stacktop;
         struct native_func_param params[] = {
             { "stack", parser_new_stack_type(parser_new_template_type(0)) },
+            { "_ret",  parser_new_template_type(0) },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_stacktop);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
+    /* queue */
     {
         const char *name = "queuelen";
-        struct parser_type *ret_type = parser_new_int_type();
+        native_func_t fp = builtin_queuelen;
         struct native_func_param params[] = {
-            { "_queue",   parser_new_queue_type(parser_new_template_type(0)) },
+            { "queue", parser_new_queue_type(parser_new_template_type(0)) },
+            { "_ret",  parser_new_int_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_queuelen);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "queueempty";
-        struct parser_type *ret_type = parser_new_bool_type();
+        native_func_t fp = builtin_queueempty;
         struct native_func_param params[] = {
-            { "queue",   parser_new_queue_type(parser_new_template_type(0)) },
+            { "queue", parser_new_queue_type(parser_new_template_type(0)) },
+            { "_ret",  parser_new_bool_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_queueempty);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "queuepush";
-        struct parser_type *ret_type = parser_new_nil_type();
+        native_func_t fp = builtin_queuepush;
         struct native_func_param params[] = {
             { "queue", parser_new_queue_type(parser_new_template_type(0)) },
             { "val",   parser_new_template_type(0) },
+            { "_ret",  parser_new_nil_type() },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_queuepush);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "queuepop";
-        struct parser_type *ret_type = parser_new_template_type(0);
+        native_func_t fp = builtin_queuepop;
         struct native_func_param params[] = {
             { "queue", parser_new_queue_type(parser_new_template_type(0)) },
+            { "_ret",  parser_new_template_type(0) },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_queuepop);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
     {
         const char *name = "queuefront";
-        struct parser_type *ret_type = parser_new_template_type(0);
+        native_func_t fp = builtin_queuefront;
         struct native_func_param params[] = {
             { "queue", parser_new_queue_type(parser_new_template_type(0)) },
+            { "_ret",  parser_new_template_type(0) },
             { NULL },
         };
 
-        native_declare_func(builtin,
-                name,
-                params,
-                ret_type,
-                builtin_queuefront);
+        native_declare_func(builtin, modulename, name, params, fp);
     }
 }
