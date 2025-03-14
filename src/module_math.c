@@ -1,4 +1,4 @@
-#include "builtin_module_math.h"
+#include "module_math.h"
 #include "native_function.h"
 #include "parser_symbol.h"
 #include "parser_type.h"
@@ -37,7 +37,7 @@ static int math_sqrt(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
-int builtin_define_module_math(struct parser_scope *scope)
+int module_define_math(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "math");
     /* TODO consider passing this to `parser_define_module()`

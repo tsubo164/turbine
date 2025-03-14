@@ -1,6 +1,6 @@
 #include "builtin_module.h"
-#include "builtin_module_file.h"
-#include "builtin_module_math.h"
+#include "module_file.h"
+#include "module_math.h"
 
 #include <assert.h>
 #include <string.h>
@@ -25,8 +25,8 @@ void builtin_register_modules(struct builtin_module_list *modules)
         { .name = "path",  .define_module = builtin_define_module_path },
         { .name = "regex", .define_module = builtin_define_module_path },
 */
-        { .name = "file",  .define_module = builtin_define_module_file },
-        { .name = "math",  .define_module = builtin_define_module_math },
+        { .name = "file",  .define_module = module_define_file },
+        { .name = "math",  .define_module = module_define_math },
     };
 
     int N = sizeof(table) / sizeof(table[0]);

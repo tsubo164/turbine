@@ -1,5 +1,6 @@
 > math
 > file
+> my_calc
 
 # main(args vec{string}) int
   //- f = file.open("foo.txt", file._READ_ | file._WRITE_)
