@@ -12,22 +12,11 @@
 /* TODO currently the reg_count is zero. consider setting a number of
  * global variables to it. however also need to see if it is okay to
  * have different meaning than normal functions */
-
 /* TODO anotehr way is to call designated function to init module,
  * in that case we might need to have dedicated instruction to init modules,
  * which might couple vm and module */
 static int file_init(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    /*
-    printf(">>>>>>>>>>>>>>>>>>>>>>>>>>> file module\n");
-    if (regs->globals) {
-        struct runtime_value pi = { .fpnum = 3.141592653589793 };
-        struct runtime_value e  = { .fpnum = 2.718281828459045 };
-        regs->globals[0] = pi;
-        regs->globals[1] = e;
-    }
-    */
-
     return RESULT_SUCCESS;
 }
 
@@ -39,7 +28,8 @@ static int file_read_text(struct runtime_gc *gc, struct runtime_registers *regs)
     {
         FILE *fp = fopen(runtime_string_get_cstr(path.string), "r");
         if (!fp) {
-            /* error */
+            /* TODO error */
+            return RESULT_FAIL;
         }
 
         struct data_strbuf sb = DATA_STRBUF_INIT;
@@ -73,50 +63,25 @@ int builtin_define_module_file(struct parser_scope *scope)
     */
     {
         const char *name = "init";
+        native_func_t fp = file_init;
         struct native_func_param params[] = {
             { "_ret", parser_new_int_type() },
             { NULL },
         };
 
-        native_declare_func_(mod->scope, mod->name, name, params, file_init);
+        native_declare_func_(mod->scope, mod->name, name, params, fp);
     }
     {
         const char *name = "read_text";
+        native_func_t fp = file_read_text;
         struct native_func_param params[] = {
             { "path", parser_new_string_type() },
             { "_ret", parser_new_string_type() },
             { NULL },
         };
 
-        native_declare_func_(mod->scope, mod->name, name, params, file_read_text);
+        native_declare_func_(mod->scope, mod->name, name, params, fp);
     }
-    /*
-    {
-        const char *name = data_string_intern("Vec3");
-        struct parser_struct *strct = parser_define_struct(mod->scope, name);
-
-        parser_add_struct_field(strct, data_string_intern("x"), parser_new_float_type());
-        parser_add_struct_field(strct, data_string_intern("y"), parser_new_float_type());
-        parser_add_struct_field(strct, data_string_intern("z"), parser_new_float_type());
-    }
-    */
-#if 0
-    {
-        /* TODO ensure global names have leading and traing underscore */
-        const char *name = "_PI_";
-        const struct parser_type *type = parser_new_float_type();
-        bool isglobal = true;
-
-        parser_define_var(mod->scope, name, type, isglobal);
-    }
-    {
-        const char *name = "_E_";
-        const struct parser_type *type = parser_new_float_type();
-        bool isglobal = true;
-
-        parser_define_var(mod->scope, name, type, isglobal);
-    }
-#endif
 
     return 0;
 }

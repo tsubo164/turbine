@@ -15,7 +15,7 @@
 /* TODO anotehr way is to call designated function to init module,
  * in that case we might need to have dedicated instruction to init modules,
  * which might couple vm and module */
-static int init(struct runtime_gc *gc, struct runtime_registers *regs)
+static int math_init(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     if (regs->globals) {
         struct runtime_value pi = { .fpnum = 3.141592653589793 };
@@ -46,7 +46,16 @@ int builtin_define_module_math(struct parser_scope *scope)
     /* this may help calling init function in code generator easier
     mod->is_builtin = true;
     */
+    {
+        const char *name = "init";
+        native_func_t fp = math_init;
+        struct native_func_param params[] = {
+            { "_ret", parser_new_int_type() },
+            { NULL },
+        };
 
+        native_declare_func_(mod->scope, mod->name, name, params, fp);
+    }
     {
         /* TODO ensure global names have leading and traing underscore */
         const char *name = "_PI_";
@@ -63,13 +72,15 @@ int builtin_define_module_math(struct parser_scope *scope)
         parser_define_var(mod->scope, name, type, isglobal);
     }
     {
-        const char *name = data_string_intern("sqrt");
-        struct parser_func *func = parser_declare_builtin_func(mod->scope, name);
+        const char *name = "sqrt";
+        native_func_t fp = math_sqrt;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
 
-        parser_declare_param(func, "x", parser_new_float_type());
-
-        parser_add_return_type(func, parser_new_float_type());
-        func->native_func_ptr = math_sqrt;
+        native_declare_func_(mod->scope, mod->name, name, params, fp);
     }
     {
         const char *name = data_string_intern("Vec3");
@@ -78,13 +89,6 @@ int builtin_define_module_math(struct parser_scope *scope)
         parser_add_struct_field(strct, data_string_intern("x"), parser_new_float_type());
         parser_add_struct_field(strct, data_string_intern("y"), parser_new_float_type());
         parser_add_struct_field(strct, data_string_intern("z"), parser_new_float_type());
-    }
-    {
-        const char *name = data_string_intern("_init_math");
-        struct parser_func *func = parser_declare_builtin_func(mod->scope, name);
-
-        parser_add_return_type(func, parser_new_int_type());
-        func->native_func_ptr = init;
     }
 
     return 0;

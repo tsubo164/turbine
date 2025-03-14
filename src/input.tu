@@ -1,4 +1,4 @@
-//> math
+> math
 > file
 
 # main(args vec{string}) int

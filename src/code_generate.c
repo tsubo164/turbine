@@ -1243,9 +1243,6 @@ static void gen_gvars(struct code_bytecode *code, const struct parser_module *mo
 
 static bool is_module_init_name(const char *fullname)
 {
-    if (!strncmp(fullname, "_builtin:_init", 14))
-        return true;
-
     const char *sep = strrchr(fullname, ':');
     if (sep)
         return !strcmp(sep + 1, "init");
@@ -1289,7 +1286,7 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
                 if (init_func_id < 0)
                     continue;
 
-                int ret_reg = min_var_offset;
+                int ret_reg = min_var_offset == INT32_MAX ? 0 : min_var_offset;
                 bool is_native = true;
                 code_emit_call_function(code, ret_reg, init_func_id, is_native);
             }
