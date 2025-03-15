@@ -51,6 +51,9 @@ test: all
 	@echo "[math module tests]"
 	@../turbine math_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[file module tests]"
+	@../turbine file_tests.tu
+	@echo "\033[0;32mOK\033[0;39m"
 
 libtest: libtest.out
 	@echo "[C tests]"

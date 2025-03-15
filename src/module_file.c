@@ -52,6 +52,32 @@ static int file_read_text(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int file_write_text(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value path = regs->locals[0];
+    struct runtime_value text = regs->locals[1];
+    struct runtime_value ret = {0};
+
+    {
+        FILE *fp = fopen(runtime_string_get_cstr(path.string), "w");
+        if (!fp) {
+            /* TODO error */
+            ret.inum = 0;
+            regs->locals[0] = ret;
+            return RESULT_FAIL;
+        }
+
+        const char *s = runtime_string_get_cstr(text.string);
+        fprintf(fp, "%s", s);
+        fclose(fp);
+    }
+
+    ret.inum = 1;
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
 int module_define_file(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "file");
@@ -77,6 +103,18 @@ int module_define_file(struct parser_scope *scope)
         struct native_func_param params[] = {
             { "path", parser_new_string_type() },
             { "_ret", parser_new_string_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "write_text";
+        native_func_t fp = file_write_text;
+        struct native_func_param params[] = {
+            { "path", parser_new_string_type() },
+            { "text", parser_new_string_type() },
+            { "_ret", parser_new_bool_type() },
             { NULL },
         };
 
