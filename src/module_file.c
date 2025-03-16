@@ -20,6 +20,11 @@ static int file_init(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int file_new(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    return RESULT_SUCCESS;
+}
+
 static int file_read_text(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value path = regs->locals[0];
@@ -81,17 +86,35 @@ static int file_write_text(struct runtime_gc *gc, struct runtime_registers *regs
 int module_define_file(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "file");
-    /* TODO consider passing this to `parser_define_module()`
-     * or making wrapper function named `builtin_define_module()`
-     * Making wrappers seems better */
-    /* this may help calling init function in code generator easier
-    mod->is_builtin = true;
-    */
+    struct parser_struct *file_struct = NULL;
+
+    /* struct */
+    {
+        const char *name = "File";
+        struct native_struct_field fields[] = {
+            { "fd", parser_new_int_type() },
+            { NULL },
+        };
+
+        file_struct = native_define_struct(mod->scope, name, fields);
+    }
+    /* function */
     {
         const char *name = "init";
         native_func_t fp = file_init;
         struct native_func_param params[] = {
             { "_ret", parser_new_int_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "new";
+        native_func_t fp = file_new;
+        struct native_func_param params[] = {
+            { "path", parser_new_string_type() },
+            { "_ret", parser_new_struct_type(file_struct) },
             { NULL },
         };
 

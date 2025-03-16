@@ -3,6 +3,7 @@
 
 #include "runtime_value.h"
 
+struct parser_struct;
 struct parser_scope;
 struct parser_type;
 
@@ -34,5 +35,14 @@ void native_declare_func(struct parser_scope *scope,
         const char *funcname,
         const struct native_func_param *params,
         native_func_t native_func);
+
+struct native_struct_field {
+    const char *name;
+    const struct parser_type *type;
+};
+
+struct parser_struct *native_define_struct(struct parser_scope *scope,
+        const char *structname,
+        const struct native_struct_field *fields);
 
 #endif /* _H */

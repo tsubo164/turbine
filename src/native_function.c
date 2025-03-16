@@ -31,3 +31,19 @@ void native_declare_func(struct parser_scope *scope,
     if (!has_ret)
         parser_add_return_type(func, parser_new_nil_type());
 }
+
+struct parser_struct *native_define_struct(struct parser_scope *scope,
+        const char *structname,
+        const struct native_struct_field *fields)
+{
+    const struct native_struct_field *field;
+    struct parser_struct *strct;
+
+    strct = parser_define_struct(scope, structname);
+
+    for (field = fields; field->name; field++) {
+        parser_add_struct_field(strct, field->name, field->type);
+    }
+
+    return strct;
+}
