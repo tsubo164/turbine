@@ -124,13 +124,6 @@ struct parser_type *parser_new_any_type(void)
     return &t;
 }
 
-struct parser_type *parser_new_union_type(int id)
-{
-    struct parser_type *t = new_type(TYP_UNION);
-    t->template_id = id;
-    return t;
-}
-
 struct parser_type *parser_new_template_type(int id)
 {
     struct parser_type *t = new_type(TYP_TEMPLATE);
@@ -153,7 +146,6 @@ bool parser_is_struct_type(const struct parser_type *t)   { return t->kind == TY
 bool parser_is_enum_type(const struct parser_type *t)     { return t->kind == TYP_ENUM; }
 bool parser_is_module_type(const struct parser_type *t)   { return t->kind == TYP_MODULE; }
 bool parser_is_any_type(const struct parser_type *t)      { return t->kind == TYP_ANY; }
-bool parser_is_union_type(const struct parser_type *t)    { return t->kind == TYP_UNION; }
 bool parser_is_template_type(const struct parser_type *t) { return t->kind == TYP_TEMPLATE; }
 
 bool parser_has_template_type(const struct parser_type *t)
@@ -200,7 +192,6 @@ static const char *type_kind_string(int kind)
     case TYP_ENUM:     return "enum";
     case TYP_MODULE:   return "module";
     case TYP_ANY:      return "any";
-    case TYP_UNION:    return "union";
     case TYP_TEMPLATE: return "template";
     }
 
@@ -241,21 +232,6 @@ const char *parser_type_string(const struct parser_type *t)
     return interned;
 }
 
-static bool find_in_union(const struct parser_type *uni, const struct parser_type *t)
-{
-    if (!parser_is_union_type(uni))
-        return false;
-
-    for (int i = 0; i < uni->unions.len; i++) {
-        const struct parser_type *u = uni->unions.data[i];
-
-        if (parser_match_type(u, t))
-            return true;
-    }
-
-    return false;
-}
-
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2)
 {
     if (parser_is_any_type(t1) || parser_is_any_type(t2))
@@ -273,12 +249,6 @@ bool parser_match_type(const struct parser_type *t1, const struct parser_type *t
     if (parser_is_vec_type(t1) && parser_is_vec_type(t2))
         return parser_match_type(t1->underlying, t2->underlying);
 
-    if (parser_is_union_type(t1) && !parser_is_union_type(t2))
-        return find_in_union(t1, t2);
-
-    if (!parser_is_union_type(t1) && parser_is_union_type(t2))
-        return find_in_union(t2, t1);
-
     if (parser_is_func_type(t1) && parser_is_func_type(t2))
         return parser_match_func_signature(t1->func_sig, t2->func_sig);
 
@@ -290,14 +260,6 @@ struct parser_type *parser_duplicate_type(const struct parser_type *t)
     struct parser_type *dup = new_type(0);
     *dup = *t;
     return dup;
-}
-
-void parser_add_union_type(struct parser_type *uni, const struct parser_type *t)
-{
-    if (find_in_union(uni, t))
-        return;
-
-    parser_typevec_push(&uni->unions, t);
 }
 
 #define MIN_CAP 8
@@ -329,7 +291,6 @@ static const int table[] = {
     [TYP_ENUM]     = 'E',
     [TYP_MODULE]   = 'm',
     [TYP_ANY]      = 'a',
-    [TYP_UNION]    = 'u',
     [TYP_TEMPLATE] = 't',
 };
 static const int tablesize = sizeof(table)/sizeof(table[0]);

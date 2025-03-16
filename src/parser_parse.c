@@ -1946,7 +1946,6 @@ static struct parser_expr *default_value(const struct parser_type *type)
         return parser_new_nillit_expr();
 
     case TYP_ANY:
-    case TYP_UNION:
     case TYP_TEMPLATE:
         assert(!"unreachable");
         return NULL;

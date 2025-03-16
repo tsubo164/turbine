@@ -197,9 +197,6 @@ void parser_declare_param(struct parser_func *func,
     if (!strcmp(name, "..."))
         func->sig->is_variadic = true;
 
-    if (parser_is_union_type(type))
-        func->sig->has_union_param = true;
-
     if (name[0] == '$')
         func->sig->has_special_var = true;
 

@@ -162,7 +162,6 @@ static int parser_type_to_value_type(const struct parser_type *t)
     case TYP_ENUM:     return VAL_NIL;
     case TYP_MODULE:   return VAL_NIL;
     case TYP_ANY:      return VAL_NIL;
-    case TYP_UNION:    return VAL_NIL;
     case TYP_TEMPLATE: return VAL_NIL;
     }
     return VAL_NIL;
