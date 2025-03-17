@@ -2,9 +2,10 @@
 > file
 
 # main(args vec{string}) int
-  - text = "Hello, World!\n"
-  //- b = file.write_text("../foo.txt", text)
 
-  - f = file.open("foo.txt", "r")
+  - lines = file.read_lines("input.tu")
+
+  for line in lines
+    print(format("[%s]", line))
 
   return 42

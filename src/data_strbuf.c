@@ -110,6 +110,16 @@ void data_strbuf_pushn(struct data_strbuf *sb, int ch, int n)
     memset(sb->data + old_len, ch, n);
 }
 
+void data_strbuf_clear(struct data_strbuf *sb)
+{
+    data_strbuf_copy(sb, "");
+}
+
+int data_strbuf_len(const struct data_strbuf *sb)
+{
+    return sb->len;
+}
+
 void data_strbuf_free(struct data_strbuf *sb)
 {
     if (!sb)
