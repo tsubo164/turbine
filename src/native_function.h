@@ -24,6 +24,7 @@ struct runtime_registers {
 
 typedef int (*native_func_t)(struct runtime_gc *gc, struct runtime_registers *regs);
 
+/* function */
 struct native_func_param {
     const char *name;
     const struct parser_type *type;
@@ -36,6 +37,7 @@ void native_declare_func(struct parser_scope *scope,
         const struct native_func_param *params,
         native_func_t native_func);
 
+/* struct */
 struct native_struct_field {
     const char *name;
     const struct parser_type *type;
@@ -44,5 +46,15 @@ struct native_struct_field {
 struct parser_struct *native_define_struct(struct parser_scope *scope,
         const char *structname,
         const struct native_struct_field *fields);
+
+/* global */
+struct native_global_var {
+    const char *name;
+    const struct parser_type *type;
+    struct runtime_value init_val;
+};
+
+void native_define_global_vars(struct parser_scope *scope,
+        const struct native_global_var *gvars);
 
 #endif /* _H */

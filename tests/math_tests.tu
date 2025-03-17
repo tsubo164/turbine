@@ -15,19 +15,10 @@
     x = 9.0
     test.AssertF(3.0, math.sqrt(x))
 
-  /*
   ---
-    test.AssertF(81.0, math.pow(x, 2))
+    - x = 9.0
+    test.AssertF(81.0, math.pow(x, 2.0))
  
-  ---
-      - r = math.sin(math._PI_ / 2)
-      test.AssertF(1.0, r)
-  ---
-      - x = 45.0
-      test.AssertF(0.7071067811865476, math.sin(math.radians(x)))
-      test.AssertF(0.0, math.cos(math._PI_ / 2))
-      test.AssertF(-1.0, math.cos(math._PI_))
-
   ---
       - x = 2.0
       - y = 3.0
@@ -36,7 +27,17 @@
   ---
       - f1 = 3.0
       - f2 = 4.0
-      test.AssertF(5.0, math.sqrt(math.pow(f1, 2) + math.pow(f2, 2)))
+      test.AssertF(5.0, math.sqrt(math.pow(f1, 2.0) + math.pow(f2, 2.0)))
+
+  /*
+  ---
+      - r = math.sin(math._PI_ / 2)
+      test.AssertF(1.0, r)
+  ---
+      - x = 45.0
+      test.AssertF(0.7071067811865476, math.sin(math.radians(x)))
+      test.AssertF(0.0, math.cos(math._PI_ / 2))
+      test.AssertF(-1.0, math.cos(math._PI_))
 
       - r1 = 1.0
       - r2 = 1.0

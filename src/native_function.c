@@ -47,3 +47,14 @@ struct parser_struct *native_define_struct(struct parser_scope *scope,
 
     return strct;
 }
+
+void native_define_global_vars(struct parser_scope *scope,
+        const struct native_global_var *gvars)
+{
+    const struct native_global_var *gvar;
+
+    for (gvar = gvars; gvar->name; gvar++) {
+        bool isglobal = true;
+        parser_define_var(scope, gvar->name, gvar->type, isglobal);
+    }
+}

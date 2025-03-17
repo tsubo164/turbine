@@ -27,6 +27,17 @@ static int math_init(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int math_pow(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+    struct runtime_value y = regs->locals[1];
+
+    x.fpnum = pow(x.fpnum, y.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
 static int math_sqrt(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value x = regs->locals[0];
@@ -40,12 +51,31 @@ static int math_sqrt(struct runtime_gc *gc, struct runtime_registers *regs)
 int module_define_math(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "math");
-    /* TODO consider passing this to `parser_define_module()`
-     * or making wrapper function named `builtin_define_module()`
-     * Making wrappers seems better */
-    /* this may help calling init function in code generator easier
-    mod->is_builtin = true;
-    */
+    struct parser_struct *vec3_struct = NULL;
+
+    /* global */
+    {
+        struct native_global_var gvars[] = {
+            { "_PI_", parser_new_float_type() },
+            { "_E_",  parser_new_float_type() },
+            { NULL },
+        };
+
+        native_define_global_vars(mod->scope, gvars);
+    }
+    /* struct */
+    {
+        const char *name = "Vec3";
+        struct native_struct_field fields[] = {
+            { "x", parser_new_float_type() },
+            { "y", parser_new_float_type() },
+            { "z", parser_new_float_type() },
+            { NULL },
+        };
+
+        vec3_struct = native_define_struct(mod->scope, name, fields);
+    }
+    /* function */
     {
         const char *name = "init";
         native_func_t fp = math_init;
@@ -57,19 +87,16 @@ int module_define_math(struct parser_scope *scope)
         native_declare_func(mod->scope, mod->name, name, params, fp);
     }
     {
-        /* TODO ensure global names have leading and traing underscore */
-        const char *name = "_PI_";
-        const struct parser_type *type = parser_new_float_type();
-        bool isglobal = true;
+        const char *name = "pow";
+        native_func_t fp = math_pow;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "y",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
 
-        parser_define_var(mod->scope, name, type, isglobal);
-    }
-    {
-        const char *name = "_E_";
-        const struct parser_type *type = parser_new_float_type();
-        bool isglobal = true;
-
-        parser_define_var(mod->scope, name, type, isglobal);
+        native_declare_func(mod->scope, mod->name, name, params, fp);
     }
     {
         const char *name = "sqrt";
@@ -81,14 +108,6 @@ int module_define_math(struct parser_scope *scope)
         };
 
         native_declare_func(mod->scope, mod->name, name, params, fp);
-    }
-    {
-        const char *name = data_string_intern("Vec3");
-        struct parser_struct *strct = parser_define_struct(mod->scope, name);
-
-        parser_add_struct_field(strct, data_string_intern("x"), parser_new_float_type());
-        parser_add_struct_field(strct, data_string_intern("y"), parser_new_float_type());
-        parser_add_struct_field(strct, data_string_intern("z"), parser_new_float_type());
     }
 
     return 0;
