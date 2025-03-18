@@ -15,14 +15,38 @@
 /* TODO anotehr way is to call designated function to init module,
  * in that case we might need to have dedicated instruction to init modules,
  * which might couple vm and module */
+#define MATH_PI 3.141592653589793
+
+bool is_close(double a, double b, double rel_tol, double abs_tol) {
+    if (a == b) {
+        return true;
+    }
+
+    double diff = fabs(a - b);
+    return (diff <= abs_tol) || (diff <= rel_tol * fmax(fabs(a), fabs(b)));
+}
+
 static int math_init(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     if (regs->globals) {
-        struct runtime_value pi = { .fpnum = 3.141592653589793 };
+        struct runtime_value pi = { .fpnum = MATH_PI };
         struct runtime_value e  = { .fpnum = 2.718281828459045 };
         regs->globals[0] = pi;
         regs->globals[1] = e;
     }
+
+    return RESULT_SUCCESS;
+}
+
+static int math_isclose(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+    struct runtime_value y = regs->locals[1];
+
+    double rel_tol = 1e-9;
+    double abs_tol = 1e-12;
+    x.inum = is_close(x.fpnum, y.fpnum, rel_tol, abs_tol);
+    regs->locals[0] = x;
 
     return RESULT_SUCCESS;
 }
@@ -43,6 +67,56 @@ static int math_sqrt(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value x = regs->locals[0];
 
     x.fpnum = sqrt(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_radians(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = x.fpnum * (MATH_PI / 180.0);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_degrees(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = x.fpnum * (180.0 / MATH_PI);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_sin(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = sin(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_cos(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = cos(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_tan(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = tan(x.fpnum);
     regs->locals[0] = x;
 
     return RESULT_SUCCESS;
@@ -87,6 +161,18 @@ int module_define_math(struct parser_scope *scope)
         native_declare_func(mod->scope, mod->name, name, params, fp);
     }
     {
+        const char *name = "isclose";
+        native_func_t fp = math_isclose;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "y",    parser_new_float_type() },
+            { "_ret", parser_new_bool_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
         const char *name = "pow";
         native_func_t fp = math_pow;
         struct native_func_param params[] = {
@@ -101,6 +187,62 @@ int module_define_math(struct parser_scope *scope)
     {
         const char *name = "sqrt";
         native_func_t fp = math_sqrt;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    /* trigonometric */
+    {
+        const char *name = "radians";
+        native_func_t fp = math_radians;
+        struct native_func_param params[] = {
+            { "degree", parser_new_float_type() },
+            { "_ret",   parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "degrees";
+        native_func_t fp = math_degrees;
+        struct native_func_param params[] = {
+            { "degree", parser_new_float_type() },
+            { "_ret",   parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "sin";
+        native_func_t fp = math_sin;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "cos";
+        native_func_t fp = math_cos;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "tan";
+        native_func_t fp = math_tan;
         struct native_func_param params[] = {
             { "x",    parser_new_float_type() },
             { "_ret", parser_new_float_type() },
