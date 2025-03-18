@@ -8,6 +8,21 @@
 #include <stdio.h>
 #include <math.h>
 
+/*
+     double cosh(double)
+     double sinh(double)
+     double tanh(double)
+
+     double acos(double)
+     double asin(double)
+     double atan(double)
+     double atan2(double, double)
+
+     double acosh(double)
+     double asinh(double)
+     double atanh(double)
+*/
+
 /* TODO currently the reg_count is zero. consider setting a number of
  * global variables to it. however also need to see if it is okay to
  * have different meaning than normal functions */
@@ -29,10 +44,12 @@ bool is_close(double a, double b, double rel_tol, double abs_tol) {
 static int math_init(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     if (regs->globals) {
-        struct runtime_value pi = { .fpnum = MATH_PI };
-        struct runtime_value e  = { .fpnum = 2.718281828459045 };
+        struct runtime_value pi  = { .fpnum = MATH_PI };
+        struct runtime_value e   = { .fpnum = 2.718281828459045 };
+        struct runtime_value inf = { .fpnum = INFINITY };
         regs->globals[0] = pi;
         regs->globals[1] = e;
+        regs->globals[2] = inf;
     }
 
     return RESULT_SUCCESS;
@@ -72,6 +89,7 @@ static int math_sqrt(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+/* radian */
 static int math_radians(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value x = regs->locals[0];
@@ -92,6 +110,7 @@ static int math_degrees(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+/* trigonometric */
 static int math_sin(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value x = regs->locals[0];
@@ -122,6 +141,47 @@ static int math_tan(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int math_asin(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = asin(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_acos(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = acos(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_atan(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = atan(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_atan2(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+    struct runtime_value y = regs->locals[1];
+
+    x.fpnum = atan2(x.fpnum, y.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
 int module_define_math(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "math");
@@ -130,8 +190,9 @@ int module_define_math(struct parser_scope *scope)
     /* global */
     {
         struct native_global_var gvars[] = {
-            { "_PI_", parser_new_float_type() },
-            { "_E_",  parser_new_float_type() },
+            { "_PI_",  parser_new_float_type() },
+            { "_E_",   parser_new_float_type() },
+            { "_INF_", parser_new_float_type() },
             { NULL },
         };
 
@@ -245,6 +306,51 @@ int module_define_math(struct parser_scope *scope)
         native_func_t fp = math_tan;
         struct native_func_param params[] = {
             { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "asin";
+        native_func_t fp = math_asin;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "acos";
+        native_func_t fp = math_acos;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "atan";
+        native_func_t fp = math_atan;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "atan2";
+        native_func_t fp = math_atan2;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "y",    parser_new_float_type() },
             { "_ret", parser_new_float_type() },
             { NULL },
         };

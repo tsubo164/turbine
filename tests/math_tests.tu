@@ -34,59 +34,57 @@
     test.AssertF(1.0, r)
 
   ---
-    - x = 45.0
-    test.AssertB(true, math.isclose(0.7071067811865476, math.sin(math.radians(x))))
+    test.AssertB(true, math.isclose(0.7071067811865476, math.sin(math.radians(45.0))))
     test.AssertB(true, math.isclose(0.0, math.cos(math._PI_ / 2.0)))
     test.AssertF(-1.0, math.cos(math._PI_))
+    test.AssertB(true, math.isclose(0.0, math.sin(math.radians(0.0))))
+    test.AssertB(true, math.isclose(1.0, math.cos(math.radians(0.0))))
+    test.AssertB(true, math.isclose(1.0, math.sin(math.radians(90.0))))
+    test.AssertB(true, math.isclose(0.0, math.cos(math.radians(90.0))))
+    test.AssertB(true, math.isclose(0.0, math.sin(math.radians(180.0))))
+    test.AssertF(-1.0, math.cos(math.radians(180.0)))
+    test.AssertB(true, math.isclose(-1.0, math.sin(math.radians(270.0))))
+    test.AssertB(true, math.isclose(0.0, math.cos(math.radians(270.0))))
+    test.AssertB(true, math.isclose(0.0, math.sin(math.radians(360.0))))
+    test.AssertB(true, math.isclose(1.0, math.cos(math.radians(360.0))))
 
   ---
-    - x = 0.0
-    test.AssertB(true, math.isclose(0.0, math.sin(math.radians(x))))
-    test.AssertB(true, math.isclose(1.0, math.cos(math.radians(x))))
+    // asin
+    test.AssertB(true, math.isclose(0.0, math.degrees(math.asin(0.0))))
+    test.AssertB(true, math.isclose(30.0, math.degrees(math.asin(0.5))))
+    test.AssertB(true, math.isclose(90.0, math.degrees(math.asin(1.0))))
+    test.AssertB(true, math.isclose(-30.0, math.degrees(math.asin(-0.5))))
+    test.AssertB(true, math.isclose(-90.0, math.degrees(math.asin(-1.0))))
+
+    // acos
+    test.AssertB(true, math.isclose(0.0, math.degrees(math.acos(1.0))))
+    test.AssertB(true, math.isclose(60.0, math.degrees(math.acos(0.5))))
+    test.AssertB(true, math.isclose(90.0, math.degrees(math.acos(0.0))))
+    test.AssertB(true, math.isclose(120.0, math.degrees(math.acos(-0.5))))
+    test.AssertB(true, math.isclose(180.0, math.degrees(math.acos(-1.0))))
+
+    // atan
+    test.AssertB(true, math.isclose(0.0, math.degrees(math.atan(0.0))))
+    test.AssertB(true, math.isclose(45.0, math.degrees(math.atan(1.0))))
+    test.AssertB(true, math.isclose(-45.0, math.degrees(math.atan(-1.0))))
+    test.AssertB(true, math.isclose(90.0, math.degrees(math.atan(math._INF_))))
+    test.AssertB(true, math.isclose(-90.0, math.degrees(math.atan(-math._INF_))))
+
+    // atan2
+    test.AssertB(true, math.isclose(0.0, math.degrees(math.atan2(0.0, 1.0))))
+    test.AssertB(true, math.isclose(45.0, math.degrees(math.atan2(1.0, 1.0))))
+    test.AssertB(true, math.isclose(90.0, math.degrees(math.atan2(1.0, 0.0))))
+    test.AssertB(true, math.isclose(-90.0, math.degrees(math.atan2(-1.0, 0.0))))
+    test.AssertB(true, math.isclose(-135.0, math.degrees(math.atan2(-1.0, -1.0))))
+    test.AssertB(true, math.isclose(135.0, math.degrees(math.atan2(1.0, -1.0))))
 
   ---
-    - x = 90.0
-    test.AssertB(true, math.isclose(1.0, math.sin(math.radians(x))))
-    test.AssertB(true, math.isclose(0.0, math.cos(math.radians(x))))
-
-  ---
-    - x = 180.0
-    test.AssertB(true, math.isclose(0.0, math.sin(math.radians(x))))
-    test.AssertF(-1.0, math.cos(math.radians(x)))
-
-  ---
-    - x = 270.0
-    test.AssertB(true, math.isclose(-1.0, math.sin(math.radians(x))))
-    test.AssertB(true, math.isclose(0.0, math.cos(math.radians(x))))
-
-  ---
-    - x = 360.0
-    test.AssertB(true, math.isclose(0.0, math.sin(math.radians(x))))
-    test.AssertB(true, math.isclose(1.0, math.cos(math.radians(x))))
-
-  ---
-    - rad = math._PI_ / 6.0
-    test.AssertB(true, math.isclose(30.0, math.degrees(rad)))
-
-  ---
-    - rad = math._PI_ / 4.0
-    test.AssertB(true, math.isclose(45.0, math.degrees(rad)))
-
-  ---
-    - rad = math._PI_ / 3.0
-    test.AssertB(true, math.isclose(60.0, math.degrees(rad)))
-
-  ---
-    - rad = math._PI_ / 2.0
-    test.AssertB(true, math.isclose(90.0, math.degrees(rad)))
-
-  ---
-    - rad = math._PI_
-    test.AssertB(true, math.isclose(180.0, math.degrees(rad)))
-
-  ---
-    - rad = 2.0 * math._PI_
-    test.AssertB(true, math.isclose(360.0, math.degrees(rad)))
+    test.AssertB(true, math.isclose(30.0, math.degrees(math._PI_ / 6.0)))
+    test.AssertB(true, math.isclose(45.0, math.degrees(math._PI_ / 4.0)))
+    test.AssertB(true, math.isclose(60.0, math.degrees(math._PI_ / 3.0)))
+    test.AssertB(true, math.isclose(90.0, math.degrees(math._PI_ / 2.0)))
+    test.AssertB(true, math.isclose(180.0, math.degrees(math._PI_)))
+    test.AssertB(true, math.isclose(360.0, math.degrees(2.0 * math._PI_)))
 
   ---
     - v = math.Vec3 { x = 1.1, y = 2.2, z = 3.3 }
