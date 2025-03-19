@@ -79,6 +79,41 @@
     test.AssertB(true, math.isclose(135.0, math.degrees(math.atan2(1.0, -1.0))))
 
   ---
+    // sinh() test cases
+    test.AssertB(true, math.isclose(0.0, math.sinh(0.0)))
+    test.AssertB(true, math.isclose(1.1752011936438014, math.sinh(1.0)))
+    test.AssertB(true, math.isclose(-1.1752011936438014, math.sinh(-1.0)))
+    test.AssertB(true, math.isclose(3.626860407847019, math.sinh(2.0)))
+
+    // cosh() test cases
+    test.AssertB(true, math.isclose(1.0, math.cosh(0.0)))
+    test.AssertB(true, math.isclose(1.5430806348152437, math.cosh(1.0)))
+    test.AssertB(true, math.isclose(3.7621956910836314, math.cosh(2.0)))
+
+    // tanh() test cases
+    test.AssertB(true, math.isclose(0.0, math.tanh(0.0)))
+    test.AssertB(true, math.isclose(0.7615941559557649, math.tanh(1.0)))
+    test.AssertB(true, math.isclose(-0.7615941559557649, math.tanh(-1.0)))
+    test.AssertB(true, math.isclose(0.9640275800758169, math.tanh(2.0)))
+
+    // asinh() test cases
+    test.AssertB(true, math.isclose(0.0, math.asinh(0.0)))
+    test.AssertB(true, math.isclose(1.0, math.asinh(math.sinh(1.0))))
+    test.AssertB(true, math.isclose(-1.0, math.asinh(math.sinh(-1.0))))
+    test.AssertB(true, math.isclose(2.0, math.asinh(math.sinh(2.0))))
+
+    // acosh() test cases
+    test.AssertB(true, math.isclose(0.0, math.acosh(1.0)))
+    test.AssertB(true, math.isclose(1.3169578969248166, math.acosh(2.0)))
+    test.AssertB(true, math.isclose(2.0634370688955608, math.acosh(4.0)))
+
+    // atanh() test cases
+    test.AssertB(true, math.isclose(0.0, math.atanh(0.0)))
+    test.AssertB(true, math.isclose(0.5493061443340548, math.atanh(0.5)))
+    test.AssertB(true, math.isclose(-0.5493061443340548, math.atanh(-0.5)))
+    test.AssertB(true, math.isclose(0.8673005274441012, math.atanh(0.7)))
+
+  ---
     test.AssertB(true, math.isclose(30.0, math.degrees(math._PI_ / 6.0)))
     test.AssertB(true, math.isclose(45.0, math.degrees(math._PI_ / 4.0)))
     test.AssertB(true, math.isclose(60.0, math.degrees(math._PI_ / 3.0)))

@@ -9,15 +9,6 @@
 #include <math.h>
 
 /*
-     double cosh(double)
-     double sinh(double)
-     double tanh(double)
-
-     double acos(double)
-     double asin(double)
-     double atan(double)
-     double atan2(double, double)
-
      double acosh(double)
      double asinh(double)
      double atanh(double)
@@ -177,6 +168,66 @@ static int math_atan2(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value y = regs->locals[1];
 
     x.fpnum = atan2(x.fpnum, y.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_sinh(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = sinh(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_cosh(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = cosh(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_tanh(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = tanh(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_asinh(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = asinh(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_acosh(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = acosh(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_atanh(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = atanh(x.fpnum);
     regs->locals[0] = x;
 
     return RESULT_SUCCESS;
@@ -351,6 +402,73 @@ int module_define_math(struct parser_scope *scope)
         struct native_func_param params[] = {
             { "x",    parser_new_float_type() },
             { "y",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    /* hyperbolic */
+    {
+        const char *name = "sinh";
+        native_func_t fp = math_sinh;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "cosh";
+        native_func_t fp = math_cosh;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "tanh";
+        native_func_t fp = math_tanh;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "asinh";
+        native_func_t fp = math_asinh;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "acosh";
+        native_func_t fp = math_acosh;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "atanh";
+        native_func_t fp = math_atanh;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
             { "_ret", parser_new_float_type() },
             { NULL },
         };
