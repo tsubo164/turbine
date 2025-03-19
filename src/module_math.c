@@ -74,6 +74,46 @@ static int math_sqrt(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int math_abs(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = fabs(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_floor(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = floor(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_ceil(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = ceil(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_round(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = round(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
 /* radian */
 static int math_radians(struct runtime_gc *gc, struct runtime_registers *regs)
 {
@@ -335,6 +375,50 @@ int module_define_math(struct parser_scope *scope)
     {
         const char *name = "sqrt";
         native_func_t fp = math_sqrt;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "abs";
+        native_func_t fp = math_abs;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "floor";
+        native_func_t fp = math_floor;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "ceil";
+        native_func_t fp = math_ceil;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "round";
+        native_func_t fp = math_round;
         struct native_func_param params[] = {
             { "x",    parser_new_float_type() },
             { "_ret", parser_new_float_type() },

@@ -34,6 +34,27 @@
     test.AssertF(1.0, r)
 
   ---
+    // abs  
+    test.AssertB(true, math.isclose(5.0, math.abs(5.0)))
+    test.AssertB(true, math.isclose(5.0, math.abs(-5.0)))
+    test.AssertB(true, math.isclose(0.0, math.abs(0.0)))
+  
+    // floor  
+    test.AssertB(true, math.isclose(5.0, math.floor(5.7)))
+    test.AssertB(true, math.isclose(-6.0, math.floor(-5.7)))
+    test.AssertB(true, math.isclose(0.0, math.floor(0.9)))
+  
+    // ceil  
+    test.AssertB(true, math.isclose(6.0, math.ceil(5.2)))
+    test.AssertB(true, math.isclose(-5.0, math.ceil(-5.8)))
+    test.AssertB(true, math.isclose(1.0, math.ceil(0.1)))
+  
+    // round  
+    test.AssertB(true, math.isclose(5.0, math.round(4.6)))
+    test.AssertB(true, math.isclose(-6.0, math.round(-5.5)))
+    test.AssertB(true, math.isclose(0.0, math.round(0.4)))
+
+  ---
     test.AssertB(true, math.isclose(0.7071067811865476, math.sin(math.radians(45.0))))
     test.AssertB(true, math.isclose(0.0, math.cos(math._PI_ / 2.0)))
     test.AssertF(-1.0, math.cos(math._PI_))
