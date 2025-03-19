@@ -8,12 +8,6 @@
 #include <stdio.h>
 #include <math.h>
 
-/*
-     double acosh(double)
-     double asinh(double)
-     double atanh(double)
-*/
-
 /* TODO currently the reg_count is zero. consider setting a number of
  * global variables to it. however also need to see if it is okay to
  * have different meaning than normal functions */
@@ -173,6 +167,7 @@ static int math_atan2(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+/* hyperbolic */
 static int math_sinh(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value x = regs->locals[0];
@@ -228,6 +223,47 @@ static int math_atanh(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value x = regs->locals[0];
 
     x.fpnum = atanh(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+/* exponent */
+static int math_exp(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = exp(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_log(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = log(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_log10(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = log10(x.fpnum);
+    regs->locals[0] = x;
+
+    return RESULT_SUCCESS;
+}
+
+static int math_log2(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value x = regs->locals[0];
+
+    x.fpnum = log2(x.fpnum);
     regs->locals[0] = x;
 
     return RESULT_SUCCESS;
@@ -467,6 +503,51 @@ int module_define_math(struct parser_scope *scope)
     {
         const char *name = "atanh";
         native_func_t fp = math_atanh;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    /* exponent */
+    {
+        const char *name = "exp";
+        native_func_t fp = math_exp;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "log";
+        native_func_t fp = math_log;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "log10";
+        native_func_t fp = math_log10;
+        struct native_func_param params[] = {
+            { "x",    parser_new_float_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "log2";
+        native_func_t fp = math_log2;
         struct native_func_param params[] = {
             { "x",    parser_new_float_type() },
             { "_ret", parser_new_float_type() },
