@@ -1,6 +1,7 @@
 #include "builtin_module.h"
 #include "module_file.h"
 #include "module_math.h"
+#include "module_time.h"
 
 #include <assert.h>
 #include <string.h>
@@ -27,6 +28,7 @@ void builtin_register_modules(struct builtin_module_list *modules)
 */
         { .name = "file",  .define_module = module_define_file },
         { .name = "math",  .define_module = module_define_math },
+        { .name = "time",  .define_module = module_define_time },
     };
 
     int N = sizeof(table) / sizeof(table[0]);

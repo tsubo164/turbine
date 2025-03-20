@@ -1,11 +1,14 @@
-> math
-> file
+> time
 
 # main(args vec{string}) int
 
-  - lines = file.read_lines("input.tu")
+  - t = time.now()
 
-  for line in lines
-    print(format("[%s]", line))
+  for i in 0..10000000
+    -j = 100 / 234
+
+  - u = time.now()
+
+  print(u - t)
 
   return 42
