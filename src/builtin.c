@@ -1,7 +1,7 @@
 #include "builtin.h"
 #include "builtin_format_func.h"
 #include "builtin_print_func.h"
-#include "native_function.h"
+#include "native_module.h"
 #include "data_intern.h"
 #include "data_strbuf.h"
 #include "parser_symbol.h"

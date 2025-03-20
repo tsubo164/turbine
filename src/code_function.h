@@ -2,7 +2,7 @@
 #define CODE_FUNC_H
 
 #include <stdint.h>
-#include "native_function.h"
+#include "native_module.h"
 
 struct code_function {
     int id;

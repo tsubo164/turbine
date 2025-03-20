@@ -7,7 +7,7 @@
 #include "code_instruction.h"
 #include "code_constant_pool.h"
 #include "code_function.h"
-#include "native_function.h"
+#include "native_module.h"
 #include "runtime_value.h"
 #include "data_vec.h"
 

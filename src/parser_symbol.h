@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "native_function.h"
+#include "native_module.h"
 #include "parser_type.h"
 #include "data_hashmap.h"
 #include "data_vec.h"

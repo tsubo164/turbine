@@ -1,5 +1,5 @@
 #include "module_file.h"
-#include "native_function.h"
+#include "native_module.h"
 #include "parser_symbol.h"
 #include "parser_type.h"
 #include "runtime_string.h"

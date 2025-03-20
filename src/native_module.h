@@ -1,5 +1,5 @@
-#ifndef NATIVE_FUNCTION_H
-#define NATIVE_FUNCTION_H
+#ifndef NATIVE_MODULE_H
+#define NATIVE_MODULE_H
 
 #include "runtime_value.h"
 
