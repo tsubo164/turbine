@@ -4,16 +4,10 @@
 #include "parser_type.h"
 #include "runtime_vec.h"
 #include "runtime_gc.h"
+#include "os.h"
 
 #include <stdio.h>
 #include <time.h>
-
-#include <unistd.h>
-
-void os_sleep(int64_t second)
-{
-    sleep(second);
-}
 
 static int time_init(struct runtime_gc *gc, struct runtime_registers *regs)
 {
