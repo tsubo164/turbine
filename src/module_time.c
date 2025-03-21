@@ -32,7 +32,7 @@ static int time_sleep(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value second = regs->locals[0];
 
-    os_sleep(second.inum);
+    os_sleep(second.fpnum);
 
     return RESULT_SUCCESS;
 }
@@ -69,8 +69,8 @@ int module_define_time(struct parser_scope *scope)
         const char *name = "sleep";
         native_func_t fp = time_sleep;
         struct native_func_param params[] = {
-            { "second", parser_new_int_type() },
-            { "_ret",   parser_new_nil_type() },
+            { "seconds", parser_new_float_type() },
+            { "_ret",    parser_new_nil_type() },
             { NULL },
         };
 

@@ -2,9 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include <unistd.h>
-#include <limits.h>
+#include <sys/time.h>
 
 char *os_get_current_directory(void)
 {
@@ -54,7 +55,12 @@ char *os_dirname(const char *path)
     return dst;
 }
 
-void os_sleep(int64_t second)
+void os_sleep(double seconds)
 {
-    sleep(second);
+    struct timespec dur;
+
+    dur.tv_sec = (int64_t) seconds;
+    dur.tv_nsec = (int64_t) ((seconds - dur.tv_sec) * 1e9);
+
+    nanosleep(&dur, NULL);
 }

@@ -6,7 +6,7 @@
 
   //for i in 0..10000000
   //  -j = 100 / 234
-  - sec = 2
+  - sec = 2.1
   print("sleeping", sec, "seconds...")
   time.sleep(sec)
 
