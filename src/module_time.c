@@ -7,7 +7,6 @@
 #include "os.h"
 
 #include <stdio.h>
-#include <time.h>
 
 static int time_init(struct runtime_gc *gc, struct runtime_registers *regs)
 {
@@ -18,11 +17,18 @@ static int time_now(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value ret = {0};
 
-    {
-        time_t t = time(NULL);
-        ret.inum = (int64_t) t;
-    }
+    ret.fpnum = os_time();
+    regs->locals[0] = ret;
 
+    return RESULT_SUCCESS;
+}
+
+static int time_elapsed(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value start = regs->locals[0];
+    struct runtime_value ret = {0};
+
+    ret.fpnum = os_elapsed(start.fpnum);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
@@ -59,7 +65,18 @@ int module_define_time(struct parser_scope *scope)
         const char *name = "now";
         native_func_t fp = time_now;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "elapsed";
+        native_func_t fp = time_elapsed;
+        struct native_func_param params[] = {
+            { "start", parser_new_float_type() },
+            { "_ret",  parser_new_float_type() },
             { NULL },
         };
 

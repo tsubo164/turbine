@@ -55,6 +55,18 @@ char *os_dirname(const char *path)
     return dst;
 }
 
+double os_time(void)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + tv.tv_usec / 1e6;
+}
+
+double os_elapsed(double start)
+{
+    return os_time() - start;
+}
+
 void os_sleep(double seconds)
 {
     struct timespec dur;
