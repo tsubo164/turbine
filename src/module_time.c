@@ -23,6 +23,16 @@ static int time_now(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int time_perf(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value ret = {0};
+
+    ret.fpnum = os_perf();
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
 static int time_elapsed(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value start = regs->locals[0];
@@ -64,6 +74,16 @@ int module_define_time(struct parser_scope *scope)
     {
         const char *name = "now";
         native_func_t fp = time_now;
+        struct native_func_param params[] = {
+            { "_ret", parser_new_float_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "perf";
+        native_func_t fp = time_perf;
         struct native_func_param params[] = {
             { "_ret", parser_new_float_type() },
             { NULL },

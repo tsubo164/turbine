@@ -8,8 +8,9 @@ bool os_path_exists(const char *path);
 char *os_path_join(const char *pathleft, const char *pathright);
 char *os_dirname(const char *path);
 
-double os_time(void);
-double os_elapsed(double start);
+double os_time(void); /* system time */
+double os_perf(void); /* monotonic clock */
+double os_elapsed(double start); /* for os_time() */
 void os_sleep(double seconds);
 
 #endif /* _H */
