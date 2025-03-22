@@ -921,7 +921,7 @@ static struct parser_token *new_token(int kind)
     return t;
 }
 
-const struct parser_token *parser_tokenize(const char *src, const char *filename)
+struct parser_token *parser_tokenize(const char *src, const char *filename)
 {
     struct lexer l = {0};
     set_input(&l, src, filename);
@@ -939,4 +939,18 @@ const struct parser_token *parser_tokenize(const char *src, const char *filename
     }
 
     return head;
+}
+
+void parser_free_tokens(struct parser_token *tokens)
+{
+    struct parser_token *tok = tokens;
+    struct parser_token *next;
+    /* int i = 0; */
+
+    while (tok) {
+        /* printf("[%06d] %s\n", i++, parser_get_token_string(tok->kind)); */
+        next = tok->next;
+        free(tok);
+        tok = next;
+    }
 }

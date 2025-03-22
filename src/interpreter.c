@@ -26,11 +26,12 @@ static void print_header(const char *title)
 int64_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
-    const struct parser_token *tok = NULL;
+    struct parser_token *tok = NULL;
     struct parser_search_path paths = {0};
     struct parser_scope builtin = {0};
     struct code_bytecode code = {{0}};
     struct vm_cpu vm = {{0}};
+    int64_t ret = 0;
 
     /* builtin modules */
     struct builtin_module_list builtin_modules;
@@ -55,7 +56,7 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     if (opt->print_token) {
         parser_print_token(tok, !opt->print_token_raw);
         if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
-            return 0;
+            goto exit;
         }
     }
 
@@ -91,7 +92,6 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     }
 
     /* execute bytecode */
-    int64_t ret = 0;
     if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
         struct vm_args vargs;
         vargs.values = args->values;
@@ -103,6 +103,9 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     }
 
     /* clean */
+exit:
+    parser_free_tokens(tok);
+
     parser_search_path_free(&paths);
     free(current_directory);
     free(filepath);
