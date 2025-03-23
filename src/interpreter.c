@@ -51,6 +51,41 @@ static void print_header(const char *title)
     printf("---\n");
 }
 
+static void print_prog(const struct parser_module *prog)
+{
+    print_header("tree");
+    parser_print_prog(prog);
+}
+
+static void print_syms(const struct parser_scope *main, bool print_symbols_all)
+{
+    print_header("symbol");
+    if (print_symbols_all)
+        parser_print_scope(main->parent);
+    else
+        parser_print_scope(main);
+}
+
+static void print_code(const struct code_bytecode *code)
+{
+    print_header("bytecode");
+    code_print_bytecode(code);
+}
+
+static int64_t exec_code(const struct code_bytecode *code, const struct interpreter_args *args,
+        bool print_stack)
+{
+    struct vm_cpu vm = {{0}};
+    struct vm_args vargs = {0};
+    vargs.values = args->values;
+    vargs.count = args->count;
+
+    vm_enable_print_stack(&vm, print_stack);
+    vm_execute_bytecode(&vm, code, &vargs);
+
+    return vm_get_stack_top(&vm);
+}
+
 int64_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
@@ -61,7 +96,7 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     struct exec_pass pass = make_exec_pass(opt);
 
     /* builtin modules */
-    struct builtin_module_list builtin_modules;
+    struct builtin_module_list builtin_modules = {0};
     builtin_register_modules(&builtin_modules);
 
     /* search paths */
@@ -98,17 +133,12 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
 
     /* print tree */
     if (opt->print_tree) {
-        print_header("tree");
-        parser_print_prog(prog);
+        print_prog(prog);
     }
 
     /* print symbols */
     if (opt->print_symbols) {
-        print_header("symbol");
-        if (opt->print_symbols_all)
-            parser_print_scope(&builtin);
-        else
-            parser_print_scope(prog->scope);
+        print_syms(prog->scope, opt->print_symbols_all);
     }
 
     /* generate bytecode */
@@ -119,21 +149,13 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
 
     /* print bytecode */
     if (opt->print_bytecode) {
-        print_header("bytecode");
-        code_print_bytecode(&code);
+        print_code(&code);
     }
 
     /* execute */
     int64_t ret = 0;
     if (pass.execute) {
-        struct vm_cpu vm = {{0}};
-        struct vm_args vargs;
-        vargs.values = args->values;
-        vargs.count = args->count;
-
-        vm_enable_print_stack(&vm, opt->print_stack);
-        vm_execute_bytecode(&vm, &code, &vargs);
-        ret = vm_get_stack_top(&vm);
+        ret = exec_code(&code, args, opt->print_stack);
     }
 
     /* clean */
