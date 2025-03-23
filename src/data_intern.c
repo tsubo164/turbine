@@ -7,7 +7,7 @@
 #define MAX_LOAD_FACTOR 70
 #define INIT_SIZE 256
 
-static const char **buckets = NULL;
+static char **buckets = NULL;
 static int64_t capacity = 0;
 static int64_t occupied = 0;
 
@@ -46,7 +46,7 @@ static const char *insert(const char *key)
 
 static void rehash(void)
 {
-    const char **old_buckets = buckets;
+    char **old_buckets = buckets;
     int old_cap = capacity;
 
     /* resize buckets */
@@ -84,4 +84,22 @@ void data_print_intern_table(void)
     }
     printf( "buckets %lld/%lld: %g%% occupied\n",
             occupied, capacity, ((float) occupied) / capacity);
+}
+
+void data_intern_table_init(void)
+{
+    buckets = NULL;
+    capacity = 0;
+    occupied = 0;
+}
+
+void data_intern_table_free(void)
+{
+    for (int i = 0; i < capacity; i++) {
+        char *ent = buckets[i];
+        if (ent)
+            free(ent);
+    }
+    free(buckets);
+    data_intern_table_init();
 }

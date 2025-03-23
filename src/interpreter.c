@@ -101,6 +101,9 @@ static int64_t exec_code(const struct code_bytecode *code, const struct interpre
 int64_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
+    /* string intern */
+    data_intern_table_init();
+
     /* exec passes */
     struct exec_pass pass = make_exec_pass(opt);
 
@@ -182,6 +185,8 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
 
     parser_search_path_free(&paths);
     free(script_dir);
+
+    data_intern_table_free();
 
     return ret;
 }
