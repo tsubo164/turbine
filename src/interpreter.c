@@ -17,6 +17,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct exec_pass {
+    bool tokenize;
+    bool parse;
+    bool generate;
+    bool execute;
+};
+
+static struct exec_pass make_exec_pass(const struct interpreter_option *opt) {
+    struct exec_pass pass = {0};
+
+    bool has_print_option =
+        opt->print_token ||
+        opt->print_tree ||
+        opt->print_symbols ||
+        opt->print_bytecode;
+
+    if (opt->print_token)    pass.tokenize = true;
+    if (opt->print_tree)     pass.tokenize = pass.parse = true;
+    if (opt->print_symbols)  pass.tokenize = pass.parse = true;
+    if (opt->print_bytecode) pass.tokenize = pass.parse = pass.generate = true;
+
+    if (!has_print_option) {
+        pass.tokenize = pass.parse = pass.generate = pass.execute = true;
+    }
+
+    return pass;
+}
+
 static void print_header(const char *title)
 {
     printf("## %s\n", title);
@@ -26,12 +54,11 @@ static void print_header(const char *title)
 int64_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
-    struct parser_token *tok = NULL;
     struct parser_search_path paths = {0};
     struct parser_scope builtin = {0};
-    struct code_bytecode code = {{0}};
-    struct vm_cpu vm = {{0}};
-    int64_t ret = 0;
+
+    /* exec passes */
+    struct exec_pass pass = make_exec_pass(opt);
 
     /* builtin modules */
     struct builtin_module_list builtin_modules;
@@ -50,23 +77,24 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     define_builtin_functions(&builtin);
 
     /* tokenize */
-    tok = parser_tokenize(text, args->filename);
+    struct parser_token *tok = NULL;
+    if (pass.tokenize) {
+        tok = parser_tokenize(text, args->filename);
+    }
 
     /* print token */
     if (opt->print_token) {
         parser_print_token(tok, !opt->print_token_raw);
-        if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
-            goto exit;
-        }
     }
 
     /* compile source */
-    struct parser_module *prog;
-    struct parser_source source;
-    parser_source_init(&source, text, args->filename, data_string_intern("_main"));
-
-    prog = parser_parse(tok, &builtin, &source, &paths);
-    code_resolve_offset(prog);
+    struct parser_module *prog = NULL;
+    struct parser_source source = {0};
+    if (pass.parse) {
+        parser_source_init(&source, text, args->filename, data_string_intern("_main"));
+        prog = parser_parse(tok, &builtin, &source, &paths);
+        code_resolve_offset(prog);
+    }
 
     /* print tree */
     if (opt->print_tree) {
@@ -84,15 +112,21 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     }
 
     /* generate bytecode */
-    code_generate(&code, prog);
+    struct code_bytecode code = {{0}};
+    if (pass.generate) {
+        code_generate(&code, prog);
+    }
 
+    /* print bytecode */
     if (opt->print_bytecode) {
         print_header("bytecode");
         code_print_bytecode(&code);
     }
 
-    /* execute bytecode */
-    if (!opt->print_tree && !opt->print_symbols && !opt->print_bytecode) {
+    /* execute */
+    int64_t ret = 0;
+    if (pass.execute) {
+        struct vm_cpu vm = {{0}};
         struct vm_args vargs;
         vargs.values = args->values;
         vargs.count = args->count;
@@ -103,7 +137,6 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     }
 
     /* clean */
-exit:
     parser_free_tokens(tok);
 
     parser_search_path_free(&paths);

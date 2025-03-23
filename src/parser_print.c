@@ -10,10 +10,12 @@ void parser_print_token(const struct parser_token *token, bool format)
 {
     int indent = 0;
     bool begin_of_line = true;
+    int index = 0;
 
     for (const struct parser_token *tok = token; tok; tok = tok->next) {
 
         if (!format) {
+            printf("[%6d] ", index++);
             printf("(%4d, %3d) %s",
                     tok->pos.y, tok->pos.x,
                     parser_get_token_string(tok->kind));
