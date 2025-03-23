@@ -29,4 +29,6 @@ int64_t data_intstack_pop(struct data_intstack *v);
 int64_t data_intstack_top(const struct data_intstack *v);
 bool data_intstack_is_empty(const struct data_intstack *v);
 
+void data_intstack_free(struct data_intstack *v);
+
 #endif /* _H */

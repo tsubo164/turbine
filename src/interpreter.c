@@ -181,6 +181,7 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     }
 
     /* clean */
+    code_free_bytecode(&code);
     parser_free_tokens(tok);
 
     parser_search_path_free(&paths);

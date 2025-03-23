@@ -78,3 +78,11 @@ bool data_intstack_is_empty(const struct data_intstack *v)
 {
     return v->len == 0;
 }
+
+void data_intstack_free(struct data_intstack *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}

@@ -1,7 +1,6 @@
 #include "code_function.h"
 #include <stdlib.h>
 
-/* TODO investigave why 16 fails test. */
 #define MIN_CAP 8
 
 int code_push_function(struct code_functionvec *v, const char *fullname, int argc)
@@ -39,4 +38,12 @@ const struct code_function *code_lookup_const_function(const struct code_functio
         return NULL;
 
     return &v->data[id];
+}
+
+void code_functionvec_free(struct code_functionvec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
 }

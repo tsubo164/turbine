@@ -5,6 +5,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+void code_free_bytecode(struct code_bytecode *code)
+{
+    /* instructions */
+    code_instructionvec_free(&code->insts);
+
+    /* constants */
+    data_intstack_free(&code->immediate_ints);
+    code_constant_pool_free(&code->const_pool);
+
+    /* functions */
+    code_functionvec_free(&code->funcs);
+
+    /* back patches */
+    data_intstack_free(&code->ors);
+    data_intstack_free(&code->breaks);
+    data_intstack_free(&code->continues);
+    data_intstack_free(&code->casecloses);
+    data_intstack_free(&code->forrests);
+}
+
 static bool pop_if_constpool_reg(struct code_bytecode *code, int operand, int32_t *val);
 
 static void push_inst_op(struct code_bytecode *code, int op)

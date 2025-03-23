@@ -47,6 +47,8 @@ struct code_bytecode {
     struct data_intstack forrests;
 };
 
+void code_free_bytecode(struct code_bytecode *code);
+
 /* registers */
 void code_init_registers(struct code_bytecode *code, int lvar_count);
 void code_clear_temporary_registers(struct code_bytecode *code);

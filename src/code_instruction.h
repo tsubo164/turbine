@@ -121,6 +121,8 @@ struct code_instructionvec {
     int len;
 };
 
+void code_instructionvec_free(struct code_instructionvec *v);
+
 const struct code_opcode_info *code_lookup_opecode_info(int op);
 
 void code_decode_instruction(int32_t instcode, struct code_instruction *inst);

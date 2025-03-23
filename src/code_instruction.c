@@ -103,13 +103,21 @@ const struct code_opcode_info *code_lookup_opecode_info(int op)
 
 #define MIN_CAP 128
 
-void push_inst(struct code_instructionvec *v, int32_t val)
+static void push_inst(struct code_instructionvec *v, int32_t val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
         v->data = realloc(v->data, v->cap * sizeof(*v->data));
     }
     v->data[v->len++] = val;
+}
+
+void code_instructionvec_free(struct code_instructionvec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
 }
 
 /* decode */

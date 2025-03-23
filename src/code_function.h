@@ -27,4 +27,6 @@ struct code_function *code_lookup_function(struct code_functionvec *v, int id);
 const struct code_function *code_lookup_const_function(const struct code_functionvec *v,
         int id);
 
+void code_functionvec_free(struct code_functionvec *v);
+
 #endif /* _H */
