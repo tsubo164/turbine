@@ -45,6 +45,18 @@ static struct exec_pass make_exec_pass(const struct interpreter_option *opt) {
     return pass;
 }
 
+static char *get_script_dir(const char *filename)
+{
+    char *curr_dir = os_get_current_directory();
+    char *filepath = os_path_join(curr_dir, filename);
+    char *file_dir = os_dirname(filepath);
+
+    free(curr_dir);
+    free(filepath);
+
+    return file_dir;
+}
+
 static void print_header(const char *title)
 {
     printf("## %s\n", title);
@@ -89,27 +101,25 @@ static int64_t exec_code(const struct code_bytecode *code, const struct interpre
 int64_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
-    struct parser_search_path paths = {0};
-    struct parser_scope builtin = {0};
-
     /* exec passes */
     struct exec_pass pass = make_exec_pass(opt);
+
+    /* builtin functions */
+    struct parser_scope builtin = {0};
+    define_builtin_functions(&builtin);
 
     /* builtin modules */
     struct builtin_module_list builtin_modules = {0};
     builtin_register_modules(&builtin_modules);
 
     /* search paths */
-    char *current_directory = os_get_current_directory();
-    char *filepath = os_path_join(current_directory, args->filename);
-    char *filedir = os_dirname(filepath);
-    parser_search_path_init(&paths, filedir);
+    char *script_dir = get_script_dir(args->filename);
+    struct parser_search_path paths = {0};
+
+    parser_search_path_init(&paths, script_dir);
     /* TODO consdier passing builtin modules to parser_parse() separately
      * instead of holding them in struct parser_search_path */
     parser_search_path_add_builtin_modules(&paths, &builtin_modules);
-
-    /* builtin functions */
-    define_builtin_functions(&builtin);
 
     /* tokenize */
     struct parser_token *tok = NULL;
@@ -124,12 +134,21 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
 
     /* compile source */
     struct parser_module *prog = NULL;
-    struct parser_source source = {0};
     if (pass.parse) {
-        parser_source_init(&source, text, args->filename, data_string_intern("_main"));
+        struct parser_source source = {0};
+        parser_source_init(&source, text, args->filename, "_main");
         prog = parser_parse(tok, &builtin, &source, &paths);
         code_resolve_offset(prog);
     }
+#if 0
+    const struct parser_token *tok = parser_tokenize(text, module_filename);
+    struct parser_source source = {0};
+    struct parser_search_path paths;
+
+    parser_source_init(&source, text, module_filename, modulename);
+    parser_search_path_init(&paths, p->paths->filedir);
+    parser_parse(tok, p->scope, &source, &paths);
+#endif
 
     /* print tree */
     if (opt->print_tree) {
@@ -162,9 +181,7 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     parser_free_tokens(tok);
 
     parser_search_path_free(&paths);
-    free(current_directory);
-    free(filepath);
-    free(filedir);
+    free(script_dir);
 
     return ret;
 }
