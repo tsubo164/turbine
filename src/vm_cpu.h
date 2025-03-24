@@ -37,4 +37,6 @@ void vm_print_stack(const struct vm_cpu *vm);
 void vm_enable_print_stack(struct vm_cpu *vm, bool enable);
 void vm_print_gc_objects(const struct vm_cpu *vm);
 
+void vm_free_cpu(struct vm_cpu *vm);
+
 #endif /* _H */

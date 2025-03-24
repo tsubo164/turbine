@@ -2,6 +2,9 @@
 
 # main(args vec{string}) int
 
+  - s = "foo"
+  - t = "foo" + s
+  /*
   - start = time.now()
   - p = time.perf()
 
@@ -16,6 +19,7 @@
   //print(u - t)
   print("elapsed ", time.elapsed(start), "seconds")
   print("elapsed ", time.perf() - p, "seconds (perf)")
+  */
 
 
   return 42

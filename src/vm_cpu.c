@@ -1184,3 +1184,12 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
 
     run_cpu(vm);
 }
+
+void vm_free_cpu(struct vm_cpu *vm)
+{
+    runtime_valuevec_free(&vm->stack);
+    /* TODO move outside of vm_cpu so multiple vm_cpus can share */
+    runtime_valuevec_free(&vm->globals__);
+    vm_callstack_free(&vm->callstack);
+    runtime_gc_free(&vm->gc);
+}

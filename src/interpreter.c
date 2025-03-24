@@ -95,7 +95,10 @@ static int64_t exec_code(const struct code_bytecode *code, const struct interpre
     vm_enable_print_stack(&vm, print_stack);
     vm_execute_bytecode(&vm, code, &vargs);
 
-    return vm_get_stack_top(&vm);
+    int64_t ret = vm_get_stack_top(&vm);
+    vm_free_cpu(&vm);
+
+    return ret;
 }
 
 int64_t interpret_source(const char *text, const struct interpreter_args *args,

@@ -15,6 +15,7 @@ void vm_callstack_free(struct vm_callstack *v)
     if (!v)
         return;
     free(v->data);
+    vm_callstack_init(v);
 }
 
 void vm_callstack_push(struct vm_callstack *v, const struct vm_call *call)
