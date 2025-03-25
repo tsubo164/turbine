@@ -7,6 +7,9 @@ void code_constant_pool_init(struct code_constant_pool *v)
     runtime_valuevec_init(&v->ints);
     runtime_valuevec_init(&v->floats);
     runtime_valuevec_init(&v->strings);
+
+    /* TODO consider making struct code_literal_table */
+    data_strbuf_clear(&v->literal_types);
 }
 
 void code_constant_pool_free(struct code_constant_pool *v)
@@ -14,6 +17,10 @@ void code_constant_pool_free(struct code_constant_pool *v)
     runtime_valuevec_free(&v->ints);
     runtime_valuevec_free(&v->floats);
     runtime_valuevec_free(&v->strings);
+
+    /* TODO consider making struct code_literal_table */
+    runtime_valuevec_free(&v->literals);
+    data_strbuf_free(&v->literal_types);
 }
 
 int code_constant_pool_push_int(struct code_constant_pool *v, value_int_t val)
