@@ -104,3 +104,12 @@ void data_hashmap_print(const struct data_hashmap *map)
             printf( "%4d: key => \"%s\", val => %p\n", i, ent->key, ent->val);
     }
 }
+
+void data_hashmap_free(struct data_hashmap *map)
+{
+    /* keys are allocated outside of hashmap */
+    free(map->buckets);
+    map->buckets = NULL;
+    map->cap = 0;
+    map->used = 0;
+}

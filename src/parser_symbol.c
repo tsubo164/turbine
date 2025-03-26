@@ -54,6 +54,14 @@ static void push_symbol(struct parser_symbolvec *v, struct parser_symbol *val)
     v->data[v->len++] = val;
 }
 
+static void free_symbolvec(struct parser_symbolvec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
 /* scope */
 struct parser_scope *parser_new_scope(struct parser_scope *parent)
 {
@@ -61,6 +69,19 @@ struct parser_scope *parser_new_scope(struct parser_scope *parent)
     sc = calloc(1, sizeof(*sc));
     sc->parent = parent;
     return sc;
+}
+
+void parser_free_scope(struct parser_scope *sc)
+{
+#if 0
+    printf(">>>>>>>>>>>>>>>>>>>> parser_free_scope\n");
+    struct parser_scope *parent;
+#endif
+    for (int i = 0; i < sc->syms.len; i++) {
+        /* free_symbol(sc->data[i]); */
+    }
+    free_symbolvec(&sc->syms);
+    data_hashmap_free(&sc->symbols);
 }
 
 void parser_scope_add_symbol(struct parser_scope *sc, struct parser_symbol *sym)
@@ -486,6 +507,22 @@ struct parser_module *parser_define_module(struct parser_scope *sc,
     push_symbol(&sc->syms, sym);
 
     return mod;
+}
+
+void parser_free_module(struct parser_module *mod)
+{
+#if 0
+    printf(">>>>>>>>>>>>>>>>>>>> parser_free_module (%s)\n", mod->name);
+    const char *name;
+    struct parser_scope *scope;
+    struct parser_stmt* gvars;
+    struct parser_funcvec funcs;
+
+    const char *filename;
+    const char *src;
+    /* TODO remove this */
+    const struct parser_func *main_func;
+#endif
 }
 
 void parser_module_add_func(struct parser_module *mod,

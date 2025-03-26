@@ -157,6 +157,7 @@ struct parser_scope {
 
 /* scope */
 struct parser_scope *parser_new_scope(struct parser_scope *parent);
+void parser_free_scope(struct parser_scope *sc);
 /* TODO consider remove this */
 void parser_scope_add_symbol(struct parser_scope *sc, struct parser_symbol *sym);
 
@@ -220,6 +221,8 @@ struct parser_enum_value parser_get_enum_value(const struct parser_enum *enm, in
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,
         const char *filename, const char *modulename);
+void parser_free_module(struct parser_module *mod);
+
 /* TODO consider remove this */
 void parser_module_add_func(struct parser_module *mod,
         struct parser_func *func);

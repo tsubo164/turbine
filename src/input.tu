@@ -4,6 +4,7 @@
 
   - s = "foo"
   - t = "foo" + s
+  print(t)
   /*
   - start = time.now()
   - p = time.perf()

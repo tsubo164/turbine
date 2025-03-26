@@ -20,4 +20,6 @@ int data_hashmap_get_count(const struct data_hashmap *map);
 
 void data_hashmap_print(const struct data_hashmap *map);
 
+void data_hashmap_free(struct data_hashmap *map);
+
 #endif /* _H */

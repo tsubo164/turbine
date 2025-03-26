@@ -185,7 +185,9 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
 
     /* clean */
     code_free_bytecode(&code);
+    parser_free_module(prog);
     parser_free_tokens(tok);
+    parser_free_scope(&builtin);
 
     parser_search_path_free(&paths);
     free(script_dir);
