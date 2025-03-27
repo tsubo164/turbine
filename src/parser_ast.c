@@ -880,3 +880,27 @@ bool parser_ast_is_mutable(const struct parser_expr *e)
         return true;
     }
 }
+
+static void free_expr(struct parser_expr *e)
+{
+    if (!e)
+        return;
+    free_expr(e->l);
+    free_expr(e->r);
+    free_expr(e->next);
+}
+
+void parser_free_stmt(struct parser_stmt *s)
+{
+    if (!s)
+        return;
+
+    free_expr(s->expr);
+    parser_free_stmt(s->init);
+    free_expr(s->cond);
+    parser_free_stmt(s->post);
+    parser_free_stmt(s->body);
+
+    parser_free_stmt(s->children);
+    parser_free_stmt(s->next);
+}

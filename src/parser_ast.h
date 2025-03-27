@@ -266,4 +266,6 @@ const char *parser_node_string(int kind);
 bool parser_ast_is_global(const struct parser_expr *e);
 bool parser_ast_is_mutable(const struct parser_expr *e);
 
+void parser_free_stmt(struct parser_stmt *s);
+
 #endif /* _H */

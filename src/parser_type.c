@@ -274,6 +274,14 @@ void parser_typevec_push(struct parser_typevec *v, const struct parser_type *val
     v->data[v->len++] = val;
 }
 
+void parser_typevec_free(struct parser_typevec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
 /* type list */
 static const int table[] = {
     [TYP_NIL]      = 'n',

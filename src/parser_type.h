@@ -92,6 +92,7 @@ const char *parser_type_string(const struct parser_type *t);
 
 /* type vec */
 void parser_typevec_push(struct parser_typevec *v, const struct parser_type *val);
+void parser_typevec_free(struct parser_typevec *v);
 
 /* type list is an ordered list packed into a string */
 struct data_strbuf;
