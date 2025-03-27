@@ -71,6 +71,30 @@ struct parser_scope *parser_new_scope(struct parser_scope *parent)
     return sc;
 }
 
+static void free_var(struct parser_var *var)
+{
+    free(var);
+}
+
+static void free_func(struct parser_func *func)
+{
+    /*
+    printf(">>>>>>>>>>>>>>>>>>>> func freed(%s)\n", func->name);
+    const char *name;
+    const char *fullname;
+    struct parser_func_sig *sig;
+    int size;
+    int id;
+
+    struct parser_scope *scope;
+    struct parser_stmt *body;
+    native_func_t native_func_ptr;
+    */
+    parser_free_scope(func->scope);
+    /* free sym->func->body */
+    free(func);
+}
+
 void parser_free_scope(struct parser_scope *sc)
 {
 #if 0
@@ -78,8 +102,26 @@ void parser_free_scope(struct parser_scope *sc)
     struct parser_scope *parent;
 #endif
     for (int i = 0; i < sc->syms.len; i++) {
+        struct parser_symbol *sym = sc->syms.data[i];
         /* free_symbol(sc->data[i]); */
+        switch ((enum parser_symbol_kind) sym->kind) {
+
+        case SYM_VAR:  free_var(sym->var);   break;
+        case SYM_FUNC: free_func(sym->func); break;
+
+        case SYM_STRUCT:
+            break;
+        case SYM_TABLE:
+            break;
+        case SYM_MODULE:
+            break;
+        case SYM_SCOPE:
+            break;
+        }
+
+        free(sym);
     }
+
     free_symbolvec(&sc->syms);
     data_hashmap_free(&sc->symbols);
 }
