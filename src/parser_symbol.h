@@ -106,6 +106,7 @@ struct parser_module {
     const char *name;
     struct parser_scope *scope;
     struct parser_stmt* gvars;
+    /* for iteration in added order */
     struct parser_funcvec funcs;
 
     const char *filename;

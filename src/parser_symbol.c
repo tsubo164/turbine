@@ -19,6 +19,14 @@ static void push_func(struct parser_funcvec *v, struct parser_func *val)
     v->data[v->len++] = val;
 }
 
+static void free_funcvec(struct parser_funcvec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
 static void push_struct_field(struct parser_struct_fieldvec *v, struct parser_struct_field *val)
 {
     if (v->len == v->cap) {
@@ -118,10 +126,11 @@ void parser_free_scope(struct parser_scope *sc)
             break;
 
         case SYM_MODULE:
-            parser_free_scope(sym->module->scope);
+            parser_free_module(sym->module);
             break;
 
         case SYM_SCOPE:
+            parser_free_scope(sym->scope);
             break;
         }
 
@@ -559,18 +568,12 @@ struct parser_module *parser_define_module(struct parser_scope *sc,
 
 void parser_free_module(struct parser_module *mod)
 {
-#if 0
+    /*
     printf(">>>>>>>>>>>>>>>>>>>> parser_free_module (%s)\n", mod->name);
-    const char *name;
-    struct parser_scope *scope;
-    struct parser_stmt* gvars;
-    struct parser_funcvec funcs;
-
-    const char *filename;
-    const char *src;
-    /* TODO remove this */
-    const struct parser_func *main_func;
-#endif
+    */
+    parser_free_scope(mod->scope);
+    parser_free_stmt(mod->gvars);
+    free_funcvec(&mod->funcs);
 }
 
 void parser_module_add_func(struct parser_module *mod,

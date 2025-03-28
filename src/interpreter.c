@@ -63,7 +63,7 @@ static void print_header(const char *title)
     printf("---\n");
 }
 
-static void print_prog(const struct parser_module *prog)
+static void print_tree(const struct parser_module *prog)
 {
     print_header("tree");
     parser_print_prog(prog);
@@ -139,12 +139,12 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     }
 
     /* compile source */
-    struct parser_module *prog = NULL;
+    struct parser_module *mod_main = NULL;
     if (pass.parse) {
         struct parser_source source = {0};
         parser_source_init(&source, text, args->filename, "_main");
-        prog = parser_parse(tok, &builtin, &source, &paths);
-        code_resolve_offset(prog);
+        mod_main = parser_parse(tok, &builtin, &source, &paths);
+        code_resolve_offset(mod_main);
     }
 #if 0
     const struct parser_token *tok = parser_tokenize(text, module_filename);
@@ -158,18 +158,18 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
 
     /* print tree */
     if (opt->print_tree) {
-        print_prog(prog);
+        print_tree(mod_main);
     }
 
     /* print symbols */
     if (opt->print_symbols) {
-        print_syms(prog->scope, opt->print_symbols_all);
+        print_syms(mod_main->scope, opt->print_symbols_all);
     }
 
     /* generate bytecode */
     struct code_bytecode code = {{0}};
     if (pass.generate) {
-        code_generate(&code, prog);
+        code_generate(&code, mod_main);
     }
 
     /* print bytecode */
@@ -185,7 +185,6 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
 
     /* clean */
     code_free_bytecode(&code);
-    parser_free_module(prog);
     parser_free_tokens(tok);
     parser_free_scope(&builtin);
 
