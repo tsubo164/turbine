@@ -558,7 +558,7 @@ static struct parser_expr *ident_expr(struct parser *p)
     else if (sym->kind == SYM_STRUCT) {
         expr = struct_lit_expr(p, sym);
     }
-    else if (sym->kind == SYM_TABLE) {
+    else if (sym->kind == SYM_ENUM) {
         expr = enum_lit_expr(p, sym);
     }
     else if (sym->kind == SYM_MODULE) {

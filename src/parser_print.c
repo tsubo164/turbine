@@ -236,7 +236,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
             }
         }
 
-        if (sym->kind == SYM_TABLE) {
+        if (sym->kind == SYM_ENUM) {
             const struct parser_enum *enm = sym->enm;
             int nfields = parser_get_enum_field_count(enm);
             int nmembers = parser_get_enum_member_count(enm);

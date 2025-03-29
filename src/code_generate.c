@@ -1347,7 +1347,7 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
 
         switch (sym->kind) {
 
-        case SYM_TABLE:
+        case SYM_ENUM:
             {
                 struct parser_enum *enm = sym->enm;
                 int nfields = parser_get_enum_field_count(enm);

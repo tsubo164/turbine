@@ -120,7 +120,7 @@ enum parser_symbol_kind {
     SYM_VAR,
     SYM_FUNC,
     SYM_STRUCT,
-    SYM_TABLE,
+    SYM_ENUM,
     SYM_MODULE,
     SYM_SCOPE,
 };

@@ -1,5 +1,11 @@
 > math
 
+## Color enum
+  - sym
+  - R
+  - G
+  - B
+
 # main(args vec{string}) int
 
   - s = "foo"

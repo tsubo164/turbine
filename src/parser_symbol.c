@@ -104,13 +104,55 @@ static void free_struct_field(struct parser_struct_field *field)
     free(field);
 }
 
+static void free_fieldvec(struct parser_struct_fieldvec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
 static void free_struct(struct parser_struct *strct)
 {
     for (int i = 0; i < strct->fields.len; i++) {
         struct parser_struct_field *f = strct->fields.data[i];
         free_struct_field(f);
     }
+    free_fieldvec(&strct->fields);
     free(strct);
+}
+
+static void free_enum_field(struct parser_enum_field *f)
+{
+    free(f);
+}
+
+static void free_enum_fieldvec(struct parser_enum_fieldvec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
+static void free_enum_valuevec(struct parser_enum_valuevec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
+static void free_enum(struct parser_enum *enm)
+{
+    data_hashmap_free(&enm->members);
+
+    for (int i = 0; i < enm->fields.len; i++) {
+        struct parser_enum_field *f = enm->fields.data[i];
+        free_enum_field(f);
+    }
+    free_enum_fieldvec(&enm->fields);
+    free_enum_valuevec(&enm->values);
 }
 
 void parser_free_scope(struct parser_scope *sc)
@@ -132,8 +174,8 @@ void parser_free_scope(struct parser_scope *sc)
             free_struct(sym->strct);
             break;
 
-        case SYM_TABLE:
-            /* TODO */
+        case SYM_ENUM:
+            free_enum(sym->enm);
             break;
 
         case SYM_MODULE:
@@ -448,7 +490,7 @@ struct parser_enum *parser_define_enum(struct parser_scope *sc,
     enm = calloc(1, sizeof(*enm));
     enm->name = name;
 
-    struct parser_symbol *sym = parser_new_symbol(SYM_TABLE,
+    struct parser_symbol *sym = parser_new_symbol(SYM_ENUM,
             name, parser_new_enum_type(enm));
     sym->enm = enm;
 
