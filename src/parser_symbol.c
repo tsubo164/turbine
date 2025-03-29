@@ -99,11 +99,22 @@ static void free_func(struct parser_func *func)
     free(func);
 }
 
+static void free_struct_field(struct parser_struct_field *field)
+{
+    free(field);
+}
+
+static void free_struct(struct parser_struct *strct)
+{
+    for (int i = 0; i < strct->fields.len; i++) {
+        struct parser_struct_field *f = strct->fields.data[i];
+        free_struct_field(f);
+    }
+    free(strct);
+}
+
 void parser_free_scope(struct parser_scope *sc)
 {
-    /*
-    printf(">>>>>>>>>>>>>>>>>>>> parser_free_scope\n");
-    */
     for (int i = 0; i < sc->syms.len; i++) {
         struct parser_symbol *sym = sc->syms.data[i];
 
@@ -118,7 +129,7 @@ void parser_free_scope(struct parser_scope *sc)
             break;
 
         case SYM_STRUCT:
-            /* TODO */
+            free_struct(sym->strct);
             break;
 
         case SYM_TABLE:
@@ -568,9 +579,6 @@ struct parser_module *parser_define_module(struct parser_scope *sc,
 
 void parser_free_module(struct parser_module *mod)
 {
-    /*
-    printf(">>>>>>>>>>>>>>>>>>>> parser_free_module (%s)\n", mod->name);
-    */
     parser_free_scope(mod->scope);
     parser_free_stmt(mod->gvars);
     free_funcvec(&mod->funcs);

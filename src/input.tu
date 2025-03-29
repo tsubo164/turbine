@@ -1,4 +1,4 @@
-> time
+> math
 
 # main(args vec{string}) int
 
