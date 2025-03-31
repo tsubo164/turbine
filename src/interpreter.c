@@ -107,6 +107,9 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     /* string intern */
     data_intern_table_init();
 
+    /* type pool */
+    parser_type_pool_init();
+
     /* exec passes */
     struct exec_pass pass = make_exec_pass(opt);
 
@@ -191,6 +194,7 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     parser_search_path_free(&paths);
     free(script_dir);
 
+    parser_type_pool_free();
     data_intern_table_free();
 
     return ret;

@@ -50,6 +50,9 @@ struct parser_type {
     };
 };
 
+void parser_type_pool_init(void);
+void parser_type_pool_free(void);
+
 struct parser_type *parser_new_nil_type(void);
 struct parser_type *parser_new_bool_type(void);
 struct parser_type *parser_new_int_type(void);

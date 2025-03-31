@@ -1,5 +1,6 @@
 #include "parser_type.h"
 #include "parser_symbol.h"
+#include "data_mem_pool.h"
 #include "data_intern.h"
 #include "data_strbuf.h"
 #include "assert.h"
@@ -7,6 +8,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+
+/* memory pool */
+static struct data_mem_pool type_pool = {0};
+
+void free_type(void *data)
+{
+    struct parser_type *t = (struct parser_type*) data;
+    printf("********** underlying %p\n", (void *)t->underlying);
+    printf("********** type(%2d)   %p\n", t->kind, (void *)t);
+}
+
+void parser_type_pool_init(void)
+{
+    data_mem_pool_init(&type_pool, sizeof(struct parser_type), 128);
+}
+
+void parser_type_pool_free(void)
+{
+    if (true) {
+        data_mem_pool_free(&type_pool, NULL);
+    }
+    else {
+        printf("mem pool type count: %d\n", data_mem_pool_alloc_count(&type_pool));
+        data_mem_pool_free(&type_pool, free_type);
+    }
+}
 
 /* TODO consider allocate basic types */
 struct parser_type *parser_new_nil_type(void)
@@ -48,7 +75,7 @@ static struct parser_type *new_type(int kind)
 {
     struct parser_type *t;
 
-    t = calloc(1, sizeof(*t));
+    t = data_mem_pool_alloc(&type_pool);
     t->kind = kind;
 
     return t;
