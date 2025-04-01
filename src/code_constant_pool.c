@@ -110,6 +110,17 @@ int code_constant_pool_push_literal_int(struct code_constant_pool *v, value_int_
     return new_idx;
 }
 
+int code_constant_pool_push_literal_float(struct code_constant_pool *v, value_float_t val)
+{
+    struct runtime_value value = {.fpnum = val};
+    int new_idx = v->literals.len;
+
+    runtime_valuevec_push(&v->literals, value);
+    data_strbuf_push(&v->literal_types, 'f');
+
+    return new_idx;
+}
+
 int code_constant_pool_push_literal_string(struct code_constant_pool *v, const char *val)
 {
     struct runtime_value value = {.string = runtime_string_new(val)};
@@ -131,6 +142,12 @@ bool code_constant_pool_is_literal_int(const struct code_constant_pool *v, int i
 {
     assert(id >= 0 && id < code_constant_pool_get_literal_count(v));
     return v->literal_types.data[id] == 'i';
+}
+
+bool code_constant_pool_is_literal_float(const struct code_constant_pool *v, int id)
+{
+    assert(id >= 0 && id < code_constant_pool_get_literal_count(v));
+    return v->literal_types.data[id] == 'f';
 }
 
 bool code_constant_pool_is_literal_string(const struct code_constant_pool *v, int id)

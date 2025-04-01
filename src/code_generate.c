@@ -1362,11 +1362,14 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                         struct parser_enum_value val = parser_get_enum_value(enm, x, y);
                         int tmp_offset = 0;
 
-                        if (parser_is_string_type(field->type)) {
-                            tmp_offset = code_push_enum_field_string(code, val.sval);
-                        }
-                        else if (parser_is_int_type(field->type)) {
+                        if (parser_is_int_type(field->type)) {
                             tmp_offset = code_push_enum_field_int(code, val.ival);
+                        }
+                        else if (parser_is_float_type(field->type)) {
+                            tmp_offset = code_push_enum_field_float(code, val.fval);
+                        }
+                        else if (parser_is_string_type(field->type)) {
+                            tmp_offset = code_push_enum_field_string(code, val.sval);
                         }
 
                         if (y == 0)
@@ -1374,6 +1377,7 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                     }
 
                     field->offset = field_offset;
+                    //printf(">>>>>>>>>>>>> field_offset: %d\n", field_offset);
                 }
             }
             break;

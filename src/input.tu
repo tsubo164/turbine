@@ -1,32 +1,14 @@
-> math
+## Difficulty enum
+  - sym        , damage_coeff, time_coeff
+  - EASY       , 0.5         , 1.5
+  - NORMAL     , 1.0         , 1.0
+  - HARD       , 1.5         , 0.8
+  - NIGHTMARE  , 2.5         , 0.5
 
-## Color enum
-  - sym
-  - R
-  - G
-  - B
 
 # main(args vec{string}) int
-
-  - s = "foo"
-  - t = "foo" + s
-  print(t)
-  /*
-  - start = time.now()
-  - p = time.perf()
-
-  //for i in 0..10000000
-  //  -j = 100 / 234
-  - sec = 0.85
-
-  print("sleeping", sec, "seconds...")
-  time.sleep(sec)
-
-  //- u = time.now()
-  //print(u - t)
-  print("elapsed ", time.elapsed(start), "seconds")
-  print("elapsed ", time.perf() - p, "seconds (perf)")
-  */
-
+  - d = Difficulty.EASY
+  print(d.sym)
+  print(d.damage_coeff)
 
   return 42

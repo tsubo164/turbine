@@ -986,6 +986,11 @@ int64_t code_push_enum_field_int(struct code_bytecode *code, int64_t ival)
     return code_constant_pool_push_literal_int(&code->const_pool, ival);
 }
 
+int64_t code_push_enum_field_float(struct code_bytecode *code, double fval)
+{
+    return code_constant_pool_push_literal_float(&code->const_pool, fval);
+}
+
 int64_t code_push_enum_field_string(struct code_bytecode *code, const char *sval)
 {
     return code_constant_pool_push_literal_string(&code->const_pool, sval);
@@ -999,6 +1004,11 @@ struct runtime_value code_get_enum_field(const struct code_bytecode *code, int i
 bool code_is_enum_field_int(const struct code_bytecode *code, int id)
 {
     return code_constant_pool_is_literal_int(&code->const_pool, id);
+}
+
+bool code_is_enum_field_float(const struct code_bytecode *code, int id)
+{
+    return code_constant_pool_is_literal_float(&code->const_pool, id);
 }
 
 bool code_is_enum_field_string(const struct code_bytecode *code, int id)

@@ -100,6 +100,13 @@
   // eof
   - EOF           , "EOF"
 
+## Difficulty enum
+  - sym        , damage_coeff, time_coeff
+  - EASY       , 0.5         , 1.5
+  - NORMAL     , 1.0         , 1.0
+  - HARD       , 1.5         , 0.8
+  - NIGHTMARE  , 2.5         , 0.5
+
 # main(args vec{string}) int
 
   ---
@@ -127,6 +134,27 @@
     default
       nop
     test.AssertI(55, i)
+
+  // enum with floating point values
+  ---
+    - d Difficulty
+
+    d = Difficulty.EASY
+    test.AssertS("EASY", d.sym)
+    test.AssertF(0.5, d.damage_coeff)
+    test.AssertF(1.5, d.time_coeff)
+
+    d = Difficulty.NORMAL
+    test.AssertF(1.0, d.damage_coeff)
+    test.AssertF(1.0, d.time_coeff)
+
+    d = Difficulty.HARD
+    test.AssertF(1.5, d.damage_coeff)
+    test.AssertF(0.8, d.time_coeff)
+
+    d = Difficulty.NIGHTMARE
+    test.AssertF(2.5, d.damage_coeff)
+    test.AssertF(0.5, d.time_coeff)
 
   print(test._test_count_, "tests done.")
 

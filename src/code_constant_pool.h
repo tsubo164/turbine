@@ -30,10 +30,12 @@ int code_constant_pool_get_float_count(const struct code_constant_pool *v);
 int code_constant_pool_get_string_count(const struct code_constant_pool *v);
 
 int code_constant_pool_push_literal_int(struct code_constant_pool *v, value_int_t val);
+int code_constant_pool_push_literal_float(struct code_constant_pool *v, value_float_t val);
 int code_constant_pool_push_literal_string(struct code_constant_pool *v, const char *val);
 struct runtime_value code_constant_pool_get_literal(const struct code_constant_pool *v, int id);
 
 bool code_constant_pool_is_literal_int(const struct code_constant_pool *v, int id);
+bool code_constant_pool_is_literal_float(const struct code_constant_pool *v, int id);
 bool code_constant_pool_is_literal_string(const struct code_constant_pool *v, int id);
 int code_constant_pool_get_literal_count(const struct code_constant_pool *v);
 
