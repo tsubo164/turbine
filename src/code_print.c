@@ -47,6 +47,9 @@ void code_print_bytecode(const struct code_bytecode *code)
             if (code_is_enum_field_int(code, i)) {
                 printf("%-10lld (int)\n", val.inum);
             }
+            else if (code_is_enum_field_float(code, i)) {
+                printf("%-10g (float)\n", val.fpnum);
+            }
             else if (code_is_enum_field_string(code, i)) {
                 printf("%-10s (string)\n", runtime_string_get_cstr(val.string));
             }

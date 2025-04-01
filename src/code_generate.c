@@ -1377,7 +1377,6 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                     }
 
                     field->offset = field_offset;
-                    //printf(">>>>>>>>>>>>> field_offset: %d\n", field_offset);
                 }
             }
             break;

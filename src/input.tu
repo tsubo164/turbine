@@ -1,3 +1,9 @@
+## Color enum
+  - symbol , name    , val
+  - R      , "red"   , 42
+  - G      , "green" , 99
+  - B      , "blue"  , 4095
+
 ## Difficulty enum
   - sym        , damage_coeff, time_coeff
   - EASY       , 0.5         , 1.5
