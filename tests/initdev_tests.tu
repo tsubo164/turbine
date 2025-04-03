@@ -58,7 +58,7 @@
   _gvar_ = 119
 
 ## Color enum
-  - symbol
+  : symbol
   - R // 0
   - G // 1
   - B // 2

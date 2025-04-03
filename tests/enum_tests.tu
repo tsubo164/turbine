@@ -1,14 +1,14 @@
 > test
 
 ## Color enum
-  - symbol , name    , val
+  : symbol , name    , val
   - R      , "red"   , 42
   - G      , "green" , 99
   - B      , "blue"  , 4095
   - A      , "alpha" , 42
 
 ## TokenKind enum
-  - symbol        , str
+  : symbol        , str
   - ROOT          , "root"
   - KEYWORD_BEGIN , "keyword_begin"
   // keyword
@@ -101,7 +101,7 @@
   - EOF           , "EOF"
 
 ## Difficulty enum
-  - sym        , damage_coeff, time_coeff
+  : sym        , damage_coeff, time_coeff
   - EASY       , 0.5         , 1.5
   - NORMAL     , 1.0         , 1.0
   - HARD       , 1.5         , 0.8

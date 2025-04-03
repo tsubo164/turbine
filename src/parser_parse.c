@@ -2057,7 +2057,7 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
     expect(p, TOK_BLOCKBEGIN);
 
     /* header */
-    expect(p, TOK_MINUS);
+    expect(p, TOK_COLON);
     do {
         expect(p, TOK_IDENT);
         parser_add_enum_field(enm, tok_str(p));
