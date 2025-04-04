@@ -143,6 +143,18 @@
     test.AssertS("foobarbazGoNimZigC/C++BashRustLuaMarkdownTomlYamlJavaKotlinDartLispPythonRubyPerlPHPJavaScriptSwiftTurbine", keysum)
     test.AssertI(59609, valsum)
 
+  ---
+    // for with `loop counter`
+    - valsum = 0
+    - idxsum = 0
+
+    for val in 10..15 with i
+      valsum += val
+      idxsum += i
+
+    test.AssertI(60, valsum)
+    test.AssertI(10, idxsum)
+
   print(test._test_count_, "tests done.")
 
   return 0

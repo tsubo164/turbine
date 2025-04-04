@@ -931,10 +931,12 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             int start = gen_expr(code, s->cond);
             int stop = gen_expr(code, s->cond->next);
             int step = gen_expr(code, s->cond->next->next);
+            int counter = code_emit_load_int(code, 0);
 
             code_emit_move(code, iter + 1, start);
             code_emit_move(code, iter + 2, stop);
             code_emit_move(code, iter + 3, step);
+            code_emit_move(code, iter + 4, counter);
 
             /* begin */
             int64_t init = code_emit_fornum_begin(code, iter);
