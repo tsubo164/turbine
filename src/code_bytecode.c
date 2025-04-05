@@ -11,7 +11,6 @@ void code_free_bytecode(struct code_bytecode *code)
     code_instructionvec_free(&code->insts);
 
     /* constants */
-    data_intstack_free(&code->immediate_ints);
     code_constant_pool_free(&code->const_pool);
 
     /* functions */
@@ -23,6 +22,25 @@ void code_free_bytecode(struct code_bytecode *code)
     data_intstack_free(&code->continues);
     data_intstack_free(&code->casecloses);
     data_intstack_free(&code->forrests);
+}
+
+static void immediate_queue_push(struct code_bytecode *code, int32_t val)
+{
+    assert(code->qlen >= 0 && code->qlen < IMMEDIATE_QUEUE_SIZE);
+
+    code->immediate_queue[code->qback] = val;
+    code->qback = (code->qback + 1) % IMMEDIATE_QUEUE_SIZE;
+    code->qlen++;
+}
+
+static int32_t immediate_queue_pop(struct code_bytecode *code)
+{
+    assert(code->qlen > 0 && code->qlen <= IMMEDIATE_QUEUE_SIZE);
+
+    int32_t val = code->immediate_queue[code->qfront];
+    code->qfront = (code->qfront + 1) % IMMEDIATE_QUEUE_SIZE;
+    code->qlen--;
+    return val;
 }
 
 static bool pop_if_constpool_reg(struct code_bytecode *code, int operand, int32_t *val);
@@ -53,19 +71,11 @@ static void push_inst_abc(struct code_bytecode *code, int op, int a, int b, int 
 {
     code_push_instruction_abc(&code->insts, op, a, b, c);
     /* no immediate value for operand A */
-    /* When both operands A and B are immediate values,
-     * they are pushed onto the temporary stack in the order: C, B. */
     int32_t const_id = 0;
-    int32_t id_stack[2] = {0};
-    int sp = 0;
-
     if (pop_if_constpool_reg(code, b, &const_id))
-        id_stack[sp++] = const_id;
+        code_push_immediate_value(&code->insts, const_id);
     if (pop_if_constpool_reg(code, c, &const_id))
-        id_stack[sp++] = const_id;
-
-    for (int i = sp - 1; i >= 0; i--)
-        code_push_immediate_value(&code->insts, id_stack[i]);
+        code_push_immediate_value(&code->insts, const_id);
 }
 
 static void push_inst_abb(struct code_bytecode *code, int op, int a, int bb)
@@ -169,10 +179,7 @@ static bool pop_if_constpool_reg(struct code_bytecode *code, int operand, int32_
     if (!is_constpool_register(operand))
         return false;
 
-    int64_t val64 = data_intstack_pop(&code->immediate_ints);
-    int32_t id = val64 & 0xFFFFFFFF;
-
-    *val = id;
+    *val = immediate_queue_pop(code);
     return true;
 }
 
@@ -254,12 +261,12 @@ int code_emit_load_int(struct code_bytecode *code, int64_t val)
         return smallint_to_register(val);
     }
     else if (can_fit_int32(val)) {
-        data_intstack_push(&code->immediate_ints, val);
+        immediate_queue_push(code, (int32_t) val);
         return IMMEDIATE_INT32;
     }
     else {
         int id = code_constant_pool_push_int(&code->const_pool, val);
-        data_intstack_push(&code->immediate_ints, id);
+        immediate_queue_push(code, (int32_t) id);
         return IMMEDIATE_INT64;
     }
 }
@@ -267,14 +274,14 @@ int code_emit_load_int(struct code_bytecode *code, int64_t val)
 int code_emit_load_float(struct code_bytecode *code, double val)
 {
     int id = code_constant_pool_push_float(&code->const_pool, val);
-    data_intstack_push(&code->immediate_ints, id);
+    immediate_queue_push(code, (int32_t) id);
     return IMMEDIATE_FLOAT;
 }
 
 int code_emit_load_string(struct code_bytecode *code, const char *cstr)
 {
     int id = code_constant_pool_push_string(&code->const_pool, cstr);
-    data_intstack_push(&code->immediate_ints, id);
+    immediate_queue_push(code, (int32_t) id);
     return IMMEDIATE_STRING;
 }
 

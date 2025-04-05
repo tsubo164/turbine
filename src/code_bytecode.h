@@ -11,6 +11,8 @@
 #include "runtime_value.h"
 #include "data_vec.h"
 
+#define IMMEDIATE_QUEUE_SIZE 16
+
 enum immediate_value_register {
     IMMEDIATE_INT32   = 255,
     IMMEDIATE_INT64   = 254,
@@ -33,8 +35,11 @@ struct code_bytecode {
     int global_count;
 
     /* constants */
-    struct data_intstack immediate_ints;
     struct code_constant_pool const_pool;
+    int immediate_queue[IMMEDIATE_QUEUE_SIZE];
+    int qfront;
+    int qback;
+    int qlen;
 
     /* functions */
     struct code_functionvec funcs;
