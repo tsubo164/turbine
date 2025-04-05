@@ -571,14 +571,11 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value iter = fetch_register_value(vm, src);
                 struct runtime_value stop = fetch_register_value(vm, src + 2);
                 struct runtime_value step = fetch_register_value(vm, src + 3);
-                struct runtime_value counter = fetch_register_value(vm, src + 4);
 
                 iter.inum += step.inum;
-                counter.inum++;
 
                 if (iter.inum < stop.inum) {
                     set_local(vm, src, iter);
-                    set_local(vm, src + 4, counter);
                     set_ip(vm, dst);
                 }
             }

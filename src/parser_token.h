@@ -27,7 +27,6 @@ enum parser_token_kind {
     TOK_WHILE,
     TOK_FOR,
     TOK_IN,
-    TOK_WITH,
     TOK_BREAK,
     TOK_CONTINUE,
     TOK_SWITCH,

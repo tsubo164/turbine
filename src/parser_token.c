@@ -37,7 +37,6 @@ const char *parser_get_token_string(int kind)
     [TOK_WHILE]         = "while",
     [TOK_FOR]           = "for",
     [TOK_IN]            = "in",
-    [TOK_WITH]          = "with",
     [TOK_BREAK]         = "break",
     [TOK_CONTINUE]      = "continue",
     [TOK_SWITCH]        = "switch",

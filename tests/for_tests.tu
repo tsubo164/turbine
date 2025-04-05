@@ -144,28 +144,21 @@
     test.AssertI(59609, valsum)
 
   ---
-    // for with `loop counter`
     - valsum = 0
-    - idxsum = 0
 
-    for val in 10..15 with i
+    for val in 10..15
       valsum += val
-      idxsum += i
 
     test.AssertI(60, valsum)
-    test.AssertI(10, idxsum)
 
   ---
     // for num with int32 immediates
     - valsum = 0
-    - idxsum = 0
 
-    for val in 100..105 with i
+    for val in 100..105
       valsum += val
-      idxsum += i
 
     test.AssertI(510, valsum)
-    test.AssertI(10, idxsum)
 
   print(test._test_count_, "tests done.")
 

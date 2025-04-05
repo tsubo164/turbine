@@ -1445,16 +1445,6 @@ static int iter_list(struct parser *p, const struct parser_token **iters, int ma
     return index;
 }
 
-static const struct parser_token *with_loop_count(struct parser *p)
-{
-    if (consume(p, TOK_WITH)) {
-        expect(p, TOK_IDENT);
-        return curtok(p);
-    }
-
-    return NULL;
-}
-
 static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *block_scope,
         struct parser_expr *collection, const struct parser_token **iters, int iter_count)
 {
@@ -1462,7 +1452,6 @@ static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *bl
 
     struct parser_expr *stop, *step;
     struct parser_expr *iter = NULL;
-    const struct parser_token *counter = NULL;
 
     /* stop and step */
     stop = expression(p);
@@ -1470,9 +1459,6 @@ static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *bl
         step = expression(p);
     else
         step = parser_new_intlit_expr(1);
-
-    /* loop counter */
-    counter = with_loop_count(p);
 
     collection->next = stop;
     stop->next = step;
@@ -1488,12 +1474,8 @@ static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *bl
         { "_start",   parser_new_int_type() },
         { "_stop",    parser_new_int_type() },
         { "_step",    parser_new_int_type() },
-        { "_counter", parser_new_int_type() },
         { NULL }
     };
-
-    if (counter)
-        loop_vars[4].name = counter->sval;
 
     var = define_loop_vars(block_scope, loop_vars);
     iter = parser_new_var_expr(var);
