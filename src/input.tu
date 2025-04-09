@@ -1,6 +1,14 @@
-# main(args vec{string}) int
+> time
 
-  for val in 59..100 with i
-    print(i, "=>", val)
-
-  return 42
+# main() int
+  for i in 1..100
+    if i % 15 == 0
+      print("FizzBuzz")
+    elif i % 3 == 0
+      print("Fizz")
+    elif i % 5 == 0
+      print("Buzz")
+    else
+      print(i)
+  time.sleep(1.0)
+  return 0

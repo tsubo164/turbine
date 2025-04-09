@@ -23,6 +23,11 @@ const char *read_file(const char *filename)
     return sb.data;
 }
 
+static void print_version(void)
+{
+    printf("Turbine 0.1.0\n");
+}
+
 int main(int argc, char **argv)
 {
     struct interpreter_option opt = {0};
@@ -31,7 +36,11 @@ int main(int argc, char **argv)
     for (int i = 1; i < argc; i++) {
         const char *arg = argv[i];
 
-        if (!strcmp(arg, "--print-token") || !strcmp(arg, "-k")) {
+        if (!strcmp(arg, "--version") || !strcmp(arg, "-v")) {
+            print_version();
+            return 0;
+        }
+        else if (!strcmp(arg, "--print-token") || !strcmp(arg, "-k")) {
             opt.print_token = true;
         }
         else if (!strcmp(arg, "--print-token-raw") || !strcmp(arg, "-K")) {
