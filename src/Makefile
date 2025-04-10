@@ -1,27 +1,29 @@
-CFLAGS := -g -Wall --pedantic-errors -std=c11
+OPT    ?= -g -O0
+
+CFLAGS := $(OPT) -Wall --pedantic-errors -std=c11
 SRCS   := $(wildcard *.c)
 
-TURBINE  := ../turbine
-TURBINEA := libturbine.a
-DEP   := dep
+TARGET := ../turbine
+LIB    := libturbine.a
+DEP    := dep
 
 .PHONY: all clean run test
 
-all: $(TURBINE)
+all: $(TARGET)
 
-run: $(TURBINE) $(DEP)
-	$(TURBINE) ./input.tu
+run: $(TARGET) $(DEP)
+	$(TARGET) ./input.tu
 
-$(TURBINE): main.o $(TURBINEA)
+$(TARGET): main.o $(LIB)
 	$(CC) -o $@ $^
 
-$(TURBINEA): $(filter-out main.o, $(SRCS:.c=.o))
+$(LIB): $(filter-out main.o, $(SRCS:.c=.o))
 	$(AR) -r $@ $^
 
 clean:
-	$(RM) $(TURBINE) $(TURBINEA) *.o $(DEP)
+	$(RM) $(TARGET) $(LIB) *.o $(DEP)
 
-test: $(TURBINEA)
+test: $(LIB)
 	$(MAKE) -C tests $@
 
 $(DEP):
