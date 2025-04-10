@@ -5,6 +5,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+const char *usage =
+"\n"
+"usage: turbine <script.turb> [args...]\n"
+"\n"
+"options:\n"
+"  -h, --help              Show this help message\n"
+"  -v, --version           Show version information\n"
+"  -k, --print-token       Print tokens, preserving source formatting (e.g., indentation)\n"
+"  -K, --print-token-raw   Print raw tokens with line numbers and other raw information\n"
+"  -t, --print-tree        Print abstract syntax tree\n"
+"  -y, --print-symbols     Print symbols\n"
+"  -Y, --print-symbols-all Print all symbols, including built-in function symbols\n"
+"  -b, --print-bytecode    Print bytecode\n"
+"  -s, --print-stack       Print bytecode and stack state during script execution\n"
+"\n";
+
 const char *read_file(const char *filename)
 {
     FILE *fp = fopen(filename, "r");
@@ -23,6 +39,11 @@ const char *read_file(const char *filename)
     return sb.data;
 }
 
+static void print_usage(void)
+{
+    printf("%s", usage);
+}
+
 static void print_version(void)
 {
     printf("Turbine 0.1.0\n");
@@ -36,7 +57,11 @@ int main(int argc, char **argv)
     for (int i = 1; i < argc; i++) {
         const char *arg = argv[i];
 
-        if (!strcmp(arg, "--version") || !strcmp(arg, "-v")) {
+        if (!strcmp(arg, "--help") || !strcmp(arg, "-h")) {
+            print_usage();
+            return 0;
+        }
+        else if (!strcmp(arg, "--version") || !strcmp(arg, "-v")) {
             print_version();
             return 0;
         }
@@ -76,6 +101,12 @@ int main(int argc, char **argv)
     }
 
     const char *src = read_file(args.filename);
+
+    if (!args.filename) {
+        printf("error: no input file\n");
+        print_usage();
+        exit(EXIT_FAILURE);
+    }
 
     if (!src) {
         fprintf(stderr, "error: no such file: %s\n", args.filename);
