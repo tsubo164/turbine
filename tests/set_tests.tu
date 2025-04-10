@@ -65,8 +65,10 @@
     - s = set{5, 7, 9, 1, 3, 4, 10, 20, 30, 40, 50, 60}
     test.AssertI(12,    setlen(s))
     - sum = 0
-    for i, val in s
+    - i = 0
+    for val in s
       sum += i
+      i += 1
     test.AssertI(66, sum)
 
   ---

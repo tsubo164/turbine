@@ -622,22 +622,19 @@ static void run_cpu(struct vm_cpu *vm)
                 int src = inst.A;
                 int dst = inst.BB;
                 struct runtime_value itr = fetch_register_value(vm, src);
-                struct runtime_value idx = fetch_register_value(vm, src + 1);
-                struct runtime_value key = fetch_register_value(vm, src + 2);
-                struct runtime_value val = fetch_register_value(vm, src + 3);
-                struct runtime_value obj = fetch_register_value(vm, src + 4);
+                struct runtime_value key = fetch_register_value(vm, src + 1);
+                struct runtime_value val = fetch_register_value(vm, src + 2);
+                struct runtime_value obj = fetch_register_value(vm, src + 3);
                 struct runtime_map_entry *ent = runtime_map_entry_begin(obj.map);
 
                 if (ent) {
                     itr.data = ent;
-                    idx.inum = 0;
                     key = ent->key;
                     val = ent->val;
 
                     set_local(vm, src    , itr);
-                    set_local(vm, src + 1, idx);
-                    set_local(vm, src + 2, key);
-                    set_local(vm, src + 3, val);
+                    set_local(vm, src + 1, key);
+                    set_local(vm, src + 2, val);
                 }
                 else {
                     set_ip(vm, dst);
@@ -650,21 +647,18 @@ static void run_cpu(struct vm_cpu *vm)
                 int src = inst.A;
                 int dst = inst.BB;
                 struct runtime_value itr = fetch_register_value(vm, src);
-                struct runtime_value idx = fetch_register_value(vm, src + 1);
-                struct runtime_value key = fetch_register_value(vm, src + 2);
-                struct runtime_value val = fetch_register_value(vm, src + 3);
+                struct runtime_value key = fetch_register_value(vm, src + 1);
+                struct runtime_value val = fetch_register_value(vm, src + 2);
                 struct runtime_map_entry *ent = runtime_map_entry_next(itr.data);
 
                 if (ent) {
                     itr.data = ent;
-                    idx.inum++;
                     key = ent->key;
                     val = ent->val;
 
                     set_local(vm, src    , itr);
-                    set_local(vm, src + 1, idx);
-                    set_local(vm, src + 2, key);
-                    set_local(vm, src + 3, val);
+                    set_local(vm, src + 1, key);
+                    set_local(vm, src + 2, val);
 
                     set_ip(vm, dst);
                 }
@@ -676,19 +670,16 @@ static void run_cpu(struct vm_cpu *vm)
                 int src = inst.A;
                 int dst = inst.BB;
                 struct runtime_value itr = fetch_register_value(vm, src);
-                struct runtime_value idx = fetch_register_value(vm, src + 1);
-                struct runtime_value val = fetch_register_value(vm, src + 2);
-                struct runtime_value obj = fetch_register_value(vm, src + 3);
+                struct runtime_value val = fetch_register_value(vm, src + 1);
+                struct runtime_value obj = fetch_register_value(vm, src + 2);
                 struct runtime_set_node *node = runtime_set_node_begin(obj.set);
 
                 if (node) {
                     itr.data = node;
-                    idx.inum = 0;
                     val = node->val;
 
                     set_local(vm, src    , itr);
-                    set_local(vm, src + 1, idx);
-                    set_local(vm, src + 2, val);
+                    set_local(vm, src + 1, val);
                 }
                 else {
                     set_ip(vm, dst);
@@ -701,18 +692,15 @@ static void run_cpu(struct vm_cpu *vm)
                 int src = inst.A;
                 int dst = inst.BB;
                 struct runtime_value itr = fetch_register_value(vm, src);
-                struct runtime_value idx = fetch_register_value(vm, src + 1);
-                struct runtime_value val = fetch_register_value(vm, src + 2);
+                struct runtime_value val = fetch_register_value(vm, src + 1);
                 struct runtime_set_node *node = runtime_set_node_next(itr.data);
 
                 if (node) {
                     itr.data = node;
-                    idx.inum++;
                     val = node->val;
 
                     set_local(vm, src    , itr);
-                    set_local(vm, src + 1, idx);
-                    set_local(vm, src + 2, val);
+                    set_local(vm, src + 1, val);
 
                     set_ip(vm, dst);
                 }

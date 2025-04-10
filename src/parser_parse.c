@@ -1525,7 +1525,6 @@ static struct parser_stmt *formap_stmt(struct parser *p, struct parser_scope *bl
     struct parser_var *var = NULL;
     struct loop_var loop_vars[] = {
         { "_itr", parser_new_any_type() },
-        { "_idx", parser_new_int_type() },
         { "_key", parser_new_string_type() },
         { "_val", collection->type->underlying },
         { "_map", collection->type },
@@ -1533,19 +1532,14 @@ static struct parser_stmt *formap_stmt(struct parser *p, struct parser_scope *bl
     };
 
     if (iter_count == 1) {
-        loop_vars[3].name = iters[0]->sval;
+        loop_vars[2].name = iters[0]->sval;
     }
     else if (iter_count == 2) {
-        loop_vars[2].name = iters[0]->sval;
-        loop_vars[3].name = iters[1]->sval;
-    }
-    else if (iter_count == 3) {
         loop_vars[1].name = iters[0]->sval;
         loop_vars[2].name = iters[1]->sval;
-        loop_vars[3].name = iters[2]->sval;
     }
     else {
-        error(p, iters[3]->pos, "too many iterators");
+        error(p, iters[2]->pos, "too many iterators");
     }
 
     var = define_loop_vars(block_scope, loop_vars);
@@ -1564,21 +1558,16 @@ static struct parser_stmt *forset_stmt(struct parser *p, struct parser_scope *bl
     struct parser_var *var = NULL;
     struct loop_var loop_vars[] = {
         { "_itr", parser_new_any_type() },
-        { "_idx", parser_new_int_type() },
         { "_val", collection->type->underlying },
         { "_set", collection->type },
         { NULL }
     };
 
     if (iter_count == 1) {
-        loop_vars[2].name = iters[0]->sval;
-    }
-    else if (iter_count == 2) {
         loop_vars[1].name = iters[0]->sval;
-        loop_vars[2].name = iters[1]->sval;
     }
     else {
-        error(p, iters[2]->pos, "too many iterators");
+        error(p, iters[1]->pos, "too many iterators");
     }
 
     var = define_loop_vars(block_scope, loop_vars);
@@ -1605,12 +1594,8 @@ static struct parser_stmt *forstack_stmt(struct parser *p, struct parser_scope *
     if (iter_count == 1) {
         loop_vars[1].name = iters[0]->sval;
     }
-    else if (iter_count == 2) {
-        loop_vars[0].name = iters[0]->sval;
-        loop_vars[1].name = iters[1]->sval;
-    }
     else {
-        error(p, iters[2]->pos, "too many iterators");
+        error(p, iters[1]->pos, "too many iterators");
     }
 
     var = define_loop_vars(block_scope, loop_vars);
@@ -1637,12 +1622,8 @@ static struct parser_stmt *forqueue_stmt(struct parser *p, struct parser_scope *
     if (iter_count == 1) {
         loop_vars[1].name = iters[0]->sval;
     }
-    else if (iter_count == 2) {
-        loop_vars[0].name = iters[0]->sval;
-        loop_vars[1].name = iters[1]->sval;
-    }
     else {
-        error(p, iters[2]->pos, "too many iterators");
+        error(p, iters[1]->pos, "too many iterators");
     }
 
     var = define_loop_vars(block_scope, loop_vars);

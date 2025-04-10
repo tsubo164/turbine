@@ -48,8 +48,10 @@
     test.AssertI(3, stacklen(s))
 
     - sum = 0
-    for i, val in s
+    - i = 0
+    for val in s
       sum += i
+      i += 1
     test.AssertI(3, sum)
     test.AssertI(3, stacklen(s))
 

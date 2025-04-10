@@ -56,7 +56,7 @@ Here's a simple example using Turbine to perform an advanced RPN (Reverse Polish
 
   // Output the result and the time it took for computation
   print("Result:", stacktop(stack))
-  print("Time taken:", time.now() - start_time, "seconds")
+  print("Time taken:", time.elapsed(start_time), "seconds")
 ```
 
 ## Installation

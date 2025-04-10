@@ -985,8 +985,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             int itr = gen_addr(code, s->expr);
             int obj = gen_expr(code, s->cond);
 
-            /* the collection is located 4 registers away from the iterator */
-            code_emit_move(code, itr + 4, obj);
+            /* the collection is located 3 registers away from the iterator */
+            code_emit_move(code, itr + 3, obj);
 
             /* begin */
             int64_t init = code_emit_formap_begin(code, itr);
@@ -1011,8 +1011,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             int itr = gen_addr(code, s->expr);
             int obj = gen_expr(code, s->cond);
 
-            /* the collection is located 3 registers away from the iterator */
-            code_emit_move(code, itr + 3, obj);
+            /* the collection is located 2 registers away from the iterator */
+            code_emit_move(code, itr + 2, obj);
 
             /* begin */
             int64_t init = code_emit_forset_begin(code, itr);

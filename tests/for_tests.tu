@@ -134,14 +134,30 @@
     - idxsum = 0
     - valsum = 0
     - keysum = ""
+    - i = 0
 
-    for i, key, val in m
+    for key, val in m
       idxsum += i
       keysum += key
       valsum += val
+      i += 1
     test.AssertI(276, idxsum)
     test.AssertS("foobarbazGoNimZigC/C++BashRustLuaMarkdownTomlYamlJavaKotlinDartLispPythonRubyPerlPHPJavaScriptSwiftTurbine", keysum)
     test.AssertI(59609, valsum)
+
+  ---
+    // for each element in set
+    - s = set{
+      "Alpha",
+      "Beta",
+      "Charlie"
+    }
+    test.AssertI(3, setlen(s))
+
+    - valsum = ""
+    for val in s
+      valsum += val
+    test.AssertS("AlphaBetaCharlie", valsum)
 
   ---
     - valsum = 0
