@@ -10,6 +10,7 @@
 #include "builtin_module.h"
 #include "data_intern.h"
 #include "data_strbuf.h"
+#include "project.h"
 #include "format.h"
 #include "os.h"
 
@@ -18,9 +19,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-/* TODO move to somewhere */
-#define FILE_EXT "tu"
 
 /* TODO move this somewhere */
 #include "data_strbuf.h"
@@ -2397,7 +2395,7 @@ static void module_import(struct parser *p)
         error(p, tok_pos(p),
                 "error: too long module name: '%s'", modulename);
     }
-    sprintf(module_filename, "%s.%s", modulename, FILE_EXT);
+    sprintf(module_filename, "%s.%s", modulename, PROJECT_SRC_EXT);
 
     /* builtin modules */
     const struct builtin_module *found_module;
@@ -2414,7 +2412,7 @@ static void module_import(struct parser *p)
 
         if (!text) {
             error(p, tok_pos(p),
-                    "module %s.%s not found", modulename, FILE_EXT);
+                    "module %s.%s not found", modulename, PROJECT_SRC_EXT);
         }
 
         /* parse module file */

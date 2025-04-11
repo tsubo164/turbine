@@ -1,13 +1,16 @@
 #include "interpreter.h"
 #include "data_strbuf.h"
+#include "project.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
+const char *version = PROJECT_NAME " " PROJECT_VERSION "\n";
+
 const char *usage =
 "\n"
-"usage: turbine <script.turb> [args...]\n"
+"usage: " PROJECT_EXE_NAME " [options] <file> [args...]\n"
 "\n"
 "options:\n"
 "  -h, --help              Show this help message\n"
@@ -46,7 +49,7 @@ static void print_usage(void)
 
 static void print_version(void)
 {
-    printf("Turbine 0.1.0\n");
+    printf("%s", version);
 }
 
 int main(int argc, char **argv)
