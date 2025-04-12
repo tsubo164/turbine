@@ -1,7 +1,7 @@
 #include "parser_token.h"
+#include "parser_limits.h"
 #include "parser_escseq.h"
 #include "parser_error.h"
-#include "parser_limit.h"
 #include "data_intern.h"
 
 #include <assert.h>

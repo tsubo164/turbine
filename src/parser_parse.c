@@ -10,6 +10,7 @@
 #include "builtin_module.h"
 #include "data_intern.h"
 #include "data_strbuf.h"
+#include "read_file.h"
 #include "project.h"
 #include "format.h"
 #include "os.h"
@@ -19,27 +20,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-/* TODO move this somewhere */
-#include "data_strbuf.h"
-static char *read_file(const char *filename)
-{
-    FILE *fp = fopen(filename, "r");
-
-    if (!fp)
-        return NULL;
-
-    char buf[1024] = {'\0'};
-    struct data_strbuf sb = DATA_STRBUF_INIT;
-    while (fgets(buf, 1024, fp)) {
-        data_strbuf_cat(&sb, buf);
-    }
-    data_strbuf_cat(&sb, "\n");
-
-    fclose(fp);
-
-    return sb.data;
-}
 
 struct parser {
     /* current context */

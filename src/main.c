@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "data_strbuf.h"
+#include "read_file.h"
 #include "project.h"
 
 #include <string.h>
@@ -23,24 +24,6 @@ const char *usage =
 "  -b, --print-bytecode    Print bytecode\n"
 "  -s, --print-stack       Print bytecode and stack state during script execution\n"
 "\n";
-
-const char *read_file(const char *filename)
-{
-    FILE *fp = fopen(filename, "r");
-
-    if (!fp)
-        return NULL;
-
-    char buf[1024] = {'\0'};
-    struct data_strbuf sb = DATA_STRBUF_INIT;
-    while (fgets(buf, 1024, fp)) {
-        data_strbuf_cat(&sb, buf);
-    }
-    data_strbuf_cat(&sb, "\n");
-
-    fclose(fp);
-    return sb.data;
-}
 
 static void print_usage(void)
 {
@@ -103,7 +86,7 @@ int main(int argc, char **argv)
         }
     }
 
-    const char *src = read_file(args.filename);
+    char *src = read_file(args.filename);
 
     if (!args.filename) {
         printf("error: no input file\n");
@@ -120,7 +103,7 @@ int main(int argc, char **argv)
     if (opt.print_token || opt.print_tree || opt.print_bytecode || opt.print_symbols)
         ret = 0;
 
-    free((char *)src);
+    free(src);
 
     return ret;
 }
