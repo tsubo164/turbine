@@ -4,14 +4,33 @@ Turbine is a lightweight, high-performance scripting language designed for simpl
 
 ## Features
 
-- Simple & Clear: Designed for readability and simplicity. The syntax is minimalistic and intuitive.
-- Fast: Built for performance, making it suitable for both small scripts and larger projects.
-- Extensible: Easily extendable with custom modules, functions, and built-in data structures such as vec, set, map, stack, and queue.
-- Readable Syntax: Inspired by modern languages, it ensures that the code is clean and easy to maintain.
+- **Familiar, Markdown-like Syntax**
+
+  Turbine’s syntax is designed to resemble Markdown and simple pseudocode, making it approachable even for those without a programming background. Indentation-based blocks and clean keywords make scripts easy to write and read.
+
+- **Minimal but Expressive Standard Library**
+
+  Includes built-in modules for `math`, `time`, containers (`vec`, `map`, `set`, `stack`, `queue`), and I/O — enough to solve real problems without bloat.
+
+- **No Hidden Magic**
+
+  All control flow, scoping, and operations are explicit and visible. There’s no implicit coercion or behind-the-scenes behaviors.
+
+- **Designed for Simplicity**
+
+  Instead of complex features like generics or ownership systems, Turbine offers direct tools to solve problems clearly and concisely.
+
+- **Consistent Structure**
+
+  Uniform syntax across data types and control structures reduces the learning curve and makes code easier to maintain.
+
+- **Lightweight and Fast**
+
+  Single-binary implementation written in C for speed and simplicity, with a small runtime footprint.
 
 ## Quick Look
 
-Here's a simple example using Turbine to perform an advanced RPN (Reverse Polish Notation) calculation with time measurement.
+A compact RPN (Reverse Polish Notation) calculator using `math` and `time` modules to demonstrate Turbine’s scripting style.
 
 ```cpp
 > math
@@ -34,24 +53,26 @@ Here's a simple example using Turbine to perform an advanced RPN (Reverse Polish
   for token in expr
     if math.is_number(token)
       stackpush(stack, math.to_float(token))
-    else if token == "sqrt"
+    elif token == "sqrt"
       - a = stackpop(stack)
       stackpush(stack, math.sqrt(a))  // Square root
-    else if token == "cos"
+    elif token == "cos"
       - a = stackpop(stack)
       stackpush(stack, math.cos(a))   // Cosine
     else
       - b = stackpop(stack)
       - a = stackpop(stack)
-      - res float =
-          if token == "+"
-            a + b
-          else if token == "-"
-            a - b
-          else if token == "*"
-            a * b
-          else
-            a / b
+      - res = 0.0
+
+      if token == "+"
+        res = a + b
+      elif token == "-"
+        res = a - b
+      elif token == "*"
+        res = a * b
+      else
+        res = a / b
+
       stackpush(stack, res)
 
   // Output the result and the time it took for computation
@@ -99,8 +120,9 @@ For detailed documentation, including tutorials, API references, and guides, vis
 
 Join the community of Turbine users and developers:
 
-- GitHub Issues for bug reports and feature requests.
-- Discussion Forum for general discussion, help, and ideas.
+- [GitHub Issues](https://github.com/tsubo164/turbine/issues) for bug reports and feature requests.
+- [Discussion Forum](https://github.com/tsubo164/turbine/discussions) for general discussion, help, and ideas.
+
 
 ## License
 
