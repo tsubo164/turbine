@@ -8,7 +8,7 @@
     j = 0
     for i in 0..10
         j = j + 2
-    test.AssertI(20, j)
+    test::AssertI(20, j)
 
   ---
     // "while" statment
@@ -16,7 +16,7 @@
     i = 0
     while i < 10
         i += 1
-    test.AssertI(10, i)
+    test::AssertI(10, i)
 
   ---
     // "while" statment infinite loop
@@ -26,7 +26,7 @@
       i += 1
       if i == 8
         break
-    test.AssertI(8, i)
+    test::AssertI(8, i)
 
   ---
     // "break" statment
@@ -35,7 +35,7 @@
       if j == 5
         break
       i += 1
-    test.AssertI(5, i)
+    test::AssertI(5, i)
 
   ---
     // "continue" statment
@@ -45,21 +45,21 @@
       if i % 2 == 0
         continue
       j += 1
-    test.AssertI(5, j)
+    test::AssertI(5, j)
 
   // for zero times loop
   ---
     - a = 13
     for i in 0..0
       a *= 2
-    test.AssertI(13, a)
+    test::AssertI(13, a)
 
   ---
     // step 2
     - sum = 0
     for i in 0..10, 2
       sum += i
-    test.AssertI(20, sum)
+    test::AssertI(20, sum)
 
   ---
     // for vector value
@@ -67,7 +67,7 @@
     - sum = 0
     for val in v
       sum += val
-    test.AssertI(240, sum)
+    test::AssertI(240, sum)
 
   ---
     // for vector value and index
@@ -75,7 +75,7 @@
     - sum = 0
     for i, val in v
       sum += i * val
-    test.AssertI(437, sum)
+    test::AssertI(437, sum)
 
   ---
     - sum = 0
@@ -83,7 +83,7 @@
     while i < 10
       sum += i
       i += 1
-    test.AssertI(45, sum)
+    test::AssertI(45, sum)
 
   ---
     - sum = 0
@@ -93,7 +93,7 @@
       i += 1
       if i >= 10
         break
-    test.AssertI(45, sum)
+    test::AssertI(45, sum)
 
   ---
     // for map value
@@ -101,7 +101,7 @@
     - sum = 0
     for val in m
       sum += val
-    test.AssertI(7414, sum)
+    test::AssertI(7414, sum)
 
   ---
     // for map index, key and value
@@ -141,9 +141,9 @@
       keysum += key
       valsum += val
       i += 1
-    test.AssertI(276, idxsum)
-    test.AssertS("foobarbazGoNimZigC/C++BashRustLuaMarkdownTomlYamlJavaKotlinDartLispPythonRubyPerlPHPJavaScriptSwiftTurbine", keysum)
-    test.AssertI(59609, valsum)
+    test::AssertI(276, idxsum)
+    test::AssertS("foobarbazGoNimZigC/C++BashRustLuaMarkdownTomlYamlJavaKotlinDartLispPythonRubyPerlPHPJavaScriptSwiftTurbine", keysum)
+    test::AssertI(59609, valsum)
 
   ---
     // for each element in set
@@ -152,12 +152,12 @@
       "Beta",
       "Charlie"
     }
-    test.AssertI(3, setlen(s))
+    test::AssertI(3, setlen(s))
 
     - valsum = ""
     for val in s
       valsum += val
-    test.AssertS("AlphaBetaCharlie", valsum)
+    test::AssertS("AlphaBetaCharlie", valsum)
 
   ---
     - valsum = 0
@@ -165,7 +165,7 @@
     for val in 10..15
       valsum += val
 
-    test.AssertI(60, valsum)
+    test::AssertI(60, valsum)
 
   ---
     // for num with int32 immediates
@@ -174,8 +174,8 @@
     for val in 100..105
       valsum += val
 
-    test.AssertI(510, valsum)
+    test::AssertI(510, valsum)
 
-  print(test._test_count_, "tests done.")
+  print(test::_test_count_, "tests done.")
 
   return 0
