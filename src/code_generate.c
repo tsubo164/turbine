@@ -1260,7 +1260,6 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
                 const struct parser_module *m = sym->module;
                 int64_t init_func_id = -1;
                 int min_var_offset = INT32_MAX;
-                int gvar_count = 0;
 
                 for (int j = 0; j < m->scope->syms.len; j++) {
                     const struct parser_symbol *s = m->scope->syms.data[j];
@@ -1276,7 +1275,6 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
                         if (!v->is_global)
                             continue;
 
-                        gvar_count++;
                         if (min_var_offset > v->offset)
                             min_var_offset = v->offset;
                     }

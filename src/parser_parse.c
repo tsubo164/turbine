@@ -490,12 +490,9 @@ static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol 
 static struct parser_expr *string_lit_expr(struct parser *p)
 {
     struct parser_expr *expr;
-    const struct parser_token *tok;
 
     expect(p, TOK_STRINGLIT);
-
     expr = parser_new_stringlit_expr(tok_str(p));
-    tok = curtok(p);
 
     return expr;
 }
@@ -843,9 +840,26 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
         return expr;
     }
 
-    error(p, tok_pos(p), "'.' must be used for struct, enum or modlue type");
+    error(p, tok_pos(p), "'.' must be used for struct, enum or module type");
     return NULL;
 }
+
+//static struct parser_expr *scope_expr(struct parser *p, struct parser_expr *base)
+//{
+//    expect(p, TOK_COLON2);
+//
+//    if (parser_is_module_type(base->type)) {
+//        struct parser_scope *cur = p->scope;
+//        struct parser_expr *expr;
+//        p->scope = base->type->module->scope;
+//        expr = parser_new_module_access_expr(base, ident_expr(p));
+//        p->scope = cur;
+//        return expr;
+//    }
+//
+//    error(p, tok_pos(p), "'::' must be used for module type");
+//    return NULL;
+//}
 
 static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *base)
 {
@@ -897,6 +911,10 @@ static struct parser_expr *postfix_expr(struct parser *p)
         case TOK_PERIOD:
             expr = select_expr(p, expr);
             continue;
+
+        //case TOK_COLON2:
+        //    expr = scope_expr(p, expr);
+        //    continue;
 
         case TOK_LBRACK:
             expr = indexing_expr(p, expr);

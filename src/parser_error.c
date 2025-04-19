@@ -4,17 +4,12 @@
 
 static void print_detail(const char *srctext, int posx, int posy)
 {
-    int x = 0;
     int y = 1;
     const char *p = srctext;
 
     while (y != posy) {
         if (*p++ == '\n') {
-            x = 1;
             y++;
-        }
-        else {
-            x++;
         }
     }
 

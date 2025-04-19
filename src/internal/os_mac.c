@@ -63,7 +63,7 @@ double os_time(void)
     return ts.tv_sec + ts.tv_nsec / 1e9;
 }
 
-double os_perf()
+double os_perf(void)
 {
     struct timespec ts;
     if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1)

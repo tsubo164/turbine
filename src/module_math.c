@@ -312,7 +312,10 @@ static int math_log2(struct runtime_gc *gc, struct runtime_registers *regs)
 int module_define_math(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "math");
+    /* TODO define math::vecnormalize() */
+    /*
     struct parser_struct *vec3_struct = NULL;
+    */
 
     /* global */
     {
@@ -335,7 +338,10 @@ int module_define_math(struct parser_scope *scope)
             { NULL },
         };
 
+        /*
         vec3_struct = native_define_struct(mod->scope, name, fields);
+        */
+        native_define_struct(mod->scope, name, fields);
     }
     /* function */
     {
