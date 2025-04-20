@@ -188,6 +188,16 @@
     test::AssertF(-2.5, c.y)
     test::AssertF(2.5, c.z)
 
+  ---
+    // Type in module
+    - v math::Vec3
+    v.x = 11.1
+    v.y = 22.2
+    v.z = 33.3
+    test::AssertF(11.1, v.x)
+    test::AssertF(22.2, v.y)
+    test::AssertF(33.3, v.z)
+
   print(test::_test_count_, "tests done.")
 
   return 0

@@ -2289,7 +2289,7 @@ static struct parser_type *type_spec(struct parser *p)
 
         if (parser_is_module_type(sym->type)) {
             /* TODO consider making the type_spec a part of expression */
-            expect(p, TOK_PERIOD);
+            expect(p, TOK_COLON2);
             struct parser_scope *cur = p->scope;
             p->scope = sym->type->module->scope;
             type = type_spec(p);
