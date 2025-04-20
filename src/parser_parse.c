@@ -475,7 +475,7 @@ static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol 
 {
     struct parser_enum *enm = sym->enm;
 
-    expect(p, TOK_PERIOD);
+    expect(p, TOK_COLON2);
     expect(p, TOK_IDENT);
 
     int index = parser_find_enum_member(enm, tok_str(p));

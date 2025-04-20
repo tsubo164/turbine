@@ -726,9 +726,9 @@
 
   // enum
   ---
-    - a = Color.R
-    test::AssertB(true, a == Color.R)
-    test::AssertB(true, a != Color.G)
+    - a = Color::R
+    test::AssertB(true, a == Color::R)
+    test::AssertB(true, a != Color::G)
 
   // module import
   ---
