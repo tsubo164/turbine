@@ -52,7 +52,6 @@ enum parser_token_kind {
     TOK_RBRACE,
     TOK_SEMICOLON,
     TOK_COLON,
-    TOK_COLON2,
     TOK_BLOCKBEGIN,
     TOK_BLOCKEND,
     TOK_MINUS3,

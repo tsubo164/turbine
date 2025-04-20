@@ -13,7 +13,7 @@
       b = 11
     else
       b = 22
-    test::AssertI(22, b)
+    test.AssertI(22, b)
 
   ---
     - a int
@@ -23,7 +23,7 @@
       b = 11
     else
       b = 22
-    test::AssertI(11, b)
+    test.AssertI(11, b)
 
   ---
     - a int
@@ -33,7 +33,7 @@
       b = 1
     else
       b = 0
-    test::AssertI(1, b)
+    test.AssertI(1, b)
 
   ---
     - a int
@@ -43,7 +43,7 @@
       b = 1
     else
       b = 0
-    test::AssertI(0, b)
+    test.AssertI(0, b)
 
   // if statement
   // line comment at beginning of line
@@ -57,7 +57,7 @@
     else
       b = 0
     // comment with the same indetation
-    test::AssertI(1, b)
+    test.AssertI(1, b)
 
   ---
     // if statement
@@ -71,12 +71,12 @@
     else
       b = 0
     // comment with the same indetation
-    test::AssertI(7, b)
+    test.AssertI(7, b)
 
   ---
     - s string
     - a = 33
-    test::AssertI(33, a)
+    test.AssertI(33, a)
 
   ---
     - a int
@@ -89,7 +89,7 @@
             c = 9
     //b = 4 // error
     a = 31
-    test::AssertI(31, a)
+    test.AssertI(31, a)
 
   ---
     - i int
@@ -99,8 +99,8 @@
       i = 77
     else
       i = 99
-    test::AssertI(77, i)
+    test.AssertI(77, i)
 
-  print(test::_test_count_, "tests done.")
+  print(test._test_count_, "tests done.")
 
   return 0

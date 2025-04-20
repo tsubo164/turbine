@@ -62,7 +62,6 @@ const char *parser_get_token_string(int kind)
     [TOK_RBRACE]        = "}",
     [TOK_SEMICOLON]     = ";",
     [TOK_COLON]         = ":",
-    [TOK_COLON2]        = "::",
     [TOK_BLOCKBEGIN]    = "block_begin",
     [TOK_BLOCKEND]      = "block_end",
     [TOK_MINUS3]        = "---",
@@ -803,14 +802,7 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         }
 
         if (ch == ':') {
-            ch = get(l);
-            if (ch == ':') {
-                set(tok, TOK_COLON2, pos);
-            }
-            else {
-                unget(l);
-                set(tok, TOK_COLON, pos);
-            }
+            set(tok, TOK_COLON, pos);
             return;
         }
 

@@ -51,7 +51,7 @@
   - RBRACE        , "}"
   - SEMICOLON     , ";"
   - COLON         , ":"
-  - COLON2        , "::"
+  - COLON2        , "."
   - BLOCKBEGIN    , "block_begin"
   - BLOCKEND      , "block_end"
   - MINUS3        , "---"
@@ -110,52 +110,52 @@
 # main(args vec{string}) int
 
   ---
-    - c = Color::A
+    - c = Color.A
     - s = c.name
-    test::AssertS("alpha", s)
-    test::AssertI(42, c.val)
-    test::AssertI(42, Color::R.val)
-    test::AssertI(4095, Color::B.val)
+    test.AssertS("alpha", s)
+    test.AssertI(42, c.val)
+    test.AssertI(42, Color.R.val)
+    test.AssertI(4095, Color.B.val)
 
   ---
-    test::AssertS("NIL", TokenKind::NIL.symbol)
-    test::AssertS("block_begin", TokenKind::BLOCKBEGIN.str)
+    test.AssertS("NIL", TokenKind.NIL.symbol)
+    test.AssertS("block_begin", TokenKind.BLOCKBEGIN.str)
 
   ---
     - i = 3
-    - c = Color::G
+    - c = Color.G
     switch c
-    case Color::B
+    case Color.B
       i = 33
-    case Color::R
+    case Color.R
       i = 44
-    case Color::G
+    case Color.G
       i = 55
     default
       nop
-    test::AssertI(55, i)
+    test.AssertI(55, i)
 
   // enum with floating point values
   ---
     - d Difficulty
 
-    d = Difficulty::EASY
-    test::AssertS("EASY", d.sym)
-    test::AssertF(0.5, d.damage_coeff)
-    test::AssertF(1.5, d.time_coeff)
+    d = Difficulty.EASY
+    test.AssertS("EASY", d.sym)
+    test.AssertF(0.5, d.damage_coeff)
+    test.AssertF(1.5, d.time_coeff)
 
-    d = Difficulty::NORMAL
-    test::AssertF(1.0, d.damage_coeff)
-    test::AssertF(1.0, d.time_coeff)
+    d = Difficulty.NORMAL
+    test.AssertF(1.0, d.damage_coeff)
+    test.AssertF(1.0, d.time_coeff)
 
-    d = Difficulty::HARD
-    test::AssertF(1.5, d.damage_coeff)
-    test::AssertF(0.8, d.time_coeff)
+    d = Difficulty.HARD
+    test.AssertF(1.5, d.damage_coeff)
+    test.AssertF(0.8, d.time_coeff)
 
-    d = Difficulty::NIGHTMARE
-    test::AssertF(2.5, d.damage_coeff)
-    test::AssertF(0.5, d.time_coeff)
+    d = Difficulty.NIGHTMARE
+    test.AssertF(2.5, d.damage_coeff)
+    test.AssertF(0.5, d.time_coeff)
 
-  print(test::_test_count_, "tests done.")
+  print(test._test_count_, "tests done.")
 
   return 0

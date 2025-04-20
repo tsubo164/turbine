@@ -475,7 +475,7 @@ static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol 
 {
     struct parser_enum *enm = sym->enm;
 
-    expect(p, TOK_COLON2);
+    expect(p, TOK_PERIOD);
     expect(p, TOK_IDENT);
 
     int index = parser_find_enum_member(enm, tok_str(p));
@@ -831,14 +831,6 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
         return parser_new_enum_access_expr(base, parser_new_enum_field_expr(f));
     }
 
-    error(p, tok_pos(p), "'.' must be used for struct or enum type");
-    return NULL;
-}
-
-static struct parser_expr *scope_expr(struct parser *p, struct parser_expr *base)
-{
-    expect(p, TOK_COLON2);
-
     if (parser_is_module_type(base->type)) {
         struct parser_scope *cur = p->scope;
         struct parser_expr *expr;
@@ -848,7 +840,7 @@ static struct parser_expr *scope_expr(struct parser *p, struct parser_expr *base
         return expr;
     }
 
-    error(p, tok_pos(p), "'::' must be used for module type");
+    error(p, tok_pos(p), "'.' must be used for struct, enum or module type");
     return NULL;
 }
 
@@ -901,10 +893,6 @@ static struct parser_expr *postfix_expr(struct parser *p)
 
         case TOK_PERIOD:
             expr = select_expr(p, expr);
-            continue;
-
-        case TOK_COLON2:
-            expr = scope_expr(p, expr);
             continue;
 
         case TOK_LBRACK:
@@ -2289,7 +2277,7 @@ static struct parser_type *type_spec(struct parser *p)
 
         if (parser_is_module_type(sym->type)) {
             /* TODO consider making the type_spec a part of expression */
-            expect(p, TOK_COLON2);
+            expect(p, TOK_PERIOD);
             struct parser_scope *cur = p->scope;
             p->scope = sym->type->module->scope;
             type = type_spec(p);
