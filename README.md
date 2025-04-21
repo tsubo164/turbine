@@ -2,6 +2,12 @@
 
 Turbine is a lightweight, high-performance scripting language designed for simplicity, clarity, and extensibility. It emphasizes ease of use while providing powerful features such as dynamic containers, flexible loops, and modularity.
 
+## Project Status
+
+Turbine is currently an early-stage experimental project.
+We welcome feedback, issue reports, and contributions from the community.
+Expect breaking changes and active development.
+
 ## Features
 
 - **Familiar, Markdown-like Syntax**
@@ -36,6 +42,20 @@ A compact RPN (Reverse Polish Notation) calculator using `math` and `time` modul
 > math
 > time
 
+# is_number(token string) bool
+  - digits = vec{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+  for digit in digits
+    if token == digit
+      return true
+  return false
+
+# to_number(token string) int
+  - digits = vec{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+  for i, digit in digits
+    if token == digit
+      return i
+  return -1
+
 # main() int
   // This program simulates a simple calculator using Reverse Polish Notation (RPN).
   // It supports basic arithmetic operations (+, -, *, /) as well as advanced math functions like square root and cosine.
@@ -45,24 +65,17 @@ A compact RPN (Reverse Polish Notation) calculator using `math` and `time` modul
   - start_time = time.now()
 
   // Define the expression
-  - expr vec{string} = vec{"9", "sqrt", "+", "3", "cos", "*", "2", "/"}
-
-  - stack stack{float} = stack{}
+  - expr = vec{"3", "3", "**", "6", "+", "7", "-"}
+  - stk stack{int}
 
   // Process the RPN expression with advanced math functions
   for token in expr
-    if math.is_number(token)
-      stackpush(stack, math.to_float(token))
-    elif token == "sqrt"
-      - a = stackpop(stack)
-      stackpush(stack, math.sqrt(a))  // Square root
-    elif token == "cos"
-      - a = stackpop(stack)
-      stackpush(stack, math.cos(a))   // Cosine
+    if is_number(token)
+      stackpush(stk, to_number(token))
     else
-      - b = stackpop(stack)
-      - a = stackpop(stack)
-      - res = 0.0
+      - b = stackpop(stk)
+      - a = stackpop(stk)
+      - res = 0
 
       if token == "+"
         res = a + b
@@ -70,19 +83,30 @@ A compact RPN (Reverse Polish Notation) calculator using `math` and `time` modul
         res = a - b
       elif token == "*"
         res = a * b
-      else
+      elif token == "/"
         res = a / b
+      elif token == "**"
+        res = int(math.pow(float(a), float(b)))
 
-      stackpush(stack, res)
+      stackpush(stk, res)
 
   // Output the result and the time it took for computation
-  print("Result:", stacktop(stack))
+  print("Result:", stacktop(stk))
   print("Time taken:", time.elapsed(start_time), "seconds")
+
+  return 0
 ```
 
 ## Installation
 
-To get started with Turbine, follow these steps:
+## ️Requirements
+
+To build and run Turbine, you will need:
+
+- A C compiler that supports **C99** (e.g., `gcc`, `clang`)
+- `make`
+- A Unix-like environment (Linux, macOS, etc.)
+
 
 ### Clone the repository:
 
@@ -94,7 +118,7 @@ git clone https://github.com/tsubo164/turbine.git
 
 ```bash
 cd turbine
-make install
+sudo make install
 ```
 
 ### Run a script:
@@ -120,9 +144,9 @@ For detailed documentation, including tutorials, API references, and guides, vis
 
 Join the community of Turbine users and developers:
 
+- [Discord server](https://discord.gg/Q6pABVW3) to chat, ask questions, or share feedback
 - [GitHub Issues](https://github.com/tsubo164/turbine/issues) for bug reports and feature requests.
 - [Discussion Forum](https://github.com/tsubo164/turbine/discussions) for general discussion, help, and ideas.
-
 
 ## License
 
