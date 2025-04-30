@@ -1,4 +1,6 @@
 #include "data_intern.h"
+#include "data_cstr.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -33,7 +35,7 @@ static const char *insert(const char *key)
         const char *ent = buckets[pos];
 
         if (!ent) {
-            buckets[pos] = strdup(key);
+            buckets[pos] = data_strdup(key);
             occupied++;
             return buckets[pos];
         }

@@ -1,4 +1,5 @@
 #include "runtime_string.h"
+#include "data_cstr.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -18,7 +19,7 @@ struct runtime_string *new_string(char *new_data, int new_len)
 
 struct runtime_string *runtime_string_new(const char *s)
 {
-    char *data = strdup(s);
+    char *data = data_strdup(s);
     char len = strlen(s);
 
     return new_string(data, len);
