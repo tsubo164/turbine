@@ -107,6 +107,21 @@
   - HARD       , 1.5         , 0.8
   - NIGHTMARE  , 2.5         , 0.5
 
+## Month enum
+  : symbol , name         , num
+  - Jan    , "January"    , 1
+  - Feb    , "February"   , 2
+  - Mar    , "March"      , 3
+  - Apr    , "April"      , 4
+  - May    , "May"        , 5
+  - Jun    , "June"       , 6
+  - Jul    , "July"       , 7
+  - Aug    , "August"     , 8
+  - Sep    , "September"  , 9
+  - Oct    , "October"    , 10
+  - Nov    , "November"   , 11
+  - Dec    , "December"   , 12
+
 # main(args vec{string}) int
 
   ---
@@ -155,6 +170,25 @@
     d = Difficulty.NIGHTMARE
     test.AssertF(2.5, d.damage_coeff)
     test.AssertF(0.5, d.time_coeff)
+
+  ---
+    - month_menu = vec{"Select Month"}
+    for m in Month
+      vecpush(month_menu, m.name)
+    test.AssertI(13, veclen(month_menu))
+    test.AssertS("Select Month" , month_menu[0])
+    test.AssertS("January"      , month_menu[1])
+    test.AssertS("February"     , month_menu[2])
+    test.AssertS("March"        , month_menu[3])
+    test.AssertS("April"        , month_menu[4])
+    test.AssertS("May"          , month_menu[5])
+    test.AssertS("June"         , month_menu[6])
+    test.AssertS("July"         , month_menu[7])
+    test.AssertS("August"       , month_menu[8])
+    test.AssertS("September"    , month_menu[9])
+    test.AssertS("October"      , month_menu[10])
+    test.AssertS("November"     , month_menu[11])
+    test.AssertS("December"     , month_menu[12])
 
   print(test._test_count_, "tests done.")
 

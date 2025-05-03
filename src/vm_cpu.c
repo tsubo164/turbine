@@ -783,6 +783,39 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_FORENUMBEGIN:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value idx = {.inum = 0};
+                struct runtime_value stop = fetch_register_value(vm, src + 1);
+
+                if (idx.inum < stop.inum) {
+                    set_local(vm, src, idx);
+                }
+                else {
+                    /* may not need this */
+                    set_ip(vm, dst);
+                }
+            }
+            break;
+
+        case OP_FORENUMEND:
+            {
+                int src = inst.A;
+                int dst = inst.BB;
+                struct runtime_value idx = fetch_register_value(vm, src);
+                struct runtime_value stop = fetch_register_value(vm, src + 1);
+
+                idx.inum++;
+
+                if (idx.inum < stop.inum) {
+                    set_local(vm, src, idx);
+                    set_ip(vm, dst);
+                }
+            }
+            break;
+
 #define DO_BINOP(num0, num1, op, num2, zerocheck) \
 do { \
     int dst = inst.A; \

@@ -18,6 +18,7 @@ enum parser_node_kind {
     NOD_STMT_FORSET,
     NOD_STMT_FORSTACK,
     NOD_STMT_FORQUEUE,
+    NOD_STMT_FORENUM,
     NOD_STMT_BREAK,
     NOD_STMT_CONTINUE,
     NOD_STMT_SWITCH,
@@ -234,6 +235,8 @@ struct parser_stmt *parser_new_forset_stmt(struct parser_expr *iter,
 struct parser_stmt *parser_new_forstack_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);
 struct parser_stmt *parser_new_forqueue_stmt(struct parser_expr *iter,
+        struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_forenum_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body);
 
 struct parser_stmt *parser_new_break_stmt(void);

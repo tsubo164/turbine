@@ -23,6 +23,7 @@ const char *parser_node_string(int kind)
     [NOD_STMT_FORSET]         = "for (set)",
     [NOD_STMT_FORSTACK]       = "for (stack)",
     [NOD_STMT_FORQUEUE]       = "for (queue)",
+    [NOD_STMT_FORENUM]        = "for (enum)",
     [NOD_STMT_BREAK]          = "break",
     [NOD_STMT_CONTINUE]       = "continue",
     [NOD_STMT_SWITCH]         = "switch",
@@ -721,6 +722,16 @@ struct parser_stmt *parser_new_forqueue_stmt(struct parser_expr *iter,
         struct parser_expr *collection, struct parser_stmt *body)
 {
     struct parser_stmt *s = new_stmt(NOD_STMT_FORQUEUE);
+    s->expr = iter;
+    s->cond = collection;
+    s->body = body;
+    return s;
+}
+
+struct parser_stmt *parser_new_forenum_stmt(struct parser_expr *iter,
+        struct parser_expr *collection, struct parser_stmt *body)
+{
+    struct parser_stmt *s = new_stmt(NOD_STMT_FORENUM);
     s->expr = iter;
     s->cond = collection;
     s->body = body;

@@ -171,6 +171,8 @@ int64_t code_emit_forstack_begin(struct code_bytecode *code, int itr);
 int64_t code_emit_forstack_end(struct code_bytecode *code, int itr, int64_t begin);
 int64_t code_emit_forqueue_begin(struct code_bytecode *code, int itr);
 int64_t code_emit_forqueue_end(struct code_bytecode *code, int itr, int64_t begin);
+int64_t code_emit_forenum_begin(struct code_bytecode *code, int itr);
+int64_t code_emit_forenum_end(struct code_bytecode *code, int itr, int64_t begin);
 
 /* conversion */
 int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src);

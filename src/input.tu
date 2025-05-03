@@ -1,10 +1,26 @@
-> math
+## Month enum
+  : symbol , name         , num
+  - Jan    , "January"    , 1
+  - Feb    , "February"   , 2
+  - Mar    , "March"      , 3
+  - Apr    , "April"      , 4
+  - May    , "May"        , 5
+  - Jun    , "June"       , 6
+  - Jul    , "July"       , 7
+  - Aug    , "August"     , 8
+  - Sep    , "September"  , 9
+  - Oct    , "October"    , 10
+  - Nov    , "November"   , 11
+  - Dec    , "December"   , 12
 
 # main() int
-  -v = math::Vec3{ x = 12.0, y = 33.4, z = -12.211}
+  - month_menu = vec{"Select Month"}
 
-  -x math::Vec3
+  for m in Month
+    vecpush(month_menu, m.name)
+    print(format("%2d: %s", m.num, m.name))
+    nop
 
-  print(v.x)
+  print(month_menu)
 
   return 0
