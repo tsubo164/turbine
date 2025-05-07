@@ -1,6 +1,7 @@
 OPT    ?= -g -O0
 
 CFLAGS := $(OPT) -Wall --pedantic-errors -std=c11
+LDFLAGS := -lm
 SRCS   := $(wildcard *.c)
 
 TARGET := ../turbine
@@ -15,7 +16,7 @@ run: $(TARGET) $(DEP)
 	$(TARGET) ./input.tu
 
 $(TARGET): main.o $(LIB)
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(LIB): $(filter-out main.o, $(SRCS:.c=.o))
 	$(AR) -r $@ $^

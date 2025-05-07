@@ -61,7 +61,7 @@ libtest: libtest.out
 	@echo "\033[0;32mOK\033[0;39m"
 
 libtest.out: libtest.o test.o ../src/libturbine.a
-	$(CC) -g -o $@ $^
+	$(CC) -g -o $@ $^ -lm
 
 %.o:%.c
 	$(CC) -std=c11 -g -c $<
