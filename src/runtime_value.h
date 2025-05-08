@@ -1,11 +1,7 @@
 #ifndef RUNTIME_VALUE_H
 #define RUNTIME_VALUE_H
 
-#include <stdbool.h>
-#include <stdint.h>
-
-typedef int64_t  value_int_t;
-typedef double   value_float_t;
+#include "numeric_types.h"
 
 struct runtime_vec;
 struct runtime_map;

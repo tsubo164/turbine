@@ -29,7 +29,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
         return;
 
     case TYP_INT:
-        printf("%lld", val.inum);
+        printf("%" PRIival, val.inum);
         return;
 
     case TYP_FLOAT:
@@ -177,7 +177,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
         return;
 
     case TYP_ENUM:
-        printf("%lld", val.inum);
+        printf("%" PRIival, val.inum);
         return;
 
     default:
