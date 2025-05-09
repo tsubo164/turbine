@@ -268,7 +268,7 @@ void print_map(const struct runtime_map *map)
     for (int i = 0; i < map->cap; i++) {
         struct runtime_map_entry *ent;
         for (ent = map->buckets[i]; ent; ent = ent->next_in_chain)
-            printf( "%4d/%d: key => %s, val => %lld\n", i, map->cap,
+            printf( "%4d/%d: key => %s, val => %" PRIival "\n", i, map->cap,
                     runtime_string_get_cstr(ent->key.string),
                     ent->val.inum);
     }

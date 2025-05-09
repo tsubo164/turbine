@@ -13,7 +13,7 @@ void code_print_bytecode(const struct code_bytecode *code)
 
         for (int i = 0; i < count; i++) {
             struct runtime_value val = code_constant_pool_get_int(&code->const_pool, i);
-            printf("[%6d] %lld\n", i, val.inum);
+            printf("[%6d] %" PRIival "\n", i, val.inum);
         }
     }
 
@@ -45,7 +45,7 @@ void code_print_bytecode(const struct code_bytecode *code)
             struct runtime_value val = code_get_enum_field(code, i);
             printf("[%6d] ", i);
             if (code_is_enum_field_int(code, i)) {
-                printf("%-10lld (int)\n", val.inum);
+                printf("%-10" PRIival " (int)\n", val.inum);
             }
             else if (code_is_enum_field_float(code, i)) {
                 printf("%-10g (float)\n", val.fpnum);
@@ -67,7 +67,7 @@ void code_print_bytecode(const struct code_bytecode *code)
 
     for (int i = 0; i < code->funcs.len; i++) {
         const struct code_function *func = &code->funcs.data[i];
-        printf("[%6d] %-10lld (%s)\n", func->id, func->addr, func->fullname);
+        printf("[%6d] %-10" PRId64 " (%s)\n", func->id, func->addr, func->fullname);
 
         if (func->addr >= 0)
             labels.data[func->addr] = func->id;
@@ -86,7 +86,7 @@ void code_print_bytecode(const struct code_bytecode *code)
             const struct code_function *func;
             func = code_lookup_const_function(&code->funcs, func_id);
             printf("\n");
-            printf("%s @%lld (id:%d)\n", func->fullname, addr, func->id);
+            printf("%s @%" PRId64 " (id:%d)\n", func->fullname, addr, func->id);
         }
 
         int32_t instcode = code_read(code, addr);
@@ -114,7 +114,7 @@ static void print_operand(const struct code_bytecode *code,
         {
             struct runtime_value val;
             val = code_read_immediate_value(code, addr + 1, operand, imm_size);
-            printf("$%lld", val.inum);
+            printf("$%" PRIival, val.inum);
         }
         break;
 
@@ -138,7 +138,7 @@ static void print_operand(const struct code_bytecode *code,
         if (code_is_smallint_register(operand)) {
             struct runtime_value val;
             val = code_read_immediate_value(code, addr, operand, imm_size);
-            printf("$%lld", val.inum);
+            printf("$%" PRIival, val.inum);
         }
         else {
             printf("r%d", operand);
@@ -161,7 +161,7 @@ void code_print_instruction(const struct code_bytecode *code,
     const struct code_opcode_info *info = code_lookup_opecode_info(inst->op);
 
     if (addr >= 0)
-        printf("[%6lld] ", addr);
+        printf("[%6" PRId64 "] ", addr);
 
     /* padding spaces */
     if (info->operand != OPERAND____)

@@ -2,7 +2,6 @@
 #define PARSER_SYMBOL_H
 
 #include <stdbool.h>
-#include <stdint.h>
 
 #include "native_module.h"
 #include "value_types.h"

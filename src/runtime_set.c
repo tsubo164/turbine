@@ -282,7 +282,7 @@ static void print_tree(const struct runtime_set_node *n, int depth)
 {
     if (!n)
         return;
-    printf( "%*s%lld\n", depth * 2, "", n->val.inum);
+    printf( "%*s%" PRIival "\n", depth * 2, "", n->val.inum);
     print_tree(n->l, depth + 1);
     print_tree(n->r, depth + 1);
 }

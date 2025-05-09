@@ -129,7 +129,7 @@ void vm_print_stack(const struct vm_cpu *vm)
     printf("-----------------------\n");
     for (int64_t i = vm->sp; i >= 0; i--) {
         if (i <= vm->sp && i > 0)
-            printf("[%6lld] ", index_to_addr(i));
+            printf("[%6" PRId64 "] ", index_to_addr(i));
         else if (i == 0)
             printf("[%6s] ", "*");
 
@@ -138,13 +138,14 @@ void vm_print_stack(const struct vm_cpu *vm)
         else
             printf("    ");
 
-        printf("|%4llu|", vm->stack.data[i].inum);
+        struct runtime_value val = runtime_valuevec_get(&vm->stack, i);
+        printf("|%4" PRIival "|", val.inum);
 
         if (i <= vm->sp && i > vm->bp)
         {
             int64_t addr = index_to_addr(i);
             int64_t id = addr_to_id(vm, addr);
-            printf(" [%lld]", id);
+            printf(" [%" PRId64 "]", id);
         }
 
         if (i == vm->bp)
@@ -157,7 +158,7 @@ void vm_print_stack(const struct vm_cpu *vm)
         printf("[%6d] ", i);
         printf("    ");
         const struct runtime_value gvar = get_global(vm, i);
-        printf("|%4llu|", gvar.inum);
+        printf("|%4" PRIival "|", gvar.inum);
         printf("\n");
     }
     printf("=======================\n\n");

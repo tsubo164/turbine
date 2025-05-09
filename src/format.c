@@ -1,4 +1,5 @@
 #include "format.h"
+#include "value_types.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -223,7 +224,7 @@ static const char *parse_type(const char *formats, struct format_spec *spec,
             return fmt;
         }
         spec->type = FMT_TYPE_DECIMAL;
-        *c_type = "lld";
+        *c_type = PRIival;
         break;
 
     case 'c':
@@ -303,7 +304,7 @@ const char *format_parse_specifier(const char *formats, struct format_spec *spec
 
     /* C format */
     char c_flags[16] = {'\0'};
-    const char *c_type = "lld";
+    const char *c_type = PRIival;
     const char *fmt = formats;
 
     if (*fmt != '%') {

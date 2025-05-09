@@ -5,7 +5,6 @@
 #include "parser_symbol.h"
 #include "value_types.h"
 #include <stdbool.h>
-#include <stdint.h>
 
 enum parser_node_kind {
     /* stmt */
