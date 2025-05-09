@@ -23,7 +23,7 @@ void parser_print_token(const struct parser_token *token, bool format)
             if (tok->kind == TOK_IDENT)
                 printf(" (%s)", tok->sval);
             if (tok->kind == TOK_INTLIT)
-                printf(" (%ld)", tok->ival);
+                printf(" (%" PRIival ")", tok->ival);
             if (tok->kind == TOK_FLOATLIT)
                 printf(" (%g)", tok->fval);
             if (tok->kind == TOK_STRINGLIT)
@@ -90,7 +90,7 @@ static void print_expr(const struct parser_expr *e, int depth)
     case NOD_EXPR_BOOLLIT:
     case NOD_EXPR_INTLIT:
     case NOD_EXPR_ENUMLIT:
-        printf(" %lld", e->ival);
+        printf(" %" PRIival "", e->ival);
         break;
 
     case NOD_EXPR_FLOATLIT:
@@ -268,7 +268,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
                     else if (parser_is_string_type(f->type))
                         printf("| \"%s\"", val.sval);
                     else if (parser_is_int_type(f->type))
-                        printf("| %lld", val.ival);
+                        printf("| %" PRIival "", val.ival);
 
                     printf("%c", x < nfields - 1 ? ' ' : '\n');
                 }

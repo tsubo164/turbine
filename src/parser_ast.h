@@ -3,6 +3,7 @@
 
 #include "parser_token.h"
 #include "parser_symbol.h"
+#include "value_types.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -122,8 +123,8 @@ struct parser_expr {
 
     /* literals */
     union {
-        int64_t ival;
-        double fval;
+        value_int_t ival;
+        value_float_t fval;
         const char *sval;
     };
 

@@ -1,6 +1,7 @@
 #ifndef PARSER_TOKEN_H
 #define PARSER_TOKEN_H
 
+#include "value_types.h"
 #include <stdbool.h>
 
 enum parser_token_kind {
@@ -110,8 +111,8 @@ struct parser_token {
     struct parser_pos pos;
 
     union {
-        long ival;
-        double fval;
+        value_int_t ival;
+        value_float_t fval;
         const char *sval;
     };
     bool has_escseq;

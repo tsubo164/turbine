@@ -1,7 +1,7 @@
 #ifndef RUNTIME_VALUE_H
 #define RUNTIME_VALUE_H
 
-#include "numeric_types.h"
+#include "value_types.h"
 
 struct runtime_vec;
 struct runtime_map;

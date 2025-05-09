@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "native_module.h"
+#include "value_types.h"
 #include "parser_type.h"
 #include "data_hashmap.h"
 #include "data_vec.h"
@@ -82,8 +83,8 @@ struct parser_enum_fieldvec {
 
 struct parser_enum_value {
     union {
-        int64_t ival;
-        double fval;
+        value_int_t ival;
+        value_float_t fval;
         const char *sval;
     };
 };

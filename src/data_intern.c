@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #define MAX_LOAD_FACTOR 70
 #define INIT_SIZE 256
@@ -84,7 +85,7 @@ void data_print_intern_table(void)
         if (ent)
             printf("%4d: \"%s\"\n", i, ent);
     }
-    printf( "buckets %lld/%lld: %g%% occupied\n",
+    printf("buckets %" PRId64 "/%" PRId64 ": %g%% occupied\n",
             occupied, capacity, ((float) occupied) / capacity);
 }
 
