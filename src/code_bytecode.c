@@ -153,7 +153,7 @@ bool code_is_smallint_register(int id)
     return id >= IMMEDIATE_SMALLINT_BEGIN && id <= IMMEDIATE_SMALLINT_END;
 }
 
-static bool can_fit_smallint(int64_t val)
+static bool can_fit_smallint(value_int_t val)
 {
     int SMALLINT_SIZE = IMMEDIATE_SMALLINT_END - IMMEDIATE_SMALLINT_BEGIN + 1;
     return val >= 0 && val < SMALLINT_SIZE;
@@ -164,7 +164,7 @@ static int register_to_smallint(int id)
     return id - IMMEDIATE_SMALLINT_BEGIN;
 }
 
-static int smallint_to_register(int64_t val)
+static int smallint_to_register(value_int_t val)
 {
     return val + IMMEDIATE_SMALLINT_BEGIN;
 }
@@ -184,7 +184,7 @@ static bool pop_if_constpool_reg(struct code_bytecode *code, int operand, int32_
 }
 
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
-        int64_t addr, int id, int *imm_size)
+        value_addr_t addr, int id, int *imm_size)
 {
     struct runtime_value value;
 
@@ -224,7 +224,7 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
 
     case IMMEDIATE_STRING:
         {
-            int64_t id = code_read(code, addr);
+            int32_t id = code_read(code, addr);
             value = code_constant_pool_get_string(&code->const_pool, id);
             if (imm_size)
                 *imm_size += 1;
@@ -245,7 +245,7 @@ int code_emit_move(struct code_bytecode *code, int dst, int src)
     return dst;
 }
 
-static bool can_fit_int32(int64_t val)
+static bool can_fit_int32(value_int_t val)
 {
     return val >= INT32_MIN && val <= INT32_MAX;
 }
@@ -637,22 +637,22 @@ void code_begin_switch(struct code_bytecode *code)
     data_intstack_push(&code->casecloses, -1);
 }
 
-void code_push_else_end(struct code_bytecode *code, int64_t addr)
+void code_push_else_end(struct code_bytecode *code, value_addr_t addr)
 {
     data_intstack_push(&code->ors, addr);
 }
 
-void code_push_break(struct code_bytecode *code, int64_t addr)
+void code_push_break(struct code_bytecode *code, value_addr_t addr)
 {
     data_intstack_push(&code->breaks, addr);
 }
 
-void code_push_continue(struct code_bytecode *code, int64_t addr)
+void code_push_continue(struct code_bytecode *code, value_addr_t addr)
 {
     data_intstack_push(&code->continues, addr);
 }
 
-void code_push_case_end(struct code_bytecode *code, int64_t addr)
+void code_push_case_end(struct code_bytecode *code, value_addr_t addr)
 {
     data_intstack_push(&code->casecloses, addr);
 }
@@ -661,122 +661,122 @@ void code_push_case_end(struct code_bytecode *code, int64_t addr)
  * jump and loop instructions return the address
  * where the destination address is stored.
  */
-int64_t code_emit_jump(struct code_bytecode *code, int64_t addr)
+value_addr_t code_emit_jump(struct code_bytecode *code, value_addr_t addr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_JUMP, 0, addr);
     return operand_addr;
 }
 
-int64_t code_emit_jump_if_zero(struct code_bytecode *code, int id, int64_t addr)
+value_addr_t code_emit_jump_if_zero(struct code_bytecode *code, int id, value_addr_t addr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_JUMPIFZERO, id, addr);
     return operand_addr;
 }
 
-int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int id, int64_t addr)
+value_addr_t code_emit_jump_if_not_zero(struct code_bytecode *code, int id, value_addr_t addr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_JUMPIFNOTZ, id, addr);
     return operand_addr;
 }
 
 /* loop */
-int64_t code_emit_fornum_begin(struct code_bytecode *code, int itr)
+value_addr_t code_emit_fornum_begin(struct code_bytecode *code, int itr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORNUMBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_fornum_end(struct code_bytecode *code, int itr, int64_t begin)
+value_addr_t code_emit_fornum_end(struct code_bytecode *code, int itr, value_addr_t begin)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORNUMEND, itr, begin);
     return operand_addr;
 }
 
-int64_t code_emit_forvec_begin(struct code_bytecode *code, int itr)
+value_addr_t code_emit_forvec_begin(struct code_bytecode *code, int itr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORVECBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_forvec_end(struct code_bytecode *code, int itr, int64_t begin)
+value_addr_t code_emit_forvec_end(struct code_bytecode *code, int itr, value_addr_t begin)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORVECEND, itr, begin);
     return operand_addr;
 }
 
-int64_t code_emit_formap_begin(struct code_bytecode *code, int itr)
+value_addr_t code_emit_formap_begin(struct code_bytecode *code, int itr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORMAPBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_formap_end(struct code_bytecode *code, int itr, int64_t begin)
+value_addr_t code_emit_formap_end(struct code_bytecode *code, int itr, value_addr_t begin)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORMAPEND, itr, begin);
     return operand_addr;
 }
 
-int64_t code_emit_forset_begin(struct code_bytecode *code, int itr)
+value_addr_t code_emit_forset_begin(struct code_bytecode *code, int itr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORSETBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_forset_end(struct code_bytecode *code, int itr, int64_t begin)
+value_addr_t code_emit_forset_end(struct code_bytecode *code, int itr, value_addr_t begin)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORSETEND, itr, begin);
     return operand_addr;
 }
 
-int64_t code_emit_forstack_begin(struct code_bytecode *code, int itr)
+value_addr_t code_emit_forstack_begin(struct code_bytecode *code, int itr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORSTACKBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_forstack_end(struct code_bytecode *code, int itr, int64_t begin)
+value_addr_t code_emit_forstack_end(struct code_bytecode *code, int itr, value_addr_t begin)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORSTACKEND, itr, begin);
     return operand_addr;
 }
 
-int64_t code_emit_forqueue_begin(struct code_bytecode *code, int itr)
+value_addr_t code_emit_forqueue_begin(struct code_bytecode *code, int itr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORQUEUEBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_forqueue_end(struct code_bytecode *code, int itr, int64_t begin)
+value_addr_t code_emit_forqueue_end(struct code_bytecode *code, int itr, value_addr_t begin)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORQUEUEEND, itr, begin);
     return operand_addr;
 }
 
-int64_t code_emit_forenum_begin(struct code_bytecode *code, int itr)
+value_addr_t code_emit_forenum_begin(struct code_bytecode *code, int itr)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORENUMBEGIN, itr, -1);
     return operand_addr;
 }
 
-int64_t code_emit_forenum_end(struct code_bytecode *code, int itr, int64_t begin)
+value_addr_t code_emit_forenum_end(struct code_bytecode *code, int itr, value_addr_t begin)
 {
-    int64_t operand_addr = code_get_next_addr(code);
+    value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORENUMEND, itr, begin);
     return operand_addr;
 }
@@ -830,9 +830,9 @@ void code_emit_nop(struct code_bytecode *code)
 }
 
 /* back-patches */
-void code_back_patch(struct code_bytecode *code, int64_t operand_addr)
+void code_back_patch(struct code_bytecode *code, value_addr_t operand_addr)
 {
-    int64_t next_addr = code_get_next_addr(code);
+    value_addr_t next_addr = code_get_next_addr(code);
     int32_t inst = code_read(code, operand_addr);
 
     inst = (inst & 0xFFFF0000) | (next_addr & 0x0000FFFF);
@@ -842,7 +842,7 @@ void code_back_patch(struct code_bytecode *code, int64_t operand_addr)
 void code_back_patch_breaks(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->breaks)) {
-        int64_t addr = data_intstack_pop(&code->breaks);
+        value_addr_t addr = data_intstack_pop(&code->breaks);
         if (addr == -1)
             break;
         code_back_patch(code, addr);
@@ -852,7 +852,7 @@ void code_back_patch_breaks(struct code_bytecode *code)
 void code_back_patch_continues(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->continues)) {
-        int64_t addr = data_intstack_pop(&code->continues);
+        value_addr_t addr = data_intstack_pop(&code->continues);
         if (addr == -1)
             break;
         code_back_patch(code, addr);
@@ -862,7 +862,7 @@ void code_back_patch_continues(struct code_bytecode *code)
 void code_back_patch_else_ends(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->ors)) {
-        int64_t addr = data_intstack_pop(&code->ors);
+        value_addr_t addr = data_intstack_pop(&code->ors);
         if (addr == -1)
             break;
         code_back_patch(code, addr);
@@ -872,7 +872,7 @@ void code_back_patch_else_ends(struct code_bytecode *code)
 void code_backpatch_case_ends(struct code_bytecode *code)
 {
     while (!data_intstack_is_empty(&code->casecloses)) {
-        int64_t addr = data_intstack_pop(&code->casecloses);
+        value_addr_t addr = data_intstack_pop(&code->casecloses);
         if (addr == -1)
             break;
         code_back_patch(code, addr);
@@ -880,14 +880,14 @@ void code_backpatch_case_ends(struct code_bytecode *code)
 }
 
 /* read/write/address */
-int32_t code_read(const struct code_bytecode *code, int64_t addr)
+int32_t code_read(const struct code_bytecode *code, value_addr_t addr)
 {
     assert(addr >= 0 && addr < code_get_size(code));
 
     return code->insts.data[addr];
 }
 
-void code_write(const struct code_bytecode *code, int64_t addr, int32_t inst)
+void code_write(const struct code_bytecode *code, value_addr_t addr, int32_t inst)
 {
     assert(addr >= 0 && addr < code_get_size(code));
 
@@ -899,7 +899,7 @@ int64_t code_get_size(const struct code_bytecode *code)
     return code->insts.len;
 }
 
-int64_t code_get_next_addr(const struct code_bytecode *code)
+value_addr_t code_get_next_addr(const struct code_bytecode *code)
 {
     return code_get_size(code);
 }
@@ -961,7 +961,7 @@ native_func_t code_get_native_function_pointer(const struct code_bytecode *code,
     return func->native_func_ptr;
 }
 
-void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr)
+void code_set_function_address(struct code_bytecode *code, int func_id, value_addr_t addr)
 {
     struct code_function *func = code_lookup_function(&code->funcs, func_id);
     assert(func);
@@ -969,7 +969,7 @@ void code_set_function_address(struct code_bytecode *code, int func_id, int64_t 
     func->addr = addr;
 }
 
-int64_t code_get_function_address(const struct code_bytecode *code, int func_id)
+value_addr_t code_get_function_address(const struct code_bytecode *code, int func_id)
 {
     const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
     assert(func);

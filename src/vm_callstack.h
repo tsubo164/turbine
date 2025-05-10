@@ -1,17 +1,17 @@
 #ifndef VM_CALLSTACK_H
 #define VM_CALLSTACK_H
 
+#include "value_types.h"
 #include <stdbool.h>
-#include <stdint.h>
 
 struct vm_call {
     int func_index;
     /* TODO remove argc */
     int argc;
     int return_reg;
-    int64_t return_ip;
-    int64_t return_bp;
-    int64_t return_sp;
+    value_addr_t return_ip;
+    value_addr_t return_bp;
+    value_addr_t return_sp;
 };
 
 struct vm_callstack {

@@ -69,7 +69,7 @@ int code_get_global_count(const struct code_bytecode *code);
 bool code_is_smallint_register(int id);
 bool code_is_immediate_value(int id);
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
-        int64_t addr, int id, int *imm_size);
+        value_addr_t addr, int id, int *imm_size);
 
 /* load, store, move */
 int code_emit_move(struct code_bytecode *code, int dst, int src);
@@ -144,34 +144,34 @@ void code_begin_if(struct code_bytecode *code);
 void code_begin_for(struct code_bytecode *code);
 void code_begin_while(struct code_bytecode *code);
 void code_begin_switch(struct code_bytecode *code);
-void code_push_else_end(struct code_bytecode *code, int64_t addr);
-void code_push_break(struct code_bytecode *code, int64_t addr);
-void code_push_continue(struct code_bytecode *code, int64_t addr);
-void code_push_case_end(struct code_bytecode *code, int64_t addr);
+void code_push_else_end(struct code_bytecode *code, value_addr_t addr);
+void code_push_break(struct code_bytecode *code, value_addr_t addr);
+void code_push_continue(struct code_bytecode *code, value_addr_t addr);
+void code_push_case_end(struct code_bytecode *code, value_addr_t addr);
 
 /*
  * jump and loop instructions return the address
  * where the destination address is stored.
  */
-int64_t code_emit_jump(struct code_bytecode *code, int64_t addr);
-int64_t code_emit_jump_if_zero(struct code_bytecode *code, int src, int64_t addr);
-int64_t code_emit_jump_if_not_zero(struct code_bytecode *code, int src, int64_t addr);
+value_addr_t code_emit_jump(struct code_bytecode *code, value_addr_t addr);
+value_addr_t code_emit_jump_if_zero(struct code_bytecode *code, int src, value_addr_t addr);
+value_addr_t code_emit_jump_if_not_zero(struct code_bytecode *code, int src, value_addr_t addr);
 
 /* loop */
-int64_t code_emit_fornum_begin(struct code_bytecode *code, int itr);
-int64_t code_emit_fornum_end(struct code_bytecode *code, int itr, int64_t begin);
-int64_t code_emit_forvec_begin(struct code_bytecode *code, int itr);
-int64_t code_emit_forvec_end(struct code_bytecode *code, int itr, int64_t begin);
-int64_t code_emit_formap_begin(struct code_bytecode *code, int itr);
-int64_t code_emit_formap_end(struct code_bytecode *code, int itr, int64_t begin);
-int64_t code_emit_forset_begin(struct code_bytecode *code, int itr);
-int64_t code_emit_forset_end(struct code_bytecode *code, int itr, int64_t begin);
-int64_t code_emit_forstack_begin(struct code_bytecode *code, int itr);
-int64_t code_emit_forstack_end(struct code_bytecode *code, int itr, int64_t begin);
-int64_t code_emit_forqueue_begin(struct code_bytecode *code, int itr);
-int64_t code_emit_forqueue_end(struct code_bytecode *code, int itr, int64_t begin);
-int64_t code_emit_forenum_begin(struct code_bytecode *code, int itr);
-int64_t code_emit_forenum_end(struct code_bytecode *code, int itr, int64_t begin);
+value_addr_t code_emit_fornum_begin(struct code_bytecode *code, int itr);
+value_addr_t code_emit_fornum_end(struct code_bytecode *code, int itr, value_addr_t begin);
+value_addr_t code_emit_forvec_begin(struct code_bytecode *code, int itr);
+value_addr_t code_emit_forvec_end(struct code_bytecode *code, int itr, value_addr_t begin);
+value_addr_t code_emit_formap_begin(struct code_bytecode *code, int itr);
+value_addr_t code_emit_formap_end(struct code_bytecode *code, int itr, value_addr_t begin);
+value_addr_t code_emit_forset_begin(struct code_bytecode *code, int itr);
+value_addr_t code_emit_forset_end(struct code_bytecode *code, int itr, value_addr_t begin);
+value_addr_t code_emit_forstack_begin(struct code_bytecode *code, int itr);
+value_addr_t code_emit_forstack_end(struct code_bytecode *code, int itr, value_addr_t begin);
+value_addr_t code_emit_forqueue_begin(struct code_bytecode *code, int itr);
+value_addr_t code_emit_forqueue_end(struct code_bytecode *code, int itr, value_addr_t begin);
+value_addr_t code_emit_forenum_begin(struct code_bytecode *code, int itr);
+value_addr_t code_emit_forenum_end(struct code_bytecode *code, int itr, value_addr_t begin);
 
 /* conversion */
 int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src);
@@ -186,17 +186,17 @@ void code_emit_halt(struct code_bytecode *code);
 void code_emit_nop(struct code_bytecode *code);
 
 /* back-patches */
-void code_back_patch(struct code_bytecode *code, int64_t operand_addr);
+void code_back_patch(struct code_bytecode *code, value_addr_t operand_addr);
 void code_back_patch_breaks(struct code_bytecode *code);
 void code_back_patch_continues(struct code_bytecode *code);
 void code_back_patch_else_ends(struct code_bytecode *code);
 void code_backpatch_case_ends(struct code_bytecode *code);
 
 /* read/write/address */
-int32_t code_read(const struct code_bytecode *code, int64_t addr);
-void code_write(const struct code_bytecode *code, int64_t addr, int32_t inst);
+int32_t code_read(const struct code_bytecode *code, value_addr_t addr);
+void code_write(const struct code_bytecode *code, value_addr_t addr, int32_t inst);
 int64_t code_get_size(const struct code_bytecode *code);
-int64_t code_get_next_addr(const struct code_bytecode *code);
+value_addr_t code_get_next_addr(const struct code_bytecode *code);
 
 /* functions */
 /* TODO remove each setter/getter by exposing struct code_function? */
@@ -211,8 +211,8 @@ void code_set_native_function_pointer(struct code_bytecode *code,
 native_func_t code_get_native_function_pointer(const struct code_bytecode *code,
         int func_id);
 
-void code_set_function_address(struct code_bytecode *code, int func_id, int64_t addr);
-int64_t code_get_function_address(const struct code_bytecode *code, int func_id);
+void code_set_function_address(struct code_bytecode *code, int func_id, value_addr_t addr);
+value_addr_t code_get_function_address(const struct code_bytecode *code, int func_id);
 int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_id);
 void code_set_function_variadic(struct code_bytecode *code, int func_id, bool is_variadic);
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id);

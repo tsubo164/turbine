@@ -14,12 +14,12 @@
 #include <stdio.h>
 #include <math.h>
 
-static void set_ip(struct vm_cpu *vm, int64_t ip)
+static void set_ip(struct vm_cpu *vm, value_addr_t ip)
 {
     vm->ip = ip;
 }
 
-static void set_sp(struct vm_cpu *vm, int64_t sp)
+static void set_sp(struct vm_cpu *vm, value_addr_t sp)
 {
     if (sp >= vm->stack.len)
         runtime_valuevec_resize(&vm->stack, sp + 1);
@@ -27,7 +27,7 @@ static void set_sp(struct vm_cpu *vm, int64_t sp)
     vm->sp = sp;
 }
 
-static void set_bp(struct vm_cpu *vm, int64_t bp)
+static void set_bp(struct vm_cpu *vm, value_addr_t bp)
 {
     vm->bp = bp;
 }
@@ -48,12 +48,12 @@ static void pop_call(struct vm_cpu *vm, struct vm_call *call)
 }
 
 #define SPOFFSET 1
-static int64_t index_to_addr(int64_t index)
+static value_addr_t index_to_addr(int64_t index)
 {
     return index - SPOFFSET;
 }
 
-static int64_t addr_to_index(int64_t addr)
+static int64_t addr_to_index(value_addr_t addr)
 {
     return addr + SPOFFSET;
 }
@@ -68,13 +68,13 @@ static int addr_to_id(const struct vm_cpu *vm, int addr)
     return addr - (index_to_addr(vm->bp) + 1);
 }
 
-static struct runtime_value read_stack(const struct vm_cpu *vm, int64_t addr)
+static struct runtime_value read_stack(const struct vm_cpu *vm, value_addr_t addr)
 {
     int64_t index = addr_to_index(addr);
     return vm->stack.data[index];
 }
 
-static void write_stack(struct vm_cpu *vm, int64_t addr, struct runtime_value val)
+static void write_stack(struct vm_cpu *vm, value_addr_t addr, struct runtime_value val)
 {
     int64_t index = addr_to_index(addr);
     vm->stack.data[index] = val;
@@ -82,13 +82,13 @@ static void write_stack(struct vm_cpu *vm, int64_t addr, struct runtime_value va
 
 static struct runtime_value get_local(const struct vm_cpu *vm, int id)
 {
-    int64_t addr = id_to_addr(vm, id);
+    value_addr_t addr = id_to_addr(vm, id);
     return read_stack(vm, addr);
 }
 
 static void set_local(struct vm_cpu *vm, int id, struct runtime_value val)
 {
-    int64_t addr = id_to_addr(vm, id);
+    value_addr_t addr = id_to_addr(vm, id);
     write_stack(vm, addr, val);
 }
 
@@ -127,7 +127,7 @@ value_int_t vm_get_stack_top(const struct vm_cpu *vm)
 void vm_print_stack(const struct vm_cpu *vm)
 {
     printf("-----------------------\n");
-    for (int64_t i = vm->sp; i >= 0; i--) {
+    for (value_addr_t i = vm->sp; i >= 0; i--) {
         if (i <= vm->sp && i > 0)
             printf("[%6" PRId64 "] ", index_to_addr(i));
         else if (i == 0)
@@ -143,7 +143,7 @@ void vm_print_stack(const struct vm_cpu *vm)
 
         if (i <= vm->sp && i > vm->bp)
         {
-            int64_t addr = index_to_addr(i);
+            value_addr_t addr = index_to_addr(i);
             int64_t id = addr_to_id(vm, addr);
             printf(" [%" PRId64 "]", id);
         }
@@ -176,7 +176,7 @@ void vm_print_gc_objects(const struct vm_cpu *vm)
 
 static void call_function(struct vm_cpu *vm, int return_reg, int func_id)
 {
-    int64_t func_addr = code_get_function_address(vm->code, func_id);
+    value_addr_t func_addr = code_get_function_address(vm->code, func_id);
 
     struct vm_call call = {0};
     call.argc = code_get_function_arg_count(vm->code, func_id);
@@ -210,7 +210,7 @@ static void run_cpu(struct vm_cpu *vm)
     bool halt = false;
 
     while (!is_eoc(vm) && !halt) {
-        int64_t old_ip = vm->ip;
+        value_addr_t old_ip = vm->ip;
         int32_t instcode = fetch(vm);
 
         struct code_instruction inst = {0};
@@ -498,7 +498,7 @@ static void run_cpu(struct vm_cpu *vm)
 
                 if (result == RESULT_NORETURN) {
                     /* TODO consider making push_to_stack */
-                    int64_t sp_addr = index_to_addr(vm->sp);
+                    value_addr_t sp_addr = index_to_addr(vm->sp);
                     write_stack(vm, sp_addr, ret_val);
                     halt = true;
                 }

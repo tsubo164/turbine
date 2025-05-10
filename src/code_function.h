@@ -1,14 +1,14 @@
 #ifndef CODE_FUNC_H
 #define CODE_FUNC_H
 
-#include <stdint.h>
 #include "native_module.h"
+#include "value_types.h"
 
 struct code_function {
     int id;
     int argc;
     int reg_count;
-    int64_t addr;
+    value_addr_t addr;
     const char *fullname;
     native_func_t native_func_ptr;
 

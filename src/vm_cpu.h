@@ -18,10 +18,10 @@ struct vm_cpu {
     struct runtime_valuevec globals__;
     struct runtime_valuevec *globals;
 
-    int64_t eoc; /* end of code */
-    int64_t ip; /* instruction pointer */
-    int64_t sp; /* stack pointer */
-    int64_t bp; /* base pointer */
+    value_addr_t eoc; /* end of code */
+    value_addr_t ip; /* instruction pointer */
+    value_addr_t sp; /* stack pointer */
+    value_addr_t bp; /* base pointer */
 
     struct vm_callstack callstack;
 
