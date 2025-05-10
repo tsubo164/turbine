@@ -708,12 +708,12 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         {
             /* eval */
             int src = gen_expr(code, e->l);
-            int64_t els = code_emit_jump_if_zero(code, src, -1);
+            value_addr_t els = code_emit_jump_if_zero(code, src, -1);
 
             /* true */
             int dst = gen_dst_register1(code, src);
             code_emit_move(code, dst, src);
-            int64_t exit = code_emit_jump(code, -1);
+            value_addr_t exit = code_emit_jump(code, -1);
 
             /* false */
             code_back_patch(code, els);
@@ -726,13 +726,13 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         {
             /* eval */
             int src1 = gen_expr(code, e->l);
-            int64_t els = code_emit_jump_if_zero(code, src1, -1);
+            value_addr_t els = code_emit_jump_if_zero(code, src1, -1);
 
             /* true */
             int src2 = gen_expr(code, e->r);
             int dst = gen_dst_register2(code, src1, src2);
             code_emit_move(code, dst, src2);
-            int64_t exit = code_emit_jump(code, -1);
+            value_addr_t exit = code_emit_jump(code, -1);
 
             /* false */
             code_back_patch(code, els);
@@ -874,7 +874,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
     case NOD_STMT_ELSE:
         {
-            int64_t next = 0;
+            value_addr_t next = 0;
 
             if (s->cond) {
                 int cond = gen_expr(code, s->cond);
@@ -886,7 +886,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
             if (s->cond) {
                 /* exit */
-                int64_t addr = code_emit_jump(code, -1);
+                value_addr_t addr = code_emit_jump(code, -1);
                 code_push_else_end(code, addr);
                 code_back_patch(code, next);
             }
@@ -896,7 +896,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
     case NOD_STMT_WHILE:
         {
             bool infinite_loop = false;
-            int64_t result = 0;
+            value_int_t result = 0;
             if (parser_eval_expr(s->cond, &result))
                 infinite_loop = result != 0;
 
@@ -937,8 +937,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, iter + 3, step);
 
             /* begin */
-            int64_t init = code_emit_fornum_begin(code, iter);
-            int64_t begin = code_get_next_addr(code);
+            value_addr_t init = code_emit_fornum_begin(code, iter);
+            value_addr_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
@@ -963,8 +963,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, idx + 2, obj);
 
             /* begin */
-            int64_t init = code_emit_forvec_begin(code, idx);
-            int64_t begin = code_get_next_addr(code);
+            value_addr_t init = code_emit_forvec_begin(code, idx);
+            value_addr_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
@@ -989,8 +989,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, itr + 3, obj);
 
             /* begin */
-            int64_t init = code_emit_formap_begin(code, itr);
-            int64_t begin = code_get_next_addr(code);
+            value_addr_t init = code_emit_formap_begin(code, itr);
+            value_addr_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
@@ -1015,8 +1015,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, itr + 2, obj);
 
             /* begin */
-            int64_t init = code_emit_forset_begin(code, itr);
-            int64_t begin = code_get_next_addr(code);
+            value_addr_t init = code_emit_forset_begin(code, itr);
+            value_addr_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
@@ -1041,8 +1041,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, idx + 2, obj);
 
             /* begin */
-            int64_t init = code_emit_forstack_begin(code, idx);
-            int64_t begin = code_get_next_addr(code);
+            value_addr_t init = code_emit_forstack_begin(code, idx);
+            value_addr_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
@@ -1067,8 +1067,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, idx + 2, obj);
 
             /* begin */
-            int64_t init = code_emit_forqueue_begin(code, idx);
-            int64_t begin = code_get_next_addr(code);
+            value_addr_t init = code_emit_forqueue_begin(code, idx);
+            value_addr_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
@@ -1094,8 +1094,8 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             code_emit_move(code, idx + 1, stop);
 
             /* begin */
-            int64_t init = code_emit_forenum_begin(code, idx);
-            int64_t begin = code_get_next_addr(code);
+            value_addr_t init = code_emit_forenum_begin(code, idx);
+            value_addr_t begin = code_get_next_addr(code);
 
             /* body */
             gen_stmt(code, s->body);
@@ -1111,14 +1111,14 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
 
     case NOD_STMT_BREAK:
         {
-            int64_t addr = code_emit_jump(code, -1);
+            value_addr_t addr = code_emit_jump(code, -1);
             code_push_break(code, addr);
         }
         break;
 
     case NOD_STMT_CONTINUE:
         {
-            int64_t addr = code_emit_jump(code, -1);
+            value_addr_t addr = code_emit_jump(code, -1);
             code_push_continue(code, addr);
         }
         break;
@@ -1165,11 +1165,11 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
                 code_emit_equal_int(code, dst, src1, src2);
 
                 /* jump if true otherwise fallthrough */
-                int64_t tru = code_emit_jump_if_not_zero(code, dst, -1);
+                value_addr_t tru = code_emit_jump_if_not_zero(code, dst, -1);
                 data_intvec_push(&trues, tru);
             }
             /* all conds false -> close case */
-            int64_t exit = code_emit_jump(code, -1);
+            value_addr_t exit = code_emit_jump(code, -1);
             /* one of cond true -> go to body */
             for (int i = 0; i < trues.len; i++)
                 code_back_patch(code, trues.data[i]);
@@ -1179,7 +1179,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             gen_stmt(code, s->body);
 
             /* end */
-            int64_t addr = code_emit_jump(code, -1);
+            value_addr_t addr = code_emit_jump(code, -1);
             code_push_case_end(code, addr);
             code_back_patch(code, exit);
         }
@@ -1221,7 +1221,7 @@ static void gen_func(struct code_bytecode *code, const struct parser_func *func,
     code_init_registers(code, lvar_count + param_count);
 
     /* Function body */
-    int64_t func_addr = code_get_next_addr(code);
+    value_addr_t func_addr = code_get_next_addr(code);
     gen_stmt(code, func->body);
 
     /* Back patch used registers */
@@ -1339,7 +1339,7 @@ static void gen_start_func(struct code_bytecode *code, const struct parser_modul
     code_init_registers(code, lvar_count);
 
     /* function body */
-    int64_t func_addr = code_get_next_addr(code);
+    value_addr_t func_addr = code_get_next_addr(code);
     gen_start_func_body(code, mod);
 
     /* back patch register count */
