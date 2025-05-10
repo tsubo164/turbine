@@ -84,7 +84,7 @@ static void print_code(const struct code_bytecode *code)
     code_print_bytecode(code);
 }
 
-static int64_t exec_code(const struct code_bytecode *code, const struct interpreter_args *args,
+static value_int_t exec_code(const struct code_bytecode *code, const struct interpreter_args *args,
         bool print_stack)
 {
     struct vm_cpu vm = {{0}};
@@ -95,13 +95,13 @@ static int64_t exec_code(const struct code_bytecode *code, const struct interpre
     vm_enable_print_stack(&vm, print_stack);
     vm_execute_bytecode(&vm, code, &vargs);
 
-    int64_t ret = vm_get_stack_top(&vm);
+    value_int_t ret = vm_get_stack_top(&vm);
     vm_free_cpu(&vm);
 
     return ret;
 }
 
-int64_t interpret_source(const char *text, const struct interpreter_args *args,
+value_int_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
     /* string intern */
@@ -181,7 +181,7 @@ int64_t interpret_source(const char *text, const struct interpreter_args *args,
     }
 
     /* execute */
-    int64_t ret = 0;
+    value_int_t ret = 0;
     if (pass.execute) {
         ret = exec_code(&code, args, opt->print_stack);
     }

@@ -1,8 +1,8 @@
 #include "parser_eval.h"
 
-static bool eval_binary(const struct parser_expr *e, int64_t *result)
+static bool eval_binary(const struct parser_expr *e, value_int_t *result)
 {
-    int64_t L = 0, R = 0;
+    value_int_t L = 0, R = 0;
 
     if (!parser_eval_expr(e->l, &L))
         return false;
@@ -20,9 +20,9 @@ static bool eval_binary(const struct parser_expr *e, int64_t *result)
     }
 }
 
-static bool eval_unary(const struct parser_expr *e, int64_t *result)
+static bool eval_unary(const struct parser_expr *e, value_int_t *result)
 {
-    int64_t L = 0;
+    value_int_t L = 0;
 
     if (!parser_eval_expr(e->l, &L))
         return false;
@@ -36,7 +36,7 @@ static bool eval_unary(const struct parser_expr *e, int64_t *result)
     }
 }
 
-bool parser_eval_expr(const struct parser_expr *e, int64_t *result)
+bool parser_eval_expr(const struct parser_expr *e, value_int_t *result)
 {
     switch (e->kind) {
 

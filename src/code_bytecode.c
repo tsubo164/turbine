@@ -255,7 +255,7 @@ bool code_is_immediate_value(int id)
     return id >= IMMEDIATE_SMALLINT_BEGIN;
 }
 
-int code_emit_load_int(struct code_bytecode *code, int64_t val)
+int code_emit_load_int(struct code_bytecode *code, value_int_t val)
 {
     if (can_fit_smallint(val)) {
         return smallint_to_register(val);
@@ -271,7 +271,7 @@ int code_emit_load_int(struct code_bytecode *code, int64_t val)
     }
 }
 
-int code_emit_load_float(struct code_bytecode *code, double val)
+int code_emit_load_float(struct code_bytecode *code, value_float_t val)
 {
     int id = code_constant_pool_push_float(&code->const_pool, val);
     immediate_queue_push(code, (int32_t) id);
@@ -1002,12 +1002,12 @@ bool code_is_function_variadic(const struct code_bytecode *code, int func_id)
 }
 
 /* enum fields */
-int64_t code_push_enum_field_int(struct code_bytecode *code, int64_t ival)
+int64_t code_push_enum_field_int(struct code_bytecode *code, value_int_t ival)
 {
     return code_constant_pool_push_literal_int(&code->const_pool, ival);
 }
 
-int64_t code_push_enum_field_float(struct code_bytecode *code, double fval)
+int64_t code_push_enum_field_float(struct code_bytecode *code, value_float_t fval)
 {
     return code_constant_pool_push_literal_float(&code->const_pool, fval);
 }

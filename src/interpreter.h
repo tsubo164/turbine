@@ -1,8 +1,8 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
+#include "value_types.h"
 #include <stdbool.h>
-#include <stdint.h>
 
 struct interpreter_args {
     const char *filename;
@@ -20,7 +20,7 @@ struct interpreter_option {
     bool print_stack;
 };
 
-int64_t interpret_source(const char *text, const struct interpreter_args *args,
+value_int_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt);
 
 #endif /* _H */

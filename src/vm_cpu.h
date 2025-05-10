@@ -32,7 +32,7 @@ struct vm_cpu {
 void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode,
         const struct vm_args *args);
 
-int64_t vm_get_stack_top(const struct vm_cpu *vm);
+value_int_t vm_get_stack_top(const struct vm_cpu *vm);
 void vm_print_stack(const struct vm_cpu *vm);
 void vm_enable_print_stack(struct vm_cpu *vm, bool enable);
 void vm_print_gc_objects(const struct vm_cpu *vm);

@@ -33,7 +33,7 @@ void data_intvec_resize(struct data_intvec *v, int new_len)
     v->len = new_len;
 }
 
-void data_intvec_push(struct data_intvec *v, int64_t val)
+void data_intvec_push(struct data_intvec *v, value_int_t val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
@@ -51,7 +51,7 @@ void data_intvec_free(struct data_intvec *v)
 }
 
 /* Stack of int */
-void data_intstack_push(struct data_intstack *v, int64_t val)
+void data_intstack_push(struct data_intstack *v, value_int_t val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
@@ -60,14 +60,14 @@ void data_intstack_push(struct data_intstack *v, int64_t val)
     v->data[v->len++] = val;
 }
 
-int64_t data_intstack_pop(struct data_intstack *v)
+value_int_t data_intstack_pop(struct data_intstack *v)
 {
     if (!v->data)
         return 0;
     return v->data[--v->len];
 }
 
-int64_t data_intstack_top(const struct data_intstack *v)
+value_int_t data_intstack_top(const struct data_intstack *v)
 {
     if (!v->data)
         return 0;

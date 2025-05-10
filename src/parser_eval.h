@@ -3,8 +3,7 @@
 
 #include "parser_ast.h"
 #include <stdbool.h>
-#include <stdint.h>
 
-bool parser_eval_expr(const struct parser_expr *e, int64_t *result);
+bool parser_eval_expr(const struct parser_expr *e, value_int_t *result);
 
 #endif /* _H */

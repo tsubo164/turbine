@@ -118,7 +118,7 @@ static struct runtime_value fetch_register_value(struct vm_cpu *vm, int id)
     }
 }
 
-int64_t vm_get_stack_top(const struct vm_cpu *vm)
+value_int_t vm_get_stack_top(const struct vm_cpu *vm)
 {
     const struct runtime_value val = top(vm);
     return val.inum;

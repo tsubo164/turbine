@@ -1,7 +1,6 @@
 #ifndef CODE_BYTECODE_H
 #define CODE_BYTECODE_H
 
-#include <stdint.h>
 #include <stdbool.h>
 
 #include "code_instruction.h"
@@ -74,8 +73,8 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
 
 /* load, store, move */
 int code_emit_move(struct code_bytecode *code, int dst, int src);
-int code_emit_load_int(struct code_bytecode *code, int64_t val);
-int code_emit_load_float(struct code_bytecode *code, double val);
+int code_emit_load_int(struct code_bytecode *code, value_int_t val);
+int code_emit_load_float(struct code_bytecode *code, value_float_t val);
 int code_emit_load_string(struct code_bytecode *code, const char *cstr);
 int code_emit_load_global(struct code_bytecode *code, int dst, int src);
 int code_emit_store_global(struct code_bytecode *code, int dst, int src);
@@ -219,8 +218,8 @@ void code_set_function_variadic(struct code_bytecode *code, int func_id, bool is
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id);
 
 /* enum fields */
-int64_t code_push_enum_field_int(struct code_bytecode *code, int64_t ival);
-int64_t code_push_enum_field_float(struct code_bytecode *code, double fval);
+int64_t code_push_enum_field_int(struct code_bytecode *code, value_int_t ival);
+int64_t code_push_enum_field_float(struct code_bytecode *code, value_float_t fval);
 int64_t code_push_enum_field_string(struct code_bytecode *code, const char *sval);
 struct runtime_value code_get_enum_field(const struct code_bytecode *code, int id);
 
