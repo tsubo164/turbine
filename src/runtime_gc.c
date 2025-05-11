@@ -52,7 +52,7 @@ static void print_obj(const struct runtime_object *obj)
     case OBJ_MAP:
         {
             const struct runtime_map *m = (struct runtime_map *) obj;
-            printf("[map] => len: %d, cap: %d\n", m->len, m->cap);
+            printf("[map] => len: %" PRIival ", cap: %" PRIival "\n", m->len, m->cap);
         }
         break;
 

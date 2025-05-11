@@ -13,16 +13,16 @@ struct runtime_stack {
     compare_function_t compare;
 };
 
-struct runtime_stack *runtime_stack_new(int val_type, int64_t len);
+struct runtime_stack *runtime_stack_new(int val_type, value_int_t len);
 void runtime_stack_free(struct runtime_stack *s);
 
-int64_t runtime_stack_len(const struct runtime_stack *s);
+value_int_t runtime_stack_len(const struct runtime_stack *s);
 bool runtime_stack_empty(const struct runtime_stack *s);
 void runtime_stack_push(struct runtime_stack *s, struct runtime_value val);
 struct runtime_value runtime_stack_pop(struct runtime_stack *s);
 struct runtime_value runtime_stack_top(const struct runtime_stack *s);
 
 /* No index range check */
-struct runtime_value runtime_stack_get(const struct runtime_stack *s, int64_t idx);
+struct runtime_value runtime_stack_get(const struct runtime_stack *s, value_index_t idx);
 
 #endif /* _H */

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct runtime_set *runtime_set_new(int val_type, int64_t len)
+struct runtime_set *runtime_set_new(int val_type, value_int_t len)
 {
     struct runtime_set *s;
 
@@ -31,7 +31,7 @@ void runtime_set_free(struct runtime_set *s)
     free(s);
 }
 
-int64_t runtime_set_len(const struct runtime_set *s)
+value_int_t runtime_set_len(const struct runtime_set *s)
 {
     return s->len;
 }
@@ -223,7 +223,7 @@ static struct runtime_set_node *remove_node(struct runtime_set *s,
 
 bool runtime_set_add(struct runtime_set *s, struct runtime_value val)
 {
-    int oldlen = runtime_set_len(s);
+    value_int_t oldlen = runtime_set_len(s);
     s->root = insert_node(s, s->root, val);
     if (s->root)
         s->root->parent = NULL;
@@ -232,7 +232,7 @@ bool runtime_set_add(struct runtime_set *s, struct runtime_value val)
 
 bool runtime_set_remove(struct runtime_set *s, struct runtime_value val)
 {
-    int oldlen = runtime_set_len(s);
+    value_int_t oldlen = runtime_set_len(s);
     s->root = remove_node(s, s->root, val);
     if (s->root)
         s->root->parent = NULL;

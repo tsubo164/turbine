@@ -10,11 +10,11 @@ struct runtime_struct {
     struct runtime_valuevec fields;
 };
 
-struct runtime_struct *runtime_struct_new(int64_t len);
+struct runtime_struct *runtime_struct_new(value_int_t len);
 void runtime_struct_free(struct runtime_struct *s);
 
-int64_t runtime_struct_field_count(const struct runtime_struct *s);
-struct runtime_value runtime_struct_get(const struct runtime_struct *s, int64_t field_idx);
-void runtime_struct_set(struct runtime_struct *s, int64_t field_idx, struct runtime_value val);
+value_int_t runtime_struct_field_count(const struct runtime_struct *s);
+struct runtime_value runtime_struct_get(const struct runtime_struct *s, value_int_t field_idx);
+void runtime_struct_set(struct runtime_struct *s, value_int_t field_idx, struct runtime_value val);
 
 #endif /* _H */

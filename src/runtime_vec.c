@@ -1,7 +1,7 @@
 #include "runtime_vec.h"
 #include <stdlib.h>
 
-struct runtime_vec *runtime_vec_new(int64_t len)
+struct runtime_vec *runtime_vec_new(value_int_t len)
 {
     struct runtime_vec *v;
 
@@ -24,12 +24,12 @@ void runtime_vec_free(struct runtime_vec *v)
 }
 
 /* No index range check */
-struct runtime_value runtime_vec_get(const struct runtime_vec *v, int64_t idx)
+struct runtime_value runtime_vec_get(const struct runtime_vec *v, value_int_t idx)
 {
     return v->values.data[idx];
 }
 
-void runtime_vec_set(struct runtime_vec *v, int64_t idx, struct runtime_value val)
+void runtime_vec_set(struct runtime_vec *v, value_int_t idx, struct runtime_value val)
 {
     v->values.data[idx] = val;
 }
@@ -44,17 +44,17 @@ void runtime_vec_clear(struct runtime_vec *v)
     runtime_valuevec_resize(&v->values, 0);
 }
 
-int64_t runtime_vec_len(const struct runtime_vec *v)
+value_int_t runtime_vec_len(const struct runtime_vec *v)
 {
     return v->values.len;
 }
 
-void runtime_vec_resize(struct runtime_vec *v, int64_t new_len)
+void runtime_vec_resize(struct runtime_vec *v, value_int_t new_len)
 {
     runtime_valuevec_resize(&v->values, new_len);
 }
 
-bool runtime_vec_is_valid_index(const struct runtime_vec *v, int64_t idx)
+bool runtime_vec_is_valid_index(const struct runtime_vec *v, value_int_t idx)
 {
     return idx >= 0 && idx < runtime_vec_len(v);
 }

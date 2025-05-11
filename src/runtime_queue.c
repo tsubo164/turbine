@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct runtime_queue *runtime_queue_new(int val_type, int64_t len)
+struct runtime_queue *runtime_queue_new(int val_type, value_int_t len)
 {
     struct runtime_queue *q;
 
@@ -21,7 +21,7 @@ void runtime_queue_free(struct runtime_queue *q)
     free(q);
 }
 
-int64_t runtime_queue_len(const struct runtime_queue *q)
+value_int_t runtime_queue_len(const struct runtime_queue *q)
 {
     return q->len;
 }
@@ -84,8 +84,8 @@ struct runtime_value runtime_queue_front(const struct runtime_queue *q)
 }
 
 /* No index range check */
-struct runtime_value runtime_queue_get(const struct runtime_queue *q, int64_t idx)
+struct runtime_value runtime_queue_get(const struct runtime_queue *q, value_index_t idx)
 {
-    int64_t i = (q->front + idx) % q->cap;
+    value_index_t i = (q->front + idx) % q->cap;
     return q->data[i];
 }

@@ -193,7 +193,7 @@ static struct runtime_map_entry *lookup(const struct runtime_map *map,
     return NULL;
 }
 
-struct runtime_map *runtime_map_new(int64_t len)
+struct runtime_map *runtime_map_new(value_int_t len)
 {
     struct runtime_map *m;
 
@@ -248,7 +248,7 @@ void runtime_map_set(struct runtime_map *m, struct runtime_value key, struct run
     insert(m, key, val);
 }
 
-int64_t runtime_map_len(const struct runtime_map *m)
+value_int_t runtime_map_len(const struct runtime_map *m)
 {
     return m->len;
 }
@@ -265,10 +265,11 @@ struct runtime_map_entry *runtime_map_entry_next(const struct runtime_map_entry 
 
 void print_map(const struct runtime_map *map)
 {
-    for (int i = 0; i < map->cap; i++) {
+    for (value_int_t i = 0; i < map->cap; i++) {
         struct runtime_map_entry *ent;
         for (ent = map->buckets[i]; ent; ent = ent->next_in_chain)
-            printf( "%4d/%d: key => %s, val => %" PRIival "\n", i, map->cap,
+            printf( "%4" PRIival "/%" PRIival ": key => %s, val => %" PRIival "\n",
+                    i, map->cap,
                     runtime_string_get_cstr(ent->key.string),
                     ent->val.inum);
     }
