@@ -48,35 +48,35 @@ static void pop_call(struct vm_cpu *vm, struct vm_call *call)
 }
 
 #define SPOFFSET 1
-static value_addr_t index_to_addr(int64_t index)
+static value_addr_t index_to_addr(value_index_t index)
 {
     return index - SPOFFSET;
 }
 
-static int64_t addr_to_index(value_addr_t addr)
+static value_index_t addr_to_index(value_addr_t addr)
 {
     return addr + SPOFFSET;
 }
 
-static int id_to_addr(const struct vm_cpu *vm, int id)
+static value_addr_t id_to_addr(const struct vm_cpu *vm, int id)
 {
     return index_to_addr(vm->bp) + 1 + id;
 }
 
-static int addr_to_id(const struct vm_cpu *vm, int addr)
+static value_index_t addr_to_id(const struct vm_cpu *vm, value_addr_t addr)
 {
     return addr - (index_to_addr(vm->bp) + 1);
 }
 
 static struct runtime_value read_stack(const struct vm_cpu *vm, value_addr_t addr)
 {
-    int64_t index = addr_to_index(addr);
+    value_index_t index = addr_to_index(addr);
     return vm->stack.data[index];
 }
 
 static void write_stack(struct vm_cpu *vm, value_addr_t addr, struct runtime_value val)
 {
-    int64_t index = addr_to_index(addr);
+    value_index_t index = addr_to_index(addr);
     vm->stack.data[index] = val;
 }
 
@@ -129,7 +129,7 @@ void vm_print_stack(const struct vm_cpu *vm)
     printf("-----------------------\n");
     for (value_addr_t i = vm->sp; i >= 0; i--) {
         if (i <= vm->sp && i > 0)
-            printf("[%6" PRId64 "] ", index_to_addr(i));
+            printf("[%6" PRIaddr "] ", index_to_addr(i));
         else if (i == 0)
             printf("[%6s] ", "*");
 
@@ -144,8 +144,8 @@ void vm_print_stack(const struct vm_cpu *vm)
         if (i <= vm->sp && i > vm->bp)
         {
             value_addr_t addr = index_to_addr(i);
-            int64_t id = addr_to_id(vm, addr);
-            printf(" [%" PRId64 "]", id);
+            value_index_t id = addr_to_id(vm, addr);
+            printf(" [%" PRIindex "]", id);
         }
 
         if (i == vm->bp)

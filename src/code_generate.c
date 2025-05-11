@@ -188,7 +188,7 @@ static int gen_set_lit(struct code_bytecode *code,
 
     /* set elements */
     /* TODO remove code_find_builtin_function() when OP_SETADD available */
-    int64_t func_id = code_find_builtin_function(code, "setadd");
+    int func_id = code_find_builtin_function(code, "setadd");
     bool is_native = true;
     int ret_reg = code_allocate_temporary_register(code);
     int src_reg = code_allocate_temporary_register(code);
@@ -224,7 +224,7 @@ static int gen_stack_lit(struct code_bytecode *code,
 
     /* set elements */
     /* TODO remove code_find_builtin_function() when OP_STACKPUSH available */
-    int64_t func_id = code_find_builtin_function(code, "stackpush");
+    int func_id = code_find_builtin_function(code, "stackpush");
     bool is_native = true;
     int ret_reg = code_allocate_temporary_register(code);
     int src_reg = code_allocate_temporary_register(code);
@@ -260,7 +260,7 @@ static int gen_queue_lit(struct code_bytecode *code,
 
     /* set elements */
     /* TODO remove code_find_builtin_function() when OP_QUEUEPUSH available */
-    int64_t func_id = code_find_builtin_function(code, "queuepush");
+    int func_id = code_find_builtin_function(code, "queuepush");
     bool is_native = true;
     int ret_reg = code_allocate_temporary_register(code);
     int src_reg = code_allocate_temporary_register(code);
@@ -601,7 +601,7 @@ static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
     }
 
     /* call */
-    int64_t func_id = 0;
+    value_int_t func_id = 0;
     if (parser_eval_expr(call->l, &func_id)) {
         code_emit_call_function(code, retval_reg, func_id, func_sig->is_native);
     }
@@ -1285,7 +1285,7 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
 
             if (sym->kind == SYM_MODULE) {
                 const struct parser_module *m = sym->module;
-                int64_t init_func_id = -1;
+                int init_func_id = -1;
                 int min_var_offset = INT32_MAX;
 
                 for (int j = 0; j < m->scope->syms.len; j++) {

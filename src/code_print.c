@@ -59,7 +59,7 @@ void code_print_bytecode(const struct code_bytecode *code)
     /* function address */
     printf("* function address:\n");
     struct data_intvec labels = {0};
-    int64_t code_size = code_get_size(code);
+    value_size_t code_size = code_get_size(code);
 
     data_intvec_resize(&labels, code_size);
     for (int i = 0; i < labels.len; i++)

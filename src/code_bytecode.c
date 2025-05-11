@@ -894,7 +894,7 @@ void code_write(const struct code_bytecode *code, value_addr_t addr, int32_t ins
     code->insts.data[addr] = inst;
 }
 
-int64_t code_get_size(const struct code_bytecode *code)
+value_size_t code_get_size(const struct code_bytecode *code)
 {
     return code->insts.len;
 }
@@ -977,7 +977,7 @@ value_addr_t code_get_function_address(const struct code_bytecode *code, int fun
     return func->addr;
 }
 
-int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_id)
+int code_get_function_arg_count(const struct code_bytecode *code, int func_id)
 {
     const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
     assert(func);
@@ -1002,17 +1002,17 @@ bool code_is_function_variadic(const struct code_bytecode *code, int func_id)
 }
 
 /* enum fields */
-int64_t code_push_enum_field_int(struct code_bytecode *code, value_int_t ival)
+int code_push_enum_field_int(struct code_bytecode *code, value_int_t ival)
 {
     return code_constant_pool_push_literal_int(&code->const_pool, ival);
 }
 
-int64_t code_push_enum_field_float(struct code_bytecode *code, value_float_t fval)
+int code_push_enum_field_float(struct code_bytecode *code, value_float_t fval)
 {
     return code_constant_pool_push_literal_float(&code->const_pool, fval);
 }
 
-int64_t code_push_enum_field_string(struct code_bytecode *code, const char *sval)
+int code_push_enum_field_string(struct code_bytecode *code, const char *sval)
 {
     return code_constant_pool_push_literal_string(&code->const_pool, sval);
 }

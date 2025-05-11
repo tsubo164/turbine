@@ -21,7 +21,14 @@ typedef int64_t value_addr_t;
  * Typically used for referencing positions in memory blocks or sequences. */
 typedef int64_t value_index_t;
 
+/* Represents the size of memory regions or container lengths in the VM.
+ * Used for measuring quantities such as the number of values or memory slots. */
+typedef int64_t value_size_t;
+
 #define PRIival PRId64
 #define PRIfval "f"
+
+#define PRIaddr PRId64
+#define PRIindex PRId64
 
 #endif /* _H */

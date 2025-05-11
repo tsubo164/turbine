@@ -1,5 +1,6 @@
 #include "interpreter.h"
 #include "data_strbuf.h"
+#include "value_types.h"
 #include "read_file.h"
 #include "project.h"
 
@@ -99,7 +100,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    int64_t ret = interpret_source(src, &args, &opt);
+    value_int_t ret = interpret_source(src, &args, &opt);
     if (opt.print_token || opt.print_tree || opt.print_bytecode || opt.print_symbols)
         ret = 0;
 

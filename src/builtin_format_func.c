@@ -72,7 +72,7 @@ static const char *insert_group_separators(const char *input, char *output, char
 
 #define BUFSIZE 64
 static void format_int(struct data_strbuf *sb, const struct format_spec *spec,
-        const char *c_spec, int64_t inum)
+        const char *c_spec, value_int_t inum)
 {
     char buf[BUFSIZE] = {'\0'};
     const char *outputbuf = buf;

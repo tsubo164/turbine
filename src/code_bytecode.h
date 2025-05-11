@@ -195,7 +195,7 @@ void code_backpatch_case_ends(struct code_bytecode *code);
 /* read/write/address */
 int32_t code_read(const struct code_bytecode *code, value_addr_t addr);
 void code_write(const struct code_bytecode *code, value_addr_t addr, int32_t inst);
-int64_t code_get_size(const struct code_bytecode *code);
+value_size_t code_get_size(const struct code_bytecode *code);
 value_addr_t code_get_next_addr(const struct code_bytecode *code);
 
 /* functions */
@@ -213,14 +213,14 @@ native_func_t code_get_native_function_pointer(const struct code_bytecode *code,
 
 void code_set_function_address(struct code_bytecode *code, int func_id, value_addr_t addr);
 value_addr_t code_get_function_address(const struct code_bytecode *code, int func_id);
-int64_t code_get_function_arg_count(const struct code_bytecode *code, int func_id);
+int code_get_function_arg_count(const struct code_bytecode *code, int func_id);
 void code_set_function_variadic(struct code_bytecode *code, int func_id, bool is_variadic);
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id);
 
 /* enum fields */
-int64_t code_push_enum_field_int(struct code_bytecode *code, value_int_t ival);
-int64_t code_push_enum_field_float(struct code_bytecode *code, value_float_t fval);
-int64_t code_push_enum_field_string(struct code_bytecode *code, const char *sval);
+int code_push_enum_field_int(struct code_bytecode *code, value_int_t ival);
+int code_push_enum_field_float(struct code_bytecode *code, value_float_t fval);
+int code_push_enum_field_string(struct code_bytecode *code, const char *sval);
 struct runtime_value code_get_enum_field(const struct code_bytecode *code, int id);
 
 bool code_is_enum_field_int(const struct code_bytecode *code, int id);
