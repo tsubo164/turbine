@@ -195,7 +195,7 @@ void code_backpatch_case_ends(struct code_bytecode *code);
 /* read/write/address */
 int32_t code_read(const struct code_bytecode *code, value_addr_t addr);
 void code_write(const struct code_bytecode *code, value_addr_t addr, int32_t inst);
-value_size_t code_get_size(const struct code_bytecode *code);
+value_int_t code_get_size(const struct code_bytecode *code);
 value_addr_t code_get_next_addr(const struct code_bytecode *code);
 
 /* functions */

@@ -1,7 +1,7 @@
 #ifndef CODE_INSTRUCTION_H
 #define CODE_INSTRUCTION_H
 
-#include <stdint.h>
+#include "value_types.h"
 #include <stdbool.h>
 
 enum code_opcode {
@@ -119,8 +119,8 @@ struct code_instruction {
 
 struct code_instructionvec {
     int32_t *data;
-    int cap;
-    int len;
+    value_int_t cap;
+    value_int_t len;
 };
 
 void code_instructionvec_free(struct code_instructionvec *v);

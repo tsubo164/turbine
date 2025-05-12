@@ -894,7 +894,7 @@ void code_write(const struct code_bytecode *code, value_addr_t addr, int32_t ins
     code->insts.data[addr] = inst;
 }
 
-value_size_t code_get_size(const struct code_bytecode *code)
+value_int_t code_get_size(const struct code_bytecode *code)
 {
     return code->insts.len;
 }

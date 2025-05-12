@@ -11,8 +11,8 @@ struct runtime_queue {
     int val_type;
     value_int_t len;
     value_int_t cap;
-    value_index_t front;
-    value_index_t back;
+    value_int_t front;
+    value_int_t back;
 
     compare_function_t compare;
 };
@@ -27,6 +27,6 @@ struct runtime_value runtime_queue_pop(struct runtime_queue *q);
 struct runtime_value runtime_queue_front(const struct runtime_queue *q);
 
 /* No index range check */
-struct runtime_value runtime_queue_get(const struct runtime_queue *q, value_index_t idx);
+struct runtime_value runtime_queue_get(const struct runtime_queue *q, value_int_t idx);
 
 #endif /* _H */

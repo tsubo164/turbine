@@ -64,7 +64,7 @@ struct runtime_value runtime_stack_top(const struct runtime_stack *s)
 }
 
 /* No index range check */
-struct runtime_value runtime_stack_get(const struct runtime_stack *s, value_index_t idx)
+struct runtime_value runtime_stack_get(const struct runtime_stack *s, value_int_t idx)
 {
     return runtime_valuevec_get(&s->values, idx);
 }
