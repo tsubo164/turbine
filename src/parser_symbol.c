@@ -80,80 +80,10 @@ struct parser_scope *parser_new_scope(struct parser_scope *parent)
     return sc;
 }
 
-static void free_var(struct parser_var *var)
-{
-    free(var);
-}
-
-static void free_func_sig(struct parser_func_sig *sig)
-{
-    parser_typevec_free(&sig->param_types);
-    free(sig);
-}
-
-static void free_func(struct parser_func *func)
-{
-    free_func_sig(func->sig);
-    parser_free_scope(func->scope);
-    parser_free_stmt(func->body);
-    free(func);
-}
-
-static void free_struct_field(struct parser_struct_field *field)
-{
-    free(field);
-}
-
-static void free_fieldvec(struct parser_struct_fieldvec *v)
-{
-    free(v->data);
-    v->data = NULL;
-    v->cap = 0;
-    v->len = 0;
-}
-
-static void free_struct(struct parser_struct *strct)
-{
-    for (int i = 0; i < strct->fields.len; i++) {
-        struct parser_struct_field *f = strct->fields.data[i];
-        free_struct_field(f);
-    }
-    free_fieldvec(&strct->fields);
-    free(strct);
-}
-
-static void free_enum_field(struct parser_enum_field *f)
-{
-    free(f);
-}
-
-static void free_enum_fieldvec(struct parser_enum_fieldvec *v)
-{
-    free(v->data);
-    v->data = NULL;
-    v->cap = 0;
-    v->len = 0;
-}
-
-static void free_enum_valuevec(struct parser_enum_valuevec *v)
-{
-    free(v->data);
-    v->data = NULL;
-    v->cap = 0;
-    v->len = 0;
-}
-
-static void free_enum(struct parser_enum *enm)
-{
-    data_hashmap_free(&enm->members);
-
-    for (int i = 0; i < enm->fields.len; i++) {
-        struct parser_enum_field *f = enm->fields.data[i];
-        free_enum_field(f);
-    }
-    free_enum_fieldvec(&enm->fields);
-    free_enum_valuevec(&enm->values);
-}
+static void free_var(struct parser_var *var);
+static void free_func(struct parser_func *func);
+static void free_struct(struct parser_struct *strct);
+static void free_enum(struct parser_enum *enm);
 
 void parser_free_scope(struct parser_scope *sc)
 {
@@ -250,6 +180,11 @@ static struct parser_var *new_var(const char *Name,
     return v;
 }
 
+static void free_var(struct parser_var *var)
+{
+    free(var);
+}
+
 struct parser_symbol *parser_define_var(struct parser_scope *sc,
         const char *name, const struct parser_type *type, bool isglobal)
 {
@@ -289,6 +224,20 @@ static struct parser_func *new_func(struct parser_scope *parent,
     func->scope = parser_new_scope(parent);
 
     return func;
+}
+
+static void free_func_sig(struct parser_func_sig *sig)
+{
+    parser_typevec_free(&sig->param_types);
+    free(sig);
+}
+
+static void free_func(struct parser_func *func)
+{
+    free_func_sig(func->sig);
+    parser_free_scope(func->scope);
+    parser_free_stmt(func->body);
+    free(func);
 }
 
 struct parser_func *parser_declare_func(struct parser_scope *parent,
@@ -408,6 +357,29 @@ static struct parser_struct *new_struct(const char *name)
     s->name = name;
 
     return s;
+}
+
+static void free_struct_field(struct parser_struct_field *field)
+{
+    free(field);
+}
+
+static void free_fieldvec(struct parser_struct_fieldvec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
+static void free_struct(struct parser_struct *strct)
+{
+    for (int i = 0; i < strct->fields.len; i++) {
+        struct parser_struct_field *f = strct->fields.data[i];
+        free_struct_field(f);
+    }
+    free_fieldvec(&strct->fields);
+    free(strct);
 }
 
 struct parser_struct *parser_define_struct(struct parser_scope *sc,
@@ -598,6 +570,40 @@ struct parser_enum_value parser_get_enum_value(const struct parser_enum *enm, in
     return enm->values.data[idx];
 }
 
+static void free_enum_field(struct parser_enum_field *f)
+{
+    free(f);
+}
+
+static void free_enum_fieldvec(struct parser_enum_fieldvec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
+static void free_enum_valuevec(struct parser_enum_valuevec *v)
+{
+    free(v->data);
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
+static void free_enum(struct parser_enum *enm)
+{
+    data_hashmap_free(&enm->members);
+
+    for (int i = 0; i < enm->fields.len; i++) {
+        struct parser_enum_field *f = enm->fields.data[i];
+        free_enum_field(f);
+    }
+    free_enum_fieldvec(&enm->fields);
+    free_enum_valuevec(&enm->values);
+    free(enm);
+}
+
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,
         const char *filename, const char *modulename)
@@ -625,6 +631,7 @@ void parser_free_module(struct parser_module *mod)
     parser_free_scope(mod->scope);
     parser_free_stmt(mod->gvars);
     free_funcvec(&mod->funcs);
+    free(mod);
 }
 
 void parser_module_add_func(struct parser_module *mod,
