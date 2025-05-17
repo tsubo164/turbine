@@ -192,6 +192,7 @@ void parser_free_scope(struct parser_scope *sc)
 
     free_symbolvec(&sc->syms);
     data_hashmap_free(&sc->symbols);
+    free(sc);
 }
 
 void parser_scope_add_symbol(struct parser_scope *sc, struct parser_symbol *sym)

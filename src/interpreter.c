@@ -114,8 +114,8 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     struct exec_pass pass = make_exec_pass(opt);
 
     /* builtin functions */
-    struct parser_scope builtin = {0};
-    define_builtin_functions(&builtin);
+    struct parser_scope *builtin = parser_new_scope(NULL);
+    define_builtin_functions(builtin);
 
     /* builtin modules */
     struct builtin_module_list builtin_modules = {0};
@@ -146,7 +146,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     if (pass.parse) {
         struct parser_source source = {0};
         parser_source_init(&source, text, args->filename, "_main");
-        mod_main = parser_parse(tok, &builtin, &source, &paths);
+        mod_main = parser_parse(tok, builtin, &source, &paths);
         code_resolve_offset(mod_main);
     }
 #if 0
@@ -189,7 +189,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     /* clean */
     code_free_bytecode(&code);
     parser_free_tokens(tok);
-    parser_free_scope(&builtin);
+    parser_free_scope(builtin);
 
     parser_search_path_free(&paths);
     free(script_dir);
