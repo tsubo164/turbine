@@ -14,13 +14,33 @@ void code_constant_pool_init(struct code_constant_pool *v)
 
 void code_constant_pool_free(struct code_constant_pool *v)
 {
+    /* free constant strings */
+    value_int_t len = runtime_valuevec_len(&v->strings);
+    for (value_int_t i = 0; i < len; i++) {
+        struct runtime_value val = runtime_valuevec_get(&v->strings, i);
+        runtime_string_free(val.string);
+    }
+
+    /* free constant vecs */
     runtime_valuevec_free(&v->ints);
     runtime_valuevec_free(&v->floats);
     runtime_valuevec_free(&v->strings);
 
     /* TODO consider making struct code_literal_table */
-    runtime_valuevec_free(&v->literals);
-    data_strbuf_free(&v->literal_types);
+    {
+        /* free literal strings */
+        value_int_t len = runtime_valuevec_len(&v->literals);
+        for (value_int_t i = 0; i < len; i++) {
+            if (v->literal_types.data[i] == 's') {
+                struct runtime_value val = runtime_valuevec_get(&v->literals, i);
+                runtime_string_free(val.string);
+            }
+        }
+
+        /* free literal vecs */
+        runtime_valuevec_free(&v->literals);
+        data_strbuf_free(&v->literal_types);
+    }
 }
 
 int code_constant_pool_push_int(struct code_constant_pool *v, value_int_t val)
