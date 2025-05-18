@@ -191,6 +191,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     parser_free_tokens(tok);
     parser_free_scope(builtin);
 
+    builtin_free_modules(&builtin_modules);
     parser_search_path_free(&paths);
     free(script_dir);
 

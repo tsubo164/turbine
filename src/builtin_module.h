@@ -26,6 +26,7 @@ struct builtin_module_list {
  * They will not be loaded until imported
  */
 void builtin_register_modules(struct builtin_module_list *modules);
+void builtin_free_modules(struct builtin_module_list *modules);
 
 const struct builtin_module *builtin_find_module(
         const struct builtin_module_list *modules,

@@ -899,6 +899,8 @@ static void free_expr(struct parser_expr *e)
     free_expr(e->l);
     free_expr(e->r);
     free_expr(e->next);
+
+    free(e);
 }
 
 void parser_free_stmt(struct parser_stmt *s)
@@ -914,4 +916,6 @@ void parser_free_stmt(struct parser_stmt *s)
 
     parser_free_stmt(s->children);
     parser_free_stmt(s->next);
+
+    free(s);
 }

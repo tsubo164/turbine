@@ -37,6 +37,11 @@ void builtin_register_modules(struct builtin_module_list *modules)
         push_module(modules, &table[i]);
 }
 
+void builtin_free_modules(struct builtin_module_list *modules)
+{
+    free(modules->data);
+}
+
 const struct builtin_module *builtin_find_module(
         const struct builtin_module_list *modules,
         const char *key_name)
