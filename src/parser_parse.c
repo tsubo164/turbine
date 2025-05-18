@@ -2064,6 +2064,8 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
     expect(p, TOK_NEWLINE);
 
     /* members */
+    struct parser_expr valueexpr_head = {0};
+    struct parser_expr *valueexpr = &valueexpr_head;
     int nfields = parser_get_enum_field_count(enm);
     int y = 0;
 
@@ -2096,6 +2098,8 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
 
                 struct parser_enum_value val = {.ival = expr->ival};
                 parser_add_enum_value(enm, val);
+
+                valueexpr = valueexpr->next = expr;
             }
 
             if (x < nfields - 1)
@@ -2105,6 +2109,8 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
         y++;
     }
     while(!consume(p, TOK_BLOCKEND));
+
+    enm->valueexpr = valueexpr_head.next;
 
     return enm;
 }

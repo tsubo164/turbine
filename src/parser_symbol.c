@@ -599,8 +599,11 @@ static void free_enum(struct parser_enum *enm)
         struct parser_enum_field *f = enm->fields.data[i];
         free_enum_field(f);
     }
+
     free_enum_fieldvec(&enm->fields);
     free_enum_valuevec(&enm->values);
+    parser_free_expr(enm->valueexpr);
+
     free(enm);
 }
 

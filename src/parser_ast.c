@@ -892,13 +892,13 @@ bool parser_ast_is_mutable(const struct parser_expr *e)
     }
 }
 
-static void free_expr(struct parser_expr *e)
+void parser_free_expr(struct parser_expr *e)
 {
     if (!e)
         return;
-    free_expr(e->l);
-    free_expr(e->r);
-    free_expr(e->next);
+    parser_free_expr(e->l);
+    parser_free_expr(e->r);
+    parser_free_expr(e->next);
 
     free(e);
 }
@@ -908,9 +908,9 @@ void parser_free_stmt(struct parser_stmt *s)
     if (!s)
         return;
 
-    free_expr(s->expr);
+    parser_free_expr(s->expr);
     parser_free_stmt(s->init);
-    free_expr(s->cond);
+    parser_free_expr(s->cond);
     parser_free_stmt(s->post);
     parser_free_stmt(s->body);
 
