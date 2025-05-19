@@ -36,6 +36,9 @@ char *os_path_join(const char *pathleft, const char *pathright)
 
 char *os_dirname(const char *path)
 {
+    if (!path)
+        return NULL;
+
     size_t len = 0;
     char *slash;
 

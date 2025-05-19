@@ -1,11 +1,12 @@
 #include "data_intern.h"
 #include "data_cstr.h"
 
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <inttypes.h>
 
 #define MAX_LOAD_FACTOR 70
 #define INIT_SIZE 256
@@ -24,7 +25,7 @@ static uint64_t fnv_hash(const char *key)
     return hash;
 }
 
-static const char *insert(const char *key)
+static const char *insert(const char *key, bool dup_key)
 {
     if (!key)
         return NULL;
@@ -36,7 +37,10 @@ static const char *insert(const char *key)
         const char *ent = buckets[pos];
 
         if (!ent) {
-            buckets[pos] = data_strdup(key);
+            if (dup_key)
+                buckets[pos] = data_strdup(key);
+            else
+                buckets[pos] = (char*) key;
             occupied++;
             return buckets[pos];
         }
@@ -60,8 +64,10 @@ static void rehash(void)
     /* move keys to new buckets */
     for ( int i = 0; i < old_cap; i++ ) {
         const char *ent = old_buckets[i];
-        if (ent)
-            insert(ent);
+        if (ent) {
+            bool dup_key = false;
+            insert(ent, dup_key);
+        }
     }
 
     free(old_buckets);
@@ -75,7 +81,8 @@ const char *data_string_intern(const char *key)
     if (100 * occupied >= MAX_LOAD_FACTOR * capacity)
         rehash();
 
-    return insert(key);
+    bool dup_key = true;
+    return insert(key, dup_key);
 }
 
 void data_print_intern_table(void)
