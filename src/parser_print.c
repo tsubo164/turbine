@@ -262,7 +262,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
                 print_header(depth + 1);
                 for (int x = 0; x < nfields; x++) {
                     const struct parser_enum_field *f = enm->fields.data[x];
-                    const struct parser_enum_value val = enm->values.data[x + y * nfields];
+                    const struct parser_enum_value val = parser_get_enum_value(enm, x, y);
                     if (x == 0)
                         printf("| %s", val.sval);
                     else if (parser_is_string_type(f->type))

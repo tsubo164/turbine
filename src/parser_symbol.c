@@ -45,7 +45,7 @@ static void push_enum_field(struct parser_enum_fieldvec *v, struct parser_enum_f
     v->data[v->len++] = val;
 }
 
-static void push_enum_value(struct parser_enum_valuevec *v, struct parser_enum_value val)
+static void push_expr(struct parser_exprvec *v, struct parser_expr *val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
@@ -558,16 +558,19 @@ int parser_get_enum_field_count(const struct parser_enum *enm)
     return enm->fields.len;
 }
 
-void parser_add_enum_value(struct parser_enum *enm, struct parser_enum_value val)
+void parser_add_enum_value_expr(struct parser_enum *enm, struct parser_expr *e)
 {
-    push_enum_value(&enm->values, val);
+    push_expr(&enm->valueexprs, e);
 }
 
 struct parser_enum_value parser_get_enum_value(const struct parser_enum *enm, int x, int y)
 {
     int fields = parser_get_enum_field_count(enm);
     int idx = x + y * fields;
-    return enm->values.data[idx];
+    struct parser_expr *expr = enm->valueexprs.data[idx];
+    struct parser_enum_value val = {.ival = expr->ival};
+
+    return val;
 }
 
 static void free_enum_field(struct parser_enum_field *f)
@@ -583,7 +586,7 @@ static void free_enum_fieldvec(struct parser_enum_fieldvec *v)
     v->len = 0;
 }
 
-static void free_enum_valuevec(struct parser_enum_valuevec *v)
+static void free_exprvec(struct parser_exprvec *v)
 {
     free(v->data);
     v->data = NULL;
@@ -595,14 +598,19 @@ static void free_enum(struct parser_enum *enm)
 {
     data_hashmap_free(&enm->members);
 
+    /* enum fields */
     for (int i = 0; i < enm->fields.len; i++) {
         struct parser_enum_field *f = enm->fields.data[i];
         free_enum_field(f);
     }
-
     free_enum_fieldvec(&enm->fields);
-    free_enum_valuevec(&enm->values);
-    parser_free_expr(enm->valueexpr);
+
+    /* enum values */
+    for (int i = 0; i < enm->valueexprs.len; i++) {
+        struct parser_expr *e = enm->valueexprs.data[i];
+        parser_free_expr(e);
+    }
+    free_exprvec(&enm->valueexprs);
 
     free(enm);
 }
