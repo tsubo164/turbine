@@ -157,7 +157,7 @@ struct parser_symbol *parser_find_symbol(const struct parser_scope *sc,
     return NULL;
 }
 
-struct parser_symbol *FindSymbolThisScope(struct parser_scope *sc,
+struct parser_symbol *find_symbol_this_scope(struct parser_scope *sc,
         const char *name)
 {
     struct data_hashmap_entry *ent = data_hashmap_lookup(&sc->symbols, name);
@@ -188,7 +188,7 @@ static void free_var(struct parser_var *var)
 struct parser_symbol *parser_define_var(struct parser_scope *sc,
         const char *name, const struct parser_type *type, bool isglobal)
 {
-    if (FindSymbolThisScope(sc, name))
+    if (find_symbol_this_scope(sc, name))
         return NULL;
 
     struct parser_symbol *sym = parser_new_symbol(SYM_VAR, name, type);
@@ -243,10 +243,10 @@ static void free_func(struct parser_func *func)
 struct parser_func *parser_declare_func(struct parser_scope *parent,
         const char *modulename, const char *name)
 {
-    struct parser_func *func = new_func(parent, modulename, name);
-
-    if (parser_find_symbol(parent, func->name))
+    if (find_symbol_this_scope(parent, name))
         return NULL;
+
+    struct parser_func *func = new_func(parent, modulename, name);
 
     /* add func itself to symbol enum */
     struct parser_symbol *sym = parser_new_symbol(SYM_FUNC,
