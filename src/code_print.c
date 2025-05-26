@@ -4,7 +4,7 @@
 #include "data_vec.h"
 #include <stdio.h>
 
-void code_print_bytecode(const struct code_bytecode *code)
+void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
 {
     /* constant pool */
     if (code_constant_pool_get_int_count(&code->const_pool) > 0) {
@@ -67,7 +67,13 @@ void code_print_bytecode(const struct code_bytecode *code)
 
     for (int i = 0; i < code->funcs.len; i++) {
         const struct code_function *func = &code->funcs.data[i];
-        printf("[%6d] %-10" PRId64 " (%s)\n", func->id, func->addr, func->fullname);
+
+        if (func->addr == -1 && !print_builtin) {
+            /* skip builtin functions */
+        }
+        else {
+            printf("[%6d] %-10" PRId64 " (%s)\n", func->id, func->addr, func->fullname);
+        }
 
         if (func->addr >= 0)
             labels.data[func->addr] = func->id;

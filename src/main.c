@@ -15,15 +15,16 @@ const char *usage =
 "usage: " PROJECT_EXE_NAME " [options] <file> [args...]\n"
 "\n"
 "options:\n"
-"  -h, --help              Show this help message\n"
-"  -v, --version           Show version information\n"
-"  -k, --print-token       Print tokens, preserving source formatting (e.g., indentation)\n"
-"  -K, --print-token-raw   Print raw tokens with line numbers and other raw information\n"
-"  -t, --print-tree        Print abstract syntax tree\n"
-"  -y, --print-symbols     Print symbols\n"
-"  -Y, --print-symbols-all Print all symbols, including built-in function symbols\n"
-"  -b, --print-bytecode    Print bytecode\n"
-"  -s, --print-stack       Print bytecode and stack state during script execution\n"
+"  -h, --help                  Show this help message\n"
+"  -v, --version               Show version information\n"
+"  -k, --print-token           Print tokens, preserving source formatting (e.g., indentation)\n"
+"  -K, --print-token-raw       Print raw tokens with line numbers and other raw information\n"
+"  -t, --print-tree            Print abstract syntax tree\n"
+"  -y, --print-symbols         Print symbols\n"
+"  -Y, --print-symbols-all     Print symbols, including built-in function symbols\n"
+"  -b, --print-bytecode        Print bytecode\n"
+"  -B, --print-bytecode-all    Print bytecode, including built-in function addresses\n"
+"  -s, --print-stack           Print bytecode and stack state during script execution\n"
 "\n";
 
 static void print_usage(void)
@@ -71,6 +72,10 @@ int main(int argc, char **argv)
         }
         else if (!strcmp(arg, "--print-bytecode") || !strcmp(arg, "-b")) {
             opt.print_bytecode = true;
+        }
+        else if (!strcmp(arg, "--print-bytecode-all") || !strcmp(arg, "-B")) {
+            opt.print_bytecode = true;
+            opt.print_bytecode_all = true;
         }
         else if (!strcmp(arg, "--print-stack") || !strcmp(arg, "-s")) {
             opt.print_stack = true;

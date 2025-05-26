@@ -17,6 +17,7 @@ struct interpreter_option {
     bool print_symbols;
     bool print_symbols_all;
     bool print_bytecode;
+    bool print_bytecode_all;
     bool print_stack;
 };
 

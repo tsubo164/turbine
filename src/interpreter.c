@@ -78,10 +78,10 @@ static void print_syms(const struct parser_scope *main, bool print_symbols_all)
         parser_print_scope(main);
 }
 
-static void print_code(const struct code_bytecode *code)
+static void print_code(const struct code_bytecode *code, bool print_builtin)
 {
     print_header("bytecode");
-    code_print_bytecode(code);
+    code_print_bytecode(code, print_builtin);
 }
 
 static value_int_t exec_code(const struct code_bytecode *code, const struct interpreter_args *args,
@@ -177,7 +177,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
 
     /* print bytecode */
     if (opt->print_bytecode) {
-        print_code(&code);
+        print_code(&code, opt->print_bytecode_all);
     }
 
     /* execute */
