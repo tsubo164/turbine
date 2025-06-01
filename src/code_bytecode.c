@@ -5,6 +5,46 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* ============================================================================ */
+/* TODO */
+static bool is_constpool_register(int id);
+/*
+static void print_gcstat(const struct code_gcmap_entry *stat)
+{
+    for (int i = 0; i < 64; i++) {
+        char c = stat->slots[i];
+        printf("%c", c == 0 ? '.' : c);
+    }
+    printf("\n");
+}
+*/
+
+static void mark_ref(struct code_bytecode *code, int dst, bool is_ref)
+{
+    /*
+    struct code_gcmap_entry *stat = &code->gcmap_stat;
+    stat->slots[dst] = is_ref ? '*': '-';
+    print_gcstat(stat);
+    */
+}
+
+static void copy_stackmap(struct code_bytecode *code, int dst, int src)
+{
+    /*
+    struct code_gcmap_entry *stat = &code->gcmap_stat;
+
+    if (code_is_immediate_value(src)) {
+        stat->slots[dst] = '-';
+    }
+    else {
+        stat->slots[dst] = stat->slots[src];
+    }
+
+    print_gcstat(stat);
+    */
+}
+/* ============================================================================ */
+
 void code_free_bytecode(struct code_bytecode *code)
 {
     /* instructions */
@@ -242,6 +282,7 @@ int code_emit_move(struct code_bytecode *code, int dst, int src)
         return dst;
 
     push_inst_ab(code, OP_MOVE, dst, src);
+    copy_stackmap(code, dst, src);
     return dst;
 }
 
@@ -573,12 +614,14 @@ int code_emit_set_if_not_zero(struct code_bytecode *code, int dst, int src)
 int code_emit_concat_string(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_CATSTRING, dst, src0, src1);
+    mark_ref(code, dst, true);
     return dst;
 }
 
 int code_emit_equal_string(struct code_bytecode *code, int dst, int src0, int src1)
 {
     push_inst_abc(code, OP_EQSTRING, dst, src0, src1);
+    mark_ref(code, dst, false);
     return dst;
 }
 

@@ -21,6 +21,11 @@ enum immediate_value_register {
     IMMEDIATE_SMALLINT_BEGIN = 192,
 };
 
+struct code_stack_map_entry {
+    value_addr_t addr;
+    char slots[64];
+};
+
 struct code_bytecode {
     /* instructions */
     struct code_instructionvec insts;
@@ -49,6 +54,9 @@ struct code_bytecode {
     struct data_intstack continues;
     struct data_intstack casecloses;
     struct data_intstack forrests;
+
+    /* TODO */
+    struct code_stack_map_entry stackmap_stat;
 };
 
 void code_free_bytecode(struct code_bytecode *code);

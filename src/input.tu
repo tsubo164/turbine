@@ -1,31 +1,11 @@
-//> gc
-//
-//## Foo struct
-//  - a int
-//
-////## Foo struct
-////  - b int
-//
-////# print()
-////  nop
-//
-//# main() int
-//  - a = 42
-//
-//  gc.print()
-//
-//  - f = Foo{a = 9}
-//
-//  print(f)
-//
-//  return 0
+> gc
+
 # main() int
-  - i = 42
-  - f = 3.14
-  //- s = "Hello"
+  - s = "foo"
 
-  f = f + float(i)
+  if s + "bar" == "foo"
+    nop
 
-  print(f)
+  gc.print()
 
   return 0

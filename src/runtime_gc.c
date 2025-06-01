@@ -10,6 +10,12 @@
 #include <assert.h>
 #include <stdio.h>
 
+enum object_mark {
+    OBJ_WHITE,
+    OBJ_GRAY,
+    OBJ_BLACK,
+};
+
 struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *cstr)
 {
     struct runtime_string *str = runtime_string_new(cstr);
@@ -74,6 +80,19 @@ void runtime_gc_print_objects(const struct runtime_gc *gc)
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         print_obj(obj);
     }
+}
+
+void runtime_gc_collect_objects(const struct runtime_gc *gc)
+{
+    /* clear marks */
+    for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
+        print_obj(obj);
+        obj->mark = OBJ_WHITE;
+    }
+
+    /* track from roots */
+
+    /* free white objects */
 }
 
 static void free_obj(struct runtime_object *obj)

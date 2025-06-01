@@ -16,7 +16,7 @@ enum runtime_object_kind {
 
 struct runtime_object {
     int kind;
-    bool marked;
+    int mark;
     struct runtime_object *next;
 };
 
@@ -30,6 +30,7 @@ struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *
 
 void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj);
 void runtime_gc_print_objects(const struct runtime_gc *gc);
+void runtime_gc_collect_objects(const struct runtime_gc *gc);
 
 void runtime_gc_free(struct runtime_gc *gc);
 
