@@ -478,15 +478,14 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         /* m.a = x */
         int reg0 = gen_addr(code, lval);
         int reg1 = gen_expr(code, rval);
-        code_emit_store_global(code, reg0, reg1);
-        return reg0;
+        return code_emit_store_global(code, reg0, reg1);
     }
 
     if (parser_ast_is_global(lval)) {
         /* _a_ = x */
         int dst = gen_addr(code, lval);
         int src = gen_expr(code, rval);
-        code_emit_store_global(code, dst, src);
+        return code_emit_store_global(code, dst, src);
     }
 
     /* check the rvalue expression to see if `a = x + y` can be applied */
