@@ -7,42 +7,50 @@
 
 /* ============================================================================ */
 /* TODO */
-static bool is_constpool_register(int id);
-/*
-static void print_gcstat(const struct code_gcmap_entry *stat)
+//static bool is_constpool_register(int id);
+static void print_gcstat(struct code_bytecode *code)
 {
+/*
+    struct code_stack_map_entry *stat = &code->stackmap_stat;
+    value_addr_t addr = code_get_next_addr(code);
+
+    printf("[%6" PRIaddr "] ", addr);
+
     for (int i = 0; i < 64; i++) {
         char c = stat->slots[i];
         printf("%c", c == 0 ? '.' : c);
     }
     printf("\n");
-}
 */
+}
 
 static void mark_ref(struct code_bytecode *code, int dst, bool is_ref)
 {
-    /*
-    struct code_gcmap_entry *stat = &code->gcmap_stat;
+    struct code_stack_map_entry *stat = &code->stackmap_stat;
     stat->slots[dst] = is_ref ? '*': '-';
-    print_gcstat(stat);
-    */
+    print_gcstat(code);
 }
 
+    /*
+bool code_is_immediate_value(int id);
 static void copy_stackmap(struct code_bytecode *code, int dst, int src)
 {
-    /*
-    struct code_gcmap_entry *stat = &code->gcmap_stat;
+    struct code_stack_map_entry *stat = &code->stackmap_stat;
 
     if (code_is_immediate_value(src)) {
+        if (dst >= 192) {
+            printf(">>>>>>>>>>>>>>>> %d\n", dst);
+        }
         stat->slots[dst] = '-';
     }
     else {
         stat->slots[dst] = stat->slots[src];
     }
 
-    print_gcstat(stat);
-    */
+    print_gcstat(code);
 }
+    */
+
 /* ============================================================================ */
 
 void code_free_bytecode(struct code_bytecode *code)
@@ -281,8 +289,18 @@ int code_emit_move(struct code_bytecode *code, int dst, int src)
     if (dst == src)
         return dst;
 
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_MOVE, dst, src);
-    copy_stackmap(code, dst, src);
+    return dst;
+}
+
+int code_emit_move_ref(struct code_bytecode *code, int dst, int src)
+{
+    if (dst == src)
+        return dst;
+
+    mark_ref(code, dst, true);
+    push_inst_ab(code, OP_MOVE, dst, src);
     return dst;
 }
 
@@ -613,15 +631,15 @@ int code_emit_set_if_not_zero(struct code_bytecode *code, int dst, int src)
 /* string */
 int code_emit_concat_string(struct code_bytecode *code, int dst, int src0, int src1)
 {
-    push_inst_abc(code, OP_CATSTRING, dst, src0, src1);
     mark_ref(code, dst, true);
+    push_inst_abc(code, OP_CATSTRING, dst, src0, src1);
     return dst;
 }
 
 int code_emit_equal_string(struct code_bytecode *code, int dst, int src0, int src1)
 {
-    push_inst_abc(code, OP_EQSTRING, dst, src0, src1);
     mark_ref(code, dst, false);
+    push_inst_abc(code, OP_EQSTRING, dst, src0, src1);
     return dst;
 }
 
@@ -655,6 +673,8 @@ int code_emit_call_function_pointer(struct code_bytecode *code, int ret, int src
 
 void code_emit_return(struct code_bytecode *code, int id)
 {
+    /* return always writes to r0 */
+    mark_ref(code, 0, false);
     push_inst_a(code, OP_RETURN, id);
 }
 

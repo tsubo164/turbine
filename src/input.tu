@@ -1,17 +1,11 @@
-//> gc
-//
-//# main() int
-//  - s = "foo"
-//
-//  if s + "bar" == "foo"
-//    nop
-//
-//  gc.print()
-//
-//  return 0
-
-- _var_ int
+> gc
 
 # main() int
-    _var_ = 119
-    return _var_
+  - s = "foo"
+
+  if s + "bar" == "foo"
+    nop
+
+  gc.print()
+
+  return 0

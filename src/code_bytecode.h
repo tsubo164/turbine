@@ -81,6 +81,7 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
 
 /* load, store, move */
 int code_emit_move(struct code_bytecode *code, int dst, int src);
+int code_emit_move_ref(struct code_bytecode *code, int dst, int src);
 int code_emit_load_int(struct code_bytecode *code, value_int_t val);
 int code_emit_load_float(struct code_bytecode *code, value_float_t val);
 int code_emit_load_string(struct code_bytecode *code, const char *cstr);
