@@ -7,50 +7,11 @@
 
 /* ============================================================================ */
 /* TODO */
-//static bool is_constpool_register(int id);
-static void print_gcstat(struct code_bytecode *code)
+static void mark_ref(struct code_bytecode *code, int slot, bool is_ref)
 {
-/*
-    struct code_stack_map_entry *stat = &code->stackmap_stat;
     value_addr_t addr = code_get_next_addr(code);
-
-    printf("[%6" PRIaddr "] ", addr);
-
-    for (int i = 0; i < 64; i++) {
-        char c = stat->slots[i];
-        printf("%c", c == 0 ? '.' : c);
-    }
-    printf("\n");
-*/
+    code_stackmap_mark(&code->stackmap, addr, slot, is_ref);
 }
-
-static void mark_ref(struct code_bytecode *code, int dst, bool is_ref)
-{
-    struct code_stack_map_entry *stat = &code->stackmap_stat;
-    stat->slots[dst] = is_ref ? '*': '-';
-    print_gcstat(code);
-}
-
-    /*
-bool code_is_immediate_value(int id);
-static void copy_stackmap(struct code_bytecode *code, int dst, int src)
-{
-    struct code_stack_map_entry *stat = &code->stackmap_stat;
-
-    if (code_is_immediate_value(src)) {
-        if (dst >= 192) {
-            printf(">>>>>>>>>>>>>>>> %d\n", dst);
-        }
-        stat->slots[dst] = '-';
-    }
-    else {
-        stat->slots[dst] = stat->slots[src];
-    }
-
-    print_gcstat(code);
-}
-    */
-
 /* ============================================================================ */
 
 void code_free_bytecode(struct code_bytecode *code)

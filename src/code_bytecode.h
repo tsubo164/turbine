@@ -8,6 +8,7 @@
 #include "code_function.h"
 #include "native_module.h"
 #include "runtime_value.h"
+#include "code_stackmap.h"
 #include "data_vec.h"
 
 #define IMMEDIATE_QUEUE_SIZE 16
@@ -19,11 +20,6 @@ enum immediate_value_register {
     IMMEDIATE_STRING  = 252,
     IMMEDIATE_SMALLINT_END   = 251,
     IMMEDIATE_SMALLINT_BEGIN = 192,
-};
-
-struct code_stack_map_entry {
-    value_addr_t addr;
-    char slots[64];
 };
 
 struct code_bytecode {
@@ -56,7 +52,7 @@ struct code_bytecode {
     struct data_intstack forrests;
 
     /* TODO */
-    struct code_stack_map_entry stackmap_stat;
+    struct code_stackmap stackmap;
 };
 
 void code_free_bytecode(struct code_bytecode *code);
