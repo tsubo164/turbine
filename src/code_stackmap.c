@@ -1,19 +1,26 @@
 #include "code_stackmap.h"
+#include <assert.h>
+#include <stdlib.h>
 #include <stdio.h>
 
-static void print_gcstat(const struct code_stackmap *stackmap)
+#define MIN_CAP 128
+
+static void push_entry(struct code_stackmap_entry_vec *v, struct code_stackmap_entry *val)
 {
-    /*
-    const struct code_stackmap_entry *ent = &stackmap->current;
-
-    printf("[%6" PRIaddr "] ", ent->addr);
-
-    for (int i = 0; i < 64; i++) {
-        char c = ent->slots[i];
-        printf("%c", c == 0 ? '.' : c);
+    if (v->len == v->cap) {
+        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
+        v->data = realloc(v->data, v->cap * sizeof(*v->data));
     }
-    printf("\n");
-    */
+    v->data[v->len++] = val;
+}
+
+static void push_map(struct code_stackmap *stackmap)
+{
+    struct code_stackmap_entry *newent;
+    newent = calloc(1, sizeof(*newent));
+    *newent = stackmap->current;
+
+    push_entry(&stackmap->records, newent);
 }
 
 void code_stackmap_mark(struct code_stackmap *stackmap, value_addr_t addr, int slot, bool is_ref)
@@ -23,5 +30,61 @@ void code_stackmap_mark(struct code_stackmap *stackmap, value_addr_t addr, int s
     ent->addr = addr;
     ent->slots[slot] = is_ref ? '*': '-';
 
-    print_gcstat(stackmap);
+    push_map(stackmap);
+
+    /*
+    printf("================================================\n");
+    code_stackmap_print(stackmap);
+    */
+}
+
+const struct code_stackmap_entry *code_stackmap_find_entry(const struct code_stackmap *stackmap, value_addr_t addr)
+{
+    const struct code_stackmap_entry *ent = NULL;
+
+    /* TODO better search */
+    for (value_addr_t i = 0; i < stackmap->records.len; i++) {
+        ent = stackmap->records.data[i];
+
+        if (ent->addr == addr)
+            break;
+    }
+    assert(ent);
+
+    return ent;
+}
+
+bool code_stackmap_is_ref(const struct code_stackmap_entry *ent, int slot)
+{
+    char c = ent->slots[slot];
+    return c != 0;
+}
+
+static void print_stackmap_entry(const struct code_stackmap_entry *ent)
+{
+    printf("[%6" PRIaddr "] ", ent->addr);
+
+    for (int i = 0; i < 64; i++) {
+        char c = ent->slots[i];
+        printf("%c", c == 0 ? '.' : c);
+    }
+
+    printf("\n");
+}
+
+void code_stackmap_print(const struct code_stackmap *stackmap)
+{
+    for (value_addr_t i = 0; i < stackmap->records.len; i++) {
+        const struct code_stackmap_entry *ent = stackmap->records.data[i];
+        print_stackmap_entry(ent);
+    }
+}
+
+void code_stackmap_free(struct code_stackmap *stackmap)
+{
+    for (value_addr_t i = 0; i < stackmap->records.len; i++) {
+        struct code_stackmap_entry *ent = stackmap->records.data[i];
+        free(ent);
+    }
+    free(stackmap->records.data);
 }

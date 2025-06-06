@@ -31,6 +31,9 @@ void code_free_bytecode(struct code_bytecode *code)
     data_intstack_free(&code->continues);
     data_intstack_free(&code->casecloses);
     data_intstack_free(&code->forrests);
+
+    /* stackmap */
+    code_stackmap_free(&code->stackmap);
 }
 
 static void immediate_queue_push(struct code_bytecode *code, int32_t val)
