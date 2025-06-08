@@ -46,8 +46,14 @@ const struct code_stackmap_entry *code_stackmap_find_entry(const struct code_sta
     for (value_addr_t i = 0; i < stackmap->records.len; i++) {
         ent = stackmap->records.data[i];
 
-        if (ent->addr == addr)
+        if (ent->addr == addr) {
             break;
+        }
+
+        if (ent->addr > addr) {
+            ent = stackmap->records.data[i - 1];
+            break;
+        }
     }
     assert(ent);
 
@@ -60,7 +66,8 @@ bool code_stackmap_is_ref(const struct code_stackmap_entry *ent, int slot)
     return c != 0;
 }
 
-static void print_stackmap_entry(const struct code_stackmap_entry *ent)
+/* TODO make static function */
+void code_stackmap_print_entry(const struct code_stackmap_entry *ent)
 {
     printf("[%6" PRIaddr "] ", ent->addr);
 
@@ -76,7 +83,7 @@ void code_stackmap_print(const struct code_stackmap *stackmap)
 {
     for (value_addr_t i = 0; i < stackmap->records.len; i++) {
         const struct code_stackmap_entry *ent = stackmap->records.data[i];
-        print_stackmap_entry(ent);
+        code_stackmap_print_entry(ent);
     }
 }
 

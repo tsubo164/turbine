@@ -20,8 +20,14 @@ struct runtime_object {
     struct runtime_object *next;
 };
 
+struct code_stackmap;
+struct vm_cpu;
+
 struct runtime_gc {
     struct runtime_object *root;
+
+    const struct code_stackmap *stackmap;
+    const struct vm_cpu *vm;
 };
 
 struct runtime_string;
@@ -30,7 +36,7 @@ struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *
 
 void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj);
 void runtime_gc_print_objects(const struct runtime_gc *gc);
-void runtime_gc_collect_objects(const struct runtime_gc *gc);
+void runtime_gc_collect_objects(struct runtime_gc *gc);
 
 void runtime_gc_free(struct runtime_gc *gc);
 

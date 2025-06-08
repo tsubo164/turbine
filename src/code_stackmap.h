@@ -23,6 +23,7 @@ void code_stackmap_mark(struct code_stackmap *stackmap, value_addr_t addr, int s
 const struct code_stackmap_entry *code_stackmap_find_entry(const struct code_stackmap *stackmap, value_addr_t addr);
 bool code_stackmap_is_ref(const struct code_stackmap_entry *ent, int slot);
 
+void code_stackmap_print_entry(const struct code_stackmap_entry *ent);
 void code_stackmap_print(const struct code_stackmap *stackmap);
 void code_stackmap_free(struct code_stackmap *stackmap);
 

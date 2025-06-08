@@ -6,6 +6,7 @@
 #include "runtime_queue.h"
 #include "runtime_string.h"
 #include "runtime_struct.h"
+#include "vm_cpu.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -82,19 +83,6 @@ void runtime_gc_print_objects(const struct runtime_gc *gc)
     }
 }
 
-void runtime_gc_collect_objects(const struct runtime_gc *gc)
-{
-    /* clear marks */
-    for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
-        print_obj(obj);
-        obj->mark = OBJ_WHITE;
-    }
-
-    /* track from roots */
-
-    /* free white objects */
-}
-
 static void free_obj(struct runtime_object *obj)
 {
     enum runtime_object_kind kind = obj->kind;
@@ -153,6 +141,46 @@ static void free_obj(struct runtime_object *obj)
         }
         break;
     }
+}
+
+void runtime_gc_collect_objects(struct runtime_gc *gc)
+{
+    /* clear marks */
+    for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
+        obj->mark = OBJ_WHITE;
+    }
+
+    /* TODO Add empty entry at the first map */
+    /* track from roots */
+    value_addr_t prev_addr = gc->vm->ip - 1;
+    printf("current addr: [%6" PRIaddr "]\n", prev_addr);
+    const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, prev_addr);
+    code_stackmap_print_entry(ent);
+
+    /* free white objects */
+    struct runtime_object head = {0};
+    struct runtime_object *prev = &head;
+    struct runtime_object *curr = gc->root;
+    struct runtime_object *next = NULL;
+    prev->next = curr;
+
+    while (curr) {
+        if (curr->mark == OBJ_WHITE) {
+            /*
+            printf("freeing!!! => ");
+            print_obj(curr);
+            */
+            next = curr->next;
+            free_obj(curr);
+            prev->next = curr = next;
+        }
+        else {
+            prev = curr;
+            curr = prev->next;
+        }
+    }
+
+    gc->root = head.next;
 }
 
 void runtime_gc_free(struct runtime_gc *gc)

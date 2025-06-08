@@ -1204,6 +1204,10 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
     /* call stack */
     vm_callstack_init(&vm->callstack);
 
+    /* gc */
+    vm->gc.stackmap = &vm->code->stackmap;
+    vm->gc.vm = vm;
+
     run_cpu(vm);
 }
 
