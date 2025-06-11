@@ -63,7 +63,7 @@ const struct code_stackmap_entry *code_stackmap_find_entry(const struct code_sta
 bool code_stackmap_is_ref(const struct code_stackmap_entry *ent, int slot)
 {
     char c = ent->slots[slot];
-    return c != 0;
+    return c == '*';
 }
 
 /* TODO make static function */

@@ -301,50 +301,6 @@ static int gen_struct_lit(struct code_bytecode *code,
     return dst;
 }
 
-static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
-{
-    if (parser_ast_is_global(e->l)) {
-        int dst = gen_addr(code, e->l);
-        int tmp = gen_expr(code, e->r);
-        return code_emit_store_global(code, dst, tmp);
-    }
-
-    if (e->r->kind == NOD_EXPR_VECLIT) {
-        int dst = gen_addr(code, e->l);
-        return gen_vec_lit(code, e->r, dst);
-    }
-
-    if (e->r->kind == NOD_EXPR_MAPLIT) {
-        int dst = gen_addr(code, e->l);
-        return gen_map_lit(code, e->r, dst);
-    }
-
-    if (e->r->kind == NOD_EXPR_SETLIT) {
-        int dst = gen_addr(code, e->l);
-        return gen_set_lit(code, e->r, dst);
-    }
-
-    if (e->r->kind == NOD_EXPR_STACKLIT) {
-        int dst = gen_addr(code, e->l);
-        return gen_stack_lit(code, e->r, dst);
-    }
-
-    if (e->r->kind == NOD_EXPR_QUEUELIT) {
-        int dst = gen_addr(code, e->l);
-        return gen_queue_lit(code, e->r, dst);
-    }
-
-    if (e->r->kind == NOD_EXPR_STRUCTLIT) {
-        int dst = gen_addr(code, e->l);
-        return gen_struct_lit(code, e->r, dst);
-    }
-    {
-        int dst = gen_addr(code, e->l);
-        int src = gen_expr(code, e->r);
-        return code_emit_move(code, dst, src);
-    }
-}
-
 #define BINOP(code, ty, op, r0, r1, r2) \
     do { \
     if (parser_is_int_type((ty)) || parser_is_bool_type((ty))) \
@@ -445,6 +401,22 @@ static int gen_binop(struct code_bytecode *code, const struct parser_type *type,
     return reg0;
 }
 
+static int emit_move(struct code_bytecode *code, int dst, int src, const struct parser_type *type)
+{
+    if (parser_is_nil_type(type) ||
+        parser_is_bool_type(type) ||
+        parser_is_int_type(type) ||
+        parser_is_float_type(type) ||
+        parser_is_func_type(type) ||
+        parser_is_enum_type(type) ||
+        parser_is_any_type(type)) {
+        return code_emit_move(code, dst, src);
+    }
+    else {
+        return code_emit_move_ref(code, dst, src);
+    }
+}
+
 static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
 {
     const struct parser_expr *lval = e->l;
@@ -520,7 +492,7 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         /* a = x */
         int dst = gen_addr(code, lval);
         int src = gen_expr(code, rval);
-        return code_emit_move(code, dst, src);
+        return emit_move(code, dst, src, lval->type);
     }
 
     return -1;
@@ -580,6 +552,47 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         int src2 = gen_expr(code, rval);
         return gen_binop(code, e->type, e->kind, dst, src1, src2);
     }
+}
+
+static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
+{
+    if (parser_ast_is_global(e->l)) {
+        int dst = gen_addr(code, e->l);
+        int tmp = gen_expr(code, e->r);
+        return code_emit_store_global(code, dst, tmp);
+    }
+
+    if (e->r->kind == NOD_EXPR_VECLIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_vec_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_MAPLIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_map_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_SETLIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_set_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_STACKLIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_stack_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_QUEUELIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_queue_lit(code, e->r, dst);
+    }
+
+    if (e->r->kind == NOD_EXPR_STRUCTLIT) {
+        int dst = gen_addr(code, e->l);
+        return gen_struct_lit(code, e->r, dst);
+    }
+
+    return gen_assign(code, e);
 }
 
 static int gen_call(struct code_bytecode *code, const struct parser_expr *call)

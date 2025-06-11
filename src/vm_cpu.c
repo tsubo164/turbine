@@ -128,9 +128,11 @@ void vm_print_stack(const struct vm_cpu *vm)
 {
     printf("-----------------------\n");
     for (value_addr_t i = vm->sp; i >= 0; i--) {
-        if (i <= vm->sp && i > 0)
-            printf("[%6" PRIaddr "] ", index_to_addr(i));
-        else if (i == 0)
+        value_addr_t addr = index_to_addr(i);
+
+        if (i <= vm->sp && addr >= 0)
+            printf("[%6" PRIaddr "] ", addr);
+        else if (addr < 0)
             printf("[%6s] ", "*");
 
         if (i == vm->sp)
@@ -1209,6 +1211,25 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
     vm->gc.vm = vm;
 
     run_cpu(vm);
+}
+
+int vm_get_callstack_count(const struct vm_cpu *vm)
+{
+    return vm->callstack.len;
+}
+
+const struct vm_call *vm_get_call(const struct vm_cpu *vm, int index)
+{
+    assert(index >= 0 && index < vm_get_callstack_count(vm));
+
+    return &vm->callstack.data[index];
+}
+
+struct runtime_value vm_lookup_stack(const struct vm_cpu *vm, value_addr_t bp, int offset)
+{
+    value_addr_t index = bp + 1 + offset;
+    assert(index >= 0 && index < vm->stack.len);
+    return read_stack(vm, index_to_addr(index));
 }
 
 void vm_free_cpu(struct vm_cpu *vm)

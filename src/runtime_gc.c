@@ -157,6 +157,32 @@ void runtime_gc_collect_objects(struct runtime_gc *gc)
     const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, prev_addr);
     code_stackmap_print_entry(ent);
 
+    int ncalls = vm_get_callstack_count(gc->vm);
+    for (int i = 0; i < ncalls; i++) {
+        const struct vm_call *call = vm_get_call(gc->vm, i);
+        printf("func_index: %d\n", call->func_index);
+        printf("argc:       %d\n", call->argc);
+        printf("return_reg: %d\n", call->return_reg);
+        printf("return_ip:  %lld\n", call->return_ip);
+        printf("return_bp:  %lld\n", call->return_bp);
+        printf("return_sp:  %lld\n", call->return_sp);
+    }
+
+    /* currnt call stack */
+    for (int i = 0; i < 64; i++) {
+        bool is_ref = code_stackmap_is_ref(ent, i);
+
+        if (is_ref) {
+            /* TODO temporary solution. need callstack for native call? */
+            value_addr_t bp = /*gc->vm->bp*/1;
+            struct runtime_value val = vm_lookup_stack(gc->vm, bp, i);
+            /*
+            print_obj(val.obj);
+            */
+            val.obj->mark = OBJ_BLACK;
+        }
+    }
+
     /* free white objects */
     struct runtime_object head = {0};
     struct runtime_object *prev = &head;

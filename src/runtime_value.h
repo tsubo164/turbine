@@ -28,6 +28,7 @@ struct runtime_value {
     union {
         value_int_t inum;
         value_float_t fpnum;
+        struct runtime_object *obj;
         struct runtime_string *string;
         struct runtime_vec *vec;
         struct runtime_map *map;

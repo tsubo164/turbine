@@ -37,6 +37,10 @@ void vm_print_stack(const struct vm_cpu *vm);
 void vm_enable_print_stack(struct vm_cpu *vm, bool enable);
 void vm_print_gc_objects(const struct vm_cpu *vm);
 
+int vm_get_callstack_count(const struct vm_cpu *vm);
+const struct vm_call *vm_get_call(const struct vm_cpu *vm, int index);
+struct runtime_value vm_lookup_stack(const struct vm_cpu *vm, value_addr_t bp, int offset);
+
 void vm_free_cpu(struct vm_cpu *vm);
 
 #endif /* _H */
