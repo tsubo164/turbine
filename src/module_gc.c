@@ -29,7 +29,7 @@ static int gc_collect(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value ret = {0};
 
-    runtime_gc_collect_objects(gc);
+    runtime_gc_request_collect(gc);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;

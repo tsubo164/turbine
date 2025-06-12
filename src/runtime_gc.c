@@ -143,18 +143,26 @@ static void free_obj(struct runtime_object *obj)
     }
 }
 
-void runtime_gc_collect_objects(struct runtime_gc *gc)
+void runtime_gc_request_collect(struct runtime_gc *gc)
+{
+    gc->need_collect = true;
+}
+
+bool runtime_gc_is_requested(const struct runtime_gc *gc)
+{
+    return gc->need_collect;
+}
+
+void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 {
     /* clear marks */
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         obj->mark = OBJ_WHITE;
     }
 
-    /* TODO Add empty entry at the first map */
     /* track from roots */
-    value_addr_t prev_addr = gc->vm->ip - 1;
-    printf("current addr: [%6" PRIaddr "]\n", prev_addr);
-    const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, prev_addr);
+    printf("instruction addr: [%6" PRIaddr "]\n", inst_addr);
+    const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, inst_addr);
     code_stackmap_print_entry(ent);
 
     int ncalls = vm_get_callstack_count(gc->vm);
@@ -207,6 +215,7 @@ void runtime_gc_collect_objects(struct runtime_gc *gc)
     }
 
     gc->root = head.next;
+    gc->need_collect = false;
 }
 
 void runtime_gc_free(struct runtime_gc *gc)

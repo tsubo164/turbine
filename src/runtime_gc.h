@@ -1,6 +1,7 @@
 #ifndef RUNTIME_GC_H
 #define RUNTIME_GC_H
 
+#include "value_types.h"
 #include <stdbool.h>
 
 enum runtime_object_kind {
@@ -28,6 +29,8 @@ struct runtime_gc {
 
     const struct code_stackmap *stackmap;
     const struct vm_cpu *vm;
+
+    bool need_collect;
 };
 
 struct runtime_string;
@@ -36,7 +39,9 @@ struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *
 
 void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj);
 void runtime_gc_print_objects(const struct runtime_gc *gc);
-void runtime_gc_collect_objects(struct runtime_gc *gc);
+void runtime_gc_request_collect(struct runtime_gc *gc);
+bool runtime_gc_is_requested(const struct runtime_gc *gc);
+void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr);
 
 void runtime_gc_free(struct runtime_gc *gc);
 

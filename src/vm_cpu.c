@@ -212,18 +212,22 @@ static void run_cpu(struct vm_cpu *vm)
     bool halt = false;
 
     while (!is_eoc(vm) && !halt) {
-        value_addr_t old_ip = vm->ip;
+        /* fetch */
+        value_addr_t inst_addr = vm->ip;
         int32_t instcode = fetch(vm);
 
+        /* decode */
         struct code_instruction inst = {0};
         code_decode_instruction(instcode, &inst);
 
+        /* stack */
         if (vm->print_stack) {
             int imm_size = 0;
-            code_print_instruction(vm->code, old_ip, &inst, &imm_size);
+            code_print_instruction(vm->code, inst_addr, &inst, &imm_size);
             vm_print_stack(vm);
         }
 
+        /* execute */
         switch (inst.op) {
 
         case OP_MOVE:
@@ -1154,9 +1158,14 @@ do { \
 
         default:
             fprintf(stderr, "unexpected instruction: %d\n", inst.op);
-            code_print_instruction(vm->code, old_ip, &inst, NULL);
+            code_print_instruction(vm->code, inst_addr, &inst, NULL);
             assert(!"internal error");
             break;
+        }
+
+        /* gc */
+        if (runtime_gc_is_requested(&vm->gc)) {
+            runtime_gc_collect_objects(&vm->gc, inst_addr);
         }
     }
 }
