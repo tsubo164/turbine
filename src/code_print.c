@@ -161,21 +161,37 @@ static void print_operand16(const struct code_bytecode *code, int operand)
     printf("$%d", operand);
 }
 
+static void print_operand_funcname(const struct code_bytecode *code, int operand)
+{
+    int func_id = operand;
+    const struct code_function *func = code_lookup_const_function(&code->funcs, func_id);
+    printf("%s", func->fullname);
+}
+
 void code_print_instruction(const struct code_bytecode *code,
         value_addr_t addr, const struct code_instruction *inst, int *imm_size)
 {
     const struct code_opcode_info *info = code_lookup_opecode_info(inst->op);
 
+    /* address */
     if (addr >= 0)
         printf("[%6" PRId64 "] ", addr);
 
-    /* padding spaces */
+    /* mnemonic */
     if (info->operand != OPERAND____)
         printf("%-14s", info->mnemonic);
     else
         printf("%s", info->mnemonic);
 
-    /* append operand */
+    /* operands for call instructions */
+    if (inst->op == OP_CALL || inst->op == OP_CALLNATIVE) {
+        print_operand(code, addr, inst->A, 1, imm_size);
+        print_operand_funcname(code, inst->BB);
+        printf("\n");
+        return;
+    }
+
+    /* operands for other instructions */
     switch (info->operand) {
 
     case OPERAND____:
