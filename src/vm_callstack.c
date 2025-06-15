@@ -1,5 +1,6 @@
 #include "vm_callstack.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #define MIN_CAP 16
 
@@ -37,4 +38,17 @@ void vm_callstack_pop(struct vm_callstack *v, struct vm_call *call)
 bool vm_callstack_is_empty(const struct vm_callstack *v)
 {
     return v->len == 0;
+}
+
+void vm_print_call(const struct vm_call *call)
+{
+    printf("func_index:  %d\n", call->func_index);
+    printf("argc:        %d\n", call->argc);
+    printf("return_reg:  %d\n", call->return_reg);
+    printf("return_ip:   %" PRIaddr "\n", call->return_ip);
+    printf("return_bp:   %" PRIaddr "\n", call->return_bp);
+    printf("return_sp:   %" PRIaddr "\n", call->return_sp);
+    printf("current_bp:  %" PRIaddr "\n", call->current_bp);
+    printf("current_sp:  %" PRIaddr "\n", call->current_sp);
+    printf("callsite_ip: %" PRIaddr "\n", call->callsite_ip);
 }

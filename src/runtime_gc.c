@@ -162,23 +162,23 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 
     /* track from roots */
     int ncalls = vm_get_callstack_count(gc->vm);
-    value_addr_t stackmap_addr = inst_addr;
+    value_addr_t callsite_addr = inst_addr;
 
     for (int frame_id = ncalls - 1; frame_id >= 0; frame_id--) {
-        const struct vm_call *call = vm_get_call(gc->vm, frame_id);
-        printf("------------------------------------------------------------\n");
-        printf("func_index: %d\n", call->func_index);
-        printf("argc:       %d\n", call->argc);
-        printf("return_reg: %d\n", call->return_reg);
-        printf("return_ip:  %lld\n", call->return_ip);
-        printf("return_bp:  %lld\n", call->return_bp);
-        printf("return_sp:  %lld\n", call->return_sp);
-        printf("current_bp: %lld\n", call->current_bp);
-        printf("current_sp: %lld\n", call->current_sp);
-        printf("instruction addr: [%6" PRIaddr "]\n", inst_addr);
+        /* TODO consider adding empty stackmap at 0 */
+        /* TODO skip scan if callsite_addr is 0 */
+        /* no object at the beginning */
+        if (callsite_addr == 0)
+            break;
 
-        const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, stackmap_addr);
+        value_addr_t precall_addr = callsite_addr - 1;
+        const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, precall_addr);
+        const struct vm_call *call = vm_get_call(gc->vm, frame_id);
+
+        /* */
+        vm_print_call(call);
         code_stackmap_print_entry(ent);
+        /* */
 
         for (int i = 0; i < 64; i++) {
             bool is_ref = code_stackmap_is_ref(ent, i);
@@ -190,8 +190,7 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
             }
         }
 
-        /* return_ip is the `next` ip when returning */
-        stackmap_addr = call->return_ip - 1;
+        callsite_addr = call->callsite_ip;
     }
 
     /* free white objects */

@@ -176,7 +176,7 @@ void vm_print_gc_objects(const struct vm_cpu *vm)
     runtime_gc_print_objects(&vm->gc);
 }
 
-static void call_function(struct vm_cpu *vm, int return_reg, int func_id)
+static void call_function(struct vm_cpu *vm, value_addr_t callsite_addr, int return_reg, int func_id)
 {
     value_addr_t func_addr = code_get_function_address(vm->code, func_id);
 
@@ -188,6 +188,7 @@ static void call_function(struct vm_cpu *vm, int return_reg, int func_id)
     call.return_bp = vm->bp;
     call.return_sp = vm->sp;
     call.return_reg = return_reg;
+    call.callsite_ip = callsite_addr;
 
     /* set new pointers */
     set_ip(vm, func_addr);
@@ -454,7 +455,7 @@ static void run_cpu(struct vm_cpu *vm)
                 int ret_reg = inst.A;
                 int func_id = inst.BB;
 
-                call_function(vm, ret_reg, func_id);
+                call_function(vm, inst_addr, ret_reg, func_id);
             }
             break;
 
@@ -465,7 +466,7 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value idval = fetch_register_value(vm, src);
                 int func_id = idval.inum;
 
-                call_function(vm, ret_reg, func_id);
+                call_function(vm, inst_addr, ret_reg, func_id);
             }
             break;
 

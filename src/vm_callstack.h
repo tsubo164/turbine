@@ -14,6 +14,7 @@ struct vm_call {
     value_addr_t return_sp;
     value_addr_t current_bp;
     value_addr_t current_sp;
+    value_addr_t callsite_ip;
 };
 
 struct vm_callstack {
@@ -29,5 +30,6 @@ void vm_callstack_push(struct vm_callstack *v, const struct vm_call *call);
 void vm_callstack_pop(struct vm_callstack *v, struct vm_call *call);
 
 bool vm_callstack_is_empty(const struct vm_callstack *v);
+void vm_print_call(const struct vm_call *call);
 
 #endif /* _H */
