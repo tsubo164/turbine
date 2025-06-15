@@ -12,6 +12,8 @@ struct vm_call {
     value_addr_t return_ip;
     value_addr_t return_bp;
     value_addr_t return_sp;
+    value_addr_t current_bp;
+    value_addr_t current_sp;
 };
 
 struct vm_callstack {

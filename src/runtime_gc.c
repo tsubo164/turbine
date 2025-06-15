@@ -161,34 +161,37 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     }
 
     /* track from roots */
-    printf("instruction addr: [%6" PRIaddr "]\n", inst_addr);
-    const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, inst_addr);
-    code_stackmap_print_entry(ent);
-
     int ncalls = vm_get_callstack_count(gc->vm);
-    for (int i = 0; i < ncalls; i++) {
-        const struct vm_call *call = vm_get_call(gc->vm, i);
+    value_addr_t stackmap_addr = inst_addr;
+
+    for (int frame_id = ncalls - 1; frame_id >= 0; frame_id--) {
+        const struct vm_call *call = vm_get_call(gc->vm, frame_id);
+        printf("------------------------------------------------------------\n");
         printf("func_index: %d\n", call->func_index);
         printf("argc:       %d\n", call->argc);
         printf("return_reg: %d\n", call->return_reg);
         printf("return_ip:  %lld\n", call->return_ip);
         printf("return_bp:  %lld\n", call->return_bp);
         printf("return_sp:  %lld\n", call->return_sp);
-    }
+        printf("current_bp: %lld\n", call->current_bp);
+        printf("current_sp: %lld\n", call->current_sp);
+        printf("instruction addr: [%6" PRIaddr "]\n", inst_addr);
 
-    /* currnt call stack */
-    for (int i = 0; i < 64; i++) {
-        bool is_ref = code_stackmap_is_ref(ent, i);
+        const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, stackmap_addr);
+        code_stackmap_print_entry(ent);
 
-        if (is_ref) {
-            /* TODO temporary solution. need callstack for native call? */
-            value_addr_t bp = /*gc->vm->bp*/1;
-            struct runtime_value val = vm_lookup_stack(gc->vm, bp, i);
-            /*
-            print_obj(val.obj);
-            */
-            val.obj->mark = OBJ_BLACK;
+        for (int i = 0; i < 64; i++) {
+            bool is_ref = code_stackmap_is_ref(ent, i);
+
+            if (is_ref) {
+                value_addr_t bp = call->current_bp;
+                struct runtime_value val = vm_lookup_stack(gc->vm, bp, i);
+                val.obj->mark = OBJ_BLACK;
+            }
         }
+
+        /* return_ip is the `next` ip when returning */
+        stackmap_addr = call->return_ip - 1;
     }
 
     /* free white objects */

@@ -58,7 +58,7 @@ static value_int_t addr_to_index(value_addr_t addr)
     return addr + SPOFFSET;
 }
 
-static value_addr_t id_to_addr(const struct vm_cpu *vm, int id)
+static value_addr_t reg_to_addr(const struct vm_cpu *vm, int id)
 {
     return index_to_addr(vm->bp) + 1 + id;
 }
@@ -82,13 +82,13 @@ static void write_stack(struct vm_cpu *vm, value_addr_t addr, struct runtime_val
 
 static struct runtime_value get_local(const struct vm_cpu *vm, int id)
 {
-    value_addr_t addr = id_to_addr(vm, id);
+    value_addr_t addr = reg_to_addr(vm, id);
     return read_stack(vm, addr);
 }
 
 static void set_local(struct vm_cpu *vm, int id, struct runtime_value val)
 {
-    value_addr_t addr = id_to_addr(vm, id);
+    value_addr_t addr = reg_to_addr(vm, id);
     write_stack(vm, addr, val);
 }
 
@@ -180,21 +180,27 @@ static void call_function(struct vm_cpu *vm, int return_reg, int func_id)
 {
     value_addr_t func_addr = code_get_function_address(vm->code, func_id);
 
+    /* call info */
     struct vm_call call = {0};
+    call.func_index = func_id;
     call.argc = code_get_function_arg_count(vm->code, func_id);
     call.return_ip = vm->ip;
     call.return_bp = vm->bp;
     call.return_sp = vm->sp;
     call.return_reg = return_reg;
-    push_call(vm, &call);
 
+    /* set new pointers */
     set_ip(vm, func_addr);
-    /* TODO make reg_to_addr() */
-    set_bp(vm, vm->bp + 1 + call.return_reg - 1);
+    set_bp(vm, reg_to_addr(vm, call.return_reg));
 
-    /* Register allocation (parameters + local variables) */
+    /* register allocation (parameters + local variables) */
     int max_reg_count = code_get_function_register_count(vm->code, func_id);
     set_sp(vm, vm->bp + max_reg_count);
+
+    /* push new stack frame */
+    call.current_bp = vm->bp;
+    call.current_sp = vm->sp;
+    push_call(vm, &call);
 }
 
 static bool is_eoc(const struct vm_cpu *vm)
