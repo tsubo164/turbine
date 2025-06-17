@@ -1288,59 +1288,57 @@ static bool is_module_init_name(const char *fullname)
     return false;
 }
 
-static void gen_start_func_body(struct code_bytecode *code, const struct parser_module *mod)
+static void gen_init_funcs(struct code_bytecode *code, const struct parser_module *mod, int ret_reg)
 {
-    /* TODO TEST emitting call module init functions */
-    {
-        for (int i = 0; i < mod->scope->syms.len; i++) {
-            const struct parser_symbol *sym = mod->scope->syms.data[i];
+    for (int i = 0; i < mod->scope->syms.len; i++) {
+        const struct parser_symbol *sym = mod->scope->syms.data[i];
 
-            if (sym->kind == SYM_MODULE) {
-                const struct parser_module *m = sym->module;
-                int init_func_id = -1;
-                int min_var_offset = INT32_MAX;
+        if (sym->kind == SYM_MODULE) {
+            const struct parser_module *m = sym->module;
+            const struct parser_func *init_func = NULL;
 
-                for (int j = 0; j < m->scope->syms.len; j++) {
-                    const struct parser_symbol *s = m->scope->syms.data[j];
+            /* find init func */
+            for (int j = 0; j < m->scope->syms.len; j++) {
+                const struct parser_symbol *s = m->scope->syms.data[j];
 
-                    if (s->kind == SYM_FUNC) {
-                        const struct parser_func *f = s->func;
-                        if (is_module_init_name(f->fullname)) {
-                            init_func_id = f->id;
-                        }
-                    }
-                    else if (s->kind == SYM_VAR) {
-                        const struct parser_var *v = s->var;
-                        if (!v->is_global)
-                            continue;
-
-                        if (min_var_offset > v->offset)
-                            min_var_offset = v->offset;
+                if (s->kind == SYM_FUNC) {
+                    if (is_module_init_name(s->func->fullname)) {
+                        init_func = s->func;
+                        break;
                     }
                 }
-
-                if (init_func_id < 0)
-                    continue;
-
-                int ret_reg = min_var_offset == INT32_MAX ? 0 : min_var_offset;
-                bool is_native = true;
-                code_emit_call_function(code, ret_reg, init_func_id, is_native);
             }
+            if (!init_func)
+                continue;
+
+            /* call init func */
+            bool is_native = true;
+            code_emit_call_function(code, ret_reg, init_func->id, is_native);
         }
     }
+}
 
-    /* emit global vars */
+static void gen_start_func_body(struct code_bytecode *code, const struct parser_module *mod)
+{
+    /* module init funcs */
+    int ret_reg = code_allocate_temporary_register(code);
+    gen_init_funcs(code, mod, ret_reg);
+
+    /* global vars */
     gen_gvars(code, mod);
+
+    /* args for main */
+    int dst = gen_dst_register1(code, ret_reg);
+    code_emit_move_ref(code, dst, 0);
 
     /* TODO maybe better to search "main" module and "main" func in there */
     /* instead of holding main_func */
-    /* Call main */
-    int reg0 = code_allocate_temporary_register(code);
-    /* push args for main() */
-    code_emit_move(code, reg0, 0);
-    code_emit_call_function(code, reg0, mod->main_func->id,
-            mod->main_func->sig->is_native);
-    code_emit_return(code, reg0);
+
+    /* main func */
+    int main_func_id = mod->main_func->id;
+    bool is_native = mod->main_func->sig->is_native;
+    code_emit_call_function(code, dst, main_func_id, is_native);
+    code_emit_return(code, dst);
 }
 
 static void gen_start_func(struct code_bytecode *code, const struct parser_module *mod,
