@@ -310,6 +310,8 @@ int code_emit_load_string(struct code_bytecode *code, const char *cstr)
 
 int code_emit_load_global(struct code_bytecode *code, int dst, int src)
 {
+    /* always mark local slot as false because globals are always tracked separately */
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_LOADGLOBAL, dst, src);
     return dst;
 }

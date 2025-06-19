@@ -1,11 +1,12 @@
 > gc
 > math
 
-/*
-# main() int
-  print(veclen(args))
-*/
+- _S_ = "Hello"
+
 # main(args vec{string}) int
+  - f = math._PI_
+  - x = _S_
+
   - s = "foo"
   s = s + "oo"
 
@@ -20,10 +21,6 @@
 
   print(s)
   print(veclen(args))
-
-  /*
-  - s = vec{1, 2, 3}
-  s = vec{4, 5, 6}
-  */
+  print(x)
 
   return 0

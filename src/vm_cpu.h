@@ -41,6 +41,9 @@ int vm_get_callstack_count(const struct vm_cpu *vm);
 const struct vm_call *vm_get_call(const struct vm_cpu *vm, int index);
 struct runtime_value vm_lookup_stack(const struct vm_cpu *vm, value_addr_t bp, int offset);
 
+int vm_get_global_count(const struct vm_cpu *vm);
+struct runtime_value vm_get_global(const struct vm_cpu *vm, int id);
+
 void vm_free_cpu(struct vm_cpu *vm);
 
 #endif /* _H */

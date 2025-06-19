@@ -1248,6 +1248,16 @@ struct runtime_value vm_lookup_stack(const struct vm_cpu *vm, value_addr_t bp, i
     return read_stack(vm, index_to_addr(index));
 }
 
+int vm_get_global_count(const struct vm_cpu *vm)
+{
+    return runtime_valuevec_len(vm->globals);
+}
+
+struct runtime_value vm_get_global(const struct vm_cpu *vm, int id)
+{
+    return get_global(vm, id);
+}
+
 void vm_free_cpu(struct vm_cpu *vm)
 {
     runtime_valuevec_free(&vm->stack);

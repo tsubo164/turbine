@@ -160,7 +160,7 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
         obj->mark = OBJ_WHITE;
     }
 
-    /* track from roots */
+    /* track from locals and temps */
     int ncalls = vm_get_callstack_count(gc->vm);
     value_addr_t callsite_addr = inst_addr;
 
@@ -191,6 +191,16 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
         }
 
         callsite_addr = call->callsite_ip;
+    }
+
+    /* track from globals */
+    int nglobals = vm_get_global_count(gc->vm);
+    for (int i = 0; i < nglobals; i++) {
+        /*
+        struct runtime_value val = vm_get_global(gc->vm, i);
+        val.obj->mark = OBJ_BLACK;
+        print_obj(val.obj);
+        */
     }
 
     /* free white objects */
