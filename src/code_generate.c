@@ -401,7 +401,8 @@ static int gen_binop(struct code_bytecode *code, const struct parser_type *type,
     return reg0;
 }
 
-static int emit_move(struct code_bytecode *code, int dst, int src, const struct parser_type *type)
+/* emit_ wrappers */
+static bool is_ref(const struct parser_type *type)
 {
     if (parser_is_nil_type(type) ||
         parser_is_bool_type(type) ||
@@ -410,12 +411,21 @@ static int emit_move(struct code_bytecode *code, int dst, int src, const struct 
         parser_is_func_type(type) ||
         parser_is_enum_type(type) ||
         parser_is_any_type(type)) {
-        return code_emit_move(code, dst, src);
+        return false;
     }
     else {
-        return code_emit_move_ref(code, dst, src);
+        return true;
     }
 }
+
+static int emit_move(struct code_bytecode *code, int dst, int src, const struct parser_type *type)
+{
+    if (is_ref(type))
+        return code_emit_move_ref(code, dst, src);
+    else
+        return code_emit_move(code, dst, src);
+}
+/* emit_ */
 
 static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
 {
@@ -559,7 +569,11 @@ static int gen_init(struct code_bytecode *code, const struct parser_expr *e)
     if (parser_ast_is_global(e->l)) {
         int dst = gen_addr(code, e->l);
         int tmp = gen_expr(code, e->r);
-        return code_emit_store_global(code, dst, tmp);
+        /* gloablmap needs to be set only when init */
+        if (is_ref(e->type))
+            return code_emit_store_global_ref(code, dst, tmp);
+        else
+            return code_emit_store_global(code, dst, tmp);
     }
 
     if (e->r->kind == NOD_EXPR_VECLIT) {

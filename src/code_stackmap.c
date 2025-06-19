@@ -95,3 +95,25 @@ void code_stackmap_free(struct code_stackmap *stackmap)
     }
     free(stackmap->records.data);
 }
+
+void code_globalmap_mark(struct code_globalmap *globalmap, int slot, bool is_ref)
+{
+    assert(slot >= 0 && slot < sizeof(globalmap->slots) / sizeof(globalmap->slots[0]));
+    globalmap->slots[slot] = is_ref ? '*': '-';
+}
+
+bool code_globalmap_is_ref(const struct code_globalmap *globalmap, int slot)
+{
+    assert(slot >= 0 && slot < sizeof(globalmap->slots) / sizeof(globalmap->slots[0]));
+    char c = globalmap->slots[slot];
+    return c == '*';
+}
+
+void code_globalmap_print(const struct code_globalmap *globalmap)
+{
+    for (int i = 0; i < 64; i++) {
+        char c = globalmap->slots[i];
+        printf("%c", c == 0 ? '.' : c);
+    }
+    printf("\n");
+}

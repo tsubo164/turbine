@@ -12,6 +12,14 @@ static void mark_ref(struct code_bytecode *code, int slot, bool is_ref)
     value_addr_t addr = code_get_next_addr(code);
     code_stackmap_mark(&code->stackmap, addr, slot, is_ref);
 }
+
+static int register_to_smallint(int id);
+static void mark_global_ref(struct code_bytecode *code, int slot, bool is_ref)
+{
+    /* TODO register_to_smallint() will not work bigger global ids */
+    int id = register_to_smallint(slot);
+    code_globalmap_mark(&code->globalmap, id, is_ref);
+}
 /* ============================================================================ */
 
 void code_free_bytecode(struct code_bytecode *code)
@@ -318,6 +326,14 @@ int code_emit_load_global(struct code_bytecode *code, int dst, int src)
 
 int code_emit_store_global(struct code_bytecode *code, int dst, int src)
 {
+    push_inst_ab(code, OP_STOREGLOBAL, dst, src);
+    return dst;
+}
+
+int code_emit_store_global_ref(struct code_bytecode *code, int dst, int src)
+{
+    /* globals marked only when ref */
+    mark_global_ref(code, dst, true);
     push_inst_ab(code, OP_STOREGLOBAL, dst, src);
     return dst;
 }

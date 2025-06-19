@@ -27,4 +27,13 @@ void code_stackmap_print_entry(const struct code_stackmap_entry *ent);
 void code_stackmap_print(const struct code_stackmap *stackmap);
 void code_stackmap_free(struct code_stackmap *stackmap);
 
+/* */
+struct code_globalmap {
+    char slots[64];
+};
+
+void code_globalmap_mark(struct code_globalmap *globalmap, int slots, bool is_ref);
+bool code_globalmap_is_ref(const struct code_globalmap *globalmap, int slot);
+void code_globalmap_print(const struct code_globalmap *globalmap);
+
 #endif /* _H */

@@ -28,6 +28,7 @@ struct runtime_gc {
     struct runtime_object *root;
 
     const struct code_stackmap *stackmap;
+    const struct code_globalmap *globalmap;
     const struct vm_cpu *vm;
 
     bool need_collect;

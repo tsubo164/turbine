@@ -53,6 +53,7 @@ struct code_bytecode {
 
     /* TODO */
     struct code_stackmap stackmap;
+    struct code_globalmap globalmap;
 };
 
 void code_free_bytecode(struct code_bytecode *code);
@@ -83,6 +84,7 @@ int code_emit_load_float(struct code_bytecode *code, value_float_t val);
 int code_emit_load_string(struct code_bytecode *code, const char *cstr);
 int code_emit_load_global(struct code_bytecode *code, int dst, int src);
 int code_emit_store_global(struct code_bytecode *code, int dst, int src);
+int code_emit_store_global_ref(struct code_bytecode *code, int dst, int src);
 int code_emit_load_vec(struct code_bytecode *code, int dst, int src, int idx);
 int code_emit_store_vec(struct code_bytecode *code, int dst, int idx, int src);
 int code_emit_load_map(struct code_bytecode *code, int dst, int src, int key);

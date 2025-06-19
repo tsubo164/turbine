@@ -160,6 +160,18 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
         obj->mark = OBJ_WHITE;
     }
 
+    {
+        /* TODO this may not be needed if we mark globals once somewhere */
+        int nglobals = vm_get_global_count(gc->vm);
+        for (int i = 0; i < nglobals; i++) {
+            bool is_ref = code_globalmap_is_ref(gc->globalmap, i);
+            if (is_ref) {
+                struct runtime_value val = vm_get_global(gc->vm, i);
+                val.obj->mark = OBJ_BLACK;
+            }
+        }
+    }
+
     /* track from locals and temps */
     int ncalls = vm_get_callstack_count(gc->vm);
     value_addr_t callsite_addr = inst_addr;
@@ -175,10 +187,10 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
         const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, precall_addr);
         const struct vm_call *call = vm_get_call(gc->vm, frame_id);
 
-        /* */
+        /*
         vm_print_call(call);
         code_stackmap_print_entry(ent);
-        /* */
+        */
 
         for (int i = 0; i < 64; i++) {
             bool is_ref = code_stackmap_is_ref(ent, i);

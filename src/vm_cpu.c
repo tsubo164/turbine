@@ -1224,6 +1224,7 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
 
     /* gc */
     vm->gc.stackmap = &vm->code->stackmap;
+    vm->gc.globalmap = &vm->code->globalmap;
     vm->gc.vm = vm;
 
     run_cpu(vm);
