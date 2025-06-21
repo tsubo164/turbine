@@ -381,9 +381,9 @@ int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_
 }
 
 /* vec, map, set, stack, queue, struct */
-int code_emit_new_vec(struct code_bytecode *code, int dst, int len)
+int code_emit_new_vec(struct code_bytecode *code, int dst, int type, int len)
 {
-    push_inst_ab(code, OP_NEWVEC, dst, len);
+    push_inst_abc(code, OP_NEWVEC, dst, type, len);
     return dst;
 }
 

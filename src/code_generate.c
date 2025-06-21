@@ -88,6 +88,29 @@ static int gen_convert(struct code_bytecode *code, const struct parser_expr *e)
     return src;
 }
 
+static int parser_type_to_value_type(const struct parser_type *t)
+{
+    switch ((enum parser_type_kind) t->kind) {
+    case TYP_NIL:      return VAL_NIL;
+    case TYP_BOOL:     return VAL_INT;
+    case TYP_INT:      return VAL_INT;
+    case TYP_FLOAT:    return VAL_FLOAT;
+    case TYP_STRING:   return VAL_STRING;
+    case TYP_FUNC:     return VAL_NIL;
+    case TYP_VEC:      return VAL_VEC;
+    case TYP_MAP:      return VAL_MAP;
+    case TYP_SET:      return VAL_SET;
+    case TYP_STACK:    return VAL_STACK;
+    case TYP_QUEUE:    return VAL_QUEUE;
+    case TYP_STRUCT:   return VAL_STRUCT;
+    case TYP_ENUM:     return VAL_NIL;
+    case TYP_MODULE:   return VAL_NIL;
+    case TYP_ANY:      return VAL_NIL;
+    case TYP_TEMPLATE: return VAL_NIL;
+    }
+    return VAL_NIL;
+}
+
 static int gen_vec_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
@@ -95,6 +118,7 @@ static int gen_vec_lit(struct code_bytecode *code,
     int index = 0;
     int len = 0;
     int dst = 0;
+    int val_type = 0;
 
     /* dst register */
     if (dst_reg == -1)
@@ -103,8 +127,9 @@ static int gen_vec_lit(struct code_bytecode *code,
         dst = dst_reg;
 
     /* make vec */
+    val_type = parser_type_to_value_type(e->type->underlying);
     len = gen_expr(code, e->l);
-    code_emit_new_vec(code, dst, len);
+    code_emit_new_vec(code, dst, val_type, len);
 
     /* set elements */
     for (elem = e->r; elem; elem = elem->next) {
@@ -142,29 +167,6 @@ static int gen_map_lit(struct code_bytecode *code,
     }
 
     return dst;
-}
-
-static int parser_type_to_value_type(const struct parser_type *t)
-{
-    switch ((enum parser_type_kind) t->kind) {
-    case TYP_NIL:      return VAL_NIL;
-    case TYP_BOOL:     return VAL_INT;
-    case TYP_INT:      return VAL_INT;
-    case TYP_FLOAT:    return VAL_FLOAT;
-    case TYP_STRING:   return VAL_STRING;
-    case TYP_FUNC:     return VAL_NIL;
-    case TYP_VEC:      return VAL_VEC;
-    case TYP_MAP:      return VAL_MAP;
-    case TYP_SET:      return VAL_SET;
-    case TYP_STACK:    return VAL_STACK;
-    case TYP_QUEUE:    return VAL_QUEUE;
-    case TYP_STRUCT:   return VAL_STRUCT;
-    case TYP_ENUM:     return VAL_NIL;
-    case TYP_MODULE:   return VAL_NIL;
-    case TYP_ANY:      return VAL_NIL;
-    case TYP_TEMPLATE: return VAL_NIL;
-    }
-    return VAL_NIL;
 }
 
 static int gen_set_lit(struct code_bytecode *code,

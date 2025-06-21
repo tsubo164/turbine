@@ -94,7 +94,7 @@ int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, i
 int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_offset);
 
 /* vec, map, set, stack, queue, struct */
-int code_emit_new_vec(struct code_bytecode *code, int dst, int len);
+int code_emit_new_vec(struct code_bytecode *code, int dst, int type, int len);
 int code_emit_new_map(struct code_bytecode *code, int dst, int len);
 int code_emit_new_set(struct code_bytecode *code, int dst, int type, int len);
 int code_emit_new_stack(struct code_bytecode *code, int dst, int type, int len);

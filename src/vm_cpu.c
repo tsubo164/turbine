@@ -363,10 +363,11 @@ static void run_cpu(struct vm_cpu *vm)
         case OP_NEWVEC:
             {
                 int dst = inst.A;
-                int len = inst.B;
+                int typ = inst.B;
+                int len = inst.C;
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_vec *obj = runtime_vec_new(lenval.inum);
+                struct runtime_vec *obj = runtime_vec_new(typ, lenval.inum);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.vec = obj};
@@ -1181,7 +1182,7 @@ static struct runtime_value make_args_value(struct runtime_gc *gc, const struct 
 {
     struct runtime_vec *vec;
 
-    vec = runtime_vec_new(args->count);
+    vec = runtime_vec_new(VAL_STRING, args->count);
     runtime_gc_push_object(gc, (struct runtime_object *) vec);
 
     for (int i = 0; i < args->count; i++) {

@@ -97,7 +97,7 @@ static int file_read_lines(struct runtime_gc *gc, struct runtime_registers *regs
         }
 
         struct data_strbuf sb = DATA_STRBUF_INIT;
-        struct runtime_vec *lines = runtime_vec_new(0);
+        struct runtime_vec *lines = runtime_vec_new(VAL_STRING, 0);
         /* TODO consider making runtime_gc_vec_new() */
         runtime_gc_push_object(gc, (struct runtime_object*) lines);
 

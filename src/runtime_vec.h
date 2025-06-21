@@ -8,9 +8,10 @@
 struct runtime_vec {
     struct runtime_object obj;
     struct runtime_valuevec values;
+    int val_type;
 };
 
-struct runtime_vec *runtime_vec_new(value_int_t len);
+struct runtime_vec *runtime_vec_new(int val_type, value_int_t len);
 void runtime_vec_free(struct runtime_vec *v);
 
 /* No index range check */
