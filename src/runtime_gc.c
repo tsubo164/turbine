@@ -153,26 +153,110 @@ bool runtime_gc_is_requested(const struct runtime_gc *gc)
     return gc->need_collect;
 }
 
-void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
+static bool is_ref_type(int type)
 {
-    /* clear marks */
+    switch ((enum runtime_value_type) type) {
+    case VAL_NIL:
+    case VAL_INT:
+    case VAL_FLOAT:
+        return false;
+    case VAL_STRING:
+    case VAL_VEC:
+    case VAL_MAP:
+    case VAL_SET:
+    case VAL_STACK:
+    case VAL_QUEUE:
+    case VAL_STRUCT:
+        return true;
+    }
+
+    return false;
+}
+
+static void mark_object(struct runtime_object *obj)
+{
+    obj->mark = OBJ_BLACK;
+
+    enum runtime_object_kind kind = obj->kind;
+
+    switch (kind) {
+
+    case OBJ_NIL:
+        break;
+
+    case OBJ_STRING:
+        {
+            //struct runtime_string *s = (struct runtime_string *) obj;
+        }
+        break;
+
+    case OBJ_VEC:
+        {
+            struct runtime_vec *v = (struct runtime_vec *) obj;
+
+            if (is_ref_type(v->val_type)) {
+                for (int i = 0; i < runtime_vec_len(v); i++) {
+                    struct runtime_value val = runtime_vec_get(v, i);
+                    mark_object(val.obj);
+                }
+            }
+        }
+        break;
+
+    case OBJ_MAP:
+        {
+            //struct runtime_map *m = (struct runtime_map *) obj;
+        }
+        break;
+
+    case OBJ_SET:
+        {
+            //struct runtime_set *s = (struct runtime_set *) obj;
+        }
+        break;
+
+    case OBJ_STACK:
+        {
+            //struct runtime_stack *s = (struct runtime_stack *) obj;
+        }
+        break;
+
+    case OBJ_QUEUE:
+        {
+            //struct runtime_queue *q = (struct runtime_queue *) obj;
+        }
+        break;
+
+    case OBJ_STRUCT:
+        {
+            //struct runtime_struct *s = (struct runtime_struct *) obj;
+        }
+        break;
+    }
+}
+
+static void clear_marks(struct runtime_gc *gc)
+{
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         obj->mark = OBJ_WHITE;
     }
+}
 
-    {
-        /* TODO this may not be needed if we mark globals once somewhere */
-        int nglobals = vm_get_global_count(gc->vm);
-        for (int i = 0; i < nglobals; i++) {
-            bool is_ref = code_globalmap_is_ref(gc->globalmap, i);
-            if (is_ref) {
-                struct runtime_value val = vm_get_global(gc->vm, i);
-                val.obj->mark = OBJ_BLACK;
-            }
+static void trace_globals(struct runtime_gc *gc)
+{
+    int nglobals = vm_get_global_count(gc->vm);
+
+    for (int i = 0; i < nglobals; i++) {
+        bool is_ref = code_globalmap_is_ref(gc->globalmap, i);
+        if (is_ref) {
+            struct runtime_value val = vm_get_global(gc->vm, i);
+            mark_object(val.obj);
         }
     }
+}
 
-    /* track from locals and temps */
+static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
+{
     int ncalls = vm_get_callstack_count(gc->vm);
     value_addr_t callsite_addr = inst_addr;
 
@@ -198,24 +282,16 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
             if (is_ref) {
                 value_addr_t bp = call->current_bp;
                 struct runtime_value val = vm_lookup_stack(gc->vm, bp, i);
-                val.obj->mark = OBJ_BLACK;
+                mark_object(val.obj);
             }
         }
 
         callsite_addr = call->callsite_ip;
     }
+}
 
-    /* track from globals */
-    int nglobals = vm_get_global_count(gc->vm);
-    for (int i = 0; i < nglobals; i++) {
-        /*
-        struct runtime_value val = vm_get_global(gc->vm, i);
-        val.obj->mark = OBJ_BLACK;
-        print_obj(val.obj);
-        */
-    }
-
-    /* free white objects */
+static void free_unreachables(struct runtime_gc *gc)
+{
     struct runtime_object head = {0};
     struct runtime_object *prev = &head;
     struct runtime_object *curr = gc->root;
@@ -224,10 +300,6 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 
     while (curr) {
         if (curr->mark == OBJ_WHITE) {
-            /*
-            printf("freeing!!! => ");
-            print_obj(curr);
-            */
             next = curr->next;
             free_obj(curr);
             prev->next = curr = next;
@@ -239,6 +311,22 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     }
 
     gc->root = head.next;
+}
+
+void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
+{
+    /* clear marks */
+    clear_marks(gc);
+
+    /* trace globals */
+    trace_globals(gc);
+
+    /* trace locals and temps */
+    trace_locals(gc, inst_addr);
+
+    /* free white objects */
+    free_unreachables(gc);
+
     gc->need_collect = false;
 }
 
