@@ -193,12 +193,13 @@ static struct runtime_map_entry *lookup(const struct runtime_map *map,
     return NULL;
 }
 
-struct runtime_map *runtime_map_new(value_int_t len)
+struct runtime_map *runtime_map_new(int val_type, value_int_t len)
 {
     struct runtime_map *m;
 
     m = calloc(1, sizeof(*m));
     m->obj.kind = OBJ_MAP;
+    m->val_type = val_type;
     m->tail = &m->head;
 
     int init_cap = 2 * len;

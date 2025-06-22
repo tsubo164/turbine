@@ -17,7 +17,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_LOADENUM]       = { "loadenum",       OPERAND_ABC },
     /* vec, map, set, stack, queue, struct */
     [OP_NEWVEC]         = { "newvec",         OPERAND_ABC },
-    [OP_NEWMAP]         = { "newmap",         OPERAND_AB_ },
+    [OP_NEWMAP]         = { "newmap",         OPERAND_ABC },
     [OP_NEWSET]         = { "newset",         OPERAND_ABC },
     [OP_NEWSTACK]       = { "newstack",       OPERAND_ABC },
     [OP_NEWQUEUE]       = { "newqueue",       OPERAND_ABC },

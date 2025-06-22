@@ -148,6 +148,7 @@ static int gen_map_lit(struct code_bytecode *code,
     const struct parser_expr *elem;
     int len = 0;
     int dst = 0;
+    int val_type = 0;
 
     /* dst register */
     if (dst_reg == -1)
@@ -156,8 +157,9 @@ static int gen_map_lit(struct code_bytecode *code,
         dst = dst_reg;
 
     /* make map */
+    val_type = parser_type_to_value_type(e->type->underlying);
     len = gen_expr(code, e->l);
-    code_emit_new_map(code, dst, len);
+    code_emit_new_map(code, dst, val_type, len);
 
     /* set elements */
     for (elem = e->r; elem; elem = elem->next) {

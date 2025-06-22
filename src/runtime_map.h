@@ -15,6 +15,8 @@ struct runtime_map_entry {
 struct runtime_map {
     struct runtime_object obj;
     struct runtime_map_entry **buckets;
+    int val_type;
+
     int32_t prime_index;
     value_int_t cap;
     value_int_t len;
@@ -23,7 +25,7 @@ struct runtime_map {
     struct runtime_map_entry *tail;
 };
 
-struct runtime_map *runtime_map_new(value_int_t len);
+struct runtime_map *runtime_map_new(int val_type, value_int_t len);
 void runtime_map_free(struct runtime_map *m);
 
 struct runtime_value runtime_map_get(const struct runtime_map *m, struct runtime_value key);
