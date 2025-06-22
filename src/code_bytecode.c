@@ -340,6 +340,14 @@ int code_emit_store_global_ref(struct code_bytecode *code, int dst, int src)
 
 int code_emit_load_vec(struct code_bytecode *code, int dst, int src, int idx)
 {
+    mark_ref(code, dst, false);
+    push_inst_abc(code, OP_LOADVEC, dst, src, idx);
+    return dst;
+}
+
+int code_emit_load_vec_ref(struct code_bytecode *code, int dst, int src, int idx)
+{
+    mark_ref(code, dst, true);
     push_inst_abc(code, OP_LOADVEC, dst, src, idx);
     return dst;
 }

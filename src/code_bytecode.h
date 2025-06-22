@@ -86,6 +86,7 @@ int code_emit_load_global(struct code_bytecode *code, int dst, int src);
 int code_emit_store_global(struct code_bytecode *code, int dst, int src);
 int code_emit_store_global_ref(struct code_bytecode *code, int dst, int src);
 int code_emit_load_vec(struct code_bytecode *code, int dst, int src, int idx);
+int code_emit_load_vec_ref(struct code_bytecode *code, int dst, int src, int idx);
 int code_emit_store_vec(struct code_bytecode *code, int dst, int idx, int src);
 int code_emit_load_map(struct code_bytecode *code, int dst, int src, int key);
 int code_emit_store_map(struct code_bytecode *code, int dst, int key, int src);

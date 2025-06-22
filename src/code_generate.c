@@ -429,6 +429,15 @@ static int emit_move(struct code_bytecode *code, int dst, int src, const struct 
     else
         return code_emit_move(code, dst, src);
 }
+
+static int emit_load_vec(struct code_bytecode *code, int dst, int src, int idx, const struct parser_type *type)
+{
+    if (is_ref(type))
+        return code_emit_load_vec_ref(code, dst, src, idx);
+    else
+        return code_emit_load_vec(code, dst, src, idx);
+}
+
 /* emit_ */
 
 static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
@@ -699,8 +708,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             int obj = gen_expr(code, e->l);
             int idx = gen_expr(code, e->r);
             int dst = gen_dst_register2(code, obj, idx);
-            code_emit_load_vec(code, dst, obj, idx);
-            return dst;
+            return emit_load_vec(code, dst, obj, idx, e->type);
         }
 
     case NOD_EXPR_MAPINDEX:
