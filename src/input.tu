@@ -17,6 +17,12 @@
   if s + "bar" == "baz"
     nop
   */
+
+  /*
+  - s = args[0]
+  print(s)
+  */
+
   if foo() == "baz"
     nop
 

@@ -17,6 +17,18 @@ enum object_mark {
     OBJ_BLACK,
 };
 
+void *runtime_alloc_object(int kind, size_t size)
+{
+    static uint32_t id = 1;
+    struct runtime_object *obj = calloc(1, size);
+
+    /* TODO thread-safe */
+    obj->kind = kind;
+    obj->id = id++;
+
+    return obj;
+}
+
 struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *cstr)
 {
     struct runtime_string *str = runtime_string_new(cstr);
@@ -45,14 +57,16 @@ static void print_obj(const struct runtime_object *obj)
     case OBJ_STRING:
         {
             const struct runtime_string *s = (struct runtime_string *) obj;
-            printf("[string] => %s\n", runtime_string_get_cstr(s));
+            printf("[%6" PRIu32 "] ", obj->id);
+            printf("[%s] => len: %d \"%s\"\n", "string", s->len, runtime_string_get_cstr(s));
         }
         break;
 
     case OBJ_VEC:
         {
-            const struct runtime_vec *a = (struct runtime_vec *) obj;
-            printf("[vec] => len: %d, cap: %d\n", a->values.len, a->values.cap);
+            const struct runtime_vec *v = (struct runtime_vec *) obj;
+            printf("[%6" PRIu32 "] ", obj->id);
+            printf("[%6s] => len: %d, cap: %d\n", "vec", v->values.len, v->values.cap);
         }
         break;
 
@@ -175,6 +189,7 @@ static bool is_ref_type(int type)
 
 static void mark_object(struct runtime_object *obj)
 {
+    /* mark this object */
     obj->mark = OBJ_BLACK;
 
     enum runtime_object_kind kind = obj->kind;
@@ -185,9 +200,6 @@ static void mark_object(struct runtime_object *obj)
         break;
 
     case OBJ_STRING:
-        {
-            //struct runtime_string *s = (struct runtime_string *) obj;
-        }
         break;
 
     case OBJ_VEC:

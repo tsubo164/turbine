@@ -5,10 +5,8 @@ struct runtime_vec *runtime_vec_new(int val_type, value_int_t len)
 {
     struct runtime_vec *v;
 
-    v = calloc(1, sizeof(*v));
-    v->obj.kind = OBJ_VEC;
+    v = runtime_alloc_object(OBJ_VEC, sizeof(*v));
     v->val_type = val_type;
-
     runtime_valuevec_init(&v->values);
     runtime_valuevec_resize(&v->values, len);
 

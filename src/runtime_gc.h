@@ -3,6 +3,7 @@
 
 #include "value_types.h"
 #include <stdbool.h>
+#include <stdlib.h>
 
 enum runtime_object_kind {
     OBJ_NIL,
@@ -16,6 +17,7 @@ enum runtime_object_kind {
 };
 
 struct runtime_object {
+    uint32_t id;
     int kind;
     int mark;
     struct runtime_object *next;
@@ -33,6 +35,9 @@ struct runtime_gc {
 
     bool need_collect;
 };
+
+/* alloc for vec, map, set, stack and queue */
+void *runtime_alloc_object(int kind, size_t size);
 
 struct runtime_string;
 
