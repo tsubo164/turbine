@@ -525,6 +525,7 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
 {
     const struct parser_expr *lval = e->l;
     const struct parser_expr *rval = e->r;
+    /* for a += x, evaluate x first, then update a, to simulate the const stack correctly */
 
     if (lval->kind == NOD_EXPR_INDEX) {
         /* a[b] += x */
@@ -539,11 +540,11 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
 
     if (lval->kind == NOD_EXPR_MAPINDEX) {
         /* a[b] += x */
-        int obj = gen_expr(code, lval->l);
-        int idx = gen_expr(code, lval->r);
         int tmp1 = gen_expr(code, lval);
         int tmp2 = gen_expr(code, rval);
         int src = gen_dst_register2(code, tmp1, tmp2);
+        int obj = gen_expr(code, lval->l);
+        int idx = gen_expr(code, lval->r);
         gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
         return code_emit_store_map(code, obj, idx, src);
     }
@@ -716,8 +717,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             int obj = gen_expr(code, e->l);
             int idx = gen_expr(code, e->r);
             int dst = gen_dst_register2(code, obj, idx);
-            code_emit_load_map(code, dst, obj, idx);
-            return dst;
+            return code_emit_load_map(code, dst, obj, idx);
         }
 
     case NOD_EXPR_STRUCTACCESS:

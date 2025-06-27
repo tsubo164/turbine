@@ -51,6 +51,15 @@
     test.AssertI(24, maplen(m))
     test.AssertI(3574, m["Turbine"])
 
+  ---
+    // concat assign string. order of eval string const
+    - m = map{"foo":"bar", "hello":"world"}
+    test.AssertS("bar", m["foo"])
+    test.AssertS("world", m["hello"])
+    m["foo"] += "123"
+    test.AssertI(2, maplen(m))
+    test.AssertS("bar123", m["foo"])
+
   print(test._test_count_, "tests done.")
 
   return 0

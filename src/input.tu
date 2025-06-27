@@ -2,13 +2,16 @@
 > math
 
 
-# foo() string
-  - v = vec{"foo", "bar"}
-  return v[0]
-/*
-*/
-
 # main(args vec{string}) int
+
+  //- v = vec{"foo", "bar"}
+  //v[0] += "123"
+  //print(v)
+
+  - m = map{"foo":"bar", "hello":"world"}
+  m["foo"] += "123"
+  print(m["foo"])
+
   /*
   - s = foo()
   - s = "foo"
@@ -18,12 +21,7 @@
     nop
   */
 
-  /*
-  - s = args[0]
-  print(s)
-  */
-
-  if foo() == "baz"
+  if m["foo"] == "baz"
     nop
 
   print("before ===============================")
@@ -32,6 +30,8 @@
   print("after  ===============================")
   gc.print()
 
-  //print(s)
+  /*
+  */
+  print(m["foo"])
 
   return 0

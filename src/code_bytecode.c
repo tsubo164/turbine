@@ -360,6 +360,14 @@ int code_emit_store_vec(struct code_bytecode *code, int dst, int idx, int src)
 
 int code_emit_load_map(struct code_bytecode *code, int dst, int src, int key)
 {
+    mark_ref(code, dst, false);
+    push_inst_abc(code, OP_LOADMAP, dst, src, key);
+    return dst;
+}
+
+int code_emit_load_map_ref(struct code_bytecode *code, int dst, int src, int key)
+{
+    mark_ref(code, dst, true);
     push_inst_abc(code, OP_LOADMAP, dst, src, key);
     return dst;
 }
