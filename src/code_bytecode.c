@@ -382,6 +382,14 @@ int code_emit_store_map(struct code_bytecode *code, int dst, int key, int src)
 
 int code_emit_load_struct(struct code_bytecode *code, int dst, int src, int field_idx)
 {
+    mark_ref(code, dst, false);
+    push_inst_abc(code, OP_LOADSTRUCT, dst, src, field_idx);
+    return dst;
+}
+
+int code_emit_load_struct_ref(struct code_bytecode *code, int dst, int src, int field_idx)
+{
+    mark_ref(code, dst, true);
     push_inst_abc(code, OP_LOADSTRUCT, dst, src, field_idx);
     return dst;
 }

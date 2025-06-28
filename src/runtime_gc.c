@@ -89,7 +89,8 @@ static void print_obj(const struct runtime_object *obj)
     case OBJ_STRUCT:
         {
             const struct runtime_struct *s = (struct runtime_struct *) obj;
-            printf("[struct] => len: %d, cap: %d\n", s->fields.len, s->fields.cap);
+            printf("[%6" PRIu32 "] ", obj->id);
+            printf("[%6s] => fields: %" PRIival "\n", "struct", runtime_struct_field_count(s));
         }
         break;
 

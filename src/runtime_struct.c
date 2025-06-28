@@ -5,9 +5,7 @@ struct runtime_struct *runtime_struct_new(value_int_t len)
 {
     struct runtime_struct *s;
 
-    s = calloc(1, sizeof(*s));
-    s->obj.kind = OBJ_STRUCT;
-
+    s = runtime_alloc_object(OBJ_STRUCT, sizeof(*s));
     runtime_valuevec_init(&s->fields);
     runtime_valuevec_resize(&s->fields, len);
 

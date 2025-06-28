@@ -92,6 +92,7 @@ int code_emit_load_map(struct code_bytecode *code, int dst, int src, int key);
 int code_emit_load_map_ref(struct code_bytecode *code, int dst, int src, int key);
 int code_emit_store_map(struct code_bytecode *code, int dst, int key, int src);
 int code_emit_load_struct(struct code_bytecode *code, int dst, int src, int field_idx);
+int code_emit_load_struct_ref(struct code_bytecode *code, int dst, int src, int field_idx);
 int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, int src);
 int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_offset);
 
