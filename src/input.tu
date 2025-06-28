@@ -2,6 +2,10 @@
 > math
 
 
+# x(a string, b string)
+  - m = map{a: b}
+  print(a, "=>", b)
+
 # main(args vec{string}) int
 
   //- v = vec{"foo", "bar"}
@@ -10,6 +14,7 @@
 
   - m = map{"foo":"bar", "hello":"world"}
   m["foo"] += "123"
+  m["hello"] += "456"
   print(m["foo"])
 
   /*
@@ -23,6 +28,8 @@
 
   if m["foo"] == "baz"
     nop
+
+  x("John", "Smith")
 
   print("before ===============================")
   gc.print()

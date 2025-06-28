@@ -197,8 +197,7 @@ struct runtime_map *runtime_map_new(int val_type, value_int_t len)
 {
     struct runtime_map *m;
 
-    m = calloc(1, sizeof(*m));
-    m->obj.kind = OBJ_MAP;
+    m = runtime_alloc_object(OBJ_MAP, sizeof(*m));
     m->val_type = val_type;
     m->tail = &m->head;
 

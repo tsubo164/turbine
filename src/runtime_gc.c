@@ -73,7 +73,8 @@ static void print_obj(const struct runtime_object *obj)
     case OBJ_MAP:
         {
             const struct runtime_map *m = (struct runtime_map *) obj;
-            printf("[map] => len: %" PRIival ", cap: %" PRIival "\n", m->len, m->cap);
+            printf("[%6" PRIu32 "] ", obj->id);
+            printf("[%6s] => len: %" PRIival ", cap: %" PRIival "\n", "map", m->len, m->cap);
         }
         break;
 
@@ -217,7 +218,17 @@ static void mark_object(struct runtime_object *obj)
 
     case OBJ_MAP:
         {
-            //struct runtime_map *m = (struct runtime_map *) obj;
+            struct runtime_map *m = (struct runtime_map *) obj;
+
+            if (is_ref_type(m->val_type)) {
+                struct runtime_map_entry *ent;
+                for (ent = runtime_map_entry_begin(m); ent;
+                     ent = runtime_map_entry_next(ent)) {
+
+                    struct runtime_value val = ent->val;
+                    mark_object(val.obj);
+                }
+            }
         }
         break;
 
