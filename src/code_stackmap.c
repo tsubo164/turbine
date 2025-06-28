@@ -66,6 +66,13 @@ bool code_stackmap_is_ref(const struct code_stackmap_entry *ent, int slot)
     return c == '*';
 }
 
+void code_stackmap_reset_current(struct code_stackmap *stackmap)
+{
+    for (int i = 0; i < 64; i++) {
+        stackmap->current.slots[i] = 0;
+    }
+}
+
 /* TODO make static function */
 void code_stackmap_print_entry(const struct code_stackmap_entry *ent)
 {

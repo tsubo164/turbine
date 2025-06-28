@@ -6,8 +6,7 @@ struct runtime_set *runtime_set_new(int val_type, value_int_t len)
 {
     struct runtime_set *s;
 
-    s = calloc(1, sizeof(*s));
-    s->obj.kind = OBJ_SET;
+    s = runtime_alloc_object(OBJ_SET, sizeof(*s));
     s->val_type = val_type;
     s->compare = runtime_get_compare_function(s->val_type);
 

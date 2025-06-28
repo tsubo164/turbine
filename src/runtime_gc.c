@@ -78,6 +78,14 @@ static void print_obj(const struct runtime_object *obj)
         }
         break;
 
+    case OBJ_SET:
+        {
+            const struct runtime_set *s = (struct runtime_set *) obj;
+            printf("[%6" PRIu32 "] ", obj->id);
+            printf("[%6s] => len: %" PRIival "\n", "set", s->len);
+        }
+        break;
+
     case OBJ_STRUCT:
         {
             const struct runtime_struct *s = (struct runtime_struct *) obj;

@@ -114,6 +114,8 @@ void code_init_registers(struct code_bytecode *code, int lvar_count)
     code->base_reg = lvar_count - 1;
     code->curr_reg = code->base_reg;
     code->max_reg = code->base_reg;
+
+    code_stackmap_reset_current(&code->stackmap);
 }
 
 void code_clear_temporary_registers(struct code_bytecode *code)

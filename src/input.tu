@@ -2,34 +2,20 @@
 > math
 
 
-# x(a string, b string)
-  - m = map{a: b}
-  print(a, "=>", b)
+//# func(a string)
+//  - s = set{a + ", Smith"}
+//  print("=>", s)
 
 # main(args vec{string}) int
 
-  //- v = vec{"foo", "bar"}
-  //v[0] += "123"
-  //print(v)
+  - x = "baz"
+  - s = set{"foo", "bar" + x}
+  print(s)
 
-  - m = map{"foo":"bar", "hello":"world"}
-  m["foo"] += "123"
-  m["hello"] += "456"
-  print(m["foo"])
+  //if s["foo"] == "baz"
+  //  nop
 
-  /*
-  - s = foo()
-  - s = "foo"
-  s = s + args[0]
-
-  if s + "bar" == "baz"
-    nop
-  */
-
-  if m["foo"] == "baz"
-    nop
-
-  x("John", "Smith")
+  //func("John")
 
   print("before ===============================")
   gc.print()
@@ -37,8 +23,6 @@
   print("after  ===============================")
   gc.print()
 
-  /*
-  */
-  print(m["foo"])
+  print(s)
 
   return 0
