@@ -24,9 +24,8 @@ const struct code_stackmap_entry *code_stackmap_find_entry(const struct code_sta
 bool code_stackmap_is_ref(const struct code_stackmap_entry *ent, int slot);
 void code_stackmap_reset_current(struct code_stackmap *stackmap);
 
-void code_stackmap_print_entry(const struct code_stackmap_entry *ent);
-void code_stackmap_print(const struct code_stackmap *stackmap);
 void code_stackmap_free(struct code_stackmap *stackmap);
+void code_print_stackmap(const struct code_stackmap *stackmap);
 
 /* */
 struct code_globalmap {

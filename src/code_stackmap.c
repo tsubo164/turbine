@@ -31,11 +31,6 @@ void code_stackmap_mark(struct code_stackmap *stackmap, value_addr_t addr, int s
     ent->slots[slot] = is_ref ? '*': '-';
 
     push_map(stackmap);
-
-    /*
-    printf("================================================\n");
-    code_stackmap_print(stackmap);
-    */
 }
 
 const struct code_stackmap_entry *code_stackmap_find_entry(const struct code_stackmap *stackmap, value_addr_t addr)
@@ -73,8 +68,7 @@ void code_stackmap_reset_current(struct code_stackmap *stackmap)
     }
 }
 
-/* TODO make static function */
-void code_stackmap_print_entry(const struct code_stackmap_entry *ent)
+static void print_entry(const struct code_stackmap_entry *ent)
 {
     printf("[%6" PRIaddr "] ", ent->addr);
 
@@ -86,11 +80,11 @@ void code_stackmap_print_entry(const struct code_stackmap_entry *ent)
     printf("\n");
 }
 
-void code_stackmap_print(const struct code_stackmap *stackmap)
+void code_print_stackmap(const struct code_stackmap *stackmap)
 {
     for (value_addr_t i = 0; i < stackmap->records.len; i++) {
         const struct code_stackmap_entry *ent = stackmap->records.data[i];
-        code_stackmap_print_entry(ent);
+        print_entry(ent);
     }
 }
 

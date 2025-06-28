@@ -31,12 +31,14 @@ static struct exec_pass make_exec_pass(const struct interpreter_option *opt) {
         opt->print_token ||
         opt->print_tree ||
         opt->print_symbols ||
-        opt->print_bytecode;
+        opt->print_bytecode ||
+        opt->print_stackmap;
 
     if (opt->print_token)    pass.tokenize = true;
     if (opt->print_tree)     pass.tokenize = pass.parse = true;
     if (opt->print_symbols)  pass.tokenize = pass.parse = true;
     if (opt->print_bytecode) pass.tokenize = pass.parse = pass.generate = true;
+    if (opt->print_stackmap) pass.tokenize = pass.parse = pass.generate = true;
 
     if (!has_print_option) {
         pass.tokenize = pass.parse = pass.generate = pass.execute = true;
@@ -82,6 +84,12 @@ static void print_code(const struct code_bytecode *code, bool print_builtin)
 {
     print_header("bytecode");
     code_print_bytecode(code, print_builtin);
+}
+
+static void print_stackmap(const struct code_bytecode *code)
+{
+    print_header("stackmap");
+    code_print_stackmap(&code->stackmap);
 }
 
 static value_int_t exec_code(const struct code_bytecode *code, const struct interpreter_args *args,
@@ -178,6 +186,11 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     /* print bytecode */
     if (opt->print_bytecode) {
         print_code(&code, opt->print_bytecode_all);
+    }
+
+    /* print stackmap */
+    if (opt->print_stackmap) {
+        print_stackmap(&code);
     }
 
     /* execute */

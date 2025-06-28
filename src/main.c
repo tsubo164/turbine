@@ -24,6 +24,7 @@ const char *usage =
 "  -Y, --print-symbols-all     Print symbols, including built-in function symbols\n"
 "  -b, --print-bytecode        Print bytecode\n"
 "  -B, --print-bytecode-all    Print bytecode, including built-in function addresses\n"
+"  -m, --print-stackmap        Print stackmap\n"
 "  -s, --print-stack           Print bytecode and stack state during script execution\n"
 "\n";
 
@@ -76,6 +77,9 @@ int main(int argc, char **argv)
         else if (!strcmp(arg, "--print-bytecode-all") || !strcmp(arg, "-B")) {
             opt.print_bytecode = true;
             opt.print_bytecode_all = true;
+        }
+        else if (!strcmp(arg, "--print-stackmap") || !strcmp(arg, "-m")) {
+            opt.print_stackmap = true;
         }
         else if (!strcmp(arg, "--print-stack") || !strcmp(arg, "-s")) {
             opt.print_stack = true;

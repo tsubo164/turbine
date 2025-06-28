@@ -302,11 +302,6 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
         const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, precall_addr);
         const struct vm_call *call = vm_get_call(gc->vm, frame_id);
 
-        /*
-        vm_print_call(call);
-        code_stackmap_print_entry(ent);
-        */
-
         for (int i = 0; i < 64; i++) {
             bool is_ref = code_stackmap_is_ref(ent, i);
 
