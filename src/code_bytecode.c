@@ -895,36 +895,42 @@ value_addr_t code_emit_forenum_end(struct code_bytecode *code, int itr, value_ad
 /* conversion */
 int code_emit_bool_to_int(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_BOOLTOINT, dst, src);
     return dst;
 }
 
 int code_emit_bool_to_float(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_BOOLTOFLOAT, dst, src);
     return dst;
 }
 
 int code_emit_int_to_bool(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_INTTOBOOL, dst, src);
     return dst;
 }
 
 int code_emit_int_to_float(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_INTTOFLOAT, dst, src);
     return dst;
 }
 
 int code_emit_float_to_bool(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_FLOATTOBOOL, dst, src);
     return dst;
 }
 
 int code_emit_float_to_int(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_FLOATTOINT, dst, src);
     return dst;
 }

@@ -9,9 +9,8 @@
 
 # main(args vec{string}) int
 
-  - x = "baz"
-  - b = x + "baz" == "**"
-  - i = 3 * _X_ + 9
+  for i in vec{11, 22}
+    print(i)
 
   print("before ===============================")
   gc.print()
