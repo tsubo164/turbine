@@ -453,192 +453,224 @@ int code_emit_new_struct(struct code_bytecode *code, int dst, int len)
 /* arithmetic */
 int code_emit_add_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_ADDINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_add_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_ADDFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_sub_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_SUBINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_sub_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_SUBFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_mul_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_MULINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_mul_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_MULFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_div_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_DIVINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_div_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_DIVFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_rem_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_REMINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_rem_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_REMFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_equal_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_EQINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_equal_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_EQFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_not_equal_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_NEQINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_not_equal_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_NEQFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_less_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_LTINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_less_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_LTFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_less_equal_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_LTEINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_less_equal_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_LTEFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_greater_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_GTINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_greater_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_GTFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_greater_equal_int(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_GTEINT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_greater_equal_float(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_GTEFLOAT, dst, src0, src1);
     return dst;
 }
 
 int code_emit_bitwise_and(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_BITWISEAND, dst, src0, src1);
     return dst;
 }
 
 int code_emit_bitwise_or(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_BITWISEOR, dst, src0, src1);
     return dst;
 }
 
 int code_emit_bitwise_xor(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_BITWISEXOR, dst, src0, src1);
     return dst;
 }
 
 int code_emit_bitwise_not(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_BITWISENOT, dst, src);
     return dst;
 }
 
 int code_emit_shift_left(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_SHL, dst, src0, src1);
     return dst;
 }
 
 int code_emit_shift_right(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_SHR, dst, src0, src1);
     return dst;
 }
 
 int code_emit_negate_int(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_NEGINT, dst, src);
     return dst;
 }
 
 int code_emit_negate_float(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_NEGFLOAT, dst, src);
     return dst;
 }
 
 int code_emit_set_if_zero(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_SETIFZERO, dst, src);
     return dst;
 }
 
 int code_emit_set_if_not_zero(struct code_bytecode *code, int dst, int src)
 {
+    mark_ref(code, dst, false);
     push_inst_ab(code, OP_SETIFNOTZ, dst, src);
     return dst;
 }
@@ -660,6 +692,7 @@ int code_emit_equal_string(struct code_bytecode *code, int dst, int src0, int sr
 
 int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, int src1)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_NEQSTRING, dst, src0, src1);
     return dst;
 }
