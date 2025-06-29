@@ -402,6 +402,7 @@ int code_emit_store_struct(struct code_bytecode *code, int dst, int field_idx, i
 
 int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_offset)
 {
+    mark_ref(code, dst, false);
     push_inst_abc(code, OP_LOADENUM, dst, src, field_offset);
     return dst;
 }
@@ -409,36 +410,42 @@ int code_emit_load_enum(struct code_bytecode *code, int dst, int src, int field_
 /* vec, map, set, stack, queue, struct */
 int code_emit_new_vec(struct code_bytecode *code, int dst, int type, int len)
 {
+    mark_ref(code, dst, true);
     push_inst_abc(code, OP_NEWVEC, dst, type, len);
     return dst;
 }
 
 int code_emit_new_map(struct code_bytecode *code, int dst, int type, int len)
 {
+    mark_ref(code, dst, true);
     push_inst_abc(code, OP_NEWMAP, dst, type, len);
     return dst;
 }
 
 int code_emit_new_set(struct code_bytecode *code, int dst, int type, int len)
 {
+    mark_ref(code, dst, true);
     push_inst_abc(code, OP_NEWSET, dst, type, len);
     return dst;
 }
 
 int code_emit_new_stack(struct code_bytecode *code, int dst, int type, int len)
 {
+    mark_ref(code, dst, true);
     push_inst_abc(code, OP_NEWSTACK, dst, type, len);
     return dst;
 }
 
 int code_emit_new_queue(struct code_bytecode *code, int dst, int type, int len)
 {
+    mark_ref(code, dst, true);
     push_inst_abc(code, OP_NEWQUEUE, dst, type, len);
     return dst;
 }
 
 int code_emit_new_struct(struct code_bytecode *code, int dst, int len)
 {
+    mark_ref(code, dst, true);
     push_inst_abb(code, OP_NEWSTRUCT, dst, len);
     return dst;
 }

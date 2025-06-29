@@ -1,22 +1,17 @@
 > gc
 > math
 
-
-//# func(a string)
-//  - s = set{a + ", Smith"}
-//  print("=>", s)
-## Name struct
-  - first string
-  - last string
+//## Name struct
+//  - first string
+//  - last string
 
 # main(args vec{string}) int
 
   - x = "baz"
-  - s = Name{first="foo", last="bar" + x}
-  print(s)
+  - v = vec{"foo", "bar" + x}
+  print(v)
 
-  //if s.first + x == "John"
-  if s.last == "John"
+  if v["foo"] + "baz" == "**"
     nop
 
   print("before ===============================")
@@ -25,6 +20,6 @@
   print("after  ===============================")
   gc.print()
 
-  //print(s)
+  print(v)
 
   return 0
