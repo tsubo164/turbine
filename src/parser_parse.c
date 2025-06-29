@@ -855,9 +855,14 @@ static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *b
 
     struct parser_expr *idx = expression(p);
 
-    if (!parser_is_int_type(idx->type) &&
+    if (parser_is_vec_type(base->type) &&
+        !parser_is_int_type(idx->type)) {
+        error(p, tok_pos(p), "index expression for vec must be integer type");
+    }
+
+    if (parser_is_map_type(base->type) &&
         !parser_is_string_type(idx->type)) {
-        error(p, tok_pos(p), "index expression must be integer or string type");
+        error(p, tok_pos(p), "index expression for map must be string type");
     }
 
     expect(p, TOK_RBRACK);
