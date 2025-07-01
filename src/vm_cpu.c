@@ -47,48 +47,35 @@ static void pop_call(struct vm_cpu *vm, struct vm_call *call)
     vm_callstack_pop(&vm->callstack, call);
 }
 
-#define SPOFFSET 1
-static value_addr_t index_to_addr(value_int_t index)
+static value_addr_t reg_to_addr(const struct vm_cpu *vm, int reg)
 {
-    return index - SPOFFSET;
+    return (vm->bp + 1) + reg;
 }
 
-static value_int_t addr_to_index(value_addr_t addr)
+static int addr_to_reg(const struct vm_cpu *vm, value_addr_t addr)
 {
-    return addr + SPOFFSET;
-}
-
-static value_addr_t reg_to_addr(const struct vm_cpu *vm, int id)
-{
-    return index_to_addr(vm->bp) + 1 + id;
-}
-
-static value_int_t addr_to_id(const struct vm_cpu *vm, value_addr_t addr)
-{
-    return addr - (index_to_addr(vm->bp) + 1);
+    return addr - (vm->bp + 1);
 }
 
 static struct runtime_value read_stack(const struct vm_cpu *vm, value_addr_t addr)
 {
-    value_int_t index = addr_to_index(addr);
-    return vm->stack.data[index];
+    return vm->stack.data[addr];
 }
 
 static void write_stack(struct vm_cpu *vm, value_addr_t addr, struct runtime_value val)
 {
-    value_int_t index = addr_to_index(addr);
-    vm->stack.data[index] = val;
+    vm->stack.data[addr] = val;
 }
 
-static struct runtime_value get_local(const struct vm_cpu *vm, int id)
+static struct runtime_value get_local(const struct vm_cpu *vm, int reg)
 {
-    value_addr_t addr = reg_to_addr(vm, id);
+    value_addr_t addr = reg_to_addr(vm, reg);
     return read_stack(vm, addr);
 }
 
-static void set_local(struct vm_cpu *vm, int id, struct runtime_value val)
+static void set_local(struct vm_cpu *vm, int reg, struct runtime_value val)
 {
-    value_addr_t addr = reg_to_addr(vm, id);
+    value_addr_t addr = reg_to_addr(vm, reg);
     write_stack(vm, addr, val);
 }
 
@@ -102,19 +89,19 @@ static void set_global(struct vm_cpu *vm, int id, struct runtime_value val)
     runtime_valuevec_set(vm->globals, id, val);
 }
 
-static struct runtime_value fetch_register_value(struct vm_cpu *vm, int id)
+static struct runtime_value fetch_register_value(struct vm_cpu *vm, int reg)
 {
-    if (code_is_immediate_value(id)) {
+    if (code_is_immediate_value(reg)) {
         struct runtime_value imm = {0};
         int imm_size = 0;
 
-        imm = code_read_immediate_value(vm->code, vm->ip, id, &imm_size);
+        imm = code_read_immediate_value(vm->code, vm->ip, reg, &imm_size);
         vm->ip += imm_size;
 
         return imm;
     }
     else {
-        return get_local(vm, id);
+        return get_local(vm, reg);
     }
 }
 
@@ -128,11 +115,9 @@ void vm_print_stack(const struct vm_cpu *vm)
 {
     printf("-----------------------\n");
     for (value_addr_t i = vm->sp; i >= 0; i--) {
-        value_addr_t addr = index_to_addr(i);
-
-        if (i <= vm->sp && addr >= 0)
-            printf("[%6" PRIaddr "] ", addr);
-        else if (addr < 0)
+        if (i <= vm->sp && i >= 0)
+            printf("[%6" PRIaddr "] ", i);
+        else if (i < 0)
             printf("[%6s] ", "*");
 
         if (i == vm->sp)
@@ -143,11 +128,9 @@ void vm_print_stack(const struct vm_cpu *vm)
         struct runtime_value val = runtime_valuevec_get(&vm->stack, i);
         printf("|%4" PRIival "|", val.inum);
 
-        if (i <= vm->sp && i > vm->bp)
-        {
-            value_addr_t addr = index_to_addr(i);
-            value_int_t id = addr_to_id(vm, addr);
-            printf(" [%" PRIival "]", id);
+        if (i <= vm->sp && i > vm->bp) {
+            value_int_t reg = addr_to_reg(vm, i);
+            printf(" [%" PRIival "]", reg);
         }
 
         if (i == vm->bp)
@@ -176,7 +159,7 @@ void vm_print_gc_objects(const struct vm_cpu *vm)
     runtime_gc_print_objects(&vm->gc);
 }
 
-static void call_function(struct vm_cpu *vm, value_addr_t callsite_addr, int return_reg, int func_id)
+static void call_function(struct vm_cpu *vm, value_addr_t callsite_addr, int retval_reg, int func_id)
 {
     value_addr_t func_addr = code_get_function_address(vm->code, func_id);
 
@@ -187,12 +170,12 @@ static void call_function(struct vm_cpu *vm, value_addr_t callsite_addr, int ret
     call.return_ip = vm->ip;
     call.return_bp = vm->bp;
     call.return_sp = vm->sp;
-    call.return_reg = return_reg;
+    call.retval_reg = retval_reg;
     call.callsite_ip = callsite_addr;
 
     /* set new pointers */
     set_ip(vm, func_addr);
-    set_bp(vm, reg_to_addr(vm, call.return_reg));
+    set_bp(vm, (vm->bp + 1) + call.retval_reg - 1);
 
     /* register allocation (parameters + local variables) */
     int max_reg_count = code_get_function_register_count(vm->code, func_id);
@@ -513,8 +496,7 @@ static void run_cpu(struct vm_cpu *vm)
 
                 if (result == RESULT_NORETURN) {
                     /* TODO consider making push_to_stack */
-                    value_addr_t sp_addr = index_to_addr(vm->sp);
-                    write_stack(vm, sp_addr, ret_val);
+                    write_stack(vm, vm->sp, ret_val);
                     halt = true;
                 }
             }
@@ -528,7 +510,7 @@ static void run_cpu(struct vm_cpu *vm)
 
                 pop_call(vm, &call);
 
-                int ret_reg = call.return_reg;
+                int ret_reg = call.retval_reg;
 
                 set_ip(vm, call.return_ip);
                 set_bp(vm, call.return_bp);
@@ -1246,9 +1228,9 @@ const struct vm_call *vm_get_call(const struct vm_cpu *vm, int index)
 
 struct runtime_value vm_lookup_stack(const struct vm_cpu *vm, value_addr_t bp, int offset)
 {
-    value_addr_t index = bp + 1 + offset;
-    assert(index >= 0 && index < vm->stack.len);
-    return read_stack(vm, index_to_addr(index));
+    value_addr_t addr = bp + 1 + offset;
+    assert(addr >= 0 && addr < vm->stack.len);
+    return read_stack(vm, addr);
 }
 
 int vm_get_global_count(const struct vm_cpu *vm)

@@ -1,11 +1,10 @@
+/*
 > gc
 > math
 
 //## Name struct
 //  - first string
 //  - last string
-
-- _X_ = 42
 
 # main(args vec{string}) int
 
@@ -20,11 +19,23 @@
 
   return 0
 
+*/
 /*
 # add(a int, b int) int
   return a + b
 
 # main(args vec{string}) int
-  - c = add(42, 13)
+  //- c = add(42, 13)
   return 0
 */
+
+# seven() int
+  return 7
+
+# add(x int, y int) int
+  return x + y
+
+# main() int
+  //return seven()// + add(30, 5)
+  //return add(30, 5)
+  return 42

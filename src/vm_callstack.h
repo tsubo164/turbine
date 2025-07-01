@@ -8,7 +8,7 @@ struct vm_call {
     int func_index;
     /* TODO remove argc */
     int argc;
-    int return_reg;
+    int retval_reg;
     value_addr_t return_ip;
     value_addr_t return_bp;
     value_addr_t return_sp;

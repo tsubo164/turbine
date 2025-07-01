@@ -44,7 +44,7 @@ void vm_print_call(const struct vm_call *call)
 {
     printf("func_index:  %d\n", call->func_index);
     printf("argc:        %d\n", call->argc);
-    printf("return_reg:  %d\n", call->return_reg);
+    printf("retval_reg:  %d\n", call->retval_reg);
     printf("return_ip:   %" PRIaddr "\n", call->return_ip);
     printf("return_bp:   %" PRIaddr "\n", call->return_bp);
     printf("return_sp:   %" PRIaddr "\n", call->return_sp);
