@@ -146,6 +146,8 @@ int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, in
 /* function call */
 int code_emit_call_function(struct code_bytecode *code, int ret_reg,
         int func_id, bool is_native);
+int code_emit_call_function_ref(struct code_bytecode *code, int ret_reg,
+        int func_id, bool is_native);
 int code_emit_call_function_pointer(struct code_bytecode *code, int ret, int src);
 void code_emit_return(struct code_bytecode *code, int id);
 

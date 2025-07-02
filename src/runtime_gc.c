@@ -293,8 +293,6 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
     value_addr_t callsite_addr = inst_addr;
 
     for (int frame_id = ncalls - 1; frame_id >= 0; frame_id--) {
-        /* TODO consider adding empty stackmap at 0 */
-        /* TODO skip scan if callsite_addr is 0 */
         /* no object at the beginning */
         if (callsite_addr == 0)
             break;
@@ -302,8 +300,15 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
         value_addr_t precall_addr = callsite_addr - 1;
         const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, precall_addr);
         const struct vm_call *call = vm_get_call(gc->vm, frame_id);
+        int nslots = call->current_sp - call->current_bp;
+        assert(nslots <= 64);
 
-        for (int i = 0; i < 64; i++) {
+        if (0) {
+            printf("-------------------------------------\n");
+            vm_print_call(call);
+        }
+
+        for (int i = 0; i < nslots; i++) {
             bool is_ref = code_stackmap_is_ref(ent, i);
 
             if (is_ref) {

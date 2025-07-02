@@ -454,6 +454,15 @@ static int emit_load_struct(struct code_bytecode *code, int dst, int src, int id
         return code_emit_load_struct(code, dst, src, idx);
 }
 
+static int emit_call_function(struct code_bytecode *code, int ret_reg, int func_id, bool is_native,
+        const struct parser_type *type)
+{
+    if (is_ref(type))
+        return code_emit_call_function_ref(code, ret_reg, func_id, is_native);
+    else
+        return code_emit_call_function(code, ret_reg, func_id, is_native);
+}
+
 /* emit_ */
 
 static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
@@ -659,7 +668,9 @@ static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
     /* call */
     value_int_t func_id = 0;
     if (parser_eval_expr(call->l, &func_id)) {
-        code_emit_call_function(code, retval_reg, func_id, func_sig->is_native);
+        bool is_native = func_sig->is_native;
+        const struct parser_type *return_type = func_sig->return_type;
+        emit_call_function(code, retval_reg, func_id, is_native, return_type);
     }
     else {
         int src = gen_expr(code, call->l);
@@ -1369,7 +1380,7 @@ static void gen_start_func_body(struct code_bytecode *code, const struct parser_
     /* global vars */
     gen_gvars(code, mod);
 
-    /* args for main */
+    /* args vec{string} for main */
     int dst = gen_dst_register1(code, ret_reg);
     code_emit_move_ref(code, dst, 0);
 

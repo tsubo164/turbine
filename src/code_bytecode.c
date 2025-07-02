@@ -701,6 +701,23 @@ int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, in
 int code_emit_call_function(struct code_bytecode *code, int ret_reg,
         int func_index, bool is_native)
 {
+    mark_ref(code, ret_reg, false);
+    int reg0 = ret_reg;
+
+    if (is_native) {
+        push_inst_abb(code, OP_CALLNATIVE, reg0, func_index);
+    }
+    else {
+        push_inst_abb(code, OP_CALL, reg0, func_index);
+    }
+
+    return reg0;
+}
+
+int code_emit_call_function_ref(struct code_bytecode *code, int ret_reg,
+        int func_index, bool is_native)
+{
+    mark_ref(code, ret_reg, true);
     int reg0 = ret_reg;
 
     if (is_native) {
