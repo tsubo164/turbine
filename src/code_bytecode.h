@@ -148,7 +148,8 @@ int code_emit_call_function(struct code_bytecode *code, int ret_reg,
         int func_id, bool is_native);
 int code_emit_call_function_ref(struct code_bytecode *code, int ret_reg,
         int func_id, bool is_native);
-int code_emit_call_function_pointer(struct code_bytecode *code, int ret, int src);
+int code_emit_call_function_pointer(struct code_bytecode *code, int ret_reg, int src);
+int code_emit_call_function_pointer_ref(struct code_bytecode *code, int ret_reg, int src);
 void code_emit_return(struct code_bytecode *code, int id);
 
 /* branch */

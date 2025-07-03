@@ -463,7 +463,16 @@ static int emit_call_function(struct code_bytecode *code, int ret_reg, int func_
         return code_emit_call_function(code, ret_reg, func_id, is_native);
 }
 
-/* emit_ */
+static int emit_call_function_pointer(struct code_bytecode *code, int ret_reg, int src,
+        const struct parser_type *type)
+{
+    if (is_ref(type))
+        return code_emit_call_function_pointer_ref(code, ret_reg, src);
+    else
+        return code_emit_call_function_pointer(code, ret_reg, src);
+}
+
+/* emit_ wrappers */
 
 static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
 {
@@ -674,7 +683,8 @@ static int gen_call(struct code_bytecode *code, const struct parser_expr *call)
     }
     else {
         int src = gen_expr(code, call->l);
-        code_emit_call_function_pointer(code, retval_reg, src);
+        const struct parser_type *return_type = func_sig->return_type;
+        emit_call_function_pointer(code, retval_reg, src, return_type);
     }
 
     return code_set_register_pointer(code, retval_reg);

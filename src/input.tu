@@ -4,8 +4,10 @@
   return vec{x, x, x}
 
 # main(args vec{string}) int
+  - g = getv
 
-  print(getv(42))
+  //print(getv(42))
+  print(g(42))
   - v = getv(1)
   print(v)
 
