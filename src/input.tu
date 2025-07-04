@@ -1,15 +1,12 @@
 > gc
 
-# getv(x int) vec{int}
-  return vec{x, x, x}
-
 # main(args vec{string}) int
-  - g = getv
 
-  //print(getv(42))
-  print(g(42))
-  - v = getv(1)
-  print(v)
+  for i, val in vec{11, 22, 42}
+    print(2 * val)
+
+  for i in 0..10
+    print(2 * i)
 
   print("before ===============================")
   gc.print()

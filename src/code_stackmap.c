@@ -14,23 +14,21 @@ static void push_entry(struct code_stackmap_entry_vec *v, struct code_stackmap_e
     v->data[v->len++] = val;
 }
 
-static void push_map(struct code_stackmap *stackmap)
-{
-    struct code_stackmap_entry *newent;
-    newent = calloc(1, sizeof(*newent));
-    *newent = stackmap->current;
-
-    push_entry(&stackmap->records, newent);
-}
-
 void code_stackmap_mark(struct code_stackmap *stackmap, value_addr_t addr, int slot, bool is_ref)
 {
     struct code_stackmap_entry *ent = &stackmap->current;
 
     ent->addr = addr;
     ent->slots[slot] = is_ref ? '*': '-';
+}
 
-    push_map(stackmap);
+void code_stackmap_push(struct code_stackmap *stackmap)
+{
+    struct code_stackmap_entry *newent;
+    newent = calloc(1, sizeof(*newent));
+    *newent = stackmap->current;
+
+    push_entry(&stackmap->records, newent);
 }
 
 const struct code_stackmap_entry *code_stackmap_find_entry(const struct code_stackmap *stackmap, value_addr_t addr)

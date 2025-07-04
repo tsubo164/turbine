@@ -5,12 +5,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* ============================================================================ */
-/* TODO */
+/* stackmap mark */
 static void mark_ref(struct code_bytecode *code, int slot, bool is_ref)
 {
     value_addr_t addr = code_get_next_addr(code);
     code_stackmap_mark(&code->stackmap, addr, slot, is_ref);
+    code_stackmap_push(&code->stackmap);
 }
 
 static int register_to_smallint(int id);
@@ -20,7 +20,34 @@ static void mark_global_ref(struct code_bytecode *code, int slot, bool is_ref)
     int id = register_to_smallint(slot);
     code_globalmap_mark(&code->globalmap, id, is_ref);
 }
-/* ============================================================================ */
+
+static void mark_ref2(struct code_bytecode *code, int slot, bool is_ref0, bool is_ref1)
+{
+    value_addr_t addr = code_get_next_addr(code);
+    code_stackmap_mark(&code->stackmap, addr, slot + 0, is_ref0);
+    code_stackmap_mark(&code->stackmap, addr, slot + 1, is_ref1);
+    code_stackmap_push(&code->stackmap);
+}
+
+static void mark_ref3(struct code_bytecode *code, int slot, bool is_ref0, bool is_ref1, bool is_ref2)
+{
+    value_addr_t addr = code_get_next_addr(code);
+    code_stackmap_mark(&code->stackmap, addr, slot + 0, is_ref0);
+    code_stackmap_mark(&code->stackmap, addr, slot + 1, is_ref1);
+    code_stackmap_mark(&code->stackmap, addr, slot + 2, is_ref2);
+    code_stackmap_push(&code->stackmap);
+}
+
+static void mark_ref4(struct code_bytecode *code, int slot, bool is_ref0, bool is_ref1, bool is_ref2, bool is_ref3)
+{
+    value_addr_t addr = code_get_next_addr(code);
+    code_stackmap_mark(&code->stackmap, addr, slot + 0, is_ref0);
+    code_stackmap_mark(&code->stackmap, addr, slot + 1, is_ref1);
+    code_stackmap_mark(&code->stackmap, addr, slot + 2, is_ref2);
+    code_stackmap_mark(&code->stackmap, addr, slot + 3, is_ref3);
+    code_stackmap_push(&code->stackmap);
+}
+/* --- */
 
 void code_free_bytecode(struct code_bytecode *code)
 {
@@ -813,8 +840,11 @@ value_addr_t code_emit_jump_if_not_zero(struct code_bytecode *code, int id, valu
 }
 
 /* loop */
+/* for loop instructions: no need to mark elements of collections, even if they are references,
+ * since they will be traced from the collections themselves */
 value_addr_t code_emit_fornum_begin(struct code_bytecode *code, int itr)
 {
+    mark_ref4(code, itr, false, false, false, false);
     value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORNUMBEGIN, itr, -1);
     return operand_addr;
@@ -829,6 +859,7 @@ value_addr_t code_emit_fornum_end(struct code_bytecode *code, int itr, value_add
 
 value_addr_t code_emit_forvec_begin(struct code_bytecode *code, int itr)
 {
+    mark_ref3(code, itr, false, false, true);
     value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORVECBEGIN, itr, -1);
     return operand_addr;
@@ -843,6 +874,7 @@ value_addr_t code_emit_forvec_end(struct code_bytecode *code, int itr, value_add
 
 value_addr_t code_emit_formap_begin(struct code_bytecode *code, int itr)
 {
+    mark_ref4(code, itr, false, false, false, true);
     value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORMAPBEGIN, itr, -1);
     return operand_addr;
@@ -857,6 +889,7 @@ value_addr_t code_emit_formap_end(struct code_bytecode *code, int itr, value_add
 
 value_addr_t code_emit_forset_begin(struct code_bytecode *code, int itr)
 {
+    mark_ref3(code, itr, false, false, true);
     value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORSETBEGIN, itr, -1);
     return operand_addr;
@@ -871,6 +904,7 @@ value_addr_t code_emit_forset_end(struct code_bytecode *code, int itr, value_add
 
 value_addr_t code_emit_forstack_begin(struct code_bytecode *code, int itr)
 {
+    mark_ref3(code, itr, false, false, true);
     value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORSTACKBEGIN, itr, -1);
     return operand_addr;
@@ -885,6 +919,7 @@ value_addr_t code_emit_forstack_end(struct code_bytecode *code, int itr, value_a
 
 value_addr_t code_emit_forqueue_begin(struct code_bytecode *code, int itr)
 {
+    mark_ref3(code, itr, false, false, true);
     value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORQUEUEBEGIN, itr, -1);
     return operand_addr;
@@ -899,6 +934,7 @@ value_addr_t code_emit_forqueue_end(struct code_bytecode *code, int itr, value_a
 
 value_addr_t code_emit_forenum_begin(struct code_bytecode *code, int itr)
 {
+    mark_ref2(code, itr, false, false);
     value_addr_t operand_addr = code_get_next_addr(code);
     push_inst_abb(code, OP_FORENUMBEGIN, itr, -1);
     return operand_addr;
