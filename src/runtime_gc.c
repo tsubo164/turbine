@@ -230,10 +230,8 @@ static void mark_object(struct runtime_object *obj)
             struct runtime_map *m = (struct runtime_map *) obj;
 
             if (is_ref_type(m->val_type)) {
-                struct runtime_map_entry *ent;
-                for (ent = runtime_map_entry_begin(m); ent;
-                     ent = runtime_map_entry_next(ent)) {
-
+                struct runtime_map_entry *ent = runtime_map_entry_begin(m);
+                for (; ent; ent = runtime_map_entry_next(ent)) {
                     struct runtime_value val = ent->val;
                     mark_object(val.obj);
                 }
@@ -243,7 +241,15 @@ static void mark_object(struct runtime_object *obj)
 
     case OBJ_SET:
         {
-            //struct runtime_set *s = (struct runtime_set *) obj;
+            struct runtime_set *s = (struct runtime_set *) obj;
+
+            if (is_ref_type(s->val_type)) {
+                struct runtime_set_node *node = runtime_set_node_begin(s);
+                for (; node; node = runtime_set_node_next(node)) {
+                    struct runtime_value val = node->val;
+                    mark_object(val.obj);
+                }
+            }
         }
         break;
 
