@@ -86,6 +86,14 @@ static void print_obj(const struct runtime_object *obj)
         }
         break;
 
+    case OBJ_STACK:
+        {
+            const struct runtime_stack *s = (struct runtime_stack *) obj;
+            printf("[%6" PRIu32 "] ", obj->id);
+            printf("[%6s] => len: %" PRIival "\n", "stack", runtime_stack_len(s));
+        }
+        break;
+
     case OBJ_STRUCT:
         {
             const struct runtime_struct *s = (struct runtime_struct *) obj;
@@ -255,7 +263,15 @@ static void mark_object(struct runtime_object *obj)
 
     case OBJ_STACK:
         {
-            //struct runtime_stack *s = (struct runtime_stack *) obj;
+            struct runtime_stack *s = (struct runtime_stack *) obj;
+
+            if (is_ref_type(s->val_type)) {
+                int len = runtime_stack_len(s);
+                for (int i = 0; i < len; i++) {
+                    struct runtime_value val = runtime_stack_get(s, i);
+                    mark_object(val.obj);
+                }
+            }
         }
         break;
 
