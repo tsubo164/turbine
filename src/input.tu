@@ -3,8 +3,8 @@
 # main(args vec{string}) int
 
   - s = "hello"
-  - t = stack{"foo", "bar"}
-  stackpush(t, s + "-world")
+  - t = queue{"foo", "bar"}
+  queuepush(t, s + "-world")
   print(t)
 
   print("before ===============================")
@@ -13,6 +13,7 @@
   print("after  ===============================")
   gc.print()
 
-  print(stacktop(t))
+  //print(queuepop(t))
+  print(t)
 
   return 0

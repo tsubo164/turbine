@@ -94,6 +94,14 @@ static void print_obj(const struct runtime_object *obj)
         }
         break;
 
+    case OBJ_QUEUE:
+        {
+            const struct runtime_queue *q = (struct runtime_queue *) obj;
+            printf("[%6" PRIu32 "] ", obj->id);
+            printf("[%6s] => len: %" PRIival "\n", "queue", runtime_queue_len(q));
+        }
+        break;
+
     case OBJ_STRUCT:
         {
             const struct runtime_struct *s = (struct runtime_struct *) obj;
@@ -277,7 +285,15 @@ static void mark_object(struct runtime_object *obj)
 
     case OBJ_QUEUE:
         {
-            //struct runtime_queue *q = (struct runtime_queue *) obj;
+            struct runtime_queue *q = (struct runtime_queue *) obj;
+
+            if (is_ref_type(q->val_type)) {
+                int len = runtime_queue_len(q);
+                for (int i = 0; i < len; i++) {
+                    struct runtime_value val = runtime_queue_get(q, i);
+                    mark_object(val.obj);
+                }
+            }
         }
         break;
 
