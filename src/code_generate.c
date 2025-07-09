@@ -1478,12 +1478,6 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                 }
             }
             break;
-
-            /*
-        case SYM_MODULE:
-            register_functions(code, sym->module->scope);
-            break;
-            */
         }
     }
 }
@@ -1513,6 +1507,15 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
 
         case SYM_MODULE:
             register_functions(code, sym->module->scope);
+            break;
+
+        case SYM_STRUCT:
+            {
+                struct parser_struct *strct = sym->strct;
+                int field_count = parser_struct_get_field_count(strct);
+
+                strct->id = code_register_struct(code, strct->name, field_count);
+            }
             break;
         }
     }

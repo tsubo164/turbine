@@ -5,10 +5,12 @@
 
 #include "code_instruction.h"
 #include "code_constant_pool.h"
+#include "code_stackmap.h"
 #include "code_function.h"
+#include "code_struct.h"
+
 #include "native_module.h"
 #include "runtime_value.h"
-#include "code_stackmap.h"
 #include "data_vec.h"
 
 #define IMMEDIATE_QUEUE_SIZE 16
@@ -43,6 +45,9 @@ struct code_bytecode {
 
     /* functions */
     struct code_functionvec funcs;
+
+    /* structs */
+    struct code_structvec strcts;
 
     /* back patches */
     struct data_intstack ors;
@@ -229,6 +234,9 @@ value_addr_t code_get_function_address(const struct code_bytecode *code, int fun
 int code_get_function_arg_count(const struct code_bytecode *code, int func_id);
 void code_set_function_variadic(struct code_bytecode *code, int func_id, bool is_variadic);
 bool code_is_function_variadic(const struct code_bytecode *code, int func_id);
+
+/* structs */
+int code_register_struct(struct code_bytecode *code, const char *fullname, int field_count);
 
 /* enum fields */
 int code_push_enum_field_int(struct code_bytecode *code, value_int_t ival);

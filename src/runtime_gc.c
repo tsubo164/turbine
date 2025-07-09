@@ -109,10 +109,6 @@ static void print_obj(const struct runtime_object *obj)
             printf("[%6s] => fields: %" PRIival "\n", "struct", runtime_struct_field_count(s));
         }
         break;
-
-    default:
-        assert(!"unreachable");
-        break;
     }
 }
 
@@ -299,7 +295,15 @@ static void mark_object(struct runtime_object *obj)
 
     case OBJ_STRUCT:
         {
-            //struct runtime_struct *s = (struct runtime_struct *) obj;
+            /*
+            struct runtime_struct *s = (struct runtime_struct *) obj;
+
+            int len = runtime_struct_field_count(s);
+            for (int i = 0; i < len; i++) {
+                struct runtime_value val = runtime_struct_get(s, i);
+                mark_object(val.obj);
+            }
+            */
         }
         break;
     }

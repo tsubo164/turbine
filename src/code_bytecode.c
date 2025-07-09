@@ -60,6 +60,9 @@ void code_free_bytecode(struct code_bytecode *code)
     /* functions */
     code_functionvec_free(&code->funcs);
 
+    /* structs */
+    code_structvec_free(&code->strcts);
+
     /* back patches */
     data_intstack_free(&code->ors);
     data_intstack_free(&code->breaks);
@@ -1171,6 +1174,14 @@ bool code_is_function_variadic(const struct code_bytecode *code, int func_id)
     assert(func);
 
     return func->is_variadic;
+}
+
+/* structs */
+int code_register_struct(struct code_bytecode *code, const char *fullname, int field_count)
+{
+    int new_id = code_push_struct(&code->strcts, fullname, field_count);
+
+    return new_id;
 }
 
 /* enum fields */

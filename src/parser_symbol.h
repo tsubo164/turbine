@@ -52,6 +52,7 @@ struct parser_funcvec {
 struct parser_struct_field {
     const char *name;
     const struct parser_type *type;
+    /* TODO remove offset? */
     int offset;
 };
 
@@ -64,6 +65,7 @@ struct parser_struct_fieldvec {
 struct parser_struct {
     const char *name;
     struct parser_struct_fieldvec fields;
+    int id;
 };
 
 /* enum */
