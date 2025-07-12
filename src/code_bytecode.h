@@ -237,6 +237,9 @@ bool code_is_function_variadic(const struct code_bytecode *code, int func_id);
 
 /* structs */
 int code_register_struct(struct code_bytecode *code, const char *fullname, int field_count);
+void code_push_struct_field_type(struct code_bytecode *code, int struct_id, int val_type);
+int code_get_struct_field_type(const struct code_bytecode *code, int struct_id, int field_idx);
+int code_get_struct_field_count(const struct code_bytecode *code, int struct_id);
 
 /* enum fields */
 int code_push_enum_field_int(struct code_bytecode *code, value_int_t ival);

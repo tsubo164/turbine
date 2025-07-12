@@ -19,10 +19,17 @@ struct code_structvec {
     int len;
 };
 
+/* push */
 int code_push_struct(struct code_structvec *v, const char *fullname, int field_count);
 
+/* lookup */
 struct code_struct *code_lookup_struct(struct code_structvec *v, int id);
 const struct code_struct *code_lookup_const_struct(const struct code_structvec *v, int id);
+
+/* value type */
+void code_struct_push_value_type(struct code_struct *s, int val_type);
+int code_struct_get_value_type(const struct code_struct *s, int field_id);
+int code_struct_get_field_count(const struct code_struct *s);
 
 void code_structvec_free(struct code_structvec *v);
 

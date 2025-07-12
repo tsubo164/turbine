@@ -1,11 +1,12 @@
 #include "runtime_struct.h"
 #include <stdlib.h>
 
-struct runtime_struct *runtime_struct_new(value_int_t len)
+struct runtime_struct *runtime_struct_new(int id, value_int_t len)
 {
     struct runtime_struct *s;
 
     s = runtime_alloc_object(OBJ_STRUCT, sizeof(*s));
+    s->id = id;
     runtime_valuevec_init(&s->fields);
     runtime_valuevec_resize(&s->fields, len);
 

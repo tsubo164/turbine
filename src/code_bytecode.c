@@ -1184,6 +1184,28 @@ int code_register_struct(struct code_bytecode *code, const char *fullname, int f
     return new_id;
 }
 
+void code_push_struct_field_type(struct code_bytecode *code, int struct_id, int val_type)
+{
+    struct code_struct *st = code_lookup_struct(&code->strcts, struct_id);
+    code_struct_push_value_type(st, val_type);
+}
+
+int code_get_struct_field_type(const struct code_bytecode *code, int struct_id, int field_idx)
+{
+    const struct code_struct *st = code_lookup_const_struct(&code->strcts, struct_id);
+    int val_type = code_struct_get_value_type(st, field_idx);
+
+    return val_type;
+}
+
+int code_get_struct_field_count(const struct code_bytecode *code, int struct_id)
+{
+    const struct code_struct *st = code_lookup_const_struct(&code->strcts, struct_id);
+    int count = code_struct_get_field_count(st);
+
+    return count;
+}
+
 /* enum fields */
 int code_push_enum_field_int(struct code_bytecode *code, value_int_t ival)
 {

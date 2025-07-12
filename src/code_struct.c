@@ -1,5 +1,6 @@
 #include "code_struct.h"
 #include <stdlib.h>
+#include <assert.h>
 
 #define MIN_CAP 8
 
@@ -38,8 +39,30 @@ const struct code_struct *code_lookup_const_struct(const struct code_structvec *
     return &v->data[id];
 }
 
+void code_struct_push_value_type(struct code_struct *s, int val_type)
+{
+    data_strbuf_push(&s->val_types, val_type);
+}
+
+int code_struct_get_value_type(const struct code_struct *s, int field_id)
+{
+    assert(field_id >= 0 && field_id < data_strbuf_len(&s->val_types));
+    /* TODO need data_strbuf_get()? */
+    return s->val_types.data[field_id];
+}
+
+int code_struct_get_field_count(const struct code_struct *s)
+{
+    return data_strbuf_len(&s->val_types);
+}
+
 void code_structvec_free(struct code_structvec *v)
 {
+    for (int i = 0; i < v->len; i++) {
+        struct code_struct *s = code_lookup_struct(v, i);
+        data_strbuf_free(&s->val_types);
+    }
+
     free(v->data);
     v->data = NULL;
     v->cap = 0;

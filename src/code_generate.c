@@ -282,7 +282,6 @@ static int gen_struct_lit(struct code_bytecode *code,
         const struct parser_expr *e, int dst_reg)
 {
     const struct parser_expr *elem;
-    int len = 0;
     int dst = 0;
 
     /* dst register */
@@ -292,8 +291,8 @@ static int gen_struct_lit(struct code_bytecode *code,
         dst = dst_reg;
 
     /* make struct */
-    len = parser_struct_get_field_count(e->type->strct);
-    code_emit_new_struct(code, dst, len);
+    int id = e->type->strct->id;
+    code_emit_new_struct(code, dst, id);
 
     /* set elements */
     for (elem = e->l; elem; elem = elem->next) {
@@ -1482,7 +1481,7 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
     }
 }
 
-static void register_functions(struct code_bytecode *code, struct parser_scope *scope)
+static void register_definitions(struct code_bytecode *code, struct parser_scope *scope)
 {
     for (int i = 0; i < scope->syms.len; i++) {
         struct parser_symbol *sym = scope->syms.data[i];
@@ -1505,17 +1504,23 @@ static void register_functions(struct code_bytecode *code, struct parser_scope *
             }
             break;
 
-        case SYM_MODULE:
-            register_functions(code, sym->module->scope);
-            break;
-
         case SYM_STRUCT:
             {
                 struct parser_struct *strct = sym->strct;
                 int field_count = parser_struct_get_field_count(strct);
 
                 strct->id = code_register_struct(code, strct->name, field_count);
+
+                for (int i = 0; i < field_count; i++) {
+                    const struct parser_struct_field *f = parser_get_struct_field(strct, i);
+                    int val_type = parser_type_to_value_type(f->type);
+                    code_push_struct_field_type(code, strct->id, val_type);
+                }
             }
+            break;
+
+        case SYM_MODULE:
+            register_definitions(code, sym->module->scope);
             break;
         }
     }
@@ -1529,8 +1534,8 @@ void code_generate(struct code_bytecode *code, const struct parser_module *mod)
     /* enums */
     gen_enum_values(code, mod->scope);
 
-    /* functions */
-    register_functions(code, mod->scope->parent);
+    /* functions, structs */
+    register_definitions(code, mod->scope->parent);
 
     /* modules */
     gen_module(code, mod);

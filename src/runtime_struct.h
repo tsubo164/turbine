@@ -3,14 +3,14 @@
 
 #include "runtime_gc.h"
 #include "runtime_value.h"
-#include <stdint.h>
 
 struct runtime_struct {
     struct runtime_object obj;
     struct runtime_valuevec fields;
+    int id;
 };
 
-struct runtime_struct *runtime_struct_new(value_int_t len);
+struct runtime_struct *runtime_struct_new(int id, value_int_t len);
 void runtime_struct_free(struct runtime_struct *s);
 
 value_int_t runtime_struct_field_count(const struct runtime_struct *s);
