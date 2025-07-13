@@ -209,7 +209,7 @@ static bool is_ref_type(int type)
     return false;
 }
 
-static void mark_object(struct runtime_object *obj)
+static void mark_object(struct runtime_gc *gc, struct runtime_object *obj)
 {
     /* mark this object */
     obj->mark = OBJ_BLACK;
@@ -231,7 +231,7 @@ static void mark_object(struct runtime_object *obj)
             if (is_ref_type(v->val_type)) {
                 for (int i = 0; i < runtime_vec_len(v); i++) {
                     struct runtime_value val = runtime_vec_get(v, i);
-                    mark_object(val.obj);
+                    mark_object(gc, val.obj);
                 }
             }
         }
@@ -245,7 +245,7 @@ static void mark_object(struct runtime_object *obj)
                 struct runtime_map_entry *ent = runtime_map_entry_begin(m);
                 for (; ent; ent = runtime_map_entry_next(ent)) {
                     struct runtime_value val = ent->val;
-                    mark_object(val.obj);
+                    mark_object(gc, val.obj);
                 }
             }
         }
@@ -259,7 +259,7 @@ static void mark_object(struct runtime_object *obj)
                 struct runtime_set_node *node = runtime_set_node_begin(s);
                 for (; node; node = runtime_set_node_next(node)) {
                     struct runtime_value val = node->val;
-                    mark_object(val.obj);
+                    mark_object(gc, val.obj);
                 }
             }
         }
@@ -273,7 +273,7 @@ static void mark_object(struct runtime_object *obj)
                 int len = runtime_stack_len(s);
                 for (int i = 0; i < len; i++) {
                     struct runtime_value val = runtime_stack_get(s, i);
-                    mark_object(val.obj);
+                    mark_object(gc, val.obj);
                 }
             }
         }
@@ -287,7 +287,7 @@ static void mark_object(struct runtime_object *obj)
                 int len = runtime_queue_len(q);
                 for (int i = 0; i < len; i++) {
                     struct runtime_value val = runtime_queue_get(q, i);
-                    mark_object(val.obj);
+                    mark_object(gc, val.obj);
                 }
             }
         }
@@ -295,15 +295,18 @@ static void mark_object(struct runtime_object *obj)
 
     case OBJ_STRUCT:
         {
-            /*
             struct runtime_struct *s = (struct runtime_struct *) obj;
-
+            int struct_id = s->id;
             int len = runtime_struct_field_count(s);
+
             for (int i = 0; i < len; i++) {
-                struct runtime_value val = runtime_struct_get(s, i);
-                mark_object(val.obj);
+                int val_type = code_get_struct_field_type(gc->vm->code, struct_id, i);
+
+                if (is_ref_type(val_type)) {
+                    struct runtime_value val = runtime_struct_get(s, i);
+                    mark_object(gc, val.obj);
+                }
             }
-            */
         }
         break;
     }
@@ -324,7 +327,7 @@ static void trace_globals(struct runtime_gc *gc)
         bool is_ref = code_globalmap_is_ref(gc->globalmap, i);
         if (is_ref) {
             struct runtime_value val = vm_get_global(gc->vm, i);
-            mark_object(val.obj);
+            mark_object(gc, val.obj);
         }
     }
 }
@@ -356,7 +359,7 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
             if (is_ref) {
                 value_addr_t bp = call->current_bp;
                 struct runtime_value val = vm_lookup_stack(gc->vm, bp, i);
-                mark_object(val.obj);
+                mark_object(gc, val.obj);
             }
         }
 

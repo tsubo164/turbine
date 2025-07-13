@@ -20,7 +20,6 @@
   print("after  ===============================")
   gc.print()
 
-  //print(queuepop(t))
-  //print(t)
+  print(t)
 
   return 0
