@@ -1250,5 +1250,5 @@ void vm_free_cpu(struct vm_cpu *vm)
     /* TODO move outside of vm_cpu so multiple vm_cpus can share */
     runtime_valuevec_free(&vm->globals__);
     vm_callstack_free(&vm->callstack);
-    runtime_gc_free(&vm->gc);
+    runtime_gc_clear(&vm->gc);
 }

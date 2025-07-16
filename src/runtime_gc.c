@@ -17,6 +17,51 @@ enum object_mark {
     OBJ_BLACK,
 };
 
+/* memory */
+struct gc_header {
+    size_t size;
+};
+
+void *runtime_gc_alloc(struct runtime_gc *gc, size_t user_size)
+{
+    struct gc_header *header;
+
+    header = calloc(1, sizeof(*header) + user_size);
+    header->size = user_size;
+    gc->used_bytes += user_size;
+
+    return header + 1;
+}
+
+void *runtime_gc_realloc(struct runtime_gc *gc, void *user_ptr, size_t user_size)
+{
+    struct gc_header *old_header = user_ptr;
+    old_header--;
+    size_t old_size = old_header->size;
+
+    struct gc_header *new_header;
+    size_t new_size = user_size;
+
+    new_header = realloc(old_header, sizeof(*new_header) + new_size);
+    new_header->size = new_size;
+    gc->used_bytes += new_size - old_size;
+
+    return new_header + 1;
+}
+
+void runtime_gc_free(struct runtime_gc *gc, void *user_ptr)
+{
+    if (!user_ptr)
+        return;
+
+    struct gc_header *header = user_ptr;
+    header--;
+    gc->used_bytes -= header->size;
+
+    free(header);
+}
+/* -- */
+
 void *runtime_alloc_object(int kind, size_t size)
 {
     static uint32_t id = 1;
@@ -407,7 +452,7 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     gc->need_collect = false;
 }
 
-void runtime_gc_free(struct runtime_gc *gc)
+void runtime_gc_clear(struct runtime_gc *gc)
 {
     struct runtime_object *obj = gc->root;
     struct runtime_object *next = NULL;
