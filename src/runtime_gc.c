@@ -174,7 +174,7 @@ static void print_obj(const struct runtime_object *obj)
 
 void runtime_gc_print_objects(const struct runtime_gc *gc)
 {
-    printf("* %ld Bytes used in heap:\n", gc->used_bytes);
+    printf("* %ld bytes used in heap:\n", gc->used_bytes);
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         print_obj(obj);
     }

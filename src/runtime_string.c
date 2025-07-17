@@ -1,6 +1,4 @@
 #include "runtime_string.h"
-#include "data_cstr.h"
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -18,17 +16,21 @@ struct runtime_string *new_string(struct runtime_gc *gc, char *new_data, int new
 
 struct runtime_string *runtime_string_new(struct runtime_gc *gc, const char *cstr)
 {
-    char *data = data_strdup(cstr);
-    char len = strlen(cstr);
+    size_t new_len = strlen(cstr);
+    char *new_data;
 
-    return new_string(gc, data, len);
+    new_data = runtime_gc_alloc(gc, (new_len + 1) * sizeof(*new_data));
+    if (new_data)
+        strcpy(new_data, cstr);
+
+    return new_string(gc, new_data, new_len);
 }
 
 void runtime_string_free(struct runtime_gc *gc, struct runtime_string *s)
 {
     if (!s)
         return;
-    free(s->data);
+    runtime_gc_free(gc, s->data);
     runtime_gc_free(gc, s);
 }
 
@@ -55,7 +57,7 @@ struct runtime_string *runtime_string_concat(struct runtime_gc *gc,
     int new_len = a->len + b->len;
     char *new_data;
 
-    new_data = malloc((new_len + 1) * sizeof(*new_data));
+    new_data = runtime_gc_alloc(gc, (new_len + 1) * sizeof(*new_data));
     strcpy(new_data, a->data);
     strcpy(new_data + a->len, b->data);
 
