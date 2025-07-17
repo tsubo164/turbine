@@ -28,7 +28,8 @@ void *runtime_gc_alloc(struct runtime_gc *gc, size_t user_size)
 
     header = calloc(1, sizeof(*header) + user_size);
     header->size = user_size;
-    gc->used_bytes += user_size;
+    if (gc)
+        gc->used_bytes += user_size;
 
     return header + 1;
 }
@@ -44,7 +45,8 @@ void *runtime_gc_realloc(struct runtime_gc *gc, void *user_ptr, size_t user_size
 
     new_header = realloc(old_header, sizeof(*new_header) + new_size);
     new_header->size = new_size;
-    gc->used_bytes += new_size - old_size;
+    if (gc)
+        gc->used_bytes += new_size - old_size;
 
     return new_header + 1;
 }
@@ -56,7 +58,8 @@ void runtime_gc_free(struct runtime_gc *gc, void *user_ptr)
 
     struct gc_header *header = user_ptr;
     header--;
-    gc->used_bytes -= header->size;
+    if (gc)
+        gc->used_bytes -= header->size;
 
     free(header);
 }
@@ -74,9 +77,21 @@ void *runtime_alloc_object(int kind, size_t size)
     return obj;
 }
 
+void *runtime_alloc_object2(struct runtime_gc *gc, int kind, size_t size)
+{
+    static uint32_t id = 1;
+    struct runtime_object *obj = runtime_gc_alloc(gc, size);
+
+    /* TODO thread-safe */
+    obj->kind = kind;
+    obj->id = id++;
+
+    return obj;
+}
+
 struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *cstr)
 {
-    struct runtime_string *str = runtime_string_new(cstr);
+    struct runtime_string *str = runtime_string_new(gc, cstr);
 
     runtime_gc_push_object(gc, (struct runtime_object *) str);
 
@@ -159,12 +174,13 @@ static void print_obj(const struct runtime_object *obj)
 
 void runtime_gc_print_objects(const struct runtime_gc *gc)
 {
+    printf("* %ld Bytes used in heap:\n", gc->used_bytes);
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         print_obj(obj);
     }
 }
 
-static void free_obj(struct runtime_object *obj)
+static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
 {
     enum runtime_object_kind kind = obj->kind;
 
@@ -176,7 +192,7 @@ static void free_obj(struct runtime_object *obj)
     case OBJ_STRING:
         {
             struct runtime_string *s = (struct runtime_string *) obj;
-            runtime_string_free(s);
+            runtime_string_free(gc, s);
         }
         break;
 
@@ -423,7 +439,7 @@ static void free_unreachables(struct runtime_gc *gc)
     while (curr) {
         if (curr->mark == OBJ_WHITE) {
             next = curr->next;
-            free_obj(curr);
+            free_obj(gc, curr);
             prev->next = curr = next;
         }
         else {
@@ -459,7 +475,7 @@ void runtime_gc_clear(struct runtime_gc *gc)
 
     while (obj) {
         next = obj->next;
-        free_obj(obj);
+        free_obj(gc, obj);
         obj = next;
     }
 }

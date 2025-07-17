@@ -18,7 +18,7 @@ void code_constant_pool_free(struct code_constant_pool *v)
     value_int_t len = runtime_valuevec_len(&v->strings);
     for (value_int_t i = 0; i < len; i++) {
         struct runtime_value val = runtime_valuevec_get(&v->strings, i);
-        runtime_string_free(val.string);
+        runtime_string_free(NULL, val.string);
     }
 
     /* free constant vecs */
@@ -33,7 +33,7 @@ void code_constant_pool_free(struct code_constant_pool *v)
         for (value_int_t i = 0; i < len; i++) {
             if (v->literal_types.data[i] == 's') {
                 struct runtime_value val = runtime_valuevec_get(&v->literals, i);
-                runtime_string_free(val.string);
+                runtime_string_free(NULL, val.string);
             }
         }
 
@@ -82,7 +82,7 @@ int code_constant_pool_push_string(struct code_constant_pool *v, const char *val
     }
 
     struct runtime_value value;
-    value.string = runtime_string_new(val);
+    value.string = runtime_string_new(NULL, val);
     runtime_valuevec_push(&v->strings, value);
 
     int new_idx = v->strings.len - 1;
@@ -143,7 +143,7 @@ int code_constant_pool_push_literal_float(struct code_constant_pool *v, value_fl
 
 int code_constant_pool_push_literal_string(struct code_constant_pool *v, const char *val)
 {
-    struct runtime_value value = {.string = runtime_string_new(val)};
+    struct runtime_value value = {.string = runtime_string_new(NULL, val)};
     int new_idx = v->literals.len;
 
     runtime_valuevec_push(&v->literals, value);

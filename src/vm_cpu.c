@@ -905,7 +905,7 @@ do { \
                 struct runtime_value srcval2 = fetch_register_value(vm, src2);
 
                 struct runtime_string *s;
-                s = runtime_string_concat(srcval1.string, srcval2.string);
+                s = runtime_string_concat(&vm->gc, srcval1.string, srcval2.string);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) s);
 
                 dstval.string = s;

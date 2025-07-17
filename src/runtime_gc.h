@@ -44,6 +44,7 @@ void runtime_gc_free(struct runtime_gc *gc, void *user_ptr);
 
 /* alloc for vec, map, set, stack and queue */
 void *runtime_alloc_object(int kind, size_t size);
+void *runtime_alloc_object2(struct runtime_gc *gc, int kind, size_t size);
 
 struct runtime_string;
 
