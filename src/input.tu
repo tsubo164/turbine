@@ -14,6 +14,8 @@
   - s ="foo"
   print(s)
 
+  s = s + "bar"
+  print(s)
   /*
   - t = Person{first="Foo", last="Bar", id=232423}
   t.last += "-Baz"

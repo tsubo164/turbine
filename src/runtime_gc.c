@@ -199,7 +199,7 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
     case OBJ_VEC:
         {
             struct runtime_vec *v = (struct runtime_vec *) obj;
-            runtime_vec_free(v);
+            runtime_vec_free(gc, v);
         }
         break;
 

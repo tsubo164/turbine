@@ -61,7 +61,7 @@ struct runtime_string *runtime_string_concat(struct runtime_gc *gc,
     strcpy(new_data, a->data);
     strcpy(new_data + a->len, b->data);
 
-    return new_string(NULL, new_data, new_len);
+    return new_string(gc, new_data, new_len);
 }
 
 const char *runtime_string_get_cstr(const struct runtime_string *s)

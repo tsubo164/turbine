@@ -11,8 +11,8 @@ struct runtime_vec {
     int val_type;
 };
 
-struct runtime_vec *runtime_vec_new(int val_type, value_int_t len);
-void runtime_vec_free(struct runtime_vec *v);
+struct runtime_vec *runtime_vec_new(struct runtime_gc *gc, int val_type, value_int_t len);
+void runtime_vec_free(struct runtime_gc *gc, struct runtime_vec *v);
 
 /* No index range check */
 struct runtime_value runtime_vec_get(const struct runtime_vec *v, value_int_t idx);
