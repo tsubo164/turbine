@@ -49,7 +49,7 @@ static int file_read_text(struct runtime_gc *gc, struct runtime_registers *regs)
         }
         fclose(fp);
 
-        ret.string = runtime_gc_string_new(gc, sb.data);
+        ret.string = runtime_string_new(gc, sb.data);
         data_strbuf_free(&sb);
     }
 
@@ -106,7 +106,7 @@ static int file_read_lines(struct runtime_gc *gc, struct runtime_registers *regs
             if (c == EOF) {
                 if (data_strbuf_len(&sb) > 0) {
                     struct runtime_value line;
-                    line.string = runtime_gc_string_new(gc, sb.data);
+                    line.string = runtime_string_new(gc, sb.data);
                     runtime_vec_push(lines, line);
                     data_strbuf_clear(&sb);
                 }
@@ -117,7 +117,7 @@ static int file_read_lines(struct runtime_gc *gc, struct runtime_registers *regs
 
             if (c == '\n') {
                 struct runtime_value line;
-                line.string = runtime_gc_string_new(gc, sb.data);
+                line.string = runtime_string_new(gc, sb.data);
                 runtime_vec_push(lines, line);
                 data_strbuf_clear(&sb);
             }

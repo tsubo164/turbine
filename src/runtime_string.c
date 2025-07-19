@@ -11,6 +11,7 @@ struct runtime_string *new_string(struct runtime_gc *gc, char *new_data, int new
     s->data = new_data;
     s->len = new_len;
 
+    runtime_gc_push_object(gc, (struct runtime_object*) s);
     return s;
 }
 
@@ -20,8 +21,7 @@ struct runtime_string *runtime_string_new(struct runtime_gc *gc, const char *cst
     char *new_data;
 
     new_data = runtime_gc_alloc(gc, (new_len + 1) * sizeof(*new_data));
-    if (new_data)
-        strcpy(new_data, cstr);
+    strcpy(new_data, cstr);
 
     return new_string(gc, new_data, new_len);
 }

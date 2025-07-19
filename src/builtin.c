@@ -55,7 +55,7 @@ static int builtin_input(struct runtime_gc *gc, struct runtime_registers *regs)
         buf[i] = ch;
     }
 
-    ret.string = runtime_gc_string_new(gc, buf);
+    ret.string = runtime_string_new(gc, buf);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
@@ -87,7 +87,7 @@ static int builtin_format(struct runtime_gc *gc, struct runtime_registers *regs)
 
     builtin_format_func(arg, fmt, &sb);
 
-    ret.string = runtime_gc_string_new(gc, sb.data);
+    ret.string = runtime_string_new(gc, sb.data);
     regs->locals[0] = ret;
 
     data_strbuf_free(&sb);

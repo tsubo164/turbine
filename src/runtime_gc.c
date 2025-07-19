@@ -89,17 +89,10 @@ void *runtime_alloc_object2(struct runtime_gc *gc, int kind, size_t size)
     return obj;
 }
 
-struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *cstr)
-{
-    struct runtime_string *str = runtime_string_new(gc, cstr);
-
-    runtime_gc_push_object(gc, (struct runtime_object *) str);
-
-    return str;
-}
-
 void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj)
 {
+    if (!gc)
+        return;
     obj->next = gc->root;
     gc->root = obj;
 }

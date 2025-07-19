@@ -46,10 +46,7 @@ void runtime_gc_free(struct runtime_gc *gc, void *user_ptr);
 void *runtime_alloc_object(int kind, size_t size);
 void *runtime_alloc_object2(struct runtime_gc *gc, int kind, size_t size);
 
-struct runtime_string;
-
-struct runtime_string *runtime_gc_string_new(struct runtime_gc *gc, const char *cstr);
-
+/* objects */
 void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj);
 void runtime_gc_print_objects(const struct runtime_gc *gc);
 void runtime_gc_request_collect(struct runtime_gc *gc);

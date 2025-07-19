@@ -906,7 +906,6 @@ do { \
 
                 struct runtime_string *s;
                 s = runtime_string_concat(&vm->gc, srcval1.string, srcval2.string);
-                runtime_gc_push_object(&vm->gc, (struct runtime_object*) s);
 
                 dstval.string = s;
                 set_local(vm, dst, dstval);
@@ -1170,7 +1169,7 @@ static struct runtime_value make_args_value(struct runtime_gc *gc, const struct 
     runtime_gc_push_object(gc, (struct runtime_object *) vec);
 
     for (int i = 0; i < args->count; i++) {
-        struct runtime_string *s = runtime_gc_string_new(gc, args->values[i]);
+        struct runtime_string *s = runtime_string_new(gc, args->values[i]);
         struct runtime_value elem = {.string = s};
 
         runtime_vec_set(vec, i, elem);
