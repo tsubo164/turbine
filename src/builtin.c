@@ -120,7 +120,7 @@ static int builtin_vecclear(struct runtime_gc *gc, struct runtime_registers *reg
 {
     struct runtime_value obj = regs->locals[0];
 
-    runtime_vec_clear(obj.vec);
+    runtime_vec_clear(gc, obj.vec);
 
     return RESULT_SUCCESS;
 }
