@@ -25,11 +25,12 @@ struct runtime_map {
     struct runtime_map_entry *tail;
 };
 
-struct runtime_map *runtime_map_new(int val_type, value_int_t len);
-void runtime_map_free(struct runtime_map *m);
+struct runtime_map *runtime_map_new(struct runtime_gc *gc, int val_type, value_int_t len);
+void runtime_map_free(struct runtime_gc *gc, struct runtime_map *m);
 
 struct runtime_value runtime_map_get(const struct runtime_map *m, struct runtime_value key);
-void runtime_map_set(struct runtime_map *m, struct runtime_value key, struct runtime_value val);
+/* gc managed */
+void runtime_map_set(struct runtime_gc *gc, struct runtime_map *m, struct runtime_value key, struct runtime_value val);
 
 value_int_t runtime_map_len(const struct runtime_map *m);
 

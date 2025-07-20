@@ -95,22 +95,22 @@ static uint64_t get_hash(const struct runtime_map *map, struct runtime_value key
     return h % map->cap;
 }
 
-static void resize(struct runtime_map *map, int prime_index)
+static void resize(struct runtime_gc *gc, struct runtime_map *map, int prime_index)
 {
     int cap = get_prime(prime_index);
 
-    map->buckets = calloc(cap, sizeof(map->buckets[0]));
+    map->buckets = runtime_gc_alloc(gc, cap * sizeof(map->buckets[0]));
     map->prime_index = prime_index;
     map->cap = cap;
     map->len = 0;
 }
 
-static void rehash(struct runtime_map *map)
+static void rehash(struct runtime_gc *gc, struct runtime_map *map)
 {
     struct runtime_map_entry **old_buckets = map->buckets;
     int old_cap = map->cap;
 
-    resize(map, next_prime_index(map->prime_index));
+    resize(gc, map, next_prime_index(map->prime_index));
 
     for (int i = 0; i < old_cap; i++) {
         struct runtime_map_entry *ent, *next;
@@ -127,7 +127,7 @@ static void rehash(struct runtime_map *map)
         }
     }
 
-    free(old_buckets);
+    runtime_gc_free(gc, old_buckets);
 }
 
 static bool match(const struct runtime_map_entry *ent, struct runtime_value key)
@@ -135,27 +135,27 @@ static bool match(const struct runtime_map_entry *ent, struct runtime_value key)
     return !runtime_string_compare(ent->key.string, key.string);
 }
 
-static struct runtime_map_entry *new_entry(struct runtime_value key, struct runtime_value val)
+static struct runtime_map_entry *new_entry(struct runtime_gc *gc, struct runtime_value key, struct runtime_value val)
 {
     struct runtime_map_entry *ent;
 
-    ent = calloc(1, sizeof(struct runtime_map_entry));
+    ent = runtime_gc_alloc(gc, sizeof(*ent));
     ent->key = key;
     ent->val = val;
 
     return ent;
 }
 
-static struct runtime_map_entry *insert(struct runtime_map *map,
+static struct runtime_map_entry *insert(struct runtime_gc *gc, struct runtime_map *map,
         struct runtime_value key, struct runtime_value val)
 {
     if (!key.string)
         return NULL;
 
     if (map->cap == 0)
-        resize(map, next_prime_index(0));
+        resize(gc, map, next_prime_index(0));
     else if (100. * map->len / map->cap >= MAX_LOAD_FACTOR)
-        rehash(map);
+        rehash(gc, map);
 
     uint64_t h = get_hash(map, key);
     struct runtime_map_entry *ent;
@@ -167,7 +167,7 @@ static struct runtime_map_entry *insert(struct runtime_map *map,
         }
     }
 
-    ent = new_entry(key, val);
+    ent = new_entry(gc, key, val);
     ent->next_in_chain = map->buckets[h];
     map->buckets[h] = ent;
     map->len++;
@@ -193,11 +193,11 @@ static struct runtime_map_entry *lookup(const struct runtime_map *map,
     return NULL;
 }
 
-struct runtime_map *runtime_map_new(int val_type, value_int_t len)
+struct runtime_map *runtime_map_new(struct runtime_gc *gc, int val_type, value_int_t len)
 {
     struct runtime_map *m;
 
-    m = runtime_alloc_object(OBJ_MAP, sizeof(*m));
+    m = runtime_alloc_object2(gc, OBJ_MAP, sizeof(*m));
     m->val_type = val_type;
     m->tail = &m->head;
 
@@ -209,13 +209,13 @@ struct runtime_map *runtime_map_new(int val_type, value_int_t len)
             idx = next_prime_index(idx);
         } while (get_prime(idx) < init_cap);
 
-        resize(m, idx);
+        resize(gc, m, idx);
     }
 
     return m;
 }
 
-void runtime_map_free(struct runtime_map *m)
+void runtime_map_free(struct runtime_gc *gc, struct runtime_map *m)
 {
     if (!m)
         return;
@@ -225,12 +225,12 @@ void runtime_map_free(struct runtime_map *m)
 
     while (ent) {
         next = runtime_map_entry_next(ent);
-        free(ent);
+        runtime_gc_free(gc, ent);
         ent = next;
     }
 
-    free(m->buckets);
-    free(m);
+    runtime_gc_free(gc, m->buckets);
+    runtime_gc_free(gc, m);
 }
 
 struct runtime_value runtime_map_get(const struct runtime_map *m, struct runtime_value key)
@@ -243,9 +243,9 @@ struct runtime_value runtime_map_get(const struct runtime_map *m, struct runtime
 }
 
 void print_map(const struct runtime_map *map);
-void runtime_map_set(struct runtime_map *m, struct runtime_value key, struct runtime_value val)
+void runtime_map_set(struct runtime_gc *gc, struct runtime_map *m, struct runtime_value key, struct runtime_value val)
 {
-    insert(m, key, val);
+    insert(gc, m, key, val);
 }
 
 value_int_t runtime_map_len(const struct runtime_map *m)

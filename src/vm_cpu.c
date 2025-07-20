@@ -300,7 +300,7 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value keyval = fetch_register_value(vm, key);
                 struct runtime_value srcval = fetch_register_value(vm, src);
 
-                runtime_map_set(dstobj.map, keyval, srcval);
+                runtime_map_set(&vm->gc, dstobj.map, keyval, srcval);
             }
             break;
 
@@ -365,7 +365,7 @@ static void run_cpu(struct vm_cpu *vm)
                 int len = inst.C;
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_map *obj = runtime_map_new(typ, lenval.inum);
+                struct runtime_map *obj = runtime_map_new(&vm->gc, typ, lenval.inum);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.map = obj};

@@ -1,21 +1,9 @@
 > gc
 
-/*
-## Foo struct
-  - id int
-
-## Person struct
-  - first string
-  - last string
-  - id int
-*/
-
 # main(args vec{string}) int
-  - s ="foo"
-  print(s)
+  - m = map{"foo":42, "bar":0x1234567}
+  print(m)
 
-  s = s + "bar"
-  print(s)
   /*
   - t = Person{first="Foo", last="Bar", id=232423}
   t.last += "-Baz"

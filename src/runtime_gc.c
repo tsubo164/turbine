@@ -203,7 +203,7 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
     case OBJ_MAP:
         {
             struct runtime_map *m = (struct runtime_map *) obj;
-            runtime_map_free(m);
+            runtime_map_free(gc, m);
         }
         break;
 
