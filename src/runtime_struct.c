@@ -8,7 +8,7 @@ struct runtime_struct *runtime_struct_new(int id, value_int_t len)
     s = runtime_alloc_object(OBJ_STRUCT, sizeof(*s));
     s->id = id;
     runtime_valuevec_init(&s->fields);
-    runtime_valuevec_resize(&s->fields, len);
+    runtime_valuevec_resize(NULL, &s->fields, len);
 
     return s;
 }
@@ -18,7 +18,7 @@ void runtime_struct_free(struct runtime_struct *s)
     if (!s)
         return;
 
-    runtime_valuevec_free(&s->fields);
+    runtime_valuevec_free(NULL, &s->fields);
     free(s);
 }
 

@@ -1,11 +1,10 @@
 #include "runtime_value.h"
 #include "runtime_string.h"
+#include "runtime_gc.h"
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#define MIN_CAP 8
 
 void runtime_valuevec_init(struct runtime_valuevec *v)
 {
@@ -22,34 +21,6 @@ bool runtime_valuevec_is_empty(const struct runtime_valuevec *v)
 int runtime_valuevec_len(const struct runtime_valuevec *v)
 {
     return v->len;
-}
-
-void runtime_valuevec_resize(struct runtime_valuevec *v, int new_len)
-{
-    if (new_len <= v->cap) {
-        v->len = new_len;
-        return;
-    }
-
-    int new_cap = v->cap < MIN_CAP ? MIN_CAP : v->cap;
-    while (new_cap < new_len)
-        new_cap *= 2;
-
-    int old_len = v->len;
-    v->data = realloc(v->data, sizeof(*v->data) * new_cap);
-    v->cap = new_cap;
-    v->len = new_len;
-
-    memset(v->data + old_len, 0, (new_len - old_len) * sizeof(*v->data));
-}
-
-void runtime_valuevec_push(struct runtime_valuevec *v, struct runtime_value val)
-{
-    if (v->len == v->cap) {
-        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
-        v->data = realloc(v->data, v->cap * sizeof(*v->data));
-    }
-    v->data[v->len++] = val;
 }
 
 struct runtime_value runtime_valuevec_get(const struct runtime_valuevec *v, int idx)
@@ -69,9 +40,38 @@ void runtime_valuevec_set(struct runtime_valuevec *v, int idx, struct runtime_va
     v->data[idx] = val;
 }
 
-void runtime_valuevec_free(struct runtime_valuevec *v)
+#define MIN_CAP 8
+void runtime_valuevec_resize(struct runtime_gc *gc, struct runtime_valuevec *v, int new_len)
 {
-    free(v->data);
+    if (new_len <= v->cap) {
+        v->len = new_len;
+        return;
+    }
+
+    int new_cap = v->cap < MIN_CAP ? MIN_CAP : v->cap;
+    while (new_cap < new_len)
+        new_cap *= 2;
+
+    int old_len = v->len;
+    v->data = runtime_gc_realloc(gc, v->data, new_cap * sizeof(*v->data));
+    v->cap = new_cap;
+    v->len = new_len;
+
+    memset(v->data + old_len, 0, (new_len - old_len) * sizeof(*v->data));
+}
+
+void runtime_valuevec_push(struct runtime_gc *gc, struct runtime_valuevec *v, struct runtime_value val)
+{
+    if (v->len == v->cap) {
+        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
+        v->data = runtime_gc_realloc(gc, v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = val;
+}
+
+void runtime_valuevec_free(struct runtime_gc *gc, struct runtime_valuevec *v)
+{
+    runtime_gc_free(gc, v->data);
     v->data = NULL;
     v->cap = 0;
     v->len = 0;
@@ -95,6 +95,7 @@ static int comp_float(struct runtime_value val1, struct runtime_value val2)
     return 0;
 }
 
+/* TODO move this to runtime_string.h */
 static int comp_string(struct runtime_value val1, struct runtime_value val2)
 {
     return strcmp(

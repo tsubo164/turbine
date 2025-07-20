@@ -49,11 +49,14 @@ struct runtime_valuevec {
 void runtime_valuevec_init(struct runtime_valuevec *v);
 bool runtime_valuevec_is_empty(const struct runtime_valuevec *v);
 int runtime_valuevec_len(const struct runtime_valuevec *v);
-void runtime_valuevec_resize(struct runtime_valuevec *v, int new_len);
-void runtime_valuevec_push(struct runtime_valuevec *v, struct runtime_value val);
 struct runtime_value runtime_valuevec_get(const struct runtime_valuevec *v, int idx);
 void runtime_valuevec_set(struct runtime_valuevec *v, int idx, struct runtime_value val);
-void runtime_valuevec_free(struct runtime_valuevec *v);
+
+/* gc managed */
+struct runtime_gc;
+void runtime_valuevec_resize(struct runtime_gc *gc, struct runtime_valuevec *v, int new_len);
+void runtime_valuevec_push(struct runtime_gc *gc, struct runtime_valuevec *v, struct runtime_value val);
+void runtime_valuevec_free(struct runtime_gc *gc, struct runtime_valuevec *v);
 
 typedef int (*compare_function_t)(struct runtime_value val1, struct runtime_value val2);
 compare_function_t runtime_get_compare_function(int val_type);

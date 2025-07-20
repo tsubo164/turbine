@@ -111,7 +111,7 @@ static int builtin_vecpush(struct runtime_gc *gc, struct runtime_registers *regs
     struct runtime_value obj = regs->locals[0];
     struct runtime_value val = regs->locals[1];
 
-    runtime_vec_push(obj.vec, val);
+    runtime_vec_push(gc, obj.vec, val);
 
     return RESULT_SUCCESS;
 }

@@ -17,8 +17,9 @@ void runtime_vec_free(struct runtime_gc *gc, struct runtime_vec *v);
 /* No index range check */
 struct runtime_value runtime_vec_get(const struct runtime_vec *v, value_int_t idx);
 void runtime_vec_set(struct runtime_vec *v, value_int_t idx, struct runtime_value val);
-void runtime_vec_push(struct runtime_vec *v, struct runtime_value val);
 void runtime_vec_clear(struct runtime_vec *v);
+
+void runtime_vec_push(struct runtime_gc *gc, struct runtime_vec *v, struct runtime_value val);
 
 value_int_t runtime_vec_len(const struct runtime_vec *v);
 void runtime_vec_resize(struct runtime_vec *v, value_int_t new_len);

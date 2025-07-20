@@ -37,8 +37,12 @@ void *runtime_gc_alloc(struct runtime_gc *gc, size_t user_size)
 void *runtime_gc_realloc(struct runtime_gc *gc, void *user_ptr, size_t user_size)
 {
     struct gc_header *old_header = user_ptr;
-    old_header--;
-    size_t old_size = old_header->size;
+    size_t old_size = 0;
+
+    if (old_header) {
+        old_header--;
+        old_size = old_header->size;
+    }
 
     struct gc_header *new_header;
     size_t new_size = user_size;

@@ -22,9 +22,9 @@ void code_constant_pool_free(struct code_constant_pool *v)
     }
 
     /* free constant vecs */
-    runtime_valuevec_free(&v->ints);
-    runtime_valuevec_free(&v->floats);
-    runtime_valuevec_free(&v->strings);
+    runtime_valuevec_free(NULL, &v->ints);
+    runtime_valuevec_free(NULL, &v->floats);
+    runtime_valuevec_free(NULL, &v->strings);
 
     /* TODO consider making struct code_literal_table */
     {
@@ -38,7 +38,7 @@ void code_constant_pool_free(struct code_constant_pool *v)
         }
 
         /* free literal vecs */
-        runtime_valuevec_free(&v->literals);
+        runtime_valuevec_free(NULL, &v->literals);
         data_strbuf_free(&v->literal_types);
     }
 }
@@ -52,7 +52,7 @@ int code_constant_pool_push_int(struct code_constant_pool *v, value_int_t val)
 
     struct runtime_value value;
     value.inum = val;
-    runtime_valuevec_push(&v->ints, value);
+    runtime_valuevec_push(NULL, &v->ints, value);
 
     int new_idx = v->ints.len - 1;
     return new_idx;
@@ -67,7 +67,7 @@ int code_constant_pool_push_float(struct code_constant_pool *v, value_float_t va
 
     struct runtime_value value;
     value.fpnum = val;
-    runtime_valuevec_push(&v->floats, value);
+    runtime_valuevec_push(NULL, &v->floats, value);
 
     int new_idx = v->floats.len - 1;
     return new_idx;
@@ -83,7 +83,7 @@ int code_constant_pool_push_string(struct code_constant_pool *v, const char *val
 
     struct runtime_value value;
     value.string = runtime_string_new(NULL, val);
-    runtime_valuevec_push(&v->strings, value);
+    runtime_valuevec_push(NULL, &v->strings, value);
 
     int new_idx = v->strings.len - 1;
     return new_idx;
@@ -124,7 +124,7 @@ int code_constant_pool_push_literal_int(struct code_constant_pool *v, value_int_
     struct runtime_value value = {.inum = val};
     int new_idx = v->literals.len;
 
-    runtime_valuevec_push(&v->literals, value);
+    runtime_valuevec_push(NULL, &v->literals, value);
     data_strbuf_push(&v->literal_types, 'i');
 
     return new_idx;
@@ -135,7 +135,7 @@ int code_constant_pool_push_literal_float(struct code_constant_pool *v, value_fl
     struct runtime_value value = {.fpnum = val};
     int new_idx = v->literals.len;
 
-    runtime_valuevec_push(&v->literals, value);
+    runtime_valuevec_push(NULL, &v->literals, value);
     data_strbuf_push(&v->literal_types, 'f');
 
     return new_idx;
@@ -146,7 +146,7 @@ int code_constant_pool_push_literal_string(struct code_constant_pool *v, const c
     struct runtime_value value = {.string = runtime_string_new(NULL, val)};
     int new_idx = v->literals.len;
 
-    runtime_valuevec_push(&v->literals, value);
+    runtime_valuevec_push(NULL, &v->literals, value);
     data_strbuf_push(&v->literal_types, 's');
 
     return new_idx;

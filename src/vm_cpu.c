@@ -22,7 +22,7 @@ static void set_ip(struct vm_cpu *vm, value_addr_t ip)
 static void set_sp(struct vm_cpu *vm, value_addr_t sp)
 {
     if (sp >= vm->stack.len)
-        runtime_valuevec_resize(&vm->stack, sp + 1);
+        runtime_valuevec_resize(NULL, &vm->stack, sp + 1);
 
     vm->sp = sp;
 }
@@ -1190,11 +1190,11 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
     int ngvars;
     vm->globals = &vm->globals__;
     ngvars = code_get_global_count(vm->code);
-    runtime_valuevec_resize(vm->globals, ngvars);
+    runtime_valuevec_resize(NULL, vm->globals, ngvars);
 
     /* empty data at the bottom of stacks */
     struct runtime_value empty = {0};
-    runtime_valuevec_resize(&vm->stack, 256);
+    runtime_valuevec_resize(NULL, &vm->stack, 256);
     runtime_valuevec_set(&vm->stack, 0, empty);
     vm->sp = 0;
 
@@ -1245,9 +1245,9 @@ struct runtime_value vm_get_global(const struct vm_cpu *vm, int id)
 
 void vm_free_cpu(struct vm_cpu *vm)
 {
-    runtime_valuevec_free(&vm->stack);
+    runtime_valuevec_free(NULL, &vm->stack);
     /* TODO move outside of vm_cpu so multiple vm_cpus can share */
-    runtime_valuevec_free(&vm->globals__);
+    runtime_valuevec_free(NULL, &vm->globals__);
     vm_callstack_free(&vm->callstack);
     runtime_gc_clear(&vm->gc);
 }

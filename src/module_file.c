@@ -107,7 +107,7 @@ static int file_read_lines(struct runtime_gc *gc, struct runtime_registers *regs
                 if (data_strbuf_len(&sb) > 0) {
                     struct runtime_value line;
                     line.string = runtime_string_new(gc, sb.data);
-                    runtime_vec_push(lines, line);
+                    runtime_vec_push(gc, lines, line);
                     data_strbuf_clear(&sb);
                 }
                 break;
@@ -118,7 +118,7 @@ static int file_read_lines(struct runtime_gc *gc, struct runtime_registers *regs
             if (c == '\n') {
                 struct runtime_value line;
                 line.string = runtime_string_new(gc, sb.data);
-                runtime_vec_push(lines, line);
+                runtime_vec_push(gc, lines, line);
                 data_strbuf_clear(&sb);
             }
         }

@@ -17,7 +17,7 @@ void runtime_stack_free(struct runtime_stack *s)
 {
     if (!s)
         return;
-    runtime_valuevec_free(&s->values);
+    runtime_valuevec_free(NULL, &s->values);
     free(s);
 }
 
@@ -33,7 +33,7 @@ bool runtime_stack_empty(const struct runtime_stack *s)
 
 void runtime_stack_push(struct runtime_stack *s, struct runtime_value val)
 {
-    runtime_valuevec_push(&s->values, val);
+    runtime_valuevec_push(NULL, &s->values, val);
 }
 
 struct runtime_value runtime_stack_pop(struct runtime_stack *s)
@@ -46,7 +46,7 @@ struct runtime_value runtime_stack_pop(struct runtime_stack *s)
 
     int len = runtime_valuevec_len(values);
     val = runtime_valuevec_get(values, len - 1);
-    runtime_valuevec_resize(values, len - 1);
+    runtime_valuevec_resize(NULL, values, len - 1);
 
     return val;
 }
