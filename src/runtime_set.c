@@ -2,37 +2,69 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct runtime_set *runtime_set_new(int val_type, value_int_t len)
+struct runtime_set *runtime_set_new(struct runtime_gc *gc, int val_type, value_int_t len)
 {
     struct runtime_set *s;
 
-    s = runtime_alloc_object(OBJ_SET, sizeof(*s));
+    s = runtime_alloc_object2(gc, OBJ_SET, sizeof(*s));
     s->val_type = val_type;
     s->compare = runtime_get_compare_function(s->val_type);
 
     return s;
 }
 
-static void free_node(struct runtime_set_node *n)
+static struct runtime_set_node *new_node(struct runtime_gc *gc, struct runtime_value val)
+{
+    struct runtime_set_node *n;
+    n = runtime_gc_alloc(gc, sizeof(*n));
+    n->val = val;
+    n->height = 1;
+    return n;
+}
+
+static void free_node(struct runtime_gc *gc, struct runtime_set_node *n)
+{
+    runtime_gc_free(gc, n);
+}
+
+static void free_nodes(struct runtime_gc *gc, struct runtime_set_node *n)
 {
     if (!n)
         return;
-    free_node(n->l);
-    free_node(n->r);
-    free(n);
+    free_nodes(gc, n->l);
+    free_nodes(gc, n->r);
+    free_node(gc, n);
 }
 
-void runtime_set_free(struct runtime_set *s)
+void runtime_set_free(struct runtime_gc *gc, struct runtime_set *s)
 {
     if (!s)
         return;
-    free_node(s->root);
-    free(s);
+    free_nodes(gc, s->root);
+    runtime_gc_free(gc, s);
 }
 
 value_int_t runtime_set_len(const struct runtime_set *s)
 {
     return s->len;
+}
+
+bool runtime_set_contains(const struct runtime_set *s, struct runtime_value val)
+{
+    struct runtime_set_node *node = s->root;
+
+    while (node) {
+        int cmp = s->compare(node->val, val);
+
+        if (cmp > 0)
+            node = node->l;
+        else if (cmp < 0)
+            node = node->r;
+        else
+            return true;
+    }
+
+    return false;
 }
 
 static void connect_left(struct runtime_set_node *n, struct runtime_set_node *l)
@@ -45,15 +77,6 @@ static void connect_right(struct runtime_set_node *n, struct runtime_set_node *r
 {
     n->r = r;
     if (r) r->parent = n;
-}
-
-static struct runtime_set_node *new_node(struct runtime_value val)
-{
-    struct runtime_set_node *n;
-    n = calloc(1, sizeof(*n));
-    n->val = val;
-    n->height = 1;
-    return n;
 }
 
 static int max(int a, int b)
@@ -106,13 +129,13 @@ static struct runtime_set_node *right_rotate(struct runtime_set_node *pivot)
     return l;
 }
 
-static struct runtime_set_node *insert_node(struct runtime_set *s,
+static struct runtime_set_node *insert_node(struct runtime_gc *gc, struct runtime_set *s,
         struct runtime_set_node *node, struct runtime_value val)
 {
     if (!node) {
         struct runtime_set_node *n;
         s->len++;
-        n = new_node(val);
+        n = new_node(gc, val);
         if (!s->min)
             s->min = n;
         else
@@ -123,9 +146,9 @@ static struct runtime_set_node *insert_node(struct runtime_set *s,
     int cmp = s->compare(node->val, val);
 
     if (cmp > 0)
-        connect_left(node, insert_node(s, node->l, val));
+        connect_left(node, insert_node(gc, s, node->l, val));
     else if (cmp < 0)
-        connect_right(node, insert_node(s, node->r, val));
+        connect_right(node, insert_node(gc, s, node->r, val));
     else
         return node;
 
@@ -163,7 +186,7 @@ struct runtime_set_node *min_value_node(struct runtime_set_node *node)
     return n;
 }
 
-static struct runtime_set_node *remove_node(struct runtime_set *s,
+static struct runtime_set_node *remove_node(struct runtime_gc *gc, struct runtime_set *s,
         struct runtime_set_node *node, struct runtime_value val)
 {
     if (!node)
@@ -172,26 +195,26 @@ static struct runtime_set_node *remove_node(struct runtime_set *s,
     int cmp = s->compare(node->val, val);
 
     if (cmp > 0)
-        connect_left(node, remove_node(s, node->l, val));
+        connect_left(node, remove_node(gc, s, node->l, val));
     else if (cmp < 0)
-        connect_right(node, remove_node(s, node->r, val));
+        connect_right(node, remove_node(gc, s, node->r, val));
     else {
         /* found val */
         if (node->l == NULL) {
             struct runtime_set_node *tmp = node->r;
-            free(node);
+            free_node(gc, node);
             s->len--;
             return tmp;
         }
         if (node->r == NULL) {
             struct runtime_set_node *tmp = node->l;
-            free(node);
+            free_node(gc, node);
             s->len--;
             return tmp;
         }
         struct runtime_set_node *tmp = min_value_node(node->r);
         node->val = tmp->val;
-        connect_right(node, remove_node(s, node->r, tmp->val));
+        connect_right(node, remove_node(gc, s, node->r, tmp->val));
     }
 
     update_height(node);
@@ -220,40 +243,22 @@ static struct runtime_set_node *remove_node(struct runtime_set *s,
     return node;
 }
 
-bool runtime_set_add(struct runtime_set *s, struct runtime_value val)
+bool runtime_set_add(struct runtime_gc *gc, struct runtime_set *s, struct runtime_value val)
 {
     value_int_t oldlen = runtime_set_len(s);
-    s->root = insert_node(s, s->root, val);
+    s->root = insert_node(gc, s, s->root, val);
     if (s->root)
         s->root->parent = NULL;
     return runtime_set_len(s) == oldlen + 1;
 }
 
-bool runtime_set_remove(struct runtime_set *s, struct runtime_value val)
+bool runtime_set_remove(struct runtime_gc *gc, struct runtime_set *s, struct runtime_value val)
 {
     value_int_t oldlen = runtime_set_len(s);
-    s->root = remove_node(s, s->root, val);
+    s->root = remove_node(gc, s, s->root, val);
     if (s->root)
         s->root->parent = NULL;
     return runtime_set_len(s) == oldlen - 1;
-}
-
-bool runtime_set_contains(const struct runtime_set *s, struct runtime_value val)
-{
-    struct runtime_set_node *node = s->root;
-
-    while (node) {
-        int cmp = s->compare(node->val, val);
-
-        if (cmp > 0)
-            node = node->l;
-        else if (cmp < 0)
-            node = node->r;
-        else
-            return true;
-    }
-
-    return false;
 }
 
 struct runtime_set_node *runtime_set_node_begin(const struct runtime_set *s)

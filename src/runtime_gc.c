@@ -210,7 +210,7 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
     case OBJ_SET:
         {
             struct runtime_set *s = (struct runtime_set *) obj;
-            runtime_set_free(s);
+            runtime_set_free(gc, s);
         }
         break;
 

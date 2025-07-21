@@ -162,7 +162,7 @@ static int builtin_setadd(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value val = regs->locals[1];
     struct runtime_value ret;
 
-    ret.inum = runtime_set_add(obj.set, val);
+    ret.inum = runtime_set_add(gc, obj.set, val);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
@@ -186,7 +186,7 @@ static int builtin_setremove(struct runtime_gc *gc, struct runtime_registers *re
     struct runtime_value key = regs->locals[1];
     struct runtime_value ret;
 
-    ret.inum = runtime_set_remove(obj.set, key);
+    ret.inum = runtime_set_remove(gc, obj.set, key);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;

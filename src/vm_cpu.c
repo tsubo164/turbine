@@ -381,7 +381,7 @@ static void run_cpu(struct vm_cpu *vm)
                 /* TODO use fetch_register_value() for typ */
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_set *obj = runtime_set_new(typ, lenval.inum);
+                struct runtime_set *obj = runtime_set_new(&vm->gc, typ, lenval.inum);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.set = obj};

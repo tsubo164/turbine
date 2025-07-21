@@ -22,13 +22,15 @@ struct runtime_set {
     compare_function_t compare;
 };
 
-struct runtime_set *runtime_set_new(int val_type, value_int_t len);
-void runtime_set_free(struct runtime_set *s);
+struct runtime_set *runtime_set_new(struct runtime_gc *gc, int val_type, value_int_t len);
+void runtime_set_free(struct runtime_gc *gc, struct runtime_set *s);
 
 value_int_t runtime_set_len(const struct runtime_set *s);
-bool runtime_set_add(struct runtime_set *s, struct runtime_value val);
-bool runtime_set_remove(struct runtime_set *s, struct runtime_value val);
 bool runtime_set_contains(const struct runtime_set *s, struct runtime_value val);
+
+/* gc managed */
+bool runtime_set_add(struct runtime_gc *gc, struct runtime_set *s, struct runtime_value val);
+bool runtime_set_remove(struct runtime_gc *gc, struct runtime_set *s, struct runtime_value val);
 
 /* iteration */
 struct runtime_set_node *runtime_set_node_begin(const struct runtime_set *s);
