@@ -273,7 +273,7 @@ static int builtin_queuepush(struct runtime_gc *gc, struct runtime_registers *re
     struct runtime_value obj = regs->locals[0];
     struct runtime_value val = regs->locals[1];
 
-    runtime_queue_push(obj.queue, val);
+    runtime_queue_push(gc, obj.queue, val);
 
     return RESULT_SUCCESS;
 }
@@ -283,7 +283,7 @@ static int builtin_queuepop(struct runtime_gc *gc, struct runtime_registers *reg
     struct runtime_value obj = regs->locals[0];
     struct runtime_value ret;
 
-    ret = runtime_queue_pop(obj.queue);
+    ret = runtime_queue_pop(gc, obj.queue);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;

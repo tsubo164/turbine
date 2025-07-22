@@ -224,7 +224,7 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
     case OBJ_QUEUE:
         {
             struct runtime_queue *q = (struct runtime_queue *) obj;
-            runtime_queue_free(q);
+            runtime_queue_free(gc, q);
         }
         break;
 

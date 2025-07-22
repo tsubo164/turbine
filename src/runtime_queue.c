@@ -2,23 +2,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-struct runtime_queue *runtime_queue_new(int val_type, value_int_t len)
+struct runtime_queue *runtime_queue_new(struct runtime_gc *gc, int val_type, value_int_t len)
 {
     struct runtime_queue *q;
 
-    q = calloc(1, sizeof(*q));
-    q->obj.kind = OBJ_QUEUE;
+    q = runtime_alloc_object2(gc, OBJ_QUEUE, sizeof(*q));
     q->val_type = val_type;
 
+    runtime_gc_push_object(gc, (struct runtime_object*) q);
     return q;
 }
 
-void runtime_queue_free(struct runtime_queue *q)
+void runtime_queue_free(struct runtime_gc *gc, struct runtime_queue *q)
 {
     if (!q)
         return;
-    free(q->data);
-    free(q);
+    runtime_gc_free(gc, q->data);
+    runtime_gc_free(gc, q);
 }
 
 value_int_t runtime_queue_len(const struct runtime_queue *q)
@@ -31,36 +31,47 @@ bool runtime_queue_empty(const struct runtime_queue *q)
     return runtime_queue_len(q) == 0;
 }
 
+struct runtime_value runtime_queue_front(const struct runtime_queue *q)
+{
+    struct runtime_value val = {0};
+
+    if (runtime_queue_empty(q))
+        return val;
+
+    return q->data[q->front];
+}
+
 #define MIN_CAP 8
 
-static void expand(struct runtime_queue *q)
+static void expand(struct runtime_gc *gc, struct runtime_queue *q)
 {
     struct runtime_value *new_data;
     int new_cap = q->cap < MIN_CAP ? MIN_CAP : q->cap * 2;
 
-    new_data = malloc(sizeof(*new_data) * new_cap);
+    new_data = runtime_gc_alloc(gc, new_cap * sizeof(*new_data));
     for (int i = 0; i < q->len; i++) {
         new_data[i] = q->data[(q->front + i) % q->cap];
     }
 
-    free(q->data);
+    runtime_gc_free(gc, q->data);
     q->data = new_data;
     q->cap = new_cap;
     q->front = 0;
     q->back = q->len;
 }
 
-void runtime_queue_push(struct runtime_queue *q, struct runtime_value val)
+/* gc managed */
+void runtime_queue_push(struct runtime_gc *gc, struct runtime_queue *q, struct runtime_value val)
 {
     if (q->len == q->cap)
-        expand(q);
+        expand(gc, q);
 
     q->data[q->back] = val;
     q->back = (q->back + 1) % q->cap;
     q->len++;
 }
 
-struct runtime_value runtime_queue_pop(struct runtime_queue *q)
+struct runtime_value runtime_queue_pop(struct runtime_gc *gc, struct runtime_queue *q)
 {
     struct runtime_value val = {0};
 
@@ -71,16 +82,6 @@ struct runtime_value runtime_queue_pop(struct runtime_queue *q)
     q->front = (q->front + 1) % q->cap;
     q->len--;
     return val;
-}
-
-struct runtime_value runtime_queue_front(const struct runtime_queue *q)
-{
-    struct runtime_value val = {0};
-
-    if (runtime_queue_empty(q))
-        return val;
-
-    return q->data[q->front];
 }
 
 /* No index range check */

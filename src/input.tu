@@ -1,8 +1,8 @@
 > gc
 
 # main(args vec{string}) int
-  - s = stack{"foo", "bar"}
-  print(s)
+  - q = queue{"foo", "bar"}
+  print(q)
   /*
   - t = Person{first="Foo", last="Bar", id=232423}
   t.last += "-Baz"

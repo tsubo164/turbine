@@ -409,10 +409,9 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value typval = fetch_register_value(vm, typ);
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_queue *obj = runtime_queue_new(typval.inum, lenval.inum);
-                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+                struct runtime_queue *q = runtime_queue_new(&vm->gc, typval.inum, lenval.inum);
+                struct runtime_value srcobj = {.queue = q};
 
-                struct runtime_value srcobj = {.queue = obj};
                 set_local(vm, dst, srcobj);
             }
             break;
