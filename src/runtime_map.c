@@ -212,6 +212,7 @@ struct runtime_map *runtime_map_new(struct runtime_gc *gc, int val_type, value_i
         resize(gc, m, idx);
     }
 
+    runtime_gc_push_object(gc, (struct runtime_object*) m);
     return m;
 }
 

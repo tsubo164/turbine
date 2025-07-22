@@ -10,6 +10,7 @@ struct runtime_set *runtime_set_new(struct runtime_gc *gc, int val_type, value_i
     s->val_type = val_type;
     s->compare = runtime_get_compare_function(s->val_type);
 
+    runtime_gc_push_object(gc, (struct runtime_object*) s);
     return s;
 }
 

@@ -3,6 +3,7 @@
 
 #include "runtime_gc.h"
 #include "runtime_value.h"
+#include <stdbool.h>
 
 struct runtime_vec {
     struct runtime_object obj;

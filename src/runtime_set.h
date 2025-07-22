@@ -3,7 +3,7 @@
 
 #include "runtime_gc.h"
 #include "runtime_value.h"
-#include <stdint.h>
+#include <stdbool.h>
 
 struct runtime_set_node {
     struct runtime_value val;

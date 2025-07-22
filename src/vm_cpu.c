@@ -364,10 +364,9 @@ static void run_cpu(struct vm_cpu *vm)
                 int len = inst.C;
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_map *obj = runtime_map_new(&vm->gc, typ, lenval.inum);
-                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+                struct runtime_map *m = runtime_map_new(&vm->gc, typ, lenval.inum);
+                struct runtime_value srcobj = {.map = m};
 
-                struct runtime_value srcobj = {.map = obj};
                 set_local(vm, dst, srcobj);
             }
             break;
@@ -380,10 +379,9 @@ static void run_cpu(struct vm_cpu *vm)
                 /* TODO use fetch_register_value() for typ */
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_set *obj = runtime_set_new(&vm->gc, typ, lenval.inum);
-                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+                struct runtime_set *s = runtime_set_new(&vm->gc, typ, lenval.inum);
+                struct runtime_value srcobj = {.set = s};
 
-                struct runtime_value srcobj = {.set = obj};
                 set_local(vm, dst, srcobj);
             }
             break;

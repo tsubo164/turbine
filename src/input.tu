@@ -1,9 +1,11 @@
 > gc
 
 # main(args vec{string}) int
-  - v = vec{"foo", "bar", "baz"}
-  print(v)
+  - m = map{"foo":42, "bar":123456789}
+  print(m)
 
+  - s = set{"foo", "bar"}
+  print(s)
   /*
   - t = Person{first="Foo", last="Bar", id=232423}
   t.last += "-Baz"
