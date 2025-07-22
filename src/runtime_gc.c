@@ -217,7 +217,7 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
     case OBJ_STACK:
         {
             struct runtime_stack *s = (struct runtime_stack *) obj;
-            runtime_stack_free(s);
+            runtime_stack_free(gc, s);
         }
         break;
 

@@ -394,10 +394,9 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value typval = fetch_register_value(vm, typ);
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_stack *obj = runtime_stack_new(typval.inum, lenval.inum);
-                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+                struct runtime_stack *s = runtime_stack_new(&vm->gc, typval.inum, lenval.inum);
+                struct runtime_value srcobj = {.stack = s};
 
-                struct runtime_value srcobj = {.stack = obj};
                 set_local(vm, dst, srcobj);
             }
             break;

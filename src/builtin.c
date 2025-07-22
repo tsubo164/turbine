@@ -219,7 +219,7 @@ static int builtin_stackpush(struct runtime_gc *gc, struct runtime_registers *re
     struct runtime_value obj = regs->locals[0];
     struct runtime_value val = regs->locals[1];
 
-    runtime_stack_push(obj.stack, val);
+    runtime_stack_push(gc, obj.stack, val);
 
     return RESULT_SUCCESS;
 }
@@ -229,7 +229,7 @@ static int builtin_stackpop(struct runtime_gc *gc, struct runtime_registers *reg
     struct runtime_value obj = regs->locals[0];
     struct runtime_value ret;
 
-    ret = runtime_stack_pop(obj.stack);
+    ret = runtime_stack_pop(gc, obj.stack);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
