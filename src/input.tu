@@ -1,8 +1,8 @@
 > gc
 
 # main(args vec{string}) int
-  - s = set{"foo", "bar", "baz"}
-  print(s)
+  - v = vec{"foo", "bar", "baz"}
+  print(v)
 
   /*
   - t = Person{first="Foo", last="Bar", id=232423}

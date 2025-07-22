@@ -350,10 +350,9 @@ static void run_cpu(struct vm_cpu *vm)
                 int len = inst.C;
                 struct runtime_value lenval = fetch_register_value(vm, len);
 
-                struct runtime_vec *obj = runtime_vec_new(&vm->gc, typ, lenval.inum);
-                runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
+                struct runtime_vec *v = runtime_vec_new(&vm->gc, typ, lenval.inum);
+                struct runtime_value srcobj = {.vec = v};
 
-                struct runtime_value srcobj = {.vec = obj};
                 set_local(vm, dst, srcobj);
             }
             break;
@@ -1163,19 +1162,17 @@ do { \
 
 static struct runtime_value make_args_value(struct runtime_gc *gc, const struct vm_args *args)
 {
-    struct runtime_vec *vec;
-
-    vec = runtime_vec_new(gc, VAL_STRING, args->count);
-    runtime_gc_push_object(gc, (struct runtime_object *) vec);
+    struct runtime_vec *v;
+    v = runtime_vec_new(gc, VAL_STRING, args->count);
 
     for (int i = 0; i < args->count; i++) {
         struct runtime_string *s = runtime_string_new(gc, args->values[i]);
         struct runtime_value elem = {.string = s};
 
-        runtime_vec_set(vec, i, elem);
+        runtime_vec_set(v, i, elem);
     }
 
-    struct runtime_value val = {.vec = vec};
+    struct runtime_value val = {.vec = v};
     return val;
 }
 
