@@ -43,8 +43,7 @@ void *runtime_gc_realloc(struct runtime_gc *gc, void *user_ptr, size_t user_size
 void runtime_gc_free(struct runtime_gc *gc, void *user_ptr);
 
 /* alloc for vec, map, set, stack and queue */
-void *runtime_alloc_object(int kind, size_t size);
-void *runtime_alloc_object2(struct runtime_gc *gc, int kind, size_t size);
+void *runtime_alloc_object(struct runtime_gc *gc, int kind, size_t size);
 
 /* objects */
 void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj);

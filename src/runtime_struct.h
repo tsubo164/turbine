@@ -10,8 +10,8 @@ struct runtime_struct {
     int id;
 };
 
-struct runtime_struct *runtime_struct_new(int id, value_int_t len);
-void runtime_struct_free(struct runtime_struct *s);
+struct runtime_struct *runtime_struct_new(struct runtime_gc *gc, int id, value_int_t len);
+void runtime_struct_free(struct runtime_gc *gc, struct runtime_struct *s);
 
 value_int_t runtime_struct_field_count(const struct runtime_struct *s);
 struct runtime_value runtime_struct_get(const struct runtime_struct *s, value_int_t field_idx);

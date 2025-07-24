@@ -6,7 +6,7 @@ struct runtime_queue *runtime_queue_new(struct runtime_gc *gc, int val_type, val
 {
     struct runtime_queue *q;
 
-    q = runtime_alloc_object2(gc, OBJ_QUEUE, sizeof(*q));
+    q = runtime_alloc_object(gc, OBJ_QUEUE, sizeof(*q));
     q->val_type = val_type;
 
     runtime_gc_push_object(gc, (struct runtime_object*) q);

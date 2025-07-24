@@ -422,7 +422,7 @@ static void run_cpu(struct vm_cpu *vm)
                 int struct_id = inst.BB;
                 int len = code_get_struct_field_count(vm->code, struct_id);
 
-                struct runtime_struct *obj = runtime_struct_new(struct_id, len);
+                struct runtime_struct *obj = runtime_struct_new(&vm->gc, struct_id, len);
                 runtime_gc_push_object(&vm->gc, (struct runtime_object*) obj);
 
                 struct runtime_value srcobj = {.strct = obj};

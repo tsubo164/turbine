@@ -1,8 +1,20 @@
 > gc
 
+## Person struct
+  - first string
+  - last string
+  - age int
+  - a int
+  - b int
+  - c int
+  - d int
+  - e int
+  - f int
+
 # main(args vec{string}) int
-  - q = queue{"foo", "bar"}
-  print(q)
+  - p = Person{first="Foo", last="Bar", age=42}
+  print(p)
+
   /*
   - t = Person{first="Foo", last="Bar", id=232423}
   t.last += "-Baz"

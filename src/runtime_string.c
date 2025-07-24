@@ -7,7 +7,7 @@ struct runtime_string *new_string(struct runtime_gc *gc, char *new_data, int new
 {
     struct runtime_string *s;
 
-    s = runtime_alloc_object2(gc, OBJ_STRING, sizeof(*s));
+    s = runtime_alloc_object(gc, OBJ_STRING, sizeof(*s));
     s->data = new_data;
     s->len = new_len;
 

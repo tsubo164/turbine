@@ -1,25 +1,24 @@
 #include "runtime_struct.h"
 #include <stdlib.h>
 
-struct runtime_struct *runtime_struct_new(int id, value_int_t len)
+struct runtime_struct *runtime_struct_new(struct runtime_gc *gc, int id, value_int_t len)
 {
     struct runtime_struct *s;
 
-    s = runtime_alloc_object(OBJ_STRUCT, sizeof(*s));
+    s = runtime_alloc_object(gc, OBJ_STRUCT, sizeof(*s));
     s->id = id;
     runtime_valuevec_init(&s->fields);
-    runtime_valuevec_resize(NULL, &s->fields, len);
+    runtime_valuevec_resize(gc, &s->fields, len);
 
     return s;
 }
 
-void runtime_struct_free(struct runtime_struct *s)
+void runtime_struct_free(struct runtime_gc *gc, struct runtime_struct *s)
 {
     if (!s)
         return;
-
-    runtime_valuevec_free(NULL, &s->fields);
-    free(s);
+    runtime_valuevec_free(gc, &s->fields);
+    runtime_gc_free(gc, s);
 }
 
 value_int_t runtime_struct_field_count(const struct runtime_struct *s)

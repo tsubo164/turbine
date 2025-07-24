@@ -6,7 +6,7 @@ struct runtime_stack *runtime_stack_new(struct runtime_gc *gc, int val_type, val
 {
     struct runtime_stack *s;
 
-    s = runtime_alloc_object2(gc, OBJ_STACK, sizeof(*s));
+    s = runtime_alloc_object(gc, OBJ_STACK, sizeof(*s));
     s->val_type = val_type;
     runtime_valuevec_init(&s->values);
 

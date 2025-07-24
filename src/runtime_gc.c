@@ -69,19 +69,7 @@ void runtime_gc_free(struct runtime_gc *gc, void *user_ptr)
 }
 /* -- */
 
-void *runtime_alloc_object(int kind, size_t size)
-{
-    static uint32_t id = 1;
-    struct runtime_object *obj = calloc(1, size);
-
-    /* TODO thread-safe */
-    obj->kind = kind;
-    obj->id = id++;
-
-    return obj;
-}
-
-void *runtime_alloc_object2(struct runtime_gc *gc, int kind, size_t size)
+void *runtime_alloc_object(struct runtime_gc *gc, int kind, size_t size)
 {
     static uint32_t id = 1;
     struct runtime_object *obj = runtime_gc_alloc(gc, size);
@@ -231,7 +219,7 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
     case OBJ_STRUCT:
         {
             struct runtime_struct *s = (struct runtime_struct *) obj;
-            runtime_struct_free(s);
+            runtime_struct_free(gc, s);
         }
         break;
     }
