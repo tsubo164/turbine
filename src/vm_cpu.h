@@ -44,6 +44,6 @@ struct runtime_value vm_lookup_stack(const struct vm_cpu *vm, value_addr_t bp, i
 int vm_get_global_count(const struct vm_cpu *vm);
 struct runtime_value vm_get_global(const struct vm_cpu *vm, int id);
 
-void vm_free_cpu(struct vm_cpu *vm);
+void vm_cpu_clear(struct vm_cpu *vm);
 
 #endif /* _H */

@@ -1191,6 +1191,12 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
     runtime_valuevec_set(&vm->stack, 0, empty);
     vm->sp = 0;
 
+    /* gc before making args */
+    runtime_gc_init(&vm->gc);
+    vm->gc.stackmap = &vm->code->stackmap;
+    vm->gc.globalmap = &vm->code->globalmap;
+    vm->gc.vm = vm;
+
     /* args */
     struct runtime_value argsval = make_args_value(&vm->gc, args);
     set_sp(vm, 1);
@@ -1198,11 +1204,6 @@ void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode
 
     /* call stack */
     vm_callstack_init(&vm->callstack);
-
-    /* gc */
-    vm->gc.stackmap = &vm->code->stackmap;
-    vm->gc.globalmap = &vm->code->globalmap;
-    vm->gc.vm = vm;
 
     run_cpu(vm);
 }
@@ -1236,7 +1237,7 @@ struct runtime_value vm_get_global(const struct vm_cpu *vm, int id)
     return get_global(vm, id);
 }
 
-void vm_free_cpu(struct vm_cpu *vm)
+void vm_cpu_clear(struct vm_cpu *vm)
 {
     runtime_valuevec_free(NULL, &vm->stack);
     /* TODO move outside of vm_cpu so multiple vm_cpus can share */

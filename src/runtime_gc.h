@@ -34,8 +34,13 @@ struct runtime_gc {
     const struct vm_cpu *vm;
 
     size_t used_bytes;
-    bool need_collect;
+    size_t threshold_bytes;
+    float threshold_multiplier;
+    bool needs_collect;
 };
+
+void runtime_gc_init(struct runtime_gc *gc);
+void runtime_gc_clear(struct runtime_gc *gc);
 
 /* memory */
 void *runtime_gc_alloc(struct runtime_gc *gc, size_t user_size);
@@ -52,6 +57,6 @@ void runtime_gc_request_collect(struct runtime_gc *gc);
 bool runtime_gc_is_requested(const struct runtime_gc *gc);
 void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr);
 
-void runtime_gc_clear(struct runtime_gc *gc);
+void runtime_gc_set_threshold_multiplier(struct runtime_gc *gc, float threshold_multiplier);
 
 #endif /* _H */

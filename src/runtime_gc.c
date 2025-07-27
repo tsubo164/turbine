@@ -17,13 +17,48 @@ enum object_mark {
     OBJ_BLACK,
 };
 
+#define INIT_THRESHOLD_MULT 1.5
+//#define INIT_THRESHOLD_BYTES (64 * 1024)
+#define INIT_THRESHOLD_BYTES (64 * 1)
+void runtime_gc_init(struct runtime_gc *gc)
+{
+    gc->used_bytes = 0;
+    gc->threshold_bytes = INIT_THRESHOLD_BYTES;
+    runtime_gc_set_threshold_multiplier(gc, INIT_THRESHOLD_MULT);
+}
+
+static void free_obj(struct runtime_gc *gc, struct runtime_object *obj);
+void runtime_gc_clear(struct runtime_gc *gc)
+{
+    struct runtime_object *obj = gc->root;
+    struct runtime_object *next = NULL;
+
+    while (obj) {
+        next = obj->next;
+        free_obj(gc, obj);
+        obj = next;
+    }
+}
+
 /* memory */
 struct gc_header {
     size_t size;
 };
 
+static void check_heap_threshold(struct runtime_gc *gc)
+{
+    if (gc && gc->used_bytes >= gc->threshold_bytes) {
+        /*
+        gc->needs_collect = true;
+        */
+    }
+}
+
 void *runtime_gc_alloc(struct runtime_gc *gc, size_t user_size)
 {
+    /* */
+    check_heap_threshold(gc);
+
     struct gc_header *header;
 
     header = calloc(1, sizeof(*header) + user_size);
@@ -62,8 +97,10 @@ void runtime_gc_free(struct runtime_gc *gc, void *user_ptr)
 
     struct gc_header *header = user_ptr;
     header--;
-    if (gc)
+    if (gc) {
+        assert(gc->used_bytes >= header->size);
         gc->used_bytes -= header->size;
+    }
 
     free(header);
 }
@@ -227,12 +264,12 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
 
 void runtime_gc_request_collect(struct runtime_gc *gc)
 {
-    gc->need_collect = true;
+    gc->needs_collect = true;
 }
 
 bool runtime_gc_is_requested(const struct runtime_gc *gc)
 {
-    return gc->need_collect;
+    return gc->needs_collect;
 }
 
 static bool is_ref_type(int type)
@@ -257,6 +294,11 @@ static bool is_ref_type(int type)
 
 static void mark_object(struct runtime_gc *gc, struct runtime_object *obj)
 {
+    /* 'obj' may be NULL between struct creation and initialization.
+     * A safe point could be added later to allow assert(obj); */
+    if (!obj)
+        return;
+
     /* mark this object */
     obj->mark = OBJ_BLACK;
 
@@ -397,6 +439,8 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
         if (0) {
             printf("-------------------------------------\n");
             vm_print_call(call);
+            code_print_stackmap(gc->stackmap);
+            //printf("======================> precall_addr: %lld\n", precall_addr);
         }
 
         for (int i = 0; i < nslots; i++) {
@@ -404,8 +448,10 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
 
             if (is_ref) {
                 value_addr_t bp = call->current_bp;
+                //printf("====================== precall_addr: %lld, bp: %lld, i: %d\n", precall_addr, bp, i);
                 struct runtime_value val = vm_lookup_stack(gc->vm, bp, i);
                 mark_object(gc, val.obj);
+                //print_obj(val.obj);
             }
         }
 
@@ -438,6 +484,14 @@ static void free_unreachables(struct runtime_gc *gc)
 
 void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 {
+    /* TODO */
+    if (inst_addr == 0)
+        return;
+    /*
+    printf("----------------------------------------- GC!!!! @ %lld\n", inst_addr);
+    runtime_gc_print_objects(gc);
+    */
+
     /* clear marks */
     clear_marks(gc);
 
@@ -450,17 +504,20 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     /* free white objects */
     free_unreachables(gc);
 
-    gc->need_collect = false;
+    gc->needs_collect = false;
+
+    /*
+    printf("-----------------------------------------GC done\n");
+    runtime_gc_print_objects(gc);
+    */
 }
 
-void runtime_gc_clear(struct runtime_gc *gc)
+void runtime_gc_set_threshold_multiplier(struct runtime_gc *gc, float threshold_multiplier)
 {
-    struct runtime_object *obj = gc->root;
-    struct runtime_object *next = NULL;
+    float mult = threshold_multiplier;
 
-    while (obj) {
-        next = obj->next;
-        free_obj(gc, obj);
-        obj = next;
-    }
+    mult = mult > 3. ? 3. : mult;
+    mult = mult < 1. ? 1. : mult;
+
+    gc->threshold_multiplier = mult;
 }

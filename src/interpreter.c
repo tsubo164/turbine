@@ -104,7 +104,7 @@ static value_int_t exec_code(const struct code_bytecode *code, const struct inte
     vm_execute_bytecode(&vm, code, &vargs);
 
     value_int_t ret = vm_get_stack_top(&vm);
-    vm_free_cpu(&vm);
+    vm_cpu_clear(&vm);
 
     return ret;
 }
