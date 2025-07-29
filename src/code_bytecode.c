@@ -9,8 +9,9 @@
 static void mark_ref(struct code_bytecode *code, int slot, bool is_ref)
 {
     value_addr_t addr = code_get_next_addr(code);
-    code_stackmap_mark(&code->stackmap, addr, slot, is_ref);
-    code_stackmap_push(&code->stackmap);
+    code_stackmap_push_current(&code->stackmap, addr);
+
+    code_stackmap_mark(&code->stackmap, slot, is_ref);
 }
 
 static int register_to_smallint(int id);
@@ -24,28 +25,31 @@ static void mark_global_ref(struct code_bytecode *code, int slot, bool is_ref)
 static void mark_ref2(struct code_bytecode *code, int slot, bool is_ref0, bool is_ref1)
 {
     value_addr_t addr = code_get_next_addr(code);
-    code_stackmap_mark(&code->stackmap, addr, slot + 0, is_ref0);
-    code_stackmap_mark(&code->stackmap, addr, slot + 1, is_ref1);
-    code_stackmap_push(&code->stackmap);
+    code_stackmap_push_current(&code->stackmap, addr);
+
+    code_stackmap_mark(&code->stackmap, slot + 0, is_ref0);
+    code_stackmap_mark(&code->stackmap, slot + 1, is_ref1);
 }
 
 static void mark_ref3(struct code_bytecode *code, int slot, bool is_ref0, bool is_ref1, bool is_ref2)
 {
     value_addr_t addr = code_get_next_addr(code);
-    code_stackmap_mark(&code->stackmap, addr, slot + 0, is_ref0);
-    code_stackmap_mark(&code->stackmap, addr, slot + 1, is_ref1);
-    code_stackmap_mark(&code->stackmap, addr, slot + 2, is_ref2);
-    code_stackmap_push(&code->stackmap);
+    code_stackmap_push_current(&code->stackmap, addr);
+
+    code_stackmap_mark(&code->stackmap, slot + 0, is_ref0);
+    code_stackmap_mark(&code->stackmap, slot + 1, is_ref1);
+    code_stackmap_mark(&code->stackmap, slot + 2, is_ref2);
 }
 
 static void mark_ref4(struct code_bytecode *code, int slot, bool is_ref0, bool is_ref1, bool is_ref2, bool is_ref3)
 {
     value_addr_t addr = code_get_next_addr(code);
-    code_stackmap_mark(&code->stackmap, addr, slot + 0, is_ref0);
-    code_stackmap_mark(&code->stackmap, addr, slot + 1, is_ref1);
-    code_stackmap_mark(&code->stackmap, addr, slot + 2, is_ref2);
-    code_stackmap_mark(&code->stackmap, addr, slot + 3, is_ref3);
-    code_stackmap_push(&code->stackmap);
+    code_stackmap_push_current(&code->stackmap, addr);
+
+    code_stackmap_mark(&code->stackmap, slot + 0, is_ref0);
+    code_stackmap_mark(&code->stackmap, slot + 1, is_ref1);
+    code_stackmap_mark(&code->stackmap, slot + 2, is_ref2);
+    code_stackmap_mark(&code->stackmap, slot + 3, is_ref3);
 }
 /* --- */
 

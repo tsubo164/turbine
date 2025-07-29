@@ -430,8 +430,7 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
         if (callsite_addr == 0)
             break;
 
-        value_addr_t precall_addr = callsite_addr - 1;
-        const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, precall_addr);
+        const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, callsite_addr);
         const struct vm_call *call = vm_get_call(gc->vm, frame_id);
         int nslots = call->current_sp - call->current_bp;
         assert(nslots <= 64);
@@ -440,7 +439,7 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
             printf("-------------------------------------\n");
             vm_print_call(call);
             code_print_stackmap(gc->stackmap);
-            //printf("======================> precall_addr: %lld\n", precall_addr);
+            //printf("======================> callsite_addr: %lld\n", callsite_addr);
         }
 
         for (int i = 0; i < nslots; i++) {
@@ -448,7 +447,7 @@ static void trace_locals(struct runtime_gc *gc, value_addr_t inst_addr)
 
             if (is_ref) {
                 value_addr_t bp = call->current_bp;
-                //printf("====================== precall_addr: %lld, bp: %lld, i: %d\n", precall_addr, bp, i);
+                //printf("====================== callsite_addr: %lld, bp: %lld, i: %d\n", callsite_addr, bp, i);
                 struct runtime_value val = vm_lookup_stack(gc->vm, bp, i);
                 mark_object(gc, val.obj);
                 //print_obj(val.obj);

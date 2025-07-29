@@ -1,5 +1,6 @@
 > gc
 
+/*
 ## Person struct
   - first string
   - last string
@@ -33,4 +34,10 @@
 
   print(p)
 
+  return 0
+*/
+# main(args vec{string}) int
+  - s = "!!"
+  - v = vec{"Foo", "Bar" + s}
+  print(v)
   return 0

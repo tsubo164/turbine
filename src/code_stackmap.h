@@ -19,8 +19,8 @@ struct code_stackmap {
     struct code_stackmap_entry_vec records;
 };
 
-void code_stackmap_mark(struct code_stackmap *stackmap, value_addr_t addr, int slot, bool is_ref);
-void code_stackmap_push(struct code_stackmap *stackmap);
+void code_stackmap_mark(struct code_stackmap *stackmap, int slot, bool is_ref);
+void code_stackmap_push_current(struct code_stackmap *stackmap, value_addr_t addr);
 const struct code_stackmap_entry *code_stackmap_find_entry(const struct code_stackmap *stackmap, value_addr_t addr);
 bool code_stackmap_is_ref(const struct code_stackmap_entry *ent, int slot);
 void code_stackmap_reset_current(struct code_stackmap *stackmap);
