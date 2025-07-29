@@ -9,6 +9,9 @@ all:
 run:
 	$(MAKE) -C src $@
 
+leakcheck:
+	$(MAKE) -C src $@
+
 release: clean
 	$(MAKE) -C src OPT="-O2"
 

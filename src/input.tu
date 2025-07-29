@@ -12,22 +12,25 @@
   - f int
 
 # main(args vec{string}) int
+  - s = "Hoge"
   - p = Person{first="Foo", last="Bar", age=42}
   print(p)
 
-  /*
-  - t = Person{first="Foo", last="Bar", id=232423}
-  t.last += "-Baz"
-  print(t)
+  // temp object creation
+  if p.last + s == "HOGE"
+    nop
 
   print("before ===============================")
   gc.print()
   gc.collect()
+
+  // safepoint at loop back edge
+  for i in 0..10
+    print("Foo", i)
+
   print("after  ===============================")
   gc.print()
 
-  print(t)
-  */
-  gc.print()
+  print(p)
 
   return 0

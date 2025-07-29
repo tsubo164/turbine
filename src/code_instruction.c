@@ -3,7 +3,10 @@
 #include <stdlib.h>
 
 static const struct code_opcode_info opecode_table[] = {
+    /* program control */
     [OP_NOP]            = { "nop",            OPERAND____ },
+    [OP_HALT]           = { "halt",           OPERAND____ },
+    [OP_SAFEPOINTPOLL]  = { "safepointpoll",  OPERAND____ },
     /* load, store, move */
     [OP_MOVE]           = { "move",           OPERAND_AB_ },
     [OP_LOADGLOBAL]     = { "loadglobal",     OPERAND_AB_ },
@@ -90,8 +93,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_INTTOFLOAT]     = { "inttofloat",     OPERAND_AB_ },
     [OP_FLOATTOBOOL]    = { "floattobool",    OPERAND_AB_ },
     [OP_FLOATTOINT]     = { "floattoint",     OPERAND_AB_ },
-    /* program control */
-    [OP_HALT]           = { "halt",           OPERAND____ },
+    /* eoc */
     [END_OF_OPCODE]     = { NULL },
 };
 

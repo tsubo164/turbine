@@ -15,6 +15,9 @@ all: $(TARGET)
 run: $(TARGET) $(DEP)
 	$(TARGET) ./input.tu
 
+leakcheck: $(TARGET) $(DEP)
+	valgrind --leak-check=full $(TARGET) ./input.tu
+
 $(TARGET): main.o $(LIB)
 	$(CC) -o $@ $^ $(LDFLAGS)
 

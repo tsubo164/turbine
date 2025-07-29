@@ -159,6 +159,13 @@ void vm_print_gc_objects(const struct vm_cpu *vm)
     runtime_gc_print_objects(&vm->gc);
 }
 
+static void safepoint_poll(struct vm_cpu *vm, value_addr_t inst_addr)
+{
+    if (runtime_gc_is_requested(&vm->gc)) {
+        runtime_gc_collect_objects(&vm->gc, inst_addr);
+    }
+}
+
 static void call_function(struct vm_cpu *vm, value_addr_t callsite_addr, int retval_reg, int func_id)
 {
     value_addr_t func_addr = code_get_function_address(vm->code, func_id);
@@ -573,6 +580,7 @@ static void run_cpu(struct vm_cpu *vm)
                     set_ip(vm, dst);
                 }
             }
+            safepoint_poll(vm, inst_addr);
             break;
 
         case OP_FORVECBEGIN:
@@ -609,6 +617,7 @@ static void run_cpu(struct vm_cpu *vm)
                     set_ip(vm, dst);
                 }
             }
+            safepoint_poll(vm, inst_addr);
             break;
 
         case OP_FORMAPBEGIN:
@@ -657,6 +666,7 @@ static void run_cpu(struct vm_cpu *vm)
                     set_ip(vm, dst);
                 }
             }
+            safepoint_poll(vm, inst_addr);
             break;
 
         case OP_FORSETBEGIN:
@@ -699,6 +709,7 @@ static void run_cpu(struct vm_cpu *vm)
                     set_ip(vm, dst);
                 }
             }
+            safepoint_poll(vm, inst_addr);
             break;
 
         case OP_FORSTACKBEGIN:
@@ -737,6 +748,7 @@ static void run_cpu(struct vm_cpu *vm)
                     set_ip(vm, dst);
                 }
             }
+            safepoint_poll(vm, inst_addr);
             break;
 
         case OP_FORQUEUEBEGIN:
@@ -775,6 +787,7 @@ static void run_cpu(struct vm_cpu *vm)
                     set_ip(vm, dst);
                 }
             }
+            safepoint_poll(vm, inst_addr);
             break;
 
         case OP_FORENUMBEGIN:
@@ -1135,6 +1148,10 @@ do { \
             }
             break;
 
+        case OP_SAFEPOINTPOLL:
+            safepoint_poll(vm, inst_addr);
+            break;
+
         case OP_HALT:
             halt = true;
             break;
@@ -1147,11 +1164,6 @@ do { \
             code_print_instruction(vm->code, inst_addr, &inst, NULL);
             assert(!"internal error");
             break;
-        }
-
-        /* gc */
-        if (runtime_gc_is_requested(&vm->gc)) {
-            runtime_gc_collect_objects(&vm->gc, inst_addr);
         }
     }
 }

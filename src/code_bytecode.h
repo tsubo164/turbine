@@ -200,6 +200,7 @@ int code_emit_float_to_bool(struct code_bytecode *code, int dst, int src);
 int code_emit_float_to_int(struct code_bytecode *code, int dst, int src);
 
 /* program control */
+void code_emit_safepoint(struct code_bytecode *code);
 void code_emit_halt(struct code_bytecode *code);
 void code_emit_nop(struct code_bytecode *code);
 

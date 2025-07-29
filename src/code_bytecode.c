@@ -994,6 +994,11 @@ int code_emit_float_to_int(struct code_bytecode *code, int dst, int src)
 }
 
 /* program control */
+void code_emit_safepoint(struct code_bytecode *code)
+{
+    push_inst_op(code, OP_SAFEPOINTPOLL);
+}
+
 void code_emit_halt(struct code_bytecode *code)
 {
     push_inst_op(code, OP_HALT);

@@ -5,7 +5,10 @@
 #include <stdbool.h>
 
 enum code_opcode {
+    /* program control */
     OP_NOP,
+    OP_HALT,
+    OP_SAFEPOINTPOLL,
     /* load, store, move */
     OP_MOVE,
     OP_LOADGLOBAL,
@@ -92,8 +95,6 @@ enum code_opcode {
     OP_INTTOFLOAT,
     OP_FLOATTOBOOL,
     OP_FLOATTOINT,
-    /* program control */
-    OP_HALT,
     /* eoc */
     END_OF_OPCODE,
 };
