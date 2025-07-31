@@ -47,12 +47,14 @@ void *runtime_gc_alloc(struct runtime_gc *gc, size_t user_size);
 void *runtime_gc_realloc(struct runtime_gc *gc, void *user_ptr, size_t user_size);
 void runtime_gc_free(struct runtime_gc *gc, void *user_ptr);
 
-/* alloc for vec, map, set, stack and queue */
+/* object */
 void *runtime_alloc_object(struct runtime_gc *gc, int kind, size_t size);
-
-/* objects */
 void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj);
+uint32_t runtime_gc_get_object_id(const struct runtime_object *obj);
+bool runtime_gc_is_object_alive(const struct runtime_gc *gc, value_int_t id);
 void runtime_gc_print_objects(const struct runtime_gc *gc);
+
+/* collect */
 void runtime_gc_request_collect(struct runtime_gc *gc);
 bool runtime_gc_is_requested(const struct runtime_gc *gc);
 void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr);

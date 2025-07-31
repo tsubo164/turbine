@@ -124,6 +124,24 @@ void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj)
     gc->root = obj;
 }
 
+uint32_t runtime_gc_get_object_id(const struct runtime_object *obj)
+{
+    if (!obj)
+        return 0;
+    return obj->id;
+}
+
+bool runtime_gc_is_object_alive(const struct runtime_gc *gc, value_int_t id)
+{
+    struct runtime_object *curr;
+
+    for (curr = gc->root; curr; curr = curr->next) {
+        if (curr->id == id)
+            return true;
+    }
+    return false;
+}
+
 static void print_obj(const struct runtime_object *obj)
 {
     enum runtime_object_kind kind = obj->kind;
@@ -288,6 +306,7 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
     }
 }
 
+/* collect */
 void runtime_gc_request_collect(struct runtime_gc *gc)
 {
     gc->needs_collect = true;

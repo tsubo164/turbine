@@ -1,5 +1,6 @@
 > gc
 
+/*
 ## Person struct
   - first string
   - last string
@@ -45,5 +46,29 @@
   gc.print()
 
   print(p)
+
+  return 0
+*/
+
+# make(arg string) int
+  - s = arg + "???"
+  return gc.get_object_id(s)
+
+# main(args vec{string}) int
+  //- s = "Hoge"
+  //s = s + args[0]
+  - id = make(args[0])
+
+  print(id)
+  gc.print()
+  print("************ before", gc.is_object_alive(id))
+
+  gc.collect()
+
+  for i in 0..1
+    nop
+
+  gc.print()
+  print("************ after ", gc.is_object_alive(id))
 
   return 0
