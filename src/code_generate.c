@@ -990,6 +990,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
             gen_stmt(code, s->body);
 
             /* exit */
+            code_emit_safepoint(code);
             code_emit_jump(code, begin);
             code_back_patch_breaks(code);
             if (!infinite_loop)

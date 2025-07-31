@@ -11,6 +11,9 @@
   - e int
   - f int
 
+# foo()
+  nop
+
 # main(args vec{string}) int
   - s = "Hoge"
   - p = Person{first="Foo", last="Bar", age=42}
@@ -22,12 +25,21 @@
 
   print("before ===============================")
   gc.print()
-  //gc.collect()
+  // request gc
+  gc.collect()
 
   // safepoint at loop back edge
-  for i in 0..10000
-    - v = vec{i}
-    print(i, v)
+  - i = 0
+  while i < 10
+    i += 1
+
+  // safepoint at function entry point
+  //foo()
+
+  // safepoint at loop back edge
+  //for i in 0..10000
+  //  - v = vec{i}
+  //  print(i, v)
 
   print("after  ===============================")
   gc.print()

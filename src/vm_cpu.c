@@ -439,6 +439,7 @@ static void run_cpu(struct vm_cpu *vm)
 
         /* function call */
         case OP_CALL:
+            safepoint_poll(vm, inst_addr);
             {
                 int ret_reg = inst.A;
                 int func_id = inst.BB;
@@ -448,6 +449,7 @@ static void run_cpu(struct vm_cpu *vm)
             break;
 
         case OP_CALLPOINTER:
+            safepoint_poll(vm, inst_addr);
             {
                 int ret_reg = inst.A;
                 int src = inst.B;
@@ -459,6 +461,7 @@ static void run_cpu(struct vm_cpu *vm)
             break;
 
         case OP_CALLNATIVE:
+            safepoint_poll(vm, inst_addr);
             {
                 int ret_reg = inst.A;
                 int func_id = inst.BB;

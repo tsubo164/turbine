@@ -512,9 +512,9 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     assert(inst_addr >= 0);
 
     if (0) {
-        printf("-----------------------------------------");
+        printf("-----------------------------------------\n");
         printf("GC triggered @ %" PRIaddr "\n", inst_addr);
-        printf("-----------------------------------------");
+        printf("-----------------------------------------\n");
     }
 
     /* clear marks */
