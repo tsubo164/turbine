@@ -18,8 +18,9 @@ enum object_mark {
 };
 
 #define INIT_THRESHOLD_MULT 1.5
-//#define INIT_THRESHOLD_BYTES (64 * 1024)
-#define INIT_THRESHOLD_BYTES (64 * 1)
+#define INIT_THRESHOLD_BYTES (1 * 1024 * 1024) /* 1 Mbyte */
+#define MAX_THRESHOLD_BYTES (128 * 1024 * 1024)
+
 void runtime_gc_init(struct runtime_gc *gc)
 {
     gc->used_bytes = 0;
@@ -48,15 +49,12 @@ struct gc_header {
 static void check_heap_threshold(struct runtime_gc *gc)
 {
     if (gc && gc->used_bytes >= gc->threshold_bytes) {
-        /*
         gc->needs_collect = true;
-        */
     }
 }
 
 void *runtime_gc_alloc(struct runtime_gc *gc, size_t user_size)
 {
-    /* */
     check_heap_threshold(gc);
 
     struct gc_header *header;
@@ -104,8 +102,8 @@ void runtime_gc_free(struct runtime_gc *gc, void *user_ptr)
 
     free(header);
 }
-/* -- */
 
+/* object */
 void *runtime_alloc_object(struct runtime_gc *gc, int kind, size_t size)
 {
     static uint32_t id = 1;
@@ -194,12 +192,40 @@ static void print_obj(const struct runtime_object *obj)
     }
 }
 
+const char* format_bytes(size_t bytes)
+{
+    static char buf[32] = {'\0'};
+
+    if (bytes >= 1024 * 1024 * 1024) {
+        snprintf(buf, sizeof(buf), "%.2f GB   ", (double)bytes / (1024 * 1024 * 1024));
+    }
+    else if (bytes >= 1024 * 1024) {
+        snprintf(buf, sizeof(buf), "%.2f MB   ", (double)bytes / (1024 * 1024));
+    }
+    else if (bytes >= 1024) {
+        snprintf(buf, sizeof(buf), "%.2f KB   ", (double)bytes / 1024);
+    }
+    else {
+        snprintf(buf, sizeof(buf), "%zu bytes", bytes);
+    }
+
+    return buf;
+}
+
 void runtime_gc_print_objects(const struct runtime_gc *gc)
 {
-    printf("* %ld bytes used in heap:\n", gc->used_bytes);
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         print_obj(obj);
     }
+
+    double usage_percent = 0.0;
+    if (gc->threshold_bytes > 0)
+        usage_percent = (double)gc->used_bytes / gc->threshold_bytes;
+
+    printf("GC status:\n");
+    printf("  * usage:      %16s\n", format_bytes(gc->used_bytes));
+    printf("  * threshold:  %16s\n", format_bytes(gc->threshold_bytes));
+    printf("  * percentage: %10.2f %%\n", usage_percent * 100);
 }
 
 static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
@@ -483,13 +509,13 @@ static void free_unreachables(struct runtime_gc *gc)
 
 void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 {
-    /* TODO */
-    if (inst_addr == 0)
-        return;
-    /*
-    printf("----------------------------------------- GC!!!! @ %lld\n", inst_addr);
-    runtime_gc_print_objects(gc);
-    */
+    assert(inst_addr >= 0);
+
+    if (0) {
+        printf("-----------------------------------------");
+        printf("GC triggered @ %" PRIaddr "\n", inst_addr);
+        printf("-----------------------------------------");
+    }
 
     /* clear marks */
     clear_marks(gc);
@@ -503,12 +529,12 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     /* free white objects */
     free_unreachables(gc);
 
-    gc->needs_collect = false;
+    /* update threshold bytes */
+    gc->threshold_bytes *= gc->threshold_multiplier;
+    if (gc->threshold_bytes > MAX_THRESHOLD_BYTES)
+        gc->threshold_bytes = MAX_THRESHOLD_BYTES;
 
-    /*
-    printf("-----------------------------------------GC done\n");
-    runtime_gc_print_objects(gc);
-    */
+    gc->needs_collect = false;
 }
 
 void runtime_gc_set_threshold_multiplier(struct runtime_gc *gc, float threshold_multiplier)

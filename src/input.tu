@@ -1,6 +1,5 @@
 > gc
 
-/*
 ## Person struct
   - first string
   - last string
@@ -23,21 +22,16 @@
 
   print("before ===============================")
   gc.print()
-  gc.collect()
+  //gc.collect()
 
   // safepoint at loop back edge
-  for i in 0..10
-    print("Foo", i)
+  for i in 0..10000
+    - v = vec{i}
+    print(i, v)
 
   print("after  ===============================")
   gc.print()
 
   print(p)
 
-  return 0
-*/
-# main(args vec{string}) int
-  - s = "!!"
-  - v = vec{"Foo", "Bar" + s}
-  print(v)
   return 0
