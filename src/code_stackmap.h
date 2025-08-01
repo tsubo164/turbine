@@ -27,6 +27,7 @@ void code_stackmap_reset_current(struct code_stackmap *stackmap);
 
 void code_stackmap_free(struct code_stackmap *stackmap);
 void code_print_stackmap(const struct code_stackmap *stackmap);
+void code_print_stackmap_entry(const struct code_stackmap_entry *ent);
 
 /* */
 struct code_globalmap {

@@ -3,7 +3,7 @@
 # return_large_int() int
   return 4422
 
-# main() int
+# main(args vec{string}) int
 
   ---
     // large number literals that don't fit into a register

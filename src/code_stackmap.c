@@ -22,13 +22,6 @@ void code_stackmap_mark(struct code_stackmap *stackmap, int slot, bool is_ref)
 
 void code_stackmap_push_current(struct code_stackmap *stackmap, value_addr_t addr)
 {
-    /* TODO use global var for args to mark stack.data[0] */
-    /*
-    if (stackmap->records.len == 0) {
-        code_stackmap_mark(stackmap, 0, 0, true);
-    }
-    */
-
     struct code_stackmap_entry *newent;
     newent = calloc(1, sizeof(*newent));
     *newent = stackmap->current;
@@ -90,6 +83,11 @@ void code_print_stackmap(const struct code_stackmap *stackmap)
         const struct code_stackmap_entry *ent = stackmap->records.data[i];
         print_entry(ent);
     }
+}
+
+void code_print_stackmap_entry(const struct code_stackmap_entry *ent)
+{
+    print_entry(ent);
 }
 
 void code_stackmap_free(struct code_stackmap *stackmap)

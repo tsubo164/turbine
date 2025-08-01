@@ -1,7 +1,7 @@
 > file
 > test
 
-# main() int
+# main(args vec{string}) int
 
   ---
     - s = "Hello, World!\n"

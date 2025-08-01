@@ -1,6 +1,6 @@
 > test
 
-# main() int
+# main(args vec{string}) int
 
   ---
     - f = 5.3876e4

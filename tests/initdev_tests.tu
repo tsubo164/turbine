@@ -63,7 +63,7 @@
   - G // 1
   - B // 2
 
-# main() int
+# main(args vec{string}) int
 
   ---
     - id int

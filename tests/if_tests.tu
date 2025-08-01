@@ -3,7 +3,7 @@
 # seven() int
   return 7
 
-# main() int
+# main(args vec{string}) int
 
   ---
     - a int

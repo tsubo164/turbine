@@ -2367,6 +2367,26 @@ static void validate_return_stmt(struct parser *p, const struct parser_func *fun
             parser_type_string(ret_type));
 }
 
+static bool is_valid_main_signature(const struct parser_func *func)
+{
+    const struct parser_func_sig *sig = func->sig;
+
+    if (!parser_is_int_type(sig->return_type))
+        return false;
+
+    if (parser_required_param_count(sig) != 1)
+        return false;
+
+    const struct parser_type *param_type = parser_get_param_type(sig, 0);
+    if (!parser_is_vec_type(param_type))
+        return false;
+
+    if (!parser_is_string_type(param_type->underlying))
+        return false;
+
+    return true;
+}
+
 /*
 func_def ::= "#" identifier param_list type_spec? newline block_stmt
 */
@@ -2400,9 +2420,13 @@ static void func_def(struct parser *p)
     p->func = NULL;
     p->block_tail = NULL;
 
-    /* TODO remove this */
-    if (!strcmp(func->name, "main"))
+    /* is main func? */
+    if (!strcmp(func->name, "main")) {
+        if (!is_valid_main_signature(func)) {
+            error(p, ident_pos, "invalid main function signature: expected `main(args vec{string}) int`");
+        }
         p->module->main_func = func;
+    }
 }
 
 static void module_import(struct parser *p)

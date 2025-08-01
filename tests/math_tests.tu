@@ -1,7 +1,7 @@
 > math
 > test
 
-# main() int
+# main(args vec{string}) int
 
   ---
     test.AssertF(3.141592653589793, math._PI_)
