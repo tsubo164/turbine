@@ -15,7 +15,7 @@ static int gc_init(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
-static int gc_print(struct runtime_gc *gc, struct runtime_registers *regs)
+static int gc_print_objects(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value ret = {0};
 
@@ -86,6 +86,16 @@ static int gc_get_stats(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int gc_print_stats(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value ret = {0};
+
+    runtime_gc_print_stats(gc);
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
 int module_define_gc(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "gc");
@@ -115,8 +125,8 @@ int module_define_gc(struct parser_scope *scope)
         native_declare_func(mod->scope, mod->name, name, params, fp);
     }
     {
-        const char *name = "print";
-        native_func_t fp = gc_print;
+        const char *name = "print_objects";
+        native_func_t fp = gc_print_objects;
         struct native_func_param params[] = {
             { "_ret", parser_new_int_type() },
             { NULL },
@@ -162,6 +172,16 @@ int module_define_gc(struct parser_scope *scope)
         native_func_t fp = gc_get_stats;
         struct native_func_param params[] = {
             { "_ret", parser_new_struct_type(struct_gc_stat) },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "print_stats";
+        native_func_t fp = gc_print_stats;
+        struct native_func_param params[] = {
+            { "_ret", parser_new_int_type() },
             { NULL },
         };
 

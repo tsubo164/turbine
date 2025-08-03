@@ -62,6 +62,8 @@ void runtime_gc_request_collect(struct runtime_gc *gc);
 bool runtime_gc_is_requested(const struct runtime_gc *gc);
 void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr);
 
+/* stats */
+void runtime_gc_print_stats(const struct runtime_gc *gc);
 void runtime_gc_set_threshold_multiplier(struct runtime_gc *gc, float threshold_multiplier);
 
 #endif /* _H */

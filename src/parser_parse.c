@@ -513,18 +513,19 @@ static struct parser_expr *caller_line_expr(struct parser *p)
     return parser_new_var_expr(sym->var);
 }
 
-static struct parser_expr *ident_expr(struct parser *p)
+static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
 {
     struct parser_expr *expr;
     struct parser_symbol *sym;
 
     expect(p, TOK_IDENT);
-    sym = parser_find_symbol(p->scope, tok_str(p));
+    if (find_parent)
+        sym = parser_find_symbol(p->scope, tok_str(p));
+    else
+        sym = parser_find_symbol_local(p->scope, tok_str(p));
 
     if (!sym) {
-        error(p, tok_pos(p),
-                "undefined identifier: '%s'",
-                tok_str(p));
+        error(p, tok_pos(p), "undefined identifier: '%s'", tok_str(p));
     }
 
     if (sym->kind == SYM_FUNC) {
@@ -610,7 +611,7 @@ static struct parser_expr *primary_expr(struct parser *p)
         }
 
     case TOK_IDENT:
-        return ident_expr(p);
+        return ident_expr(p, true);
 
     case TOK_CALLER_LINE:
         return caller_line_expr(p);
@@ -835,7 +836,7 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
         struct parser_scope *cur = p->scope;
         struct parser_expr *expr;
         p->scope = base->type->module->scope;
-        expr = parser_new_module_access_expr(base, ident_expr(p));
+        expr = parser_new_module_access_expr(base, ident_expr(p, false));
         p->scope = cur;
         return expr;
     }

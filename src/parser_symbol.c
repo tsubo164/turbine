@@ -144,27 +144,29 @@ struct parser_symbol *parser_new_symbol(int kind,
     return sym;
 }
 
-struct parser_symbol *parser_find_symbol(const struct parser_scope *sc,
-        const char *name)
+static struct parser_symbol *find_symbol(const struct parser_scope *sc,
+        const char *name, bool find_parent)
 {
     struct data_hashmap_entry *ent = data_hashmap_lookup(&sc->symbols, name);
     if (ent)
         return ent->val;
 
-    if (sc->parent)
-        return parser_find_symbol(sc->parent, name);
+    if (find_parent && sc->parent)
+        return find_symbol(sc->parent, name, find_parent);
 
     return NULL;
 }
 
-struct parser_symbol *find_symbol_this_scope(struct parser_scope *sc,
+struct parser_symbol *parser_find_symbol(const struct parser_scope *sc,
         const char *name)
 {
-    struct data_hashmap_entry *ent = data_hashmap_lookup(&sc->symbols, name);
-    if (ent)
-        return ent->val;
+    return find_symbol(sc, name, true);
+}
 
-    return NULL;
+struct parser_symbol *parser_find_symbol_local(const struct parser_scope *sc,
+        const char *name)
+{
+    return find_symbol(sc, name, false);
 }
 
 /* var */
@@ -188,7 +190,7 @@ static void free_var(struct parser_var *var)
 struct parser_symbol *parser_define_var(struct parser_scope *sc,
         const char *name, const struct parser_type *type, bool isglobal)
 {
-    if (find_symbol_this_scope(sc, name))
+    if (parser_find_symbol_local(sc, name))
         return NULL;
 
     struct parser_symbol *sym = parser_new_symbol(SYM_VAR, name, type);
@@ -243,7 +245,7 @@ static void free_func(struct parser_func *func)
 struct parser_func *parser_declare_func(struct parser_scope *parent,
         const char *modulename, const char *name)
 {
-    if (find_symbol_this_scope(parent, name))
+    if (parser_find_symbol_local(parent, name))
         return NULL;
 
     struct parser_func *func = new_func(parent, modulename, name);

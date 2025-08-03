@@ -211,40 +211,11 @@ static void print_obj(const struct runtime_object *obj)
     }
 }
 
-const char* format_bytes(size_t bytes)
-{
-    static char buf[32] = {'\0'};
-
-    if (bytes >= 1024 * 1024 * 1024) {
-        snprintf(buf, sizeof(buf), "%.2f GB   ", (double)bytes / (1024 * 1024 * 1024));
-    }
-    else if (bytes >= 1024 * 1024) {
-        snprintf(buf, sizeof(buf), "%.2f MB   ", (double)bytes / (1024 * 1024));
-    }
-    else if (bytes >= 1024) {
-        snprintf(buf, sizeof(buf), "%.2f KB   ", (double)bytes / 1024);
-    }
-    else {
-        snprintf(buf, sizeof(buf), "%zu bytes", bytes);
-    }
-
-    return buf;
-}
-
 void runtime_gc_print_objects(const struct runtime_gc *gc)
 {
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
         print_obj(obj);
     }
-
-    double usage_percent = 0.0;
-    if (gc->threshold_bytes > 0)
-        usage_percent = (double)gc->used_bytes / gc->threshold_bytes;
-
-    printf("GC status:\n");
-    printf("  * usage:      %16s\n", format_bytes(gc->used_bytes));
-    printf("  * threshold:  %16s\n", format_bytes(gc->threshold_bytes));
-    printf("  * percentage: %10.2f %%\n", usage_percent * 100);
 }
 
 static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
@@ -556,6 +527,38 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 
     gc->total_collections++;
     gc->needs_collect = false;
+}
+
+static const char *format_bytes(size_t bytes)
+{
+    static char buf[32] = {'\0'};
+
+    if (bytes >= 1024 * 1024 * 1024) {
+        snprintf(buf, sizeof(buf), "%.2f GB   ", (double)bytes / (1024 * 1024 * 1024));
+    }
+    else if (bytes >= 1024 * 1024) {
+        snprintf(buf, sizeof(buf), "%.2f MB   ", (double)bytes / (1024 * 1024));
+    }
+    else if (bytes >= 1024) {
+        snprintf(buf, sizeof(buf), "%.2f KB   ", (double)bytes / 1024);
+    }
+    else {
+        snprintf(buf, sizeof(buf), "%zu bytes", bytes);
+    }
+
+    return buf;
+}
+
+void runtime_gc_print_stats(const struct runtime_gc *gc)
+{
+    double usage_percent = 0.0;
+    if (gc->threshold_bytes > 0)
+        usage_percent = (double)gc->used_bytes / gc->threshold_bytes;
+
+    printf("GC status:\n");
+    printf("  * usage:      %16s\n", format_bytes(gc->used_bytes));
+    printf("  * threshold:  %16s\n", format_bytes(gc->threshold_bytes));
+    printf("  * percentage: %10.2f %%\n", usage_percent * 100);
 }
 
 void runtime_gc_set_threshold_multiplier(struct runtime_gc *gc, float threshold_multiplier)
