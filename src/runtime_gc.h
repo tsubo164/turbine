@@ -35,8 +35,11 @@ struct runtime_gc {
 
     size_t used_bytes;
     size_t threshold_bytes;
+    size_t max_threshold_bytes;
     float threshold_multiplier;
     bool needs_collect;
+
+    int total_collections;
 };
 
 void runtime_gc_init(struct runtime_gc *gc);

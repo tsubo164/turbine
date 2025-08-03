@@ -2,7 +2,7 @@
 #include "native_module.h"
 #include "parser_symbol.h"
 #include "parser_type.h"
-#include "runtime_vec.h"
+#include "runtime_struct.h"
 #include "runtime_gc.h"
 #include "os.h"
 
@@ -60,12 +60,48 @@ static int gc_is_object_alive(struct runtime_gc *gc, struct runtime_registers *r
     return RESULT_SUCCESS;
 }
 
+#define SET_FIELD(strct, idx, dst, src) \
+do {\
+    struct runtime_value val; \
+    val.dst  = (src); \
+    runtime_struct_set((strct), idx, val); \
+} while(0)
+
+static const struct parser_struct *struct_gc_stat = NULL;
+
+static int gc_get_stats(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value ret;
+    struct runtime_struct *stat = runtime_struct_new(gc, struct_gc_stat->id, 5);
+
+    SET_FIELD(stat, 0, inum,  gc->total_collections);
+    SET_FIELD(stat, 1, inum,  gc->used_bytes);
+    SET_FIELD(stat, 2, inum,  gc->threshold_bytes);
+    SET_FIELD(stat, 3, inum,  gc->max_threshold_bytes);
+    SET_FIELD(stat, 4, fpnum, gc->threshold_multiplier);
+
+    ret.strct = stat;
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
 int module_define_gc(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "gc");
 
     /* struct */
     {
+        const char *name = "Stat";
+        const struct native_struct_field fields[] = {
+            { "total_collections",    parser_new_int_type() },
+            { "used_bytes",           parser_new_int_type() },
+            { "threshold_bytes",      parser_new_int_type() },
+            { "max_threshold_bytes",  parser_new_int_type() },
+            { "threshold_multiplier", parser_new_float_type() },
+            { NULL },
+        };
+        struct_gc_stat = native_define_struct(mod->scope, name, fields);
     }
     /* function */
     {
@@ -102,7 +138,7 @@ int module_define_gc(struct parser_scope *scope)
         const char *name = "get_object_id";
         native_func_t fp = gc_get_object_id;
         struct native_func_param params[] = {
-            /* TODO check if any time is the best */
+            /* TODO check if any type is the best */
             { "obj",  parser_new_any_type() },
             { "_ret", parser_new_int_type() },
             { NULL },
@@ -116,6 +152,16 @@ int module_define_gc(struct parser_scope *scope)
         struct native_func_param params[] = {
             { "id",   parser_new_int_type() },
             { "_ret", parser_new_bool_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "get_stats";
+        native_func_t fp = gc_get_stats;
+        struct native_func_param params[] = {
+            { "_ret", parser_new_struct_type(struct_gc_stat) },
             { NULL },
         };
 

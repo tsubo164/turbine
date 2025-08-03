@@ -25,6 +25,7 @@ void runtime_gc_init(struct runtime_gc *gc)
 {
     gc->used_bytes = 0;
     gc->threshold_bytes = INIT_THRESHOLD_BYTES;
+    gc->max_threshold_bytes = MAX_THRESHOLD_BYTES;
     runtime_gc_set_threshold_multiplier(gc, INIT_THRESHOLD_MULT);
 }
 
@@ -550,9 +551,10 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 
     /* update threshold bytes */
     gc->threshold_bytes *= gc->threshold_multiplier;
-    if (gc->threshold_bytes > MAX_THRESHOLD_BYTES)
-        gc->threshold_bytes = MAX_THRESHOLD_BYTES;
+    if (gc->threshold_bytes > gc->max_threshold_bytes)
+        gc->threshold_bytes = gc->max_threshold_bytes;
 
+    gc->total_collections++;
     gc->needs_collect = false;
 }
 

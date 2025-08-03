@@ -1,74 +1,27 @@
+> math
 > gc
 
-/*
-## Person struct
-  - first string
-  - last string
-  - age int
-  - a int
-  - b int
-  - c int
-  - d int
-  - e int
-  - f int
-
-# foo()
-  nop
 
 # main(args vec{string}) int
+  - stat gc.Stat
   - s = "Hoge"
-  - p = Person{first="Foo", last="Bar", age=42}
-  print(p)
 
   // temp object creation
-  if p.last + s == "HOGE"
+  if "Foo" + s == "HOGE"
     nop
 
-  print("before ===============================")
-  gc.print()
-  // request gc
-  gc.collect()
-
-  // safepoint at loop back edge
-  - i = 0
-  while i < 10
-    i += 1
-
-  // safepoint at function entry point
-  //foo()
-
-  // safepoint at loop back edge
-  //for i in 0..10000
-  //  - v = vec{i}
-  //  print(i, v)
-
-  print("after  ===============================")
-  gc.print()
-
-  print(p)
-
-  return 0
-*/
-
-# make(arg string) int
-  - s = arg + "???"
-  return gc.get_object_id(s)
-
-# main(args vec{string}) int
-  //- s = "Hoge"
-  //s = s + args[0]
-  - id = make(args[0])
-
-  print(id)
-  gc.print()
-  print("************ before", gc.is_object_alive(id))
+  stat = gc.get_stats()
+  print("before total_collections:", stat.total_collections)
+  print(stat)
 
   gc.collect()
 
+  // safepoint
   for i in 0..1
     nop
 
-  gc.print()
-  print("************ after ", gc.is_object_alive(id))
+  stat = gc.get_stats()
+  print("after  total_collections:", stat.total_collections)
+  print(stat)
 
   return 0
