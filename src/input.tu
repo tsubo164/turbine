@@ -1,10 +1,11 @@
-> math
-> gc
+//> math
+//> gc
 
-//# foo()
-//  nop
+# foo()
+  nop
 
 # main(args vec{string}) int
+  /*
   - stat gc.Stat
   - s = "Hoge"
 
@@ -28,6 +29,13 @@
 
   gc.print_objects()
   gc.print_stats()
-  //- f = foo()
+  */
+  - n = foo()
+  - i = 42
+
+  //i = n
+  //i = 2 + 4 * n
+
+  print(n, i)
 
   return 0

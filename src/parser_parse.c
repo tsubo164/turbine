@@ -1246,6 +1246,11 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
                 parser_type_string(lval->type), parser_type_string(rval->type));
     }
 
+    /* nil check */
+    if (parser_is_nil_type(rval->type)) {
+        error(p, pos, "invalid type: r-value '%s'", parser_type_string(rval->type));
+    }
+
     /* mutable check */
     if (!parser_ast_is_mutable(lval)) {
         const struct parser_var *var = find_root_object(lval);
