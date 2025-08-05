@@ -166,6 +166,13 @@ static void safepoint_poll(struct vm_cpu *vm, value_addr_t inst_addr)
     }
 }
 
+static void forced_gc_poll(struct vm_cpu *vm, value_addr_t inst_addr)
+{
+    if (runtime_gc_is_forced(&vm->gc)) {
+        runtime_gc_collect_objects(&vm->gc, inst_addr);
+    }
+}
+
 static void call_function(struct vm_cpu *vm, value_addr_t callsite_addr, int retval_reg, int func_id)
 {
     value_addr_t func_addr = code_get_function_address(vm->code, func_id);
@@ -506,6 +513,7 @@ static void run_cpu(struct vm_cpu *vm)
                     halt = true;
                 }
             }
+            forced_gc_poll(vm, inst_addr);
             break;
 
         case OP_RETURN:

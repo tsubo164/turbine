@@ -1,16 +1,11 @@
-//> math
-//> gc
-
-# foo()
-  nop
+> gc
 
 # main(args vec{string}) int
-  /*
   - stat gc.Stat
-  - s = "Hoge"
+  - s = "Bar"
 
   // temp object creation
-  if "Foo" + s == "HOGE"
+  if "Foo" + s == "FooBar"
     nop
 
   stat = gc.get_stats()
@@ -18,10 +13,7 @@
   print(stat)
 
   gc.collect()
-
-  // safepoint
-  for i in 0..1
-    nop
+  //gc.request()
 
   stat = gc.get_stats()
   print("after  total_collections:", stat.total_collections)
@@ -29,13 +21,5 @@
 
   gc.print_objects()
   gc.print_stats()
-  */
-  - n = foo()
-  - i = 42
-
-  //i = n
-  //i = 2 + 4 * n
-
-  print(n, i)
 
   return 0

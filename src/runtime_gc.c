@@ -11,7 +11,13 @@
 #include <assert.h>
 #include <stdio.h>
 
-enum object_mark {
+enum gc_request_mode {
+    REQ_NONE,
+    REQ_AT_SAFEPOINT,
+    REQ_FORCE_NOW,
+};
+
+enum gc_object_mark {
     OBJ_WHITE,
     OBJ_GRAY,
     OBJ_BLACK,
@@ -50,7 +56,7 @@ struct gc_header {
 static void check_heap_threshold(struct runtime_gc *gc)
 {
     if (gc && gc->used_bytes >= gc->threshold_bytes) {
-        gc->needs_collect = true;
+        runtime_gc_request_collect(gc);
     }
 }
 
@@ -281,12 +287,22 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
 /* collect */
 void runtime_gc_request_collect(struct runtime_gc *gc)
 {
-    gc->needs_collect = true;
+    gc->request_mode = REQ_AT_SAFEPOINT;
+}
+
+void runtime_gc_force_collect(struct runtime_gc *gc)
+{
+    gc->request_mode = REQ_FORCE_NOW;
 }
 
 bool runtime_gc_is_requested(const struct runtime_gc *gc)
 {
-    return gc->needs_collect;
+    return gc->request_mode != REQ_NONE;
+}
+
+bool runtime_gc_is_forced(const struct runtime_gc *gc)
+{
+    return gc->request_mode == REQ_FORCE_NOW;
 }
 
 static bool is_ref_type(int type)
@@ -526,7 +542,7 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
         gc->threshold_bytes = gc->max_threshold_bytes;
 
     gc->total_collections++;
-    gc->needs_collect = false;
+    gc->request_mode = REQ_NONE;
 }
 
 static const char *format_bytes(size_t bytes)

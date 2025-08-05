@@ -25,11 +25,21 @@ static int gc_print_objects(struct runtime_gc *gc, struct runtime_registers *reg
     return RESULT_SUCCESS;
 }
 
-static int gc_collect(struct runtime_gc *gc, struct runtime_registers *regs)
+static int gc_request(struct runtime_gc *gc, struct runtime_registers *regs)
 {
     struct runtime_value ret = {0};
 
     runtime_gc_request_collect(gc);
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
+static int gc_collect(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value ret = {0};
+
+    runtime_gc_force_collect(gc);
     regs->locals[0] = ret;
 
     return RESULT_SUCCESS;
@@ -137,6 +147,16 @@ int module_define_gc(struct parser_scope *scope)
     {
         const char *name = "collect";
         native_func_t fp = gc_collect;
+        struct native_func_param params[] = {
+            { "_ret", parser_new_int_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "request";
+        native_func_t fp = gc_request;
         struct native_func_param params[] = {
             { "_ret", parser_new_int_type() },
             { NULL },
