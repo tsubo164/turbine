@@ -10,6 +10,7 @@ struct runtime_struct *runtime_struct_new(struct runtime_gc *gc, int id, value_i
     runtime_valuevec_init(&s->fields);
     runtime_valuevec_resize(gc, &s->fields, len);
 
+    runtime_gc_push_object(gc, (struct runtime_object*) s);
     return s;
 }
 
