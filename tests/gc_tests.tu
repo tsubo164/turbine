@@ -21,6 +21,7 @@
     test.AssertB(false, gc.is_object_alive(id))
 
   ---
+    // GC stats
     - before gc.Stat
     - s = "Bar"
 
@@ -35,6 +36,23 @@
 
     test.AssertB(true, before.total_collections < after.total_collections)
     test.AssertB(true, before.used_bytes > after.used_bytes)
+
+  ---
+    // GC log
+    - s = "Bar"
+
+    // temp object creation
+    if "Foo" + s == "FooBar"
+      nop
+
+    // force collect
+    gc.collect()
+
+    - log = gc.get_log()
+    - len = veclen(log)
+    - last = log[len - 1]
+
+    test.AssertB(true, last.used_bytes_after < last.used_bytes_before)
 
   print(test._test_count_, "tests done.")
 

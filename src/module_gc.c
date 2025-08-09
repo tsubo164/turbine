@@ -3,6 +3,7 @@
 #include "parser_symbol.h"
 #include "parser_type.h"
 #include "runtime_struct.h"
+#include "runtime_vec.h"
 #include "runtime_gc.h"
 #include "os.h"
 
@@ -78,6 +79,7 @@ do {\
 } while(0)
 
 static const struct parser_struct *struct_gc_stat = NULL;
+static const struct parser_struct *struct_gc_log_entry = NULL;
 
 static int gc_get_stats(struct runtime_gc *gc, struct runtime_registers *regs)
 {
@@ -106,6 +108,30 @@ static int gc_print_stats(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
+static int gc_get_log(struct runtime_gc *gc, struct runtime_registers *regs)
+{
+    struct runtime_value ret;
+    struct runtime_vec *vec = runtime_vec_new(gc, VAL_STRUCT, 0);
+    int len = runtime_gc_get_log_entry_count(gc);
+
+    for (int i = 0; i < len; i++) {
+        const struct runtime_gc_log_entry *ent = runtime_gc_get_log_entry(gc, i);
+        struct runtime_struct *strct = runtime_struct_new(gc, struct_gc_log_entry->id, 1);
+
+        SET_FIELD(strct, 0, inum,  ent->triggered_addr);
+        SET_FIELD(strct, 1, inum,  ent->used_bytes_before);
+        SET_FIELD(strct, 2, inum,  ent->used_bytes_after);
+
+        struct runtime_value val = {.strct = strct};
+        runtime_vec_push(gc, vec, val);
+    }
+
+    ret.vec = vec;
+    regs->locals[0] = ret;
+
+    return RESULT_SUCCESS;
+}
+
 int module_define_gc(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "gc");
@@ -122,6 +148,16 @@ int module_define_gc(struct parser_scope *scope)
             { NULL },
         };
         struct_gc_stat = native_define_struct(mod->scope, name, fields);
+    }
+    {
+        const char *name = "LogEntry";
+        const struct native_struct_field fields[] = {
+            { "triggered_addr",    parser_new_int_type() },
+            { "used_bytes_before", parser_new_int_type() },
+            { "used_bytes_after",  parser_new_int_type() },
+            { NULL },
+        };
+        struct_gc_log_entry = native_define_struct(mod->scope, name, fields);
     }
     /* function */
     {
@@ -202,6 +238,16 @@ int module_define_gc(struct parser_scope *scope)
         native_func_t fp = gc_print_stats;
         struct native_func_param params[] = {
             { "_ret", parser_new_int_type() },
+            { NULL },
+        };
+
+        native_declare_func(mod->scope, mod->name, name, params, fp);
+    }
+    {
+        const char *name = "get_log";
+        native_func_t fp = gc_get_log;
+        struct native_func_param params[] = {
+            { "_ret", parser_new_vec_type(parser_new_struct_type(struct_gc_log_entry)) },
             { NULL },
         };
 

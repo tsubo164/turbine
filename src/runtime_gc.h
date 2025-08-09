@@ -2,9 +2,11 @@
 #define RUNTIME_GC_H
 
 #include "value_types.h"
+#include "runtime_gc_log.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
+/* object */
 enum runtime_object_kind {
     OBJ_NIL,
     OBJ_STRING,
@@ -23,6 +25,7 @@ struct runtime_object {
     struct runtime_object *next;
 };
 
+/* GC */
 struct code_stackmap;
 struct vm_cpu;
 
@@ -41,6 +44,9 @@ struct runtime_gc {
     float threshold_multiplier;
 
     int total_collections;
+
+    struct runtime_gc_log_entry current_log_entry;
+    struct runtime_gc_log log;
 };
 
 void runtime_gc_init(struct runtime_gc *gc);
@@ -68,5 +74,8 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr);
 /* stats */
 void runtime_gc_print_stats(const struct runtime_gc *gc);
 void runtime_gc_set_threshold_multiplier(struct runtime_gc *gc, float threshold_multiplier);
+
+int runtime_gc_get_log_entry_count(const struct runtime_gc *gc);
+const struct runtime_gc_log_entry *runtime_gc_get_log_entry(const struct runtime_gc *gc, int index);
 
 #endif /* _H */

@@ -33,6 +33,9 @@ void runtime_gc_init(struct runtime_gc *gc)
     gc->threshold_bytes = INIT_THRESHOLD_BYTES;
     gc->max_threshold_bytes = MAX_THRESHOLD_BYTES;
     runtime_gc_set_threshold_multiplier(gc, INIT_THRESHOLD_MULT);
+
+    /* log */
+    runtime_gc_log_init(&gc->log);
 }
 
 static void free_obj(struct runtime_gc *gc, struct runtime_object *obj);
@@ -46,6 +49,9 @@ void runtime_gc_clear(struct runtime_gc *gc)
         free_obj(gc, obj);
         obj = next;
     }
+
+    /* log */
+    runtime_gc_log_clear(&gc->log);
 }
 
 /* memory */
@@ -518,11 +524,10 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 {
     assert(inst_addr >= 0);
 
-    if (0) {
-        printf("-----------------------------------------\n");
-        printf("GC triggered @ %" PRIaddr "\n", inst_addr);
-        printf("-----------------------------------------\n");
-    }
+    /* log */
+    runtime_gc_log_init_entry(&gc->current_log_entry);
+    gc->current_log_entry.triggered_addr = inst_addr;
+    gc->current_log_entry.used_bytes_before = gc->used_bytes;
 
     /* clear marks */
     clear_marks(gc);
@@ -543,8 +548,14 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 
     gc->total_collections++;
     gc->request_mode = REQ_NONE;
+
+    /* log */
+    gc->current_log_entry.total_collections = gc->total_collections;
+    gc->current_log_entry.used_bytes_after = gc->used_bytes;
+    runtime_gc_log_push(&gc->log, &gc->current_log_entry);
 }
 
+/* stats */
 static const char *format_bytes(size_t bytes)
 {
     static char buf[32] = {'\0'};
@@ -585,4 +596,14 @@ void runtime_gc_set_threshold_multiplier(struct runtime_gc *gc, float threshold_
     mult = mult < 1. ? 1. : mult;
 
     gc->threshold_multiplier = mult;
+}
+
+int runtime_gc_get_log_entry_count(const struct runtime_gc *gc)
+{
+    return runtime_gc_log_get_count(&gc->log);
+}
+
+const struct runtime_gc_log_entry *runtime_gc_get_log_entry(const struct runtime_gc *gc, int index)
+{
+    return runtime_gc_log_get_entry(&gc->log, index);
 }

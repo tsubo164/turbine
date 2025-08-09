@@ -22,4 +22,15 @@
   gc.print_objects()
   gc.print_stats()
 
+  //==============
+  - log = gc.get_log()
+
+  print(veclen(log))
+
+  - last = log[0] //=> seg fault => panic?
+
+  print("last triggered_addr:", last.triggered_addr)
+  print("last used_bytes_before:", last.used_bytes_before, "bytes")
+  print("last used_bytes_after: ", last.used_bytes_after, "bytes")
+
   return 0
