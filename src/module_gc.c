@@ -119,8 +119,11 @@ static int gc_get_log(struct runtime_gc *gc, struct runtime_registers *regs)
         struct runtime_struct *strct = runtime_struct_new(gc, struct_gc_log_entry->id, 1);
 
         SET_FIELD(strct, 0, inum,  ent->triggered_addr);
-        SET_FIELD(strct, 1, inum,  ent->used_bytes_before);
-        SET_FIELD(strct, 2, inum,  ent->used_bytes_after);
+        SET_FIELD(strct, 1, inum,  ent->trigger_reason);
+        SET_FIELD(strct, 2, inum,  ent->used_bytes_before);
+        SET_FIELD(strct, 3, inum,  ent->used_bytes_after);
+        SET_FIELD(strct, 4, fpnum, ent->duration_msec);
+        SET_FIELD(strct, 5, inum,  ent->total_collections);
 
         struct runtime_value val = {.strct = strct};
         runtime_vec_push(gc, vec, val);
@@ -153,8 +156,11 @@ int module_define_gc(struct parser_scope *scope)
         const char *name = "LogEntry";
         const struct native_struct_field fields[] = {
             { "triggered_addr",    parser_new_int_type() },
+            { "trigger_reason",    parser_new_int_type() },
             { "used_bytes_before", parser_new_int_type() },
             { "used_bytes_after",  parser_new_int_type() },
+            { "duration_msec",     parser_new_float_type() },
+            { "total_collections", parser_new_int_type() },
             { NULL },
         };
         struct_gc_log_entry = native_define_struct(mod->scope, name, fields);

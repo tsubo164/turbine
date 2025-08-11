@@ -7,6 +7,7 @@
 #include "runtime_string.h"
 #include "runtime_struct.h"
 #include "vm_cpu.h"
+#include "os.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -63,6 +64,7 @@ static void check_heap_threshold(struct runtime_gc *gc)
 {
     if (gc && gc->used_bytes >= gc->threshold_bytes) {
         runtime_gc_request_collect(gc);
+        gc->trigger_reason = REASON_THRESHOLD;
     }
 }
 
@@ -294,11 +296,13 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
 void runtime_gc_request_collect(struct runtime_gc *gc)
 {
     gc->request_mode = REQ_AT_SAFEPOINT;
+    gc->trigger_reason = REASON_USER;
 }
 
 void runtime_gc_force_collect(struct runtime_gc *gc)
 {
     gc->request_mode = REQ_FORCE_NOW;
+    gc->trigger_reason = REASON_USER;
 }
 
 bool runtime_gc_is_requested(const struct runtime_gc *gc)
@@ -528,6 +532,10 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     runtime_gc_log_init_entry(&gc->current_log_entry);
     gc->current_log_entry.triggered_addr = inst_addr;
     gc->current_log_entry.used_bytes_before = gc->used_bytes;
+    assert(gc->trigger_reason != REASON_NONE);
+    gc->current_log_entry.trigger_reason = gc->trigger_reason;
+
+    double start = os_perf();
 
     /* clear marks */
     clear_marks(gc);
@@ -541,6 +549,8 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     /* free white objects */
     free_unreachables(gc);
 
+    double end = os_perf();
+
     /* update threshold bytes */
     gc->threshold_bytes *= gc->threshold_multiplier;
     if (gc->threshold_bytes > gc->max_threshold_bytes)
@@ -552,6 +562,7 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     /* log */
     gc->current_log_entry.total_collections = gc->total_collections;
     gc->current_log_entry.used_bytes_after = gc->used_bytes;
+    gc->current_log_entry.duration_msec = (end - start) * 1000.;
     runtime_gc_log_push(&gc->log, &gc->current_log_entry);
 }
 

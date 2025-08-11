@@ -37,6 +37,7 @@ struct runtime_gc {
     const struct vm_cpu *vm;
 
     int request_mode;
+    int trigger_reason;
 
     size_t used_bytes;
     size_t threshold_bytes;

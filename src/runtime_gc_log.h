@@ -4,10 +4,20 @@
 #include "value_types.h"
 #include <stdlib.h>
 
+enum gc_trigger_reason {
+    REASON_NONE,
+    REASON_USER,
+    REASON_THRESHOLD,
+};
+
 struct runtime_gc_log_entry {
     value_addr_t triggered_addr;
+    int trigger_reason;
+
     size_t used_bytes_before;
     size_t used_bytes_after;
+
+    double duration_msec;
     int total_collections;
 };
 
