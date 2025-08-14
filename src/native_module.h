@@ -5,6 +5,7 @@
 
 struct parser_struct;
 struct parser_scope;
+struct parser_enum;
 struct parser_type;
 
 enum native_function_result {
@@ -46,6 +47,25 @@ struct native_struct_field {
 struct parser_struct *native_define_struct(struct parser_scope *scope,
         const char *structname,
         const struct native_struct_field *fields);
+
+/* enum */
+struct native_enum_field {
+    const char *name;
+    const struct parser_type *type;
+};
+
+struct native_enum_value {
+    union {
+        value_int_t ival;
+        value_float_t fval;
+        const char *sval;
+    };
+};
+
+struct parser_enum *native_define_enum(struct parser_scope *scope,
+        const char *enumname,
+        const struct native_enum_field *fields,
+        const struct native_enum_value *values);
 
 /* global */
 struct native_global_var {

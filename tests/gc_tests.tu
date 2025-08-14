@@ -53,6 +53,19 @@
     - last = log[len - 1]
 
     test.AssertB(true, last.used_bytes_after < last.used_bytes_before)
+    test.AssertB(true, last.trigger_reason == gc.Reason.USER)
+
+  ---
+    // GC trigger by threshold
+    for i in 0..100000
+      - v = vec{i}
+
+    - log = gc.get_log()
+    - len = veclen(log)
+    - last = log[len - 1]
+
+    test.AssertB(true, last.used_bytes_after < last.used_bytes_before)
+    test.AssertB(true, last.trigger_reason == gc.Reason.THRESHOLD)
 
   print(test._test_count_, "tests done.")
 

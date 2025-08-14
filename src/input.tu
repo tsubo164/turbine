@@ -30,7 +30,7 @@
   - last = log[0] //=> seg fault => panic?
 
   print("last triggered_addr:", last.triggered_addr)
-  print("last trigger_reason:", last.trigger_reason)
+  print("last trigger_reason:", last.trigger_reason.sym)
   print("last used_bytes_before:", last.used_bytes_before, "bytes")
   print("last used_bytes_after: ", last.used_bytes_after, "bytes")
   print("last total_collections: ", last.total_collections)

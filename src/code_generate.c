@@ -1478,6 +1478,10 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                 }
             }
             break;
+
+        case SYM_MODULE:
+            gen_enum_values(code, sym->module->scope);
+            break;
         }
     }
 }

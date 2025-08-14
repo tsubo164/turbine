@@ -78,6 +78,7 @@ do {\
     runtime_struct_set((strct), idx, val); \
 } while(0)
 
+static const struct parser_enum *enum_gc_reason = NULL;
 static const struct parser_struct *struct_gc_stat = NULL;
 static const struct parser_struct *struct_gc_log_entry = NULL;
 
@@ -139,6 +140,22 @@ int module_define_gc(struct parser_scope *scope)
 {
     struct parser_module *mod = parser_define_module(scope, "_builtin", "gc");
 
+    /* enum */
+    {
+        const char *name = "Reason";
+        const struct native_enum_field fields[] = {
+            { "sym",    parser_new_string_type() },
+            { "str",    parser_new_string_type() },
+            { NULL },
+        };
+        const struct native_enum_value values[] = {
+            { .sval = "NONE" },      { .sval = "None" },
+            { .sval = "USER" },      { .sval = "Triggered by user" },
+            { .sval = "THRESHOLD" }, { .sval = "Reached the threshold" },
+            { .sval = NULL },
+        };
+        enum_gc_reason = native_define_enum(mod->scope, name, fields, values);
+    }
     /* struct */
     {
         const char *name = "Stat";
@@ -156,7 +173,7 @@ int module_define_gc(struct parser_scope *scope)
         const char *name = "LogEntry";
         const struct native_struct_field fields[] = {
             { "triggered_addr",    parser_new_int_type() },
-            { "trigger_reason",    parser_new_int_type() },
+            { "trigger_reason",    parser_new_enum_type(enum_gc_reason) },
             { "used_bytes_before", parser_new_int_type() },
             { "used_bytes_after",  parser_new_int_type() },
             { "duration_msec",     parser_new_float_type() },
