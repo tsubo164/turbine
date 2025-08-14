@@ -56,7 +56,7 @@ A compact RPN (Reverse Polish Notation) calculator using `math` and `time` modul
       return i
   return -1
 
-# main() int
+# main(args vec{string}) int
   // This program simulates a simple calculator using Reverse Polish Notation (RPN).
   // It supports basic arithmetic operations (+, -, *, /) as well as advanced math functions like square root and cosine.
   // Additionally, it measures the time taken to perform the calculation using the time module.

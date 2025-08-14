@@ -85,7 +85,25 @@ struct parser_enum *native_define_enum(struct parser_scope *scope,
         }
         else {
             /* field */
-            struct parser_expr *expr = parser_new_stringlit_expr(value->sval);
+            struct parser_expr *expr;
+            const struct parser_enum_field *field;
+
+            field = parser_get_enum_field(enm, x);
+
+            if (parser_is_int_type(field->type)) {
+                expr = parser_new_intlit_expr(value->ival);
+            }
+            else if (parser_is_float_type(field->type)) {
+                expr = parser_new_floatlit_expr(value->fval);
+            }
+            else if (parser_is_string_type(field->type)) {
+                expr = parser_new_stringlit_expr(value->sval);
+            }
+            else {
+                assert("not a valid enum field type");
+                expr = NULL;
+            }
+
             parser_add_enum_value_expr(enm, expr);
         }
         x = (x + 1) % nfields;
