@@ -36,18 +36,23 @@ struct runtime_gc {
     const struct code_globalmap *globalmap;
     const struct vm_cpu *vm;
 
-    int request_mode;
-    int trigger_reason;
-
     size_t used_bytes;
     size_t threshold_bytes;
     size_t max_threshold_bytes;
     float threshold_multiplier;
 
+    /* phase */
+    int phase;
+    int request_mode;
+    int trigger_reason;
+
     int total_collections;
 
+    /* log */
     struct runtime_gc_log_entry current_log_entry;
     struct runtime_gc_log log;
+    double time_start;
+    double time_end;
 };
 
 void runtime_gc_init(struct runtime_gc *gc);

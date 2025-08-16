@@ -12,16 +12,24 @@
 #include <assert.h>
 #include <stdio.h>
 
+enum gc_object_mark {
+    OBJ_WHITE,
+    OBJ_GRAY,
+    OBJ_BLACK,
+};
+
 enum gc_request_mode {
     REQ_NONE,
     REQ_AT_SAFEPOINT,
     REQ_FORCE_NOW,
 };
 
-enum gc_object_mark {
-    OBJ_WHITE,
-    OBJ_GRAY,
-    OBJ_BLACK,
+enum gc_phase {
+    PHASE_IDLE,
+    PHASE_PREPARE,
+    PHASE_MARK,
+    PHASE_SWEEP,
+    PHASE_FINISH,
 };
 
 #define INIT_THRESHOLD_MULT 1.5
@@ -37,6 +45,9 @@ void runtime_gc_init(struct runtime_gc *gc)
 
     /* log */
     runtime_gc_log_init(&gc->log);
+
+    gc->time_start = 0.;
+    gc->time_end = 0.;
 }
 
 static void free_obj(struct runtime_gc *gc, struct runtime_object *obj);
@@ -443,6 +454,20 @@ static void mark_object(struct runtime_gc *gc, struct runtime_object *obj)
     }
 }
 
+static void prepare(struct runtime_gc *gc, value_addr_t inst_addr)
+{
+    /* log */
+    runtime_gc_log_init_entry(&gc->current_log_entry);
+
+    gc->current_log_entry.triggered_addr = inst_addr;
+    gc->current_log_entry.used_bytes_before = gc->used_bytes;
+    gc->current_log_entry.trigger_reason = gc->trigger_reason;
+    assert(gc->trigger_reason != REASON_NONE);
+
+    /* time */
+    gc->time_start = os_perf();
+}
+
 static void clear_marks(struct runtime_gc *gc)
 {
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
@@ -524,18 +549,65 @@ static void free_unreachables(struct runtime_gc *gc)
     gc->root = head.next;
 }
 
+static void finish(struct runtime_gc *gc)
+{
+    gc->time_end = os_perf();
+
+    /* update threshold bytes */
+    gc->threshold_bytes *= gc->threshold_multiplier;
+    if (gc->threshold_bytes > gc->max_threshold_bytes)
+        gc->threshold_bytes = gc->max_threshold_bytes;
+
+    gc->total_collections++;
+    gc->request_mode = REQ_NONE;
+
+    /* log */
+    gc->current_log_entry.total_collections = gc->total_collections;
+    gc->current_log_entry.used_bytes_after = gc->used_bytes;
+    gc->current_log_entry.duration_msec = (gc->time_end - gc->time_start) * 1000.;
+    runtime_gc_log_push(&gc->log, &gc->current_log_entry);
+}
+
+void runtime_gc_step(struct runtime_gc *gc, value_addr_t inst_addr)
+{
+    assert(inst_addr >= 0);
+
+    switch ((enum gc_phase) gc->phase) {
+
+    case PHASE_IDLE:
+        return;
+
+    case PHASE_PREPARE:
+        prepare(gc, inst_addr);
+        clear_marks(gc);
+        break;
+
+    case PHASE_MARK:
+        trace_globals(gc);
+        trace_locals(gc, inst_addr);
+        break;
+
+    case PHASE_SWEEP:
+        free_unreachables(gc);
+        break;
+
+    case PHASE_FINISH:
+        finish(gc);
+        break;
+    }
+
+    if (gc->phase == PHASE_FINISH)
+        gc->phase = PHASE_IDLE;
+    else
+        gc->phase++;
+}
+
 void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
 {
     assert(inst_addr >= 0);
 
-    /* log */
-    runtime_gc_log_init_entry(&gc->current_log_entry);
-    gc->current_log_entry.triggered_addr = inst_addr;
-    gc->current_log_entry.used_bytes_before = gc->used_bytes;
-    assert(gc->trigger_reason != REASON_NONE);
-    gc->current_log_entry.trigger_reason = gc->trigger_reason;
-
-    double start = os_perf();
+    /* prep */
+    prepare(gc, inst_addr);
 
     /* clear marks */
     clear_marks(gc);
@@ -549,21 +621,8 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     /* free white objects */
     free_unreachables(gc);
 
-    double end = os_perf();
-
-    /* update threshold bytes */
-    gc->threshold_bytes *= gc->threshold_multiplier;
-    if (gc->threshold_bytes > gc->max_threshold_bytes)
-        gc->threshold_bytes = gc->max_threshold_bytes;
-
-    gc->total_collections++;
-    gc->request_mode = REQ_NONE;
-
-    /* log */
-    gc->current_log_entry.total_collections = gc->total_collections;
-    gc->current_log_entry.used_bytes_after = gc->used_bytes;
-    gc->current_log_entry.duration_msec = (end - start) * 1000.;
-    runtime_gc_log_push(&gc->log, &gc->current_log_entry);
+    /* done */
+    finish(gc);
 }
 
 /* stats */
