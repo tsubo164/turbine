@@ -13,9 +13,9 @@
 #include <stdio.h>
 
 enum gc_object_mark {
-    OBJ_WHITE,
-    OBJ_GRAY,
-    OBJ_BLACK,
+    MARK_WHITE,
+    MARK_GRAY,
+    MARK_BLACK,
 };
 
 enum gc_request_mode {
@@ -43,6 +43,9 @@ void runtime_gc_init(struct runtime_gc *gc)
     gc->max_threshold_bytes = MAX_THRESHOLD_BYTES;
     runtime_gc_set_threshold_multiplier(gc, INIT_THRESHOLD_MULT);
 
+    /* work */
+    runtime_gc_worklist_init(&gc->worklist);
+
     /* log */
     runtime_gc_log_init(&gc->log);
 
@@ -61,6 +64,9 @@ void runtime_gc_clear(struct runtime_gc *gc)
         free_obj(gc, obj);
         obj = next;
     }
+
+    /* work */
+    runtime_gc_worklist_clear(&gc->worklist);
 
     /* log */
     runtime_gc_log_clear(&gc->log);
@@ -346,6 +352,182 @@ static bool is_ref_type(int type)
     return false;
 }
 
+/* NEW ====================================================== */
+static void push_to_worklist(struct runtime_gc *gc, struct runtime_object *obj)
+{
+    obj->mark = MARK_GRAY;
+
+    struct runtime_value val = {.obj = obj};
+    runtime_gc_worklist_push(&gc->worklist, val);
+}
+
+static void scan_globals(struct runtime_gc *gc)
+{
+    int nglobals = vm_get_global_count(gc->vm);
+
+    for (int i = 0; i < nglobals; i++) {
+        bool is_ref = code_globalmap_is_ref(gc->globalmap, i);
+
+        if (is_ref) {
+            struct runtime_value val = vm_get_global(gc->vm, i);
+            push_to_worklist(gc, val.obj);
+        }
+    }
+}
+
+static void scan_locals(struct runtime_gc *gc, value_addr_t inst_addr)
+{
+    int ncalls = vm_get_callstack_count(gc->vm);
+    value_addr_t callsite_addr = inst_addr;
+
+    for (int frame_id = ncalls - 1; frame_id >= 0; frame_id--) {
+        /* no object at the beginning */
+        if (callsite_addr == 0)
+            break;
+
+        const struct code_stackmap_entry *ent = code_stackmap_find_entry(gc->stackmap, callsite_addr);
+        const struct vm_call *call = vm_get_call(gc->vm, frame_id);
+        int nslots = call->current_sp - call->current_bp;
+        assert(nslots <= 64);
+
+        for (int i = 0; i < nslots; i++) {
+            bool is_ref = code_stackmap_is_ref(ent, i);
+
+            if (is_ref) {
+                value_addr_t bp = call->current_bp;
+                struct runtime_value val = vm_lookup_stack(gc->vm, bp, i);
+                push_to_worklist(gc, val.obj);
+            }
+        }
+
+        callsite_addr = call->callsite_ip;
+    }
+}
+
+static void scan_roots(struct runtime_gc *gc, value_addr_t inst_addr)
+{
+    scan_globals(gc);
+    scan_locals(gc, inst_addr);
+}
+
+static void trace_object(struct runtime_gc *gc, struct runtime_object *obj)
+{
+    switch ((enum runtime_object_kind) obj->kind) {
+
+    case OBJ_NIL:
+    case OBJ_STRING:
+        break;
+
+    case OBJ_VEC:
+        {
+            struct runtime_vec *v = (struct runtime_vec *) obj;
+
+            if (is_ref_type(v->val_type)) {
+                for (int i = 0; i < runtime_vec_len(v); i++) {
+                    struct runtime_value val = runtime_vec_get(v, i);
+                    if (obj->mark == MARK_WHITE)
+                        push_to_worklist(gc, val.obj);
+                }
+            }
+        }
+        break;
+
+    case OBJ_MAP:
+        {
+            struct runtime_map *m = (struct runtime_map *) obj;
+
+            if (is_ref_type(m->val_type)) {
+                struct runtime_map_entry *ent = runtime_map_entry_begin(m);
+                for (; ent; ent = runtime_map_entry_next(ent)) {
+                    struct runtime_value val = ent->val;
+                    if (obj->mark == MARK_WHITE)
+                        push_to_worklist(gc, val.obj);
+                }
+            }
+        }
+        break;
+
+    case OBJ_SET:
+        {
+            struct runtime_set *s = (struct runtime_set *) obj;
+
+            if (is_ref_type(s->val_type)) {
+                struct runtime_set_node *node = runtime_set_node_begin(s);
+                for (; node; node = runtime_set_node_next(node)) {
+                    struct runtime_value val = node->val;
+                    if (obj->mark == MARK_WHITE)
+                        push_to_worklist(gc, val.obj);
+                }
+            }
+        }
+        break;
+
+    case OBJ_STACK:
+        {
+            struct runtime_stack *s = (struct runtime_stack *) obj;
+
+            if (is_ref_type(s->val_type)) {
+                int len = runtime_stack_len(s);
+                for (int i = 0; i < len; i++) {
+                    struct runtime_value val = runtime_stack_get(s, i);
+                    if (obj->mark == MARK_WHITE)
+                        push_to_worklist(gc, val.obj);
+                }
+            }
+        }
+        break;
+
+    case OBJ_QUEUE:
+        {
+            struct runtime_queue *q = (struct runtime_queue *) obj;
+
+            if (is_ref_type(q->val_type)) {
+                int len = runtime_queue_len(q);
+                for (int i = 0; i < len; i++) {
+                    struct runtime_value val = runtime_queue_get(q, i);
+                    if (obj->mark == MARK_WHITE)
+                        push_to_worklist(gc, val.obj);
+                }
+            }
+        }
+        break;
+
+    case OBJ_STRUCT:
+        {
+            struct runtime_struct *s = (struct runtime_struct *) obj;
+            int struct_id = s->id;
+            int len = runtime_struct_field_count(s);
+
+            for (int i = 0; i < len; i++) {
+                int val_type = code_get_struct_field_type(gc->vm->code, struct_id, i);
+
+                if (is_ref_type(val_type)) {
+                    struct runtime_value val = runtime_struct_get(s, i);
+                    if (obj->mark == MARK_WHITE)
+                        push_to_worklist(gc, val.obj);
+                }
+            }
+        }
+        break;
+    }
+}
+
+static void drain_worklist(struct runtime_gc *gc)
+{
+    while (!runtime_gc_worklist_empty(&gc->worklist)) {
+        struct runtime_value val = runtime_gc_worklist_pop(&gc->worklist);
+        struct runtime_object *obj = val.obj;
+
+        if (obj->mark == MARK_GRAY) {
+            /* mark this object */
+            obj->mark = MARK_BLACK;
+            /* trace children */
+            trace_object(gc, obj);
+        }
+    }
+}
+/* NEW ====================================================== */
+
 static void mark_object(struct runtime_gc *gc, struct runtime_object *obj)
 {
     /* 'obj' may be NULL between struct creation and initialization.
@@ -354,7 +536,7 @@ static void mark_object(struct runtime_gc *gc, struct runtime_object *obj)
         return;
 
     /* mark this object */
-    obj->mark = OBJ_BLACK;
+    obj->mark = MARK_BLACK;
 
     enum runtime_object_kind kind = obj->kind;
 
@@ -471,7 +653,7 @@ static void prepare(struct runtime_gc *gc, value_addr_t inst_addr)
 static void clear_marks(struct runtime_gc *gc)
 {
     for (struct runtime_object *obj = gc->root; obj; obj = obj->next) {
-        obj->mark = OBJ_WHITE;
+        obj->mark = MARK_WHITE;
     }
 }
 
@@ -535,7 +717,7 @@ static void free_unreachables(struct runtime_gc *gc)
     prev->next = curr;
 
     while (curr) {
-        if (curr->mark == OBJ_WHITE) {
+        if (curr->mark == MARK_WHITE) {
             next = curr->next;
             free_obj(gc, curr);
             prev->next = curr = next;

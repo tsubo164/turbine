@@ -2,6 +2,7 @@
 #define RUNTIME_GC_H
 
 #include "value_types.h"
+#include "runtime_gc_worklist.h"
 #include "runtime_gc_log.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -40,6 +41,9 @@ struct runtime_gc {
     size_t threshold_bytes;
     size_t max_threshold_bytes;
     float threshold_multiplier;
+
+    /* work */
+    struct runtime_gc_worklist worklist;
 
     /* phase */
     int phase;
