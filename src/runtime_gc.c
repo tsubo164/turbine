@@ -143,6 +143,7 @@ void *runtime_alloc_object(struct runtime_gc *gc, int kind, size_t size)
 
     /* TODO thread-safe */
     obj->kind = kind;
+    obj->mark = MARK_BLACK;
     obj->id = id++;
 
     return obj;
@@ -355,6 +356,8 @@ static bool is_ref_type(int type)
 /* NEW ====================================================== */
 static void push_to_worklist(struct runtime_gc *gc, struct runtime_object *obj)
 {
+    if (obj->mark != MARK_WHITE)
+        return;
     obj->mark = MARK_GRAY;
 
     struct runtime_value val = {.obj = obj};
@@ -410,7 +413,7 @@ static void scan_roots(struct runtime_gc *gc, value_addr_t inst_addr)
     scan_locals(gc, inst_addr);
 }
 
-static void trace_object(struct runtime_gc *gc, struct runtime_object *obj)
+static void trace_refs(struct runtime_gc *gc, struct runtime_object *obj)
 {
     switch ((enum runtime_object_kind) obj->kind) {
 
@@ -425,8 +428,7 @@ static void trace_object(struct runtime_gc *gc, struct runtime_object *obj)
             if (is_ref_type(v->val_type)) {
                 for (int i = 0; i < runtime_vec_len(v); i++) {
                     struct runtime_value val = runtime_vec_get(v, i);
-                    if (obj->mark == MARK_WHITE)
-                        push_to_worklist(gc, val.obj);
+                    push_to_worklist(gc, val.obj);
                 }
             }
         }
@@ -440,8 +442,7 @@ static void trace_object(struct runtime_gc *gc, struct runtime_object *obj)
                 struct runtime_map_entry *ent = runtime_map_entry_begin(m);
                 for (; ent; ent = runtime_map_entry_next(ent)) {
                     struct runtime_value val = ent->val;
-                    if (obj->mark == MARK_WHITE)
-                        push_to_worklist(gc, val.obj);
+                    push_to_worklist(gc, val.obj);
                 }
             }
         }
@@ -455,8 +456,7 @@ static void trace_object(struct runtime_gc *gc, struct runtime_object *obj)
                 struct runtime_set_node *node = runtime_set_node_begin(s);
                 for (; node; node = runtime_set_node_next(node)) {
                     struct runtime_value val = node->val;
-                    if (obj->mark == MARK_WHITE)
-                        push_to_worklist(gc, val.obj);
+                    push_to_worklist(gc, val.obj);
                 }
             }
         }
@@ -470,8 +470,7 @@ static void trace_object(struct runtime_gc *gc, struct runtime_object *obj)
                 int len = runtime_stack_len(s);
                 for (int i = 0; i < len; i++) {
                     struct runtime_value val = runtime_stack_get(s, i);
-                    if (obj->mark == MARK_WHITE)
-                        push_to_worklist(gc, val.obj);
+                    push_to_worklist(gc, val.obj);
                 }
             }
         }
@@ -485,8 +484,7 @@ static void trace_object(struct runtime_gc *gc, struct runtime_object *obj)
                 int len = runtime_queue_len(q);
                 for (int i = 0; i < len; i++) {
                     struct runtime_value val = runtime_queue_get(q, i);
-                    if (obj->mark == MARK_WHITE)
-                        push_to_worklist(gc, val.obj);
+                    push_to_worklist(gc, val.obj);
                 }
             }
         }
@@ -503,8 +501,7 @@ static void trace_object(struct runtime_gc *gc, struct runtime_object *obj)
 
                 if (is_ref_type(val_type)) {
                     struct runtime_value val = runtime_struct_get(s, i);
-                    if (obj->mark == MARK_WHITE)
-                        push_to_worklist(gc, val.obj);
+                    push_to_worklist(gc, val.obj);
                 }
             }
         }
@@ -519,10 +516,8 @@ static void drain_worklist(struct runtime_gc *gc)
         struct runtime_object *obj = val.obj;
 
         if (obj->mark == MARK_GRAY) {
-            /* mark this object */
             obj->mark = MARK_BLACK;
-            /* trace children */
-            trace_object(gc, obj);
+            trace_refs(gc, obj);
         }
     }
 }
@@ -794,11 +789,17 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     /* clear marks */
     clear_marks(gc);
 
+    if (1) {
     /* trace globals */
     trace_globals(gc);
 
     /* trace locals and temps */
     trace_locals(gc, inst_addr);
+    } else {
+    /* trace globals and locals */
+    scan_roots(gc, inst_addr);
+    drain_worklist(gc);
+    }
 
     /* free white objects */
     free_unreachables(gc);

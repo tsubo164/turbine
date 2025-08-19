@@ -59,6 +59,7 @@ struct code_bytecode {
     /* TODO */
     struct code_stackmap stackmap;
     struct code_globalmap globalmap;
+    int gc_collect_func_id;
 };
 
 void code_free_bytecode(struct code_bytecode *code);

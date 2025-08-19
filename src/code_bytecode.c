@@ -741,6 +741,10 @@ static int emit_call(struct code_bytecode *code, int ret_reg, int func_index, bo
     else
         push_inst_abb(code, OP_CALL, reg0, func_index);
 
+    if (code->gc_collect_func_id == func_index) {
+        /* emit OP_INTRINSIC_GC */
+    }
+
     return reg0;
 }
 
@@ -1092,6 +1096,11 @@ value_addr_t code_get_next_addr(const struct code_bytecode *code)
 int code_register_function(struct code_bytecode *code, const char *fullname, int argc)
 {
     int new_id = code_push_function(&code->funcs, fullname, argc);
+
+    if (!strcmp("gc:collect", fullname)) {
+        /* OP_INTRINSIC_GC */
+        code->gc_collect_func_id = new_id;
+    }
 
     return new_id;
 }
