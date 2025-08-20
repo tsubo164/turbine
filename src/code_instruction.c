@@ -7,6 +7,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_NOP]            = { "nop",            OPERAND____ },
     [OP_HALT]           = { "halt",           OPERAND____ },
     [OP_SAFEPOINTPOLL]  = { "safepointpoll",  OPERAND____ },
+    [OP_INTRINSICGC]    = { "intrinsicgc",    OPERAND____ },
     /* load, store, move */
     [OP_MOVE]           = { "move",           OPERAND_AB_ },
     [OP_LOADGLOBAL]     = { "loadglobal",     OPERAND_AB_ },

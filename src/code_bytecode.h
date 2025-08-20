@@ -62,7 +62,8 @@ struct code_bytecode {
     int gc_collect_func_id;
 };
 
-void code_free_bytecode(struct code_bytecode *code);
+void code_bytecode_init(struct code_bytecode *code);
+void code_bytecode_clear(struct code_bytecode *code);
 
 /* registers */
 void code_init_registers(struct code_bytecode *code, int lvar_count);
@@ -201,6 +202,7 @@ int code_emit_float_to_bool(struct code_bytecode *code, int dst, int src);
 int code_emit_float_to_int(struct code_bytecode *code, int dst, int src);
 
 /* program control */
+void code_emit_intrinsic_gc(struct code_bytecode *code);
 void code_emit_safepoint(struct code_bytecode *code);
 void code_emit_halt(struct code_bytecode *code);
 void code_emit_nop(struct code_bytecode *code);

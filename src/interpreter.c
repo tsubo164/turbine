@@ -178,7 +178,8 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     }
 
     /* generate bytecode */
-    struct code_bytecode code = {{0}};
+    struct code_bytecode code;
+    code_bytecode_init(&code);
     if (pass.generate) {
         code_generate(&code, mod_main);
     }
@@ -200,7 +201,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     }
 
     /* clean */
-    code_free_bytecode(&code);
+    code_bytecode_clear(&code);
     parser_free_tokens(tok);
     parser_free_scope(builtin);
 

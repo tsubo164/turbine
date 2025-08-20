@@ -9,6 +9,7 @@ enum code_opcode {
     OP_NOP,
     OP_HALT,
     OP_SAFEPOINTPOLL,
+    OP_INTRINSICGC,
     /* load, store, move */
     OP_MOVE,
     OP_LOADGLOBAL,

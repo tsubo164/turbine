@@ -38,11 +38,7 @@ static int gc_request(struct runtime_gc *gc, struct runtime_registers *regs)
 
 static int gc_collect(struct runtime_gc *gc, struct runtime_registers *regs)
 {
-    struct runtime_value ret = {0};
-
-    runtime_gc_force_collect(gc);
-    regs->locals[0] = ret;
-
+    /* dummy function, calling gc.collect() will be compiled to OP_INTRINSICGC */
     return RESULT_SUCCESS;
 }
 

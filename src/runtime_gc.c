@@ -789,7 +789,7 @@ void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
     /* clear marks */
     clear_marks(gc);
 
-    if (1) {
+    if (0) {
     /* trace globals */
     trace_globals(gc);
 

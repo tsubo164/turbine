@@ -53,7 +53,16 @@ static void mark_ref4(struct code_bytecode *code, int slot, bool is_ref0, bool i
 }
 /* --- */
 
-void code_free_bytecode(struct code_bytecode *code)
+void code_bytecode_init(struct code_bytecode *code)
+{
+    struct code_bytecode init = {
+        .gc_collect_func_id = -1,
+    };
+
+    *code = init;
+}
+
+void code_bytecode_clear(struct code_bytecode *code)
 {
     /* instructions */
     code_instructionvec_free(&code->insts);
@@ -734,16 +743,18 @@ int code_emit_not_equal_string(struct code_bytecode *code, int dst, int src0, in
 /* function call */
 static int emit_call(struct code_bytecode *code, int ret_reg, int func_index, bool is_native)
 {
+    if (code->gc_collect_func_id == func_index) {
+        /* OP_INTRINSICGC */
+        code_emit_intrinsic_gc(code);
+        return ret_reg;
+    }
+
     int reg0 = ret_reg;
 
     if (is_native)
         push_inst_abb(code, OP_CALLNATIVE, reg0, func_index);
     else
         push_inst_abb(code, OP_CALL, reg0, func_index);
-
-    if (code->gc_collect_func_id == func_index) {
-        /* emit OP_INTRINSIC_GC */
-    }
 
     return reg0;
 }
@@ -1002,6 +1013,11 @@ int code_emit_float_to_int(struct code_bytecode *code, int dst, int src)
 }
 
 /* program control */
+void code_emit_intrinsic_gc(struct code_bytecode *code)
+{
+    push_inst_op(code, OP_INTRINSICGC);
+}
+
 void code_emit_safepoint(struct code_bytecode *code)
 {
     push_inst_op(code, OP_SAFEPOINTPOLL);
@@ -1098,7 +1114,7 @@ int code_register_function(struct code_bytecode *code, const char *fullname, int
     int new_id = code_push_function(&code->funcs, fullname, argc);
 
     if (!strcmp("gc:collect", fullname)) {
-        /* OP_INTRINSIC_GC */
+        /* OP_INTRINSICGC */
         code->gc_collect_func_id = new_id;
     }
 
