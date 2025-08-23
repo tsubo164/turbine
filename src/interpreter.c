@@ -36,7 +36,7 @@ static struct exec_pass make_exec_pass(const struct interpreter_option *opt) {
 
     if (opt->print_token)    pass.tokenize = true;
     if (opt->print_tree)     pass.tokenize = pass.parse = true;
-    if (opt->print_symbols)  pass.tokenize = pass.parse = true;
+    if (opt->print_symbols)  pass.tokenize = pass.parse = pass.generate = true;
     if (opt->print_bytecode) pass.tokenize = pass.parse = pass.generate = true;
     if (opt->print_stackmap) pass.tokenize = pass.parse = pass.generate = true;
 
@@ -172,16 +172,16 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
         print_tree(mod_main);
     }
 
-    /* print symbols */
-    if (opt->print_symbols) {
-        print_syms(mod_main->scope, opt->print_symbols_all);
-    }
-
     /* generate bytecode */
     struct code_bytecode code;
     code_bytecode_init(&code);
     if (pass.generate) {
         code_generate(&code, mod_main);
+    }
+
+    /* print symbols */
+    if (opt->print_symbols) {
+        print_syms(mod_main->scope, opt->print_symbols_all);
     }
 
     /* print bytecode */
