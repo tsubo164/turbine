@@ -8,25 +8,12 @@
 
   gc.print_objects()
 
-  gc.collect()
+  gc.request()
+
+  for i in 0..10
+    nop
 
   print("==============")
   gc.print_objects()
 
-  /*
-  - log = gc.get_log()
-  if veclen(log) > 0
-    - last = log[veclen(log) - 1]
-    //print(last.duration_msec)
-  */
-
   return 0
-/*
-
-# main(args vec{string}) int
-  - stat gc.Stat
-  stat = gc.get_stats()
-  gc.collect()
-
-  return 0
-*/

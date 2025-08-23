@@ -313,8 +313,11 @@ static void free_obj(struct runtime_gc *gc, struct runtime_object *obj)
 /* collect */
 void runtime_gc_request_collect(struct runtime_gc *gc)
 {
-    gc->request_mode = REQ_AT_SAFEPOINT;
-    gc->trigger_reason = REASON_USER;
+    if (gc->phase == PHASE_IDLE) {
+        gc->phase = PHASE_PREPARE;
+        gc->request_mode = REQ_AT_SAFEPOINT;
+        gc->trigger_reason = REASON_USER;
+    }
 }
 
 void runtime_gc_force_collect(struct runtime_gc *gc)

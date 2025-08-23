@@ -162,7 +162,7 @@ void vm_print_gc_objects(const struct vm_cpu *vm)
 static void safepoint_poll(struct vm_cpu *vm, value_addr_t inst_addr)
 {
     if (runtime_gc_is_requested(&vm->gc)) {
-        runtime_gc_collect_objects(&vm->gc, inst_addr);
+        runtime_gc_step(&vm->gc, inst_addr);
     }
 }
 

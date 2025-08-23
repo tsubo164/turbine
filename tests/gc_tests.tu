@@ -16,7 +16,7 @@
     gc.request()
 
     // safepoint at loop back edge
-    for i in 0..1
+    for i in 0..10
       nop
     test.AssertB(false, gc.is_object_alive(id))
 
