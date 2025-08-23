@@ -320,12 +320,6 @@ void runtime_gc_request_collect(struct runtime_gc *gc)
     }
 }
 
-void runtime_gc_force_collect(struct runtime_gc *gc)
-{
-    gc->request_mode = REQ_FORCE_NOW;
-    gc->trigger_reason = REASON_USER;
-}
-
 bool runtime_gc_is_requested(const struct runtime_gc *gc)
 {
     return gc->request_mode != REQ_NONE;
@@ -622,13 +616,18 @@ void runtime_gc_step(struct runtime_gc *gc, value_addr_t inst_addr)
         gc->phase++;
 }
 
-void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr)
+void runtime_gc_force_collect(struct runtime_gc *gc, value_addr_t inst_addr)
 {
     assert(inst_addr >= 0);
 
+    gc->request_mode = REQ_FORCE_NOW;
+    gc->trigger_reason = REASON_USER;
+
+    /* start phase */
     if (gc->phase == PHASE_IDLE)
         gc->phase = PHASE_PREPARE;
 
+    /* do all phases */
     do {
         runtime_gc_step(gc, inst_addr);
     } while (gc->phase != PHASE_IDLE);

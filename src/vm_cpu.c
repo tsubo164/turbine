@@ -168,9 +168,7 @@ static void safepoint_poll(struct vm_cpu *vm, value_addr_t inst_addr)
 
 static void force_gc(struct vm_cpu *vm, value_addr_t inst_addr)
 {
-    /* TODO consider combining into one function */
-    runtime_gc_force_collect(&vm->gc);
-    runtime_gc_collect_objects(&vm->gc, inst_addr);
+    runtime_gc_force_collect(&vm->gc, inst_addr);
 }
 
 static void call_function(struct vm_cpu *vm, value_addr_t callsite_addr, int retval_reg, int func_id)

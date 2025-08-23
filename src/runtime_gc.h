@@ -75,11 +75,10 @@ bool runtime_gc_is_object_alive(const struct runtime_gc *gc, value_int_t id);
 void runtime_gc_print_objects(const struct runtime_gc *gc);
 
 /* collect */
-void runtime_gc_force_collect(struct runtime_gc *gc);
 void runtime_gc_request_collect(struct runtime_gc *gc);
 bool runtime_gc_is_requested(const struct runtime_gc *gc);
 bool runtime_gc_is_forced(const struct runtime_gc *gc);
-void runtime_gc_collect_objects(struct runtime_gc *gc, value_addr_t inst_addr);
+void runtime_gc_force_collect(struct runtime_gc *gc, value_addr_t inst_addr);
 void runtime_gc_step(struct runtime_gc *gc, value_addr_t inst_addr);
 
 /* stats */
