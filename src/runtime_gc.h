@@ -70,6 +70,8 @@ void runtime_gc_free(struct runtime_gc *gc, void *user_ptr);
 /* object */
 void *runtime_alloc_object(struct runtime_gc *gc, int kind, size_t size);
 void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj);
+void runtime_gc_write_barrier(struct runtime_gc *gc, struct runtime_object *obj, struct runtime_object *ref);
+
 uint32_t runtime_gc_get_object_id(const struct runtime_object *obj);
 bool runtime_gc_is_object_alive(const struct runtime_gc *gc, value_int_t id);
 void runtime_gc_print_objects(const struct runtime_gc *gc);

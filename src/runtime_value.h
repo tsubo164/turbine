@@ -12,9 +12,11 @@ struct runtime_string;
 struct runtime_struct;
 
 enum runtime_value_type {
+    /* prims */
     VAL_NIL,
     VAL_INT,
     VAL_FLOAT,
+    /* refs */
     VAL_STRING,
     VAL_VEC,
     VAL_MAP,
@@ -60,5 +62,8 @@ void runtime_valuevec_free(struct runtime_gc *gc, struct runtime_valuevec *v);
 
 typedef int (*compare_function_t)(struct runtime_value val1, struct runtime_value val2);
 compare_function_t runtime_get_compare_function(int val_type);
+
+/* value type */
+bool runtime_value_is_ref(int val_type);
 
 #endif /* _H */

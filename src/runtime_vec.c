@@ -28,9 +28,12 @@ struct runtime_value runtime_vec_get(const struct runtime_vec *v, value_int_t id
     return v->values.data[idx];
 }
 
-void runtime_vec_set(struct runtime_vec *v, value_int_t idx, struct runtime_value val)
+void runtime_vec_set(struct runtime_gc *gc, struct runtime_vec *v, value_int_t idx, struct runtime_value val)
 {
     v->values.data[idx] = val;
+
+    if (runtime_value_is_ref(v->val_type))
+        runtime_gc_write_barrier(gc, &v->obj, val.obj);
 }
 
 value_int_t runtime_vec_len(const struct runtime_vec *v)

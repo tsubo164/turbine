@@ -143,8 +143,17 @@ void *runtime_alloc_object(struct runtime_gc *gc, int kind, size_t size)
 
     /* TODO thread-safe */
     obj->kind = kind;
-    obj->mark = MARK_BLACK;
     obj->id = id++;
+
+    /*
+     * In debug mode: initialize objects white to stress-test write barriers.
+     * In release mode: initialize black for safety and simpler semantics.
+     */
+#ifdef NDEBUG
+    obj->mark = MARK_BLACK;
+#else
+    obj->mark = MARK_WHITE;
+#endif
 
     return obj;
 }
@@ -155,6 +164,14 @@ void runtime_gc_push_object(struct runtime_gc *gc, struct runtime_object *obj)
         return;
     obj->next = gc->root;
     gc->root = obj;
+}
+
+static void push_to_worklist(struct runtime_gc *gc, struct runtime_object *obj);
+void runtime_gc_write_barrier(struct runtime_gc *gc, struct runtime_object *obj, struct runtime_object *ref)
+{
+    if (obj->mark == MARK_BLACK && ref->mark == MARK_WHITE) {
+        push_to_worklist(gc, ref);
+    }
 }
 
 uint32_t runtime_gc_get_object_id(const struct runtime_object *obj)

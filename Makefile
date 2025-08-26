@@ -13,7 +13,7 @@ leakcheck:
 	$(MAKE) -C src $@
 
 release: clean
-	$(MAKE) -C src OPT="-O2"
+	$(MAKE) -C src OPT="-O2 -DNDEBUG"
 
 install: release
 	install -m 755 turbine $(BINDIR)/turbine

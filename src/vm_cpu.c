@@ -286,7 +286,7 @@ static void run_cpu(struct vm_cpu *vm)
                 struct runtime_value idxval = fetch_register_value(vm, idx);
                 struct runtime_value srcval = fetch_register_value(vm, src);
 
-                runtime_vec_set(dstobj.vec, idxval.inum, srcval);
+                runtime_vec_set(&vm->gc, dstobj.vec, idxval.inum, srcval);
             }
             break;
 
@@ -1188,7 +1188,7 @@ static struct runtime_value make_args_value(struct runtime_gc *gc, const struct 
         struct runtime_string *s = runtime_string_new(gc, args->values[i]);
         struct runtime_value elem = {.string = s};
 
-        runtime_vec_set(v, i, elem);
+        runtime_vec_set(gc, v, i, elem);
     }
 
     struct runtime_value val = {.vec = v};

@@ -16,7 +16,7 @@ void runtime_vec_free(struct runtime_gc *gc, struct runtime_vec *v);
 
 /* no index range check */
 struct runtime_value runtime_vec_get(const struct runtime_vec *v, value_int_t idx);
-void runtime_vec_set(struct runtime_vec *v, value_int_t idx, struct runtime_value val);
+void runtime_vec_set(struct runtime_gc *gc, struct runtime_vec *v, value_int_t idx, struct runtime_value val);
 
 value_int_t runtime_vec_len(const struct runtime_vec *v);
 bool runtime_vec_is_valid_index(const struct runtime_vec *v, value_int_t idx);

@@ -67,6 +67,32 @@
     test.AssertB(true, last.used_bytes_after < last.used_bytes_before)
     test.AssertB(true, last.trigger_reason == gc.Reason.THRESHOLD)
 
+  ---
+    // write barrier
+    - total_before = gc.get_stats().total_collections
+    - s = "foo"
+    - v = vec{"bar"}
+
+    // request GC
+    gc.request()
+
+    // do some steps (finish root scans)
+    for i in 0..2
+      nop
+
+    // write white ref to black obj
+    v[0] = s + "bar"
+    - id = gc.get_object_id(v[0])
+
+    // finish GC
+    for i in 0..2
+      nop
+
+    // make sure GC finished
+    - total_after = gc.get_stats().total_collections
+    test.AssertB(true, total_after > total_before)
+    test.AssertB(true, gc.is_object_alive(id))
+
   print(test._test_count_, "tests done.")
 
   return 0

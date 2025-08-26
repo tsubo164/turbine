@@ -115,3 +115,9 @@ compare_function_t runtime_get_compare_function(int val_type)
          return NULL;
     }
 }
+
+/* value type */
+bool runtime_value_is_ref(int val_type)
+{
+    return val_type >= VAL_STRING;
+}
