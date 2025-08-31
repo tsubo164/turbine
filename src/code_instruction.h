@@ -12,6 +12,7 @@ enum code_opcode {
     OP_INTRINSICGC,
     /* load, store, move */
     OP_MOVE,
+    OP_LOADCONST,
     OP_LOADGLOBAL,
     OP_STOREGLOBAL,
     OP_LOADVEC,

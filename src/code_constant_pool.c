@@ -2,6 +2,32 @@
 #include "runtime_string.h"
 #include <assert.h>
 
+#define MIN_CAP 8
+
+/* -------- */
+void pool_init(struct code_constant_pool *v)
+{
+    v->data = NULL;
+    v->cap = 0;
+    v->len = 0;
+}
+
+void push_const(struct code_constant_pool *v, struct code_constant c)
+{
+    if (v->len == v->cap) {
+        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
+        v->data = realloc(v->data, v->cap * sizeof(*v->data));
+    }
+    v->data[v->len++] = c;
+}
+
+void pool_clear(struct code_constant_pool *v)
+{
+    free(v->data);
+    pool_init(v);
+}
+/* -------- */
+
 void code_constant_pool_init(struct code_constant_pool *v)
 {
     runtime_valuevec_init(&v->ints);
@@ -10,6 +36,9 @@ void code_constant_pool_init(struct code_constant_pool *v)
 
     /* TODO consider making struct code_literal_table */
     data_strbuf_clear(&v->literal_types);
+
+    /* TODO TEST */
+    pool_init(v);
 }
 
 void code_constant_pool_free(struct code_constant_pool *v)
@@ -41,20 +70,24 @@ void code_constant_pool_free(struct code_constant_pool *v)
         runtime_valuevec_free(NULL, &v->literals);
         data_strbuf_free(&v->literal_types);
     }
+
+    /* TODO TEST */
+    pool_clear(v);
 }
 
-int code_constant_pool_push_int(struct code_constant_pool *v, value_int_t val)
+int code_constant_pool_push_int(struct code_constant_pool *pool, value_int_t val)
 {
-    for (int i = 0; i < v->ints.len; i++) {
-        if (v->ints.data[i].inum == val)
+    /* find */
+    for (int i = 0; i < pool->len; i++) {
+        if (pool->data[i].val.inum == val)
             return i;
     }
 
-    struct runtime_value value;
-    value.inum = val;
-    runtime_valuevec_push(NULL, &v->ints, value);
+    int new_idx = pool->len;
+    struct runtime_value v = {.inum = val};
+    struct code_constant c = {.val = v, .type = VAL_INT};
 
-    int new_idx = v->ints.len - 1;
+    push_const(pool, c);
     return new_idx;
 }
 
@@ -87,6 +120,23 @@ int code_constant_pool_push_string(struct code_constant_pool *v, const char *val
 
     int new_idx = v->strings.len - 1;
     return new_idx;
+}
+
+int code_constant_pool_get_count(const struct code_constant_pool *v)
+{
+    return v->len;
+}
+
+struct runtime_value code_constant_pool_get(const struct code_constant_pool *v, int id)
+{
+    assert(id >= 0 && id < v->len);
+    return v->data[id].val;
+}
+
+int code_constant_pool_get_type(const struct code_constant_pool *v, int id)
+{
+    assert(id >= 0 && id < v->len);
+    return v->data[id].type;
 }
 
 struct runtime_value code_constant_pool_get_int(const struct code_constant_pool *v, int id)

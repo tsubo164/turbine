@@ -300,6 +300,22 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
     return value;
 }
 
+/* constants */
+struct runtime_value code_get_const_value(const struct code_bytecode *code, int id)
+{
+    return code_constant_pool_get(&code->const_pool, id);
+}
+
+int code_get_const_value_type(const struct code_bytecode *code, int id)
+{
+    return code_constant_pool_get_type(&code->const_pool, id);
+}
+
+int code_get_const_value_count(const struct code_bytecode *code)
+{
+    return code_constant_pool_get_count(&code->const_pool);
+}
+
 /* load, store, move */
 int code_emit_move(struct code_bytecode *code, int dst, int src)
 {
@@ -321,11 +337,6 @@ int code_emit_move_ref(struct code_bytecode *code, int dst, int src)
     return dst;
 }
 
-static bool can_fit_int32(value_int_t val)
-{
-    return val >= INT32_MIN && val <= INT32_MAX;
-}
-
 bool code_is_immediate_value(int id)
 {
     return id >= IMMEDIATE_SMALLINT_BEGIN;
@@ -336,14 +347,11 @@ int code_emit_load_int(struct code_bytecode *code, value_int_t val)
     if (can_fit_smallint(val)) {
         return smallint_to_register(val);
     }
-    else if (can_fit_int32(val)) {
-        immediate_queue_push(code, (int32_t) val);
-        return IMMEDIATE_INT32;
-    }
     else {
+        int dst = code_allocate_temporary_register(code);
         int id = code_constant_pool_push_int(&code->const_pool, val);
-        immediate_queue_push(code, (int32_t) id);
-        return IMMEDIATE_INT64;
+        push_inst_abb(code, OP_LOADCONST, dst, id);
+        return dst;
     }
 }
 

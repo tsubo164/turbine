@@ -83,6 +83,11 @@ bool code_is_immediate_value(int id);
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
         value_addr_t addr, int id, int *imm_size);
 
+/* constants */
+struct runtime_value code_get_const_value(const struct code_bytecode *code, int id);
+int code_get_const_value_type(const struct code_bytecode *code, int id);
+int code_get_const_value_count(const struct code_bytecode *code);
+
 /* load, store, move */
 int code_emit_move(struct code_bytecode *code, int dst, int src);
 int code_emit_move_ref(struct code_bytecode *code, int dst, int src);

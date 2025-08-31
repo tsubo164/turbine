@@ -242,6 +242,16 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_LOADCONST:
+            {
+                int dst = inst.A;
+                int const_id = inst.BB;
+                struct runtime_value srcval = code_get_const_value(vm->code, const_id);
+
+                set_local(vm, dst, srcval);
+            }
+            break;
+
         case OP_LOADGLOBAL:
             {
                 int dst = inst.A;

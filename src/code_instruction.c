@@ -10,6 +10,7 @@ static const struct code_opcode_info opecode_table[] = {
     [OP_INTRINSICGC]    = { "intrinsicgc",    OPERAND____ },
     /* load, store, move */
     [OP_MOVE]           = { "move",           OPERAND_AB_ },
+    [OP_LOADCONST]      = { "loadconst",      OPERAND_ABB },
     [OP_LOADGLOBAL]     = { "loadglobal",     OPERAND_AB_ },
     [OP_STOREGLOBAL]    = { "storeglobal",    OPERAND_AB_ },
     [OP_LOADVEC]        = { "loadvec",        OPERAND_ABC },

@@ -4,6 +4,11 @@
 #include "runtime_value.h"
 #include "data_strbuf.h"
 
+struct code_constant {
+    struct runtime_value val;
+    int type;
+};
+
 struct code_constant_pool {
     struct runtime_valuevec ints;
     struct runtime_valuevec floats;
@@ -12,14 +17,22 @@ struct code_constant_pool {
     /* TODO consider making struct code_literal_table */
     struct runtime_valuevec literals;
     struct data_strbuf literal_types;
+
+    struct code_constant *data;
+    int len;
+    int cap;
 };
 
 void code_constant_pool_init(struct code_constant_pool *v);
 void code_constant_pool_free(struct code_constant_pool *v);
 
-int code_constant_pool_push_int(struct code_constant_pool *v, value_int_t val);
+int code_constant_pool_push_int(struct code_constant_pool *pool, value_int_t val);
 int code_constant_pool_push_float(struct code_constant_pool *v, value_float_t val);
 int code_constant_pool_push_string(struct code_constant_pool *v, const char *val);
+
+int code_constant_pool_get_count(const struct code_constant_pool *v);
+struct runtime_value code_constant_pool_get(const struct code_constant_pool *v, int id);
+int code_constant_pool_get_type(const struct code_constant_pool *v, int id);
 
 struct runtime_value code_constant_pool_get_int(const struct code_constant_pool *v, int id);
 struct runtime_value code_constant_pool_get_float(const struct code_constant_pool *v, int id);

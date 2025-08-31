@@ -37,6 +37,21 @@ void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
         }
     }
 
+    if (code_get_const_value_count(code) > 0) {
+        printf("* const values:\n");
+        int count = code_get_const_value_count(code);
+        for (int i = 0; i < count; i++) {
+            struct runtime_value val = code_get_const_value(code, i);
+            int type = code_get_const_value_type(code, i);
+
+            switch (type) {
+            case VAL_INT:
+                printf("[%6d] %-10" PRIival " (int)\n", i, val.inum);
+                break;
+            }
+        }
+    }
+
     /* enum fields */
     if (code_get_enum_field_count(code) > 0) {
         printf("* enum fields:\n");
@@ -104,6 +119,15 @@ void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
         code_print_instruction(code, addr, &inst, &imm_size);
         inc += imm_size;
 
+        if (imm_size > 0) {
+            for (int i = 0; i < imm_size; i++) {
+                value_addr_t immaddr = addr + i + 1;
+                int32_t imm = code_read(code, immaddr);
+                printf("[%6" PRId64 "] ", immaddr);
+                printf("(%d)\n", imm);
+            }
+        }
+
         addr += inc;
     }
 
@@ -113,7 +137,9 @@ void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
 static void print_operand(const struct code_bytecode *code,
         int addr, int operand, bool separator, int *imm_size)
 {
-    int offset = 1 + *imm_size;
+    int offset = 1;
+    if (imm_size)
+        offset += *imm_size;
 
     switch (operand) {
 
