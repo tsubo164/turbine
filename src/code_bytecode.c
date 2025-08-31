@@ -87,15 +87,6 @@ void code_bytecode_clear(struct code_bytecode *code)
     code_stackmap_free(&code->stackmap);
 }
 
-static void immediate_queue_push(struct code_bytecode *code, int32_t val)
-{
-    assert(code->qlen >= 0 && code->qlen < IMMEDIATE_QUEUE_SIZE);
-
-    code->immediate_queue[code->qback] = val;
-    code->qback = (code->qback + 1) % IMMEDIATE_QUEUE_SIZE;
-    code->qlen++;
-}
-
 static int32_t immediate_queue_pop(struct code_bytecode *code)
 {
     assert(code->qlen > 0 && code->qlen <= IMMEDIATE_QUEUE_SIZE);
@@ -357,16 +348,18 @@ int code_emit_load_int(struct code_bytecode *code, value_int_t val)
 
 int code_emit_load_float(struct code_bytecode *code, value_float_t val)
 {
+    int dst = code_allocate_temporary_register(code);
     int id = code_constant_pool_push_float(&code->const_pool, val);
-    immediate_queue_push(code, (int32_t) id);
-    return IMMEDIATE_FLOAT;
+    push_inst_abb(code, OP_LOADCONST, dst, id);
+    return dst;
 }
 
 int code_emit_load_string(struct code_bytecode *code, const char *cstr)
 {
+    int dst = code_allocate_temporary_register(code);
     int id = code_constant_pool_push_string(&code->const_pool, cstr);
-    immediate_queue_push(code, (int32_t) id);
-    return IMMEDIATE_STRING;
+    push_inst_abb(code, OP_LOADCONST, dst, id);
+    return dst;
 }
 
 int code_emit_load_global(struct code_bytecode *code, int dst, int src)

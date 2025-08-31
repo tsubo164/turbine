@@ -27,8 +27,8 @@ void code_constant_pool_init(struct code_constant_pool *v);
 void code_constant_pool_free(struct code_constant_pool *v);
 
 int code_constant_pool_push_int(struct code_constant_pool *pool, value_int_t val);
-int code_constant_pool_push_float(struct code_constant_pool *v, value_float_t val);
-int code_constant_pool_push_string(struct code_constant_pool *v, const char *val);
+int code_constant_pool_push_float(struct code_constant_pool *pool, value_float_t val);
+int code_constant_pool_push_string(struct code_constant_pool *pool, const char *val);
 
 int code_constant_pool_get_count(const struct code_constant_pool *v);
 struct runtime_value code_constant_pool_get(const struct code_constant_pool *v, int id);

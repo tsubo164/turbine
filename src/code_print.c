@@ -2,6 +2,7 @@
 /* TODO can remove this? */
 #include "runtime_string.h"
 #include "data_vec.h"
+#include <assert.h>
 #include <stdio.h>
 
 void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
@@ -47,6 +48,15 @@ void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
             switch (type) {
             case VAL_INT:
                 printf("[%6d] %-10" PRIival " (int)\n", i, val.inum);
+                break;
+            case VAL_FLOAT:
+                printf("[%6d] %-10g (float)\n", i, val.fpnum);
+                break;
+            case VAL_STRING:
+                printf("[%6d] %-10s (string)\n", i, runtime_string_get_cstr(val.string));
+                break;
+            default:
+                assert("not implemented");
                 break;
             }
         }

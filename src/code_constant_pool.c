@@ -72,6 +72,15 @@ void code_constant_pool_free(struct code_constant_pool *v)
     }
 
     /* TODO TEST */
+    /* free const strings */
+    struct code_constant_pool *pool = v;
+    for (int i = 0; i < pool->len; i++) {
+        if (pool->data[i].type != VAL_STRING)
+            continue;
+        struct runtime_value val = pool->data[i].val;
+        runtime_string_free(NULL, val.string);
+    }
+
     pool_clear(v);
 }
 
@@ -79,6 +88,8 @@ int code_constant_pool_push_int(struct code_constant_pool *pool, value_int_t val
 {
     /* find */
     for (int i = 0; i < pool->len; i++) {
+        if (pool->data[i].type != VAL_INT)
+            continue;
         if (pool->data[i].val.inum == val)
             return i;
     }
@@ -91,34 +102,40 @@ int code_constant_pool_push_int(struct code_constant_pool *pool, value_int_t val
     return new_idx;
 }
 
-int code_constant_pool_push_float(struct code_constant_pool *v, value_float_t val)
+int code_constant_pool_push_float(struct code_constant_pool *pool, value_float_t val)
 {
-    for (int i = 0; i < v->floats.len; i++) {
-        if (v->floats.data[i].fpnum == val)
+    /* find */
+    for (int i = 0; i < pool->len; i++) {
+        if (pool->data[i].type != VAL_FLOAT)
+            continue;
+        if (pool->data[i].val.fpnum == val)
             return i;
     }
 
-    struct runtime_value value;
-    value.fpnum = val;
-    runtime_valuevec_push(NULL, &v->floats, value);
+    int new_idx = pool->len;
+    struct runtime_value v = {.fpnum = val};
+    struct code_constant c = {.val = v, .type = VAL_FLOAT};
 
-    int new_idx = v->floats.len - 1;
+    push_const(pool, c);
     return new_idx;
 }
 
-int code_constant_pool_push_string(struct code_constant_pool *v, const char *val)
+int code_constant_pool_push_string(struct code_constant_pool *pool, const char *val)
 {
-    for (int i = 0; i < v->strings.len; i++) {
-        struct runtime_value s = runtime_valuevec_get(&v->strings, i);
+    /* find */
+    for (int i = 0; i < pool->len; i++) {
+        if (pool->data[i].type != VAL_STRING)
+            continue;
+        struct runtime_value s = pool->data[i].val;
         if (runtime_string_compare_cstr(s.string, val) == 0)
             return i;
     }
 
-    struct runtime_value value;
-    value.string = runtime_string_new(NULL, val);
-    runtime_valuevec_push(NULL, &v->strings, value);
+    int new_idx = pool->len;
+    struct runtime_value v = {.string = runtime_string_new(NULL, val)};
+    struct code_constant c = {.val = v, .type = VAL_STRING};
 
-    int new_idx = v->strings.len - 1;
+    push_const(pool, c);
     return new_idx;
 }
 
