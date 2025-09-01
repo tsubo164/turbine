@@ -122,34 +122,21 @@ void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
 
         int32_t instcode = code_read(code, addr);
         struct code_instruction inst = {0};
-        int inc = 1;
 
         code_decode_instruction(instcode, &inst);
-        int imm_size = 0;
-        code_print_instruction(code, addr, &inst, &imm_size);
-        inc += imm_size;
+        code_print_instruction(code, addr, &inst);
 
-        if (imm_size > 0) {
-            for (int i = 0; i < imm_size; i++) {
-                value_addr_t immaddr = addr + i + 1;
-                int32_t imm = code_read(code, immaddr);
-                printf("[%6" PRId64 "] ", immaddr);
-                printf("(%d)\n", imm);
-            }
-        }
-
-        addr += inc;
+        addr++;
     }
 
     data_intvec_free(&labels);
 }
 
-static void print_operand(const struct code_bytecode *code,
-        int addr, int operand, bool separator, int *imm_size)
+static void print_operand(const struct code_bytecode *code, int operand, char separator)
 {
     if (code_is_immediate_value(operand)) {
         struct runtime_value val;
-        val = code_read_immediate_value(code, addr, operand, imm_size);
+        val = code_read_immediate_value(code, operand);
         printf("$%" PRIival, val.inum);
     }
     else {
@@ -157,7 +144,7 @@ static void print_operand(const struct code_bytecode *code,
     }
 
     if (separator)
-        printf(", ");
+        printf("%c ", separator);
 }
 
 static void print_operand16(const struct code_bytecode *code, int operand)
@@ -173,7 +160,7 @@ static void print_operand_funcname(const struct code_bytecode *code, int operand
 }
 
 void code_print_instruction(const struct code_bytecode *code,
-        value_addr_t addr, const struct code_instruction *inst, int *imm_size)
+        value_addr_t addr, const struct code_instruction *inst)
 {
     const struct code_opcode_info *info = code_lookup_opecode_info(inst->op);
 
@@ -189,7 +176,7 @@ void code_print_instruction(const struct code_bytecode *code,
 
     /* operands for call instructions */
     if (inst->op == OP_CALL || inst->op == OP_CALLNATIVE) {
-        print_operand(code, addr, inst->A, 1, imm_size);
+        print_operand(code, inst->A, ',');
         print_operand_funcname(code, inst->BB);
         printf("\n");
         return;
@@ -202,23 +189,23 @@ void code_print_instruction(const struct code_bytecode *code,
         break;
 
     case OPERAND_A__:
-        print_operand(code, addr, inst->A, 0, imm_size);
+        print_operand(code, inst->A, 0);
         break;
 
     case OPERAND_AB_:
-        print_operand(code, addr, inst->A, 1, imm_size);
-        print_operand(code, addr, inst->B, 0, imm_size);
+        print_operand(code, inst->A, ',');
+        print_operand(code, inst->B, 0);
         break;
 
     case OPERAND_ABB:
-        print_operand(code, addr, inst->A, 1, imm_size);
+        print_operand(code, inst->A, ',');
         print_operand16(code, inst->BB);
         break;
 
     case OPERAND_ABC:
-        print_operand(code, addr, inst->A, 1, imm_size);
-        print_operand(code, addr, inst->B, 1, imm_size);
-        print_operand(code, addr, inst->C, 0, imm_size);
+        print_operand(code, inst->A, ',');
+        print_operand(code, inst->B, ',');
+        print_operand(code, inst->C, 0);
         break;
     }
 

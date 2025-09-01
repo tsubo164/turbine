@@ -213,8 +213,7 @@ bool code_is_immediate_value(int reg)
     return reg >= IMM_BEGIN;
 }
 
-struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
-        value_addr_t addr, int reg, int *imm_size)
+struct runtime_value code_read_immediate_value(const struct code_bytecode *code, int reg)
 {
     struct runtime_value value = {0};
 

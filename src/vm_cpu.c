@@ -89,16 +89,12 @@ static void set_global(struct vm_cpu *vm, int id, struct runtime_value val)
     runtime_valuevec_set(vm->globals, id, val);
 }
 
-static struct runtime_value fetch_register_value(struct vm_cpu *vm, int reg)
+static struct runtime_value fetch_register_value(const struct vm_cpu *vm, int reg)
 {
     if (code_is_immediate_value(reg)) {
-        struct runtime_value imm = {0};
-        int imm_size = 0;
-
-        imm = code_read_immediate_value(vm->code, vm->ip, reg, &imm_size);
-        vm->ip += imm_size;
-
-        return imm;
+        struct runtime_value val;
+        val = code_read_immediate_value(vm->code, reg);
+        return val;
     }
     else {
         return get_local(vm, reg);
@@ -224,8 +220,7 @@ static void run_cpu(struct vm_cpu *vm)
 
         /* stack */
         if (vm->print_stack) {
-            int imm_size = 0;
-            code_print_instruction(vm->code, inst_addr, &inst, &imm_size);
+            code_print_instruction(vm->code, inst_addr, &inst);
             vm_print_stack(vm);
         }
 
@@ -1182,7 +1177,7 @@ do { \
 
         default:
             fprintf(stderr, "unexpected instruction: %d\n", inst.op);
-            code_print_instruction(vm->code, inst_addr, &inst, NULL);
+            code_print_instruction(vm->code, inst_addr, &inst);
             assert(!"internal error");
             break;
         }
