@@ -78,7 +78,6 @@ void code_set_global_count(struct code_bytecode *code, int count);
 int code_get_global_count(const struct code_bytecode *code);
 
 /* immediate value */
-bool code_is_smallint_register(int id);
 bool code_is_immediate_value(int id);
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
         value_addr_t addr, int id, int *imm_size);

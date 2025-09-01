@@ -17,6 +17,8 @@
   //m["foo"] = 42
   //m["bar"] = -1212
   //print(m)
+  print(31)
+  print(-32)
   print(-1212)
   print(3.14159)
   print("Hello, World!")

@@ -179,7 +179,7 @@ static void print_operand(const struct code_bytecode *code,
         break;
 
     default:
-        if (code_is_smallint_register(operand)) {
+        if (code_is_immediate_value(operand)) {
             struct runtime_value val;
             val = code_read_immediate_value(code, addr, operand, imm_size);
             printf("$%" PRIival, val.inum);

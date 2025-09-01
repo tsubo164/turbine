@@ -5,6 +5,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* immediate value */
+#define IMM_MIN   (-32)
+#define IMM_MAX   (31)
+/* span = 64 */
+#define IMM_SPAN  (IMM_MAX - IMM_MIN + 1)
+/* register = 0..255 */
+#define REG_COUNT (256)
+/* 256 - 64 = 192 */
+#define IMM_START (REG_COUNT - IMM_SPAN)
+
 /* stackmap mark */
 static void mark_ref(struct code_bytecode *code, int slot, bool is_ref)
 {
@@ -14,7 +24,7 @@ static void mark_ref(struct code_bytecode *code, int slot, bool is_ref)
     code_stackmap_mark(&code->stackmap, slot, is_ref);
 }
 
-static int register_to_smallint(int id);
+static int register_to_smallint(int reg);
 static void mark_global_ref(struct code_bytecode *code, int slot, bool is_ref)
 {
     /* TODO register_to_smallint() will not work bigger global ids */
@@ -87,18 +97,6 @@ void code_bytecode_clear(struct code_bytecode *code)
     code_stackmap_free(&code->stackmap);
 }
 
-static int32_t immediate_queue_pop(struct code_bytecode *code)
-{
-    assert(code->qlen > 0 && code->qlen <= IMMEDIATE_QUEUE_SIZE);
-
-    int32_t val = code->immediate_queue[code->qfront];
-    code->qfront = (code->qfront + 1) % IMMEDIATE_QUEUE_SIZE;
-    code->qlen--;
-    return val;
-}
-
-static bool pop_if_constpool_reg(struct code_bytecode *code, int operand, int32_t *val);
-
 static void push_inst_op(struct code_bytecode *code, int op)
 {
     code_push_instruction__(&code->insts, op);
@@ -107,35 +105,21 @@ static void push_inst_op(struct code_bytecode *code, int op)
 static void push_inst_a(struct code_bytecode *code, int op, int a)
 {
     code_push_instruction_a(&code->insts, op, a);
-    int32_t const_id = 0;
-    if (pop_if_constpool_reg(code, a, &const_id))
-        code_push_immediate_value(&code->insts, const_id);
 }
 
 static void push_inst_ab(struct code_bytecode *code, int op, int a, int b)
 {
     code_push_instruction_ab(&code->insts, op, a, b);
-    /* no immediate value for operand A */
-    int32_t const_id = 0;
-    if (pop_if_constpool_reg(code, b, &const_id))
-        code_push_immediate_value(&code->insts, const_id);
 }
 
 static void push_inst_abc(struct code_bytecode *code, int op, int a, int b, int c)
 {
     code_push_instruction_abc(&code->insts, op, a, b, c);
-    /* no immediate value for operand A */
-    int32_t const_id = 0;
-    if (pop_if_constpool_reg(code, b, &const_id))
-        code_push_immediate_value(&code->insts, const_id);
-    if (pop_if_constpool_reg(code, c, &const_id))
-        code_push_immediate_value(&code->insts, const_id);
 }
 
 static void push_inst_abb(struct code_bytecode *code, int op, int a, int bb)
 {
     code_push_instruction_abb(&code->insts, op, a, bb);
-    /* no immediate value for operand A and BB */
 }
 
 static bool is_localreg_full(const struct code_bytecode *code)
@@ -204,39 +188,29 @@ int code_get_global_count(const struct code_bytecode *code)
 }
 
 /* immediate value */
-bool code_is_smallint_register(int id)
+bool code_is_smallint_register(int reg)
 {
-    return id >= IMMEDIATE_SMALLINT_BEGIN && id <= IMMEDIATE_SMALLINT_END;
+    return reg >= IMM_START;
 }
 
 static bool can_fit_smallint(value_int_t val)
 {
-    int SMALLINT_SIZE = IMMEDIATE_SMALLINT_END - IMMEDIATE_SMALLINT_BEGIN + 1;
-    return val >= 0 && val < SMALLINT_SIZE;
+    return val >= IMM_MIN && val <= IMM_MAX;
 }
 
-static int register_to_smallint(int id)
+static int register_to_smallint(int reg)
 {
-    return id - IMMEDIATE_SMALLINT_BEGIN;
+    return (reg - IMM_START) + IMM_MIN;
 }
 
 static int smallint_to_register(value_int_t val)
 {
-    return val + IMMEDIATE_SMALLINT_BEGIN;
+    return (val - IMM_MIN) + IMM_START;
 }
 
-static bool is_constpool_register(int id)
+bool code_is_immediate_value(int reg)
 {
-    return id > IMMEDIATE_SMALLINT_END && id <= 0xFF;
-}
-
-static bool pop_if_constpool_reg(struct code_bytecode *code, int operand, int32_t *val)
-{
-    if (!is_constpool_register(operand))
-        return false;
-
-    *val = immediate_queue_pop(code);
-    return true;
+    return reg >= IMM_START;
 }
 
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
@@ -244,7 +218,7 @@ struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
 {
     struct runtime_value value;
 
-    if (code_is_smallint_register(id)) {
+    if (code_is_immediate_value(id)) {
         value.inum = register_to_smallint(id);
         return value;
     }
@@ -326,11 +300,6 @@ int code_emit_move_ref(struct code_bytecode *code, int dst, int src)
     mark_ref(code, dst, true);
     push_inst_ab(code, OP_MOVE, dst, src);
     return dst;
-}
-
-bool code_is_immediate_value(int id)
-{
-    return id >= IMMEDIATE_SMALLINT_BEGIN;
 }
 
 int code_emit_load_int(struct code_bytecode *code, value_int_t val)
