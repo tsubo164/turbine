@@ -13,7 +13,7 @@
 /* register = 0..255 */
 #define REG_COUNT (256)
 /* 256 - 64 = 192 */
-#define IMM_START (REG_COUNT - IMM_SPAN)
+#define IMM_BEGIN (REG_COUNT - IMM_SPAN)
 
 /* stackmap mark */
 static void mark_ref(struct code_bytecode *code, int slot, bool is_ref)
@@ -124,7 +124,7 @@ static void push_inst_abb(struct code_bytecode *code, int op, int a, int bb)
 
 static bool is_localreg_full(const struct code_bytecode *code)
 {
-    return code->curr_reg == IMMEDIATE_SMALLINT_BEGIN - 1;
+    return code->curr_reg == IMM_BEGIN - 1;
 }
 
 void code_init_registers(struct code_bytecode *code, int lvar_count)
@@ -146,7 +146,7 @@ int code_allocate_temporary_register(struct code_bytecode *code)
     if (is_localreg_full(code)) {
         fprintf(stderr,
                 "error: temp register overflow: keep the temp register under %d\n",
-                IMMEDIATE_SMALLINT_BEGIN);
+                IMM_BEGIN);
         exit(1);
     }
 
@@ -170,9 +170,9 @@ int code_set_register_pointer(struct code_bytecode *code, int dst)
     return code->curr_reg;
 }
 
-bool code_is_temporary_register(const struct code_bytecode *code, int id)
+bool code_is_temporary_register(const struct code_bytecode *code, int reg)
 {
-    return id > code->base_reg && !code_is_immediate_value(id);
+    return reg > code->base_reg && !code_is_immediate_value(reg);
 }
 
 /* globals */
@@ -190,7 +190,7 @@ int code_get_global_count(const struct code_bytecode *code)
 /* immediate value */
 bool code_is_smallint_register(int reg)
 {
-    return reg >= IMM_START;
+    return reg >= IMM_BEGIN;
 }
 
 static bool can_fit_smallint(value_int_t val)
@@ -200,66 +200,27 @@ static bool can_fit_smallint(value_int_t val)
 
 static int register_to_smallint(int reg)
 {
-    return (reg - IMM_START) + IMM_MIN;
+    return (reg - IMM_BEGIN) + IMM_MIN;
 }
 
 static int smallint_to_register(value_int_t val)
 {
-    return (val - IMM_MIN) + IMM_START;
+    return (val - IMM_MIN) + IMM_BEGIN;
 }
 
 bool code_is_immediate_value(int reg)
 {
-    return reg >= IMM_START;
+    return reg >= IMM_BEGIN;
 }
 
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
-        value_addr_t addr, int id, int *imm_size)
+        value_addr_t addr, int reg, int *imm_size)
 {
-    struct runtime_value value;
+    struct runtime_value value = {0};
 
-    if (code_is_immediate_value(id)) {
-        value.inum = register_to_smallint(id);
+    if (code_is_immediate_value(reg)) {
+        value.inum = register_to_smallint(reg);
         return value;
-    }
-
-    switch (id) {
-
-    case IMMEDIATE_INT32:
-        {
-            int32_t imm = code_read(code, addr);
-            value.inum = imm;
-            if (imm_size)
-                *imm_size += 1;
-        }
-        break;
-
-    case IMMEDIATE_INT64:
-        {
-            int32_t id = code_read(code, addr);
-            value = code_constant_pool_get_int(&code->const_pool, id);
-            if (imm_size)
-                *imm_size += 1;
-        }
-        break;
-
-    case IMMEDIATE_FLOAT:
-        {
-            int32_t id = code_read(code, addr);
-            value = code_constant_pool_get_float(&code->const_pool, id);
-            if (imm_size)
-                *imm_size += 1;
-        }
-        break;
-
-    case IMMEDIATE_STRING:
-        {
-            int32_t id = code_read(code, addr);
-            value = code_constant_pool_get_string(&code->const_pool, id);
-            if (imm_size)
-                *imm_size += 1;
-        }
-        break;
     }
 
     return value;

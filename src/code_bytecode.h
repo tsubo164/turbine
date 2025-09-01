@@ -13,17 +13,6 @@
 #include "runtime_value.h"
 #include "data_vec.h"
 
-#define IMMEDIATE_QUEUE_SIZE 16
-
-enum immediate_value_register {
-    IMMEDIATE_INT32   = 255,
-    IMMEDIATE_INT64   = 254,
-    IMMEDIATE_FLOAT   = 253,
-    IMMEDIATE_STRING  = 252,
-    IMMEDIATE_SMALLINT_END   = 251,
-    IMMEDIATE_SMALLINT_BEGIN = 192,
-};
-
 struct code_bytecode {
     /* instructions */
     struct code_instructionvec insts;
@@ -38,10 +27,6 @@ struct code_bytecode {
 
     /* constants */
     struct code_constant_pool const_pool;
-    int immediate_queue[IMMEDIATE_QUEUE_SIZE];
-    int qfront;
-    int qback;
-    int qlen;
 
     /* functions */
     struct code_functionvec funcs;
@@ -56,7 +41,7 @@ struct code_bytecode {
     struct data_intstack casecloses;
     struct data_intstack forrests;
 
-    /* TODO */
+    /* stackmap */
     struct code_stackmap stackmap;
     struct code_globalmap globalmap;
     int gc_collect_func_id;
@@ -71,16 +56,16 @@ void code_clear_temporary_registers(struct code_bytecode *code);
 int code_allocate_temporary_register(struct code_bytecode *code);
 int code_get_register_pointer(const struct code_bytecode *code);
 int code_set_register_pointer(struct code_bytecode *code, int dst);
-bool code_is_temporary_register(const struct code_bytecode *code, int id);
+bool code_is_temporary_register(const struct code_bytecode *code, int reg);
 
 /* globals */
 void code_set_global_count(struct code_bytecode *code, int count);
 int code_get_global_count(const struct code_bytecode *code);
 
 /* immediate value */
-bool code_is_immediate_value(int id);
+bool code_is_immediate_value(int reg);
 struct runtime_value code_read_immediate_value(const struct code_bytecode *code,
-        value_addr_t addr, int id, int *imm_size);
+        value_addr_t addr, int reg, int *imm_size);
 
 /* constants */
 struct runtime_value code_get_const_value(const struct code_bytecode *code, int id);

@@ -147,47 +147,13 @@ void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
 static void print_operand(const struct code_bytecode *code,
         int addr, int operand, bool separator, int *imm_size)
 {
-    int offset = 1;
-    if (imm_size)
-        offset += *imm_size;
-
-    switch (operand) {
-
-    case IMMEDIATE_INT32:
-    case IMMEDIATE_INT64:
-        {
-            struct runtime_value val;
-            val = code_read_immediate_value(code, addr + offset, operand, imm_size);
-            printf("$%" PRIival, val.inum);
-        }
-        break;
-
-    case IMMEDIATE_FLOAT:
-        {
-            struct runtime_value val;
-            val = code_read_immediate_value(code, addr + offset, operand, imm_size);
-            printf("$%g", val.fpnum);
-        }
-        break;
-
-    case IMMEDIATE_STRING:
-        {
-            struct runtime_value val;
-            val = code_read_immediate_value(code, addr + offset, operand, imm_size);
-            printf("\"%s\"", runtime_string_get_cstr(val.string));
-        }
-        break;
-
-    default:
-        if (code_is_immediate_value(operand)) {
-            struct runtime_value val;
-            val = code_read_immediate_value(code, addr, operand, imm_size);
-            printf("$%" PRIival, val.inum);
-        }
-        else {
-            printf("r%d", operand);
-        }
-        break;
+    if (code_is_immediate_value(operand)) {
+        struct runtime_value val;
+        val = code_read_immediate_value(code, addr, operand, imm_size);
+        printf("$%" PRIival, val.inum);
+    }
+    else {
+        printf("r%d", operand);
     }
 
     if (separator)
