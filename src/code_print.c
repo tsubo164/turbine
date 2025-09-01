@@ -1,5 +1,4 @@
 #include "code_print.h"
-/* TODO can remove this? */
 #include "runtime_string.h"
 #include "data_vec.h"
 #include <assert.h>
@@ -8,36 +7,6 @@
 void code_print_bytecode(const struct code_bytecode *code, bool print_builtin)
 {
     /* constant pool */
-    if (code_constant_pool_get_int_count(&code->const_pool) > 0) {
-        printf("* constant int:\n");
-        int count = code_constant_pool_get_int_count(&code->const_pool);
-
-        for (int i = 0; i < count; i++) {
-            struct runtime_value val = code_constant_pool_get_int(&code->const_pool, i);
-            printf("[%6d] %" PRIival "\n", i, val.inum);
-        }
-    }
-
-    if (code_constant_pool_get_float_count(&code->const_pool) > 0) {
-        printf("* constant float:\n");
-        int count = code_constant_pool_get_float_count(&code->const_pool);
-
-        for (int i = 0; i < count; i++) {
-            struct runtime_value val = code_constant_pool_get_float(&code->const_pool, i);
-            printf("[%6d] %g\n", i, val.fpnum);
-        }
-    }
-
-    if (code_constant_pool_get_string_count(&code->const_pool) > 0) {
-        printf("* constant string:\n");
-        int count = code_constant_pool_get_string_count(&code->const_pool);
-
-        for (int i = 0; i < count; i++) {
-            struct runtime_value val = code_constant_pool_get_string(&code->const_pool, i);
-            printf("[%6d] \"%s\"\n", i, runtime_string_get_cstr(val.string));
-        }
-    }
-
     if (code_get_const_value_count(code) > 0) {
         printf("* const values:\n");
         int count = code_get_const_value_count(code);

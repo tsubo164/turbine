@@ -1,7 +1,7 @@
 #ifndef CODE_PRINT_H
 #define CODE_PRINT_H
 
-#include <stdint.h>
+#include <stdbool.h>
 
 #include "code_bytecode.h"
 
