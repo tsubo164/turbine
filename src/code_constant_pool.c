@@ -5,75 +5,56 @@
 #define MIN_CAP 8
 
 /* -------- */
-void pool_init(struct code_constant_pool *v)
+void init_pool(struct code_constant_pool *pool)
 {
-    v->data = NULL;
-    v->cap = 0;
-    v->len = 0;
+    pool->data = NULL;
+    pool->cap = 0;
+    pool->len = 0;
 }
 
-void push_const(struct code_constant_pool *v, struct code_constant c)
+void push_const(struct code_constant_pool *p, struct code_constant c)
 {
-    if (v->len == v->cap) {
-        v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
-        v->data = realloc(v->data, v->cap * sizeof(*v->data));
+    if (p->len == p->cap) {
+        p->cap = p->cap < MIN_CAP ? MIN_CAP : 2 * p->cap;
+        p->data = realloc(p->data, p->cap * sizeof(*p->data));
     }
-    v->data[v->len++] = c;
+    p->data[p->len++] = c;
 }
 
-void pool_clear(struct code_constant_pool *v)
+void clear_pool(struct code_constant_pool *pool)
 {
-    free(v->data);
-    pool_init(v);
+    free(pool->data);
+    init_pool(pool);
 }
 /* -------- */
 
-void code_constant_pool_init(struct code_constant_pool *v)
+void code_constant_pool_init(struct code_constant_pool *pool)
 {
-    runtime_valuevec_init(&v->ints);
-    runtime_valuevec_init(&v->floats);
-    runtime_valuevec_init(&v->strings);
-
     /* TODO consider making struct code_literal_table */
-    data_strbuf_clear(&v->literal_types);
+    data_strbuf_clear(&pool->literal_types);
 
-    /* TODO TEST */
-    pool_init(v);
+    init_pool(pool);
 }
 
-void code_constant_pool_free(struct code_constant_pool *v)
+void code_constant_pool_free(struct code_constant_pool *pool)
 {
-    /* free constant strings */
-    value_int_t len = runtime_valuevec_len(&v->strings);
-    for (value_int_t i = 0; i < len; i++) {
-        struct runtime_value val = runtime_valuevec_get(&v->strings, i);
-        runtime_string_free(NULL, val.string);
-    }
-
-    /* free constant vecs */
-    runtime_valuevec_free(NULL, &v->ints);
-    runtime_valuevec_free(NULL, &v->floats);
-    runtime_valuevec_free(NULL, &v->strings);
-
     /* TODO consider making struct code_literal_table */
     {
         /* free literal strings */
-        value_int_t len = runtime_valuevec_len(&v->literals);
+        value_int_t len = runtime_valuevec_len(&pool->literals);
         for (value_int_t i = 0; i < len; i++) {
-            if (v->literal_types.data[i] == 's') {
-                struct runtime_value val = runtime_valuevec_get(&v->literals, i);
+            if (pool->literal_types.data[i] == 's') {
+                struct runtime_value val = runtime_valuevec_get(&pool->literals, i);
                 runtime_string_free(NULL, val.string);
             }
         }
 
         /* free literal vecs */
-        runtime_valuevec_free(NULL, &v->literals);
-        data_strbuf_free(&v->literal_types);
+        runtime_valuevec_free(NULL, &pool->literals);
+        data_strbuf_free(&pool->literal_types);
     }
 
-    /* TODO TEST */
     /* free const strings */
-    struct code_constant_pool *pool = v;
     for (int i = 0; i < pool->len; i++) {
         if (pool->data[i].type != VAL_STRING)
             continue;
@@ -81,7 +62,7 @@ void code_constant_pool_free(struct code_constant_pool *v)
         runtime_string_free(NULL, val.string);
     }
 
-    pool_clear(v);
+    clear_pool(pool);
 }
 
 int code_constant_pool_push_int(struct code_constant_pool *pool, value_int_t val)
@@ -139,111 +120,81 @@ int code_constant_pool_push_string(struct code_constant_pool *pool, const char *
     return new_idx;
 }
 
-int code_constant_pool_get_count(const struct code_constant_pool *v)
+int code_constant_pool_get_count(const struct code_constant_pool *pool)
 {
-    return v->len;
+    return pool->len;
 }
 
-struct runtime_value code_constant_pool_get(const struct code_constant_pool *v, int id)
+struct runtime_value code_constant_pool_get(const struct code_constant_pool *pool, int id)
 {
-    assert(id >= 0 && id < v->len);
-    return v->data[id].val;
+    assert(id >= 0 && id < pool->len);
+    return pool->data[id].val;
 }
 
-int code_constant_pool_get_type(const struct code_constant_pool *v, int id)
+int code_constant_pool_get_type(const struct code_constant_pool *pool, int id)
 {
-    assert(id >= 0 && id < v->len);
-    return v->data[id].type;
+    assert(id >= 0 && id < pool->len);
+    return pool->data[id].type;
 }
 
-struct runtime_value code_constant_pool_get_int(const struct code_constant_pool *v, int id)
-{
-    return runtime_valuevec_get(&v->ints, id);
-}
-
-struct runtime_value code_constant_pool_get_float(const struct code_constant_pool *v, int id)
-{
-    return runtime_valuevec_get(&v->floats, id);
-}
-
-struct runtime_value code_constant_pool_get_string(const struct code_constant_pool *v, int id)
-{
-    return runtime_valuevec_get(&v->strings, id);
-}
-
-int code_constant_pool_get_int_count(const struct code_constant_pool *v)
-{
-    return v->ints.len;
-}
-
-int code_constant_pool_get_float_count(const struct code_constant_pool *v)
-{
-    return v->floats.len;
-}
-
-int code_constant_pool_get_string_count(const struct code_constant_pool *v)
-{
-    return v->strings.len;
-}
-
-int code_constant_pool_push_literal_int(struct code_constant_pool *v, value_int_t val)
+int code_constant_pool_push_literal_int(struct code_constant_pool *pool, value_int_t val)
 {
     struct runtime_value value = {.inum = val};
-    int new_idx = v->literals.len;
+    int new_idx = pool->literals.len;
 
-    runtime_valuevec_push(NULL, &v->literals, value);
-    data_strbuf_push(&v->literal_types, 'i');
+    runtime_valuevec_push(NULL, &pool->literals, value);
+    data_strbuf_push(&pool->literal_types, 'i');
 
     return new_idx;
 }
 
-int code_constant_pool_push_literal_float(struct code_constant_pool *v, value_float_t val)
+int code_constant_pool_push_literal_float(struct code_constant_pool *pool, value_float_t val)
 {
     struct runtime_value value = {.fpnum = val};
-    int new_idx = v->literals.len;
+    int new_idx = pool->literals.len;
 
-    runtime_valuevec_push(NULL, &v->literals, value);
-    data_strbuf_push(&v->literal_types, 'f');
+    runtime_valuevec_push(NULL, &pool->literals, value);
+    data_strbuf_push(&pool->literal_types, 'f');
 
     return new_idx;
 }
 
-int code_constant_pool_push_literal_string(struct code_constant_pool *v, const char *val)
+int code_constant_pool_push_literal_string(struct code_constant_pool *pool, const char *val)
 {
     struct runtime_value value = {.string = runtime_string_new(NULL, val)};
-    int new_idx = v->literals.len;
+    int new_idx = pool->literals.len;
 
-    runtime_valuevec_push(NULL, &v->literals, value);
-    data_strbuf_push(&v->literal_types, 's');
+    runtime_valuevec_push(NULL, &pool->literals, value);
+    data_strbuf_push(&pool->literal_types, 's');
 
     return new_idx;
 }
 
-struct runtime_value code_constant_pool_get_literal(const struct code_constant_pool *v, int id)
+struct runtime_value code_constant_pool_get_literal(const struct code_constant_pool *pool, int id)
 {
-    assert(id >= 0 && id < code_constant_pool_get_literal_count(v));
-    return runtime_valuevec_get(&v->literals, id);
+    assert(id >= 0 && id < code_constant_pool_get_literal_count(pool));
+    return runtime_valuevec_get(&pool->literals, id);
 }
 
-bool code_constant_pool_is_literal_int(const struct code_constant_pool *v, int id)
+bool code_constant_pool_is_literal_int(const struct code_constant_pool *pool, int id)
 {
-    assert(id >= 0 && id < code_constant_pool_get_literal_count(v));
-    return v->literal_types.data[id] == 'i';
+    assert(id >= 0 && id < code_constant_pool_get_literal_count(pool));
+    return pool->literal_types.data[id] == 'i';
 }
 
-bool code_constant_pool_is_literal_float(const struct code_constant_pool *v, int id)
+bool code_constant_pool_is_literal_float(const struct code_constant_pool *pool, int id)
 {
-    assert(id >= 0 && id < code_constant_pool_get_literal_count(v));
-    return v->literal_types.data[id] == 'f';
+    assert(id >= 0 && id < code_constant_pool_get_literal_count(pool));
+    return pool->literal_types.data[id] == 'f';
 }
 
-bool code_constant_pool_is_literal_string(const struct code_constant_pool *v, int id)
+bool code_constant_pool_is_literal_string(const struct code_constant_pool *pool, int id)
 {
-    assert(id >= 0 && id < code_constant_pool_get_literal_count(v));
-    return v->literal_types.data[id] == 's';
+    assert(id >= 0 && id < code_constant_pool_get_literal_count(pool));
+    return pool->literal_types.data[id] == 's';
 }
 
-int code_constant_pool_get_literal_count(const struct code_constant_pool *v)
+int code_constant_pool_get_literal_count(const struct code_constant_pool *pool)
 {
-    return runtime_valuevec_len(&v->literals);
+    return runtime_valuevec_len(&pool->literals);
 }
