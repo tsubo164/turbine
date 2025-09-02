@@ -477,42 +477,43 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
 {
     const struct parser_expr *lval = e->l;
     const struct parser_expr *rval = e->r;
+    /* for a = x, evaluate x first, update a next */
 
     if (lval->kind == NOD_EXPR_INDEX) {
         /* a[b] = x */
+        int src = gen_expr(code, rval);
         int obj = gen_expr(code, lval->l);
         int idx = gen_expr(code, lval->r);
-        int src = gen_expr(code, rval);
         return code_emit_store_vec(code, obj, idx, src);
     }
 
     if (lval->kind == NOD_EXPR_MAPINDEX) {
         /* a[b] = x */
+        int src = gen_expr(code, rval);
         int obj = gen_expr(code, lval->l);
         int key = gen_expr(code, lval->r);
-        int src = gen_expr(code, rval);
         return code_emit_store_map(code, obj, key, src);
     }
 
     if (lval->kind == NOD_EXPR_STRUCTACCESS) {
         /* a.b = x */
+        int src = gen_expr(code, rval);
         int obj = gen_expr(code, lval->l);
         int fld = gen_addr(code, lval->r);
-        int src = gen_expr(code, rval);
         return code_emit_store_struct(code, obj, fld, src);
     }
 
     if (lval->kind == NOD_EXPR_MODULEACCESS) {
         /* m.a = x */
-        int reg0 = gen_addr(code, lval);
-        int reg1 = gen_expr(code, rval);
-        return code_emit_store_global(code, reg0, reg1);
+        int src = gen_expr(code, rval);
+        int dst = gen_addr(code, lval);
+        return code_emit_store_global(code, dst, src);
     }
 
     if (parser_ast_is_global(lval)) {
         /* _a_ = x */
-        int dst = gen_addr(code, lval);
         int src = gen_expr(code, rval);
+        int dst = gen_addr(code, lval);
         return code_emit_store_global(code, dst, src);
     }
 
@@ -538,16 +539,16 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
     case NOD_EXPR_GTE:
         {
             /* a = x + y */
-            int dst = gen_addr(code, lval);
             int src1 = gen_expr(code, rval->l);
             int src2 = gen_expr(code, rval->r);
+            int dst = gen_addr(code, lval);
             return gen_binop(code, e->type, rval->kind, dst, src1, src2);
         }
     }
     {
         /* a = x */
-        int dst = gen_addr(code, lval);
         int src = gen_expr(code, rval);
+        int dst = gen_addr(code, lval);
         return emit_move(code, dst, src, lval->type);
     }
 
@@ -558,7 +559,7 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
 {
     const struct parser_expr *lval = e->l;
     const struct parser_expr *rval = e->r;
-    /* for a += x, evaluate x first, then update a, to simulate the const stack correctly */
+    /* for a += x, evaluate x first, update a next */
 
     if (lval->kind == NOD_EXPR_INDEX) {
         /* a[b] += x */
