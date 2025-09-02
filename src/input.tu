@@ -1,5 +1,12 @@
 > gc
 
+## Color enum
+  : symbol , name    , val
+  - R      , "red"   , 42
+  - G      , "green" , 99
+  - B      , "blue"  , 4095
+  - A      , "alpha" , 42
+
 # main(args vec{string}) int
   /*
   - s = "foo"
@@ -22,6 +29,7 @@
   print(-1212)
   print(3.14159)
   print("Hello, World!")
+  print(Color.G.name, "=>", Color.G.val)
   //print(i)
 
   /*

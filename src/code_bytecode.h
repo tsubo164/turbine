@@ -27,6 +27,7 @@ struct code_bytecode {
 
     /* constants */
     struct code_constant_pool const_pool;
+    struct code_literal_table literal_table;
 
     /* functions */
     struct code_functionvec funcs;
@@ -239,9 +240,9 @@ int code_push_enum_field_float(struct code_bytecode *code, value_float_t fval);
 int code_push_enum_field_string(struct code_bytecode *code, const char *sval);
 struct runtime_value code_get_enum_field(const struct code_bytecode *code, int id);
 
+int code_get_enum_field_count(const struct code_bytecode *code);
 bool code_is_enum_field_int(const struct code_bytecode *code, int id);
 bool code_is_enum_field_float(const struct code_bytecode *code, int id);
 bool code_is_enum_field_string(const struct code_bytecode *code, int id);
-int code_get_enum_field_count(const struct code_bytecode *code);
 
 #endif /* _H */

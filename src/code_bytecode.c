@@ -70,6 +70,10 @@ void code_bytecode_init(struct code_bytecode *code)
     };
 
     *code = init;
+
+    /* constants */
+    code_constant_pool_init(&code->const_pool);
+    code_literal_table_init(&code->literal_table);
 }
 
 void code_bytecode_clear(struct code_bytecode *code)
@@ -78,7 +82,8 @@ void code_bytecode_clear(struct code_bytecode *code)
     code_instructionvec_free(&code->insts);
 
     /* constants */
-    code_constant_pool_free(&code->const_pool);
+    code_constant_pool_clear(&code->const_pool);
+    code_literal_table_clear(&code->literal_table);
 
     /* functions */
     code_functionvec_free(&code->funcs);
@@ -1173,40 +1178,40 @@ int code_get_struct_field_count(const struct code_bytecode *code, int struct_id)
 /* enum fields */
 int code_push_enum_field_int(struct code_bytecode *code, value_int_t ival)
 {
-    return code_constant_pool_push_literal_int(&code->const_pool, ival);
+    return code_literal_table_push_int(&code->literal_table, ival);
 }
 
 int code_push_enum_field_float(struct code_bytecode *code, value_float_t fval)
 {
-    return code_constant_pool_push_literal_float(&code->const_pool, fval);
+    return code_literal_table_push_float(&code->literal_table, fval);
 }
 
 int code_push_enum_field_string(struct code_bytecode *code, const char *sval)
 {
-    return code_constant_pool_push_literal_string(&code->const_pool, sval);
-}
-
-struct runtime_value code_get_enum_field(const struct code_bytecode *code, int id)
-{
-    return code_constant_pool_get_literal(&code->const_pool, id);
-}
-
-bool code_is_enum_field_int(const struct code_bytecode *code, int id)
-{
-    return code_constant_pool_is_literal_int(&code->const_pool, id);
-}
-
-bool code_is_enum_field_float(const struct code_bytecode *code, int id)
-{
-    return code_constant_pool_is_literal_float(&code->const_pool, id);
-}
-
-bool code_is_enum_field_string(const struct code_bytecode *code, int id)
-{
-    return code_constant_pool_is_literal_string(&code->const_pool, id);
+    return code_literal_table_push_string(&code->literal_table, sval);
 }
 
 int code_get_enum_field_count(const struct code_bytecode *code)
 {
-    return code_constant_pool_get_literal_count(&code->const_pool);
+    return code_literal_table_get_count(&code->literal_table);
+}
+
+struct runtime_value code_get_enum_field(const struct code_bytecode *code, int id)
+{
+    return code_literal_table_get(&code->literal_table, id);
+}
+
+bool code_is_enum_field_int(const struct code_bytecode *code, int id)
+{
+    return code_literal_table_get_type(&code->literal_table, id) == VAL_INT;
+}
+
+bool code_is_enum_field_float(const struct code_bytecode *code, int id)
+{
+    return code_literal_table_get_type(&code->literal_table, id) == VAL_FLOAT;
+}
+
+bool code_is_enum_field_string(const struct code_bytecode *code, int id)
+{
+    return code_literal_table_get_type(&code->literal_table, id) == VAL_STRING;
 }
