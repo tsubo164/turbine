@@ -60,6 +60,14 @@
     test.AssertI(2, maplen(m))
     test.AssertS("bar123", m["foo"])
 
+  ---
+    // assign string. order of eval string const
+    - s = "foo"
+    - m = map{"bar":"BAR", "zoo":"ZOO"}
+    test.AssertS("BAR", m["bar"])
+    m["bar"] = s + "FOO"
+    test.AssertS("fooFOO", m["bar"])
+
   print(test._test_count_, "tests done.")
 
   return 0

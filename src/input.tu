@@ -1,38 +1,9 @@
 > gc
 
-## Color enum
-  : symbol , name    , val
-  - R      , "red"   , 42
-  - G      , "green" , 99
-  - B      , "blue"  , 4095
-  - A      , "alpha" , 42
-
 # main(args vec{string}) int
-  /*
   - s = "foo"
   - m = map{"bar":"BAR", "zoo":"ZOO"}
-  print(m)
-  m["bar"] = s + "FOO"
-  print(m)
-  */
 
-  //- m map{int}
-  //- i = 3
-  //- i = -1212
-  //print(i)
-  //print(m)
-  //m["foo"] = 42
-  //m["bar"] = -1212
-  //print(m)
-  print(31)
-  print(-32)
-  print(-1212)
-  print(3.14159)
-  print("Hello, World!")
-  print(Color.G.name, "=>", Color.G.val)
-  //print(i)
-
-  /*
   gc.print_objects()
 
   gc.request()
@@ -46,7 +17,6 @@
   gc.print_objects()
   print(">>>>>>>>>>>>", gc.get_stats().total_collections)
   print(m["bar"])
-  */
 
   return 0
 

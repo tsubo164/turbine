@@ -162,11 +162,18 @@ static struct runtime_map_entry *insert(struct runtime_gc *gc, struct runtime_ma
 
     for (ent = map->buckets[h]; ent; ent = ent->next_in_chain) {
         if (match(ent, key)) {
+            /* found existing key */
             ent->val = val;
+
+            /* write barrier */
+            if (runtime_value_is_ref(map->val_type))
+                runtime_gc_write_barrier(gc, &map->obj, val.obj);
+
             return ent;
         }
     }
 
+    /* new key */
     ent = new_entry(gc, key, val);
     ent->next_in_chain = map->buckets[h];
     map->buckets[h] = ent;
