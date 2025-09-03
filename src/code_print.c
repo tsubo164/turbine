@@ -151,6 +151,30 @@ void code_print_instruction(const struct code_bytecode *code,
         return;
     }
 
+    if (inst->op == OP_LOADCONST) {
+        print_operand(code, inst->A, ',');
+        int id = inst->BB;
+        struct runtime_value val = code_get_const_value(code, id);
+        int type = code_get_const_value_type(code, id);
+
+        switch (type) {
+        case VAL_INT:
+            printf("$%" PRIival "", val.inum);
+            break;
+        case VAL_FLOAT:
+            printf("$%g", val.fpnum);
+            break;
+        case VAL_STRING:
+            printf("\"%s\"", runtime_string_get_cstr(val.string));
+            break;
+        default:
+            assert("not implemented");
+            break;
+        }
+        printf("\n");
+        return;
+    }
+
     /* operands for other instructions */
     switch (info->operand) {
 
