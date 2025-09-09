@@ -2,7 +2,7 @@
 
 # main(args vec{string}) int
   - s = "foo"
-  - m = map{"bar":"BAR", "zoo":"ZOO"}
+  - v = set{"bar"}
 
   gc.print_objects()
 
@@ -11,12 +11,12 @@
   for i in 0..2
     nop
 
-  m["bar"] = s + "FOO"
+  setadd(v, s + "bar")
 
   print("==============")
   gc.print_objects()
   print(">>>>>>>>>>>>", gc.get_stats().total_collections)
-  print(m["bar"])
+  print(v)
 
   return 0
 

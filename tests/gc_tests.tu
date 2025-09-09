@@ -147,6 +147,30 @@
     test.AssertB(true, gc.is_object_alive(id))
     test.AssertS("foobar", m["bar"])
 
+  ---
+    // write barrier for set
+    - total_before = gc.get_stats().total_collections
+    - s = "foo"
+    - v = set{"bar"}
+
+    // request GC
+    gc.request()
+
+    // do some steps (finish root scans)
+    for i in 0..2
+      nop
+
+    // write white ref to black obj
+    setadd(v, s + "bar")
+
+    // finish GC
+    for i in 0..2
+      nop
+
+    // make sure GC finished
+    - total_after = gc.get_stats().total_collections
+    test.AssertB(true, total_after > total_before)
+
   print(test._test_count_, "tests done.")
 
   return 0

@@ -250,7 +250,15 @@ bool runtime_set_add(struct runtime_gc *gc, struct runtime_set *s, struct runtim
     s->root = insert_node(gc, s, s->root, val);
     if (s->root)
         s->root->parent = NULL;
-    return runtime_set_len(s) == oldlen + 1;
+
+    bool added = runtime_set_len(s) == oldlen + 1;
+    if (added) {
+        /* write barrier */
+        if (runtime_value_is_ref(s->val_type))
+            runtime_gc_write_barrier(gc, &s->obj, val.obj);
+    }
+
+    return added;
 }
 
 bool runtime_set_remove(struct runtime_gc *gc, struct runtime_set *s, struct runtime_value val)

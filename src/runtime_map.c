@@ -250,7 +250,6 @@ struct runtime_value runtime_map_get(const struct runtime_map *m, struct runtime
         return (struct runtime_value) {0};
 }
 
-void print_map(const struct runtime_map *map);
 void runtime_map_set(struct runtime_gc *gc, struct runtime_map *m, struct runtime_value key, struct runtime_value val)
 {
     insert(gc, m, key, val);
