@@ -55,6 +55,9 @@ void runtime_vec_resize(struct runtime_gc *gc, struct runtime_vec *v, value_int_
 void runtime_vec_push(struct runtime_gc *gc, struct runtime_vec *v, struct runtime_value val)
 {
     runtime_valuevec_push(gc, &v->values, val);
+
+    if (runtime_value_is_ref(v->val_type))
+        runtime_gc_write_barrier(gc, &v->obj, val.obj);
 }
 
 void runtime_vec_clear(struct runtime_gc *gc, struct runtime_vec *v)

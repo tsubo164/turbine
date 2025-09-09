@@ -149,11 +149,15 @@ void *runtime_alloc_object(struct runtime_gc *gc, int kind, size_t size)
      * In debug mode: initialize objects white to stress-test write barriers.
      * In release mode: initialize black for safety and simpler semantics.
      */
+    /* XXX Disabled: need write barrier for "writing to register"? */
+    /*
 #ifdef NDEBUG
     obj->mark = MARK_BLACK;
 #else
     obj->mark = MARK_WHITE;
 #endif
+    */
+    obj->mark = MARK_BLACK;
 
     return obj;
 }

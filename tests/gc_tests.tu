@@ -94,6 +94,32 @@
     test.AssertB(true, gc.is_object_alive(id))
 
   ---
+    // write barrier for vecpush
+    - total_before = gc.get_stats().total_collections
+    - s = "foo"
+    - v = vec{"bar"}
+
+    // request GC
+    gc.request()
+
+    // do some steps (finish root scans)
+    for i in 0..2
+      nop
+
+    // write white ref to black obj
+    vecpush(v, s + "bar")
+    - id = gc.get_object_id(v[1])
+
+    // finish GC
+    for i in 0..2
+      nop
+
+    // make sure GC finished
+    - total_after = gc.get_stats().total_collections
+    test.AssertB(true, total_after > total_before)
+    test.AssertB(true, gc.is_object_alive(id))
+
+  ---
     // write barrier for map
     - total_before = gc.get_stats().total_collections
     - s = "foo"
