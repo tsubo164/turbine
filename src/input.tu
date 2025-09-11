@@ -1,8 +1,15 @@
 > gc
 
+/*
+# main(args vec{string}) int
+  - v = stack{"bar"}
+  setadd(v, "foo")
+  return 0
+*/
+
 # main(args vec{string}) int
   - s = "foo"
-  - v = set{"bar"}
+  - v = queue{"bar"}
 
   gc.print_objects()
 
@@ -11,7 +18,7 @@
   for i in 0..2
     nop
 
-  setadd(v, s + "bar")
+  queuepush(v, s + "bar")
 
   print("==============")
   gc.print_objects()

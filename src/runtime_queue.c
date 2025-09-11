@@ -69,6 +69,9 @@ void runtime_queue_push(struct runtime_gc *gc, struct runtime_queue *q, struct r
     q->data[q->back] = val;
     q->back = (q->back + 1) % q->cap;
     q->len++;
+
+    if (runtime_value_is_ref(q->val_type))
+        runtime_gc_write_barrier(gc, &q->obj, val.obj);
 }
 
 struct runtime_value runtime_queue_pop(struct runtime_gc *gc, struct runtime_queue *q)

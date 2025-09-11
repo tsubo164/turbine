@@ -48,6 +48,9 @@ struct runtime_value runtime_stack_top(const struct runtime_stack *s)
 void runtime_stack_push(struct runtime_gc *gc, struct runtime_stack *s, struct runtime_value val)
 {
     runtime_valuevec_push(gc, &s->values, val);
+
+    if (runtime_value_is_ref(s->val_type))
+        runtime_gc_write_barrier(gc, &s->obj, val.obj);
 }
 
 struct runtime_value runtime_stack_pop(struct runtime_gc *gc, struct runtime_stack *s)
