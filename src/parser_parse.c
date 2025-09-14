@@ -127,37 +127,47 @@ static struct parser_expr *expression(struct parser *p);
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
 static struct parser_expr *default_value(const struct parser_type *type);
 
-static int instanciate_template_types(
+static bool unify_template_types(
         const struct parser_type *param_type, const struct parser_type *arg_type,
-        const struct parser_type **instanced_types, int *instanced_count)
+        const struct parser_type **type_mapping, int max_mapping_size)
 {
     if (parser_is_template_type(param_type)) {
         int id = param_type->template_id;
-        if (id == *instanced_count) {
-            instanced_types[id] = arg_type;
-            (*instanced_count)++;
+        assert(id < max_mapping_size);
+
+        const struct parser_type *mapped_type = type_mapping[id];
+
+        if (!mapped_type) {
+            /* new mapping */
+            type_mapping[id] = arg_type;
+            return true;
         }
-        else if (!parser_match_type(instanced_types[id], arg_type)) {
-            return id;
+        else if (!parser_match_type(mapped_type, arg_type)) {
+            /* already mapped but not match */
+            return false;
         }
-        return -1;
+        else {
+            /* already mapped and match */
+            return true;
+        }
     }
-    else if (parser_is_collection_type(param_type)) {
-        return instanciate_template_types(param_type->underlying, arg_type->underlying,
-                instanced_types, instanced_count);
+
+    if (parser_is_collection_type(param_type)) {
+        if (!parser_match_type(param_type, arg_type)) {
+            /* collection types not match */
+            return false;
+        }
+
+        return unify_template_types(param_type->underlying, arg_type->underlying,
+                type_mapping, max_mapping_size);
     }
-    else {
-        return -1;
-    }
+
+    return true;
 }
 
-static struct parser_expr *arg_list(struct parser *p,
-        const struct parser_func_sig *func_sig)
+static struct parser_expr *arg_list(struct parser *p, const struct parser_func_sig *func_sig,
+        const struct parser_type **type_mapping, int max_mapping_size)
 {
-    /* TODO consider using parser_typevec */
-    const struct parser_type *instanced_types[8] = {NULL};
-    int instanced_count = 0;
-
     struct parser_pos caller_pos = tok_pos(p);
     struct parser_expr arghead = {0};
     struct parser_expr *arg = &arghead;
@@ -180,13 +190,13 @@ static struct parser_expr *arg_list(struct parser *p,
                 error(p, arg_pos, "too many arguments");
 
             if (parser_has_template_type(param_type)) {
-                int err_id = instanciate_template_types(
-                        param_type, arg->type, instanced_types, &instanced_count);
+                bool unified = unify_template_types(param_type, arg->type,
+                        type_mapping, max_mapping_size);
 
-                if (err_id >= 0) {
+                if (!unified) {
                     error(p, arg_pos,
                             "type mismatch: parameter '%s': argument '%s'",
-                            parser_type_string(instanced_types[err_id]),
+                            parser_type_string(param_type),
                             parser_type_string(arg->type));
                 }
             }
@@ -628,67 +638,6 @@ static struct parser_expr *primary_expr(struct parser *p)
     }
 }
 
-static const struct parser_type *replace_template_type(
-        const struct parser_type *target_type,
-        const struct parser_type *replacement_type)
-{
-    if (parser_is_vec_type(target_type)) {
-        const struct parser_type *replaced;
-        replaced = replace_template_type(target_type->underlying, replacement_type);
-        if (replaced)
-            return parser_new_vec_type(replaced);
-        else
-            return NULL;
-    }
-    else if (parser_is_template_type(target_type)) {
-        return replacement_type;
-    }
-    else {
-        return NULL;
-    }
-}
-
-static const struct parser_type *find_template_type(
-        const struct parser_type *param_type, const struct parser_type *arg_type,
-        int target_id)
-{
-    if (parser_is_template_type(param_type)) {
-        if (param_type->template_id == target_id)
-            return arg_type;
-        else
-            return NULL;
-    }
-    else if (parser_is_collection_type(param_type)) {
-        return find_template_type(
-                param_type->underlying, arg_type->underlying, target_id);
-    }
-    else {
-        return NULL;
-    }
-}
-
-static const struct parser_type *fill_template_type(const struct parser_func_sig *func_sig,
-        const struct parser_expr *args)
-{
-    const struct parser_typevec *param_types = &func_sig->param_types;
-    const struct parser_expr *arg = args;
-
-    assert(parser_has_template_type(func_sig->return_type));
-    int target_id = func_sig->return_type->template_id;
-
-    for (int i = 0; i < param_types->len; i++, arg = arg->next) {
-        const struct parser_type *param_type = param_types->data[i];
-        const struct parser_type *found_type;
-
-        found_type = find_template_type(param_type, arg->type, target_id);
-        if (found_type) {
-            return replace_template_type(func_sig->return_type, found_type);
-        }
-    }
-
-    return NULL;
-}
-
 static struct parser_expr *add_packed_type_info(struct parser_expr *args, int *argc)
 {
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
@@ -774,12 +723,18 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
     if (!base || !parser_is_func_type(base->type))
         error(p, tok_pos(p), "'()' must be used for function type");
 
+    struct parser_pos call_pos = tok_pos(p);
+
+    /* for template unification */
+    const struct parser_type *type_mapping[8] = {NULL};
+    int max_mapping_size = sizeof(type_mapping) / sizeof(type_mapping[0]);
+
     const struct parser_func_sig *func_sig = base->type->func_sig;
     struct parser_expr *call;
     struct parser_expr *args;
     int argc = 0;
 
-    args = arg_list(p, func_sig);
+    args = arg_list(p, func_sig, type_mapping, max_mapping_size);
 
     if (func_sig->has_format_param) {
         validate_format_string(p, args);
@@ -796,11 +751,14 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
     call = parser_new_call_expr(base, args);
 
     if (func_sig->has_template_return_type) {
-        const struct parser_type *filled_type;
-        filled_type = fill_template_type(func_sig, args);
-
-        if (filled_type)
-            call->type = filled_type;
+        int id = func_sig->return_type->template_id;
+        assert(id < max_mapping_size);
+        const struct parser_type *mapped_type = type_mapping[id];
+        if (!mapped_type) {
+            error(p, call_pos, "return type not resolved: '%s'",
+                    parser_type_string(func_sig->return_type));
+        }
+        call->type = mapped_type;
     }
 
     return call;
