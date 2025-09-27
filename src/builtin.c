@@ -29,7 +29,7 @@ static int builtin_print(struct runtime_gc *gc, struct runtime_registers *regs)
     struct runtime_value *arg = &regs->locals[1];
     const char *types = runtime_string_get_cstr(arg->string);
 
-    builtin_print_func(arg + 1, types);
+    builtin_print_func(gc->vm, arg + 1, types);
 
     return RESULT_SUCCESS;
 }

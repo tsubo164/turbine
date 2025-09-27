@@ -717,7 +717,10 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         return gen_struct_lit(code, e, -1);
 
     case NOD_EXPR_ENUMLIT:
-        return code_emit_load_int(code, e->ival);
+        {
+            const struct parser_enum *enm = e->type->enm;
+            return code_emit_load_int(code, e->ival + enm->member_begin);
+        }
 
     case NOD_EXPR_FUNCLIT:
         return code_emit_load_int(code, e->func->id);
@@ -1162,11 +1165,13 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
         {
             code_begin_for(code);
 
+            const struct parser_enum *enm = s->cond->type->enm;
             int idx = gen_addr(code, s->expr);
-            int nmembers = parser_get_enum_member_count(s->cond->type->enm);
-            int stop = code_emit_load_int(code, nmembers);
+            int start = code_emit_load_int(code, enm->member_begin);
+            int stop = code_emit_load_int(code, enm->member_end);
 
             /* the enum is located 1 registers away from the iterator */
+            code_emit_move(code, idx, start);
             code_emit_move(code, idx + 1, stop);
 
             /* begin */
@@ -1453,29 +1458,30 @@ static void gen_enum_values(struct code_bytecode *code, struct parser_scope *sco
                 int nmembers = parser_get_enum_member_count(enm);
 
                 for (int x = 0; x < nfields; x++) {
-                    int field_offset = 0;
                     struct parser_enum_field *field;
                     field = parser_get_enum_field(enm, x);
 
                     for (int y = 0; y < nmembers; y++) {
                         struct parser_enum_value val = parser_get_enum_value(enm, x, y);
-                        int tmp_offset = 0;
+                        int field_index = 0;
 
                         if (parser_is_int_type(field->type)) {
-                            tmp_offset = code_push_enum_field_int(code, val.ival);
+                            field_index = code_push_enum_field_int(code, val.ival);
                         }
                         else if (parser_is_float_type(field->type)) {
-                            tmp_offset = code_push_enum_field_float(code, val.fval);
+                            field_index = code_push_enum_field_float(code, val.fval);
                         }
                         else if (parser_is_string_type(field->type)) {
-                            tmp_offset = code_push_enum_field_string(code, val.sval);
+                            field_index = code_push_enum_field_string(code, val.sval);
                         }
 
-                        if (y == 0)
-                            field_offset = tmp_offset;
+                        if (x == 0 && y == 0) {
+                            enm->member_begin = field_index;
+                            enm->member_end = field_index + nmembers;
+                        }
                     }
 
-                    field->offset = field_offset;
+                    field->offset = x * nmembers;
                 }
             }
             break;

@@ -806,7 +806,7 @@ static void run_cpu(struct vm_cpu *vm)
             {
                 int src = inst.A;
                 int dst = inst.BB;
-                struct runtime_value idx = {.inum = 0};
+                struct runtime_value idx = fetch_register_value(vm, src);
                 struct runtime_value stop = fetch_register_value(vm, src + 1);
 
                 if (idx.inum < stop.inum) {
@@ -1263,6 +1263,11 @@ int vm_get_global_count(const struct vm_cpu *vm)
 struct runtime_value vm_get_global(const struct vm_cpu *vm, int id)
 {
     return get_global(vm, id);
+}
+
+struct runtime_value vm_get_enum_field(const struct vm_cpu *vm, int index)
+{
+    return code_get_enum_field(vm->code, index);
 }
 
 void vm_cpu_clear(struct vm_cpu *vm)

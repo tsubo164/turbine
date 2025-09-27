@@ -32,6 +32,7 @@ struct vm_cpu {
 void vm_execute_bytecode(struct vm_cpu *vm, const struct code_bytecode *bytecode,
         const struct vm_args *args);
 
+/* stack */
 value_int_t vm_get_stack_top(const struct vm_cpu *vm);
 void vm_print_stack(const struct vm_cpu *vm);
 void vm_enable_print_stack(struct vm_cpu *vm, bool enable);
@@ -41,8 +42,12 @@ int vm_get_callstack_count(const struct vm_cpu *vm);
 const struct vm_call *vm_get_call(const struct vm_cpu *vm, int index);
 struct runtime_value vm_lookup_stack(const struct vm_cpu *vm, value_addr_t bp, int offset);
 
+/* globals */
 int vm_get_global_count(const struct vm_cpu *vm);
 struct runtime_value vm_get_global(const struct vm_cpu *vm, int id);
+
+/* enums */
+struct runtime_value vm_get_enum_field(const struct vm_cpu *vm, int index);
 
 void vm_cpu_clear(struct vm_cpu *vm);
 

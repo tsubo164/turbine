@@ -8,12 +8,13 @@
 #include "runtime_string.h"
 #include "runtime_struct.h"
 #include "runtime_value.h"
+#include "vm_cpu.h"
 
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
 
-static void print_value(struct runtime_value val, struct parser_typelist_iterator *it)
+static void print_value(const struct vm_cpu *vm, struct runtime_value val, struct parser_typelist_iterator *it)
 {
     switch (it->kind) {
 
@@ -53,7 +54,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
             printf("{");
             for (int i = 0; i < len; i++) {
                 *it = elem_it;
-                print_value(runtime_vec_get(val.vec, i), it);
+                print_value(vm, runtime_vec_get(val.vec, i), it);
                 if (i < len - 1)
                     printf(", ");
             }
@@ -78,7 +79,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
 
                 *it = elem_it;
                 printf("%s:", runtime_string_get_cstr(ent->key.string));
-                print_value(ent->val, it);
+                print_value(vm, ent->val, it);
 
                 if (runtime_map_entry_next(ent))
                     printf(", ");
@@ -103,7 +104,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
                     node; node = runtime_set_node_next(node)) {
 
                 *it = elem_it;
-                print_value(node->val, it);
+                print_value(vm, node->val, it);
 
                 if (runtime_set_node_next(node))
                     printf(", ");
@@ -126,7 +127,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
             printf("{");
             for (int i = 0; i < len; i++) {
                 *it = elem_it;
-                print_value(runtime_stack_get(val.stack, i), it);
+                print_value(vm, runtime_stack_get(val.stack, i), it);
                 if (i < len - 1)
                     printf(", ");
             }
@@ -148,7 +149,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
             printf("{");
             for (int i = 0; i < len; i++) {
                 *it = elem_it;
-                print_value(runtime_queue_get(val.queue, i), it);
+                print_value(vm, runtime_queue_get(val.queue, i), it);
                 if (i < len - 1)
                     printf(", ");
             }
@@ -166,7 +167,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
 
             printf("{");
             for (int i = 0; i < len; i++) {
-                print_value(runtime_struct_get(val.strct, i), it);
+                print_value(vm, runtime_struct_get(val.strct, i), it);
                 if (i < len - 1)
                     printf(", ");
                 parser_typelist_next(it);
@@ -177,7 +178,10 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
         return;
 
     case TYP_ENUM:
-        printf("%" PRIival, val.inum);
+        {
+            struct runtime_value field = vm_get_enum_field(vm, val.inum);
+            printf("%s", runtime_string_get_cstr(field.string));
+        }
         return;
 
     default:
@@ -186,7 +190,7 @@ static void print_value(struct runtime_value val, struct parser_typelist_iterato
     }
 }
 
-void builtin_print_func(const struct runtime_value *args, const char *typelist)
+void builtin_print_func(const struct vm_cpu *vm, const struct runtime_value *args, const char *typelist)
 {
     const struct runtime_value *arg;
     struct parser_typelist_iterator it;
@@ -195,7 +199,7 @@ void builtin_print_func(const struct runtime_value *args, const char *typelist)
     arg = args;
 
     while (!parser_typelist_end(&it)) {
-        print_value(*arg++, &it);
+        print_value(vm, *arg++, &it);
         parser_typelist_next(&it);
 
         if (!parser_typelist_end(&it))

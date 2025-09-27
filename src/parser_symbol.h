@@ -101,6 +101,9 @@ struct parser_enum {
     struct data_hashmap members;
     struct parser_enum_fieldvec fields;
     struct parser_exprvec valueexprs;
+
+    int member_begin;
+    int member_end;
 };
 
 /* module */
