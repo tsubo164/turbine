@@ -2042,7 +2042,7 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
         for (int x = 0; x < nfields; x++) {
 
             if (x == 0) {
-                /* symbol field */
+                /* tag field */
                 expect(p, TOK_IDENT);
                 const char *name = tok_str(p);
                 struct parser_expr *expr = parser_new_stringlit_expr(name);
@@ -2050,7 +2050,7 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
                 if (y == 0)
                     enm->fields.data[x]->type = expr->type;
 
-                /* symbol to index */
+                /* tag to index */
                 int idx = parser_add_enum_member(enm, expr->sval);
                 assert(idx == y);
 

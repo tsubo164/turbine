@@ -1,14 +1,14 @@
 > test
 
 ## Color enum
-  : symbol , name    , val
+  : tag    , name    , val
   - R      , "red"   , 42
   - G      , "green" , 99
   - B      , "blue"  , 4095
   - A      , "alpha" , 42
 
 ## TokenKind enum
-  : symbol        , str
+  : tag           , str
   - ROOT          , "root"
   - KEYWORD_BEGIN , "keyword_begin"
   // keyword
@@ -101,14 +101,14 @@
   - EOF           , "EOF"
 
 ## Difficulty enum
-  : sym        , damage_coeff, time_coeff
+  : tag        , damage_coeff, time_coeff
   - EASY       , 0.5         , 1.5
   - NORMAL     , 1.0         , 1.0
   - HARD       , 1.5         , 0.8
   - NIGHTMARE  , 2.5         , 0.5
 
 ## Month enum
-  : symbol , name         , num
+  : tag    , name         , num
   - Jan    , "January"    , 1
   - Feb    , "February"   , 2
   - Mar    , "March"      , 3
@@ -133,7 +133,7 @@
     test.AssertI(4095, Color.B.val)
 
   ---
-    test.AssertS("NIL", TokenKind.NIL.symbol)
+    test.AssertS("NIL", TokenKind.NIL.tag)
     test.AssertS("block_begin", TokenKind.BLOCKBEGIN.str)
 
   ---
@@ -155,7 +155,7 @@
     - d Difficulty
 
     d = Difficulty.EASY
-    test.AssertS("EASY", d.sym)
+    test.AssertS("EASY", d.tag)
     test.AssertF(0.5, d.damage_coeff)
     test.AssertF(1.5, d.time_coeff)
 
