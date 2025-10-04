@@ -30,6 +30,7 @@ struct native_func_param {
     const char *name;
     const struct parser_type *type;
     bool is_format;
+    bool is_out;
 };
 
 void native_declare_func(struct parser_scope *scope,

@@ -38,6 +38,7 @@ const char *parser_node_string(int kind)
     [NOD_EXPR_VAR]            = "var",
     [NOD_EXPR_STRUCTFIELD]    = "structfield",
     [NOD_EXPR_ENUMFIELD]      = "enumfield",
+    [NOD_EXPR_OUTARG]         = "outarg",
     /* literal */
     [NOD_EXPR_NILLIT]         = "nillit",
     [NOD_EXPR_BOOLLIT]        = "boollit",
@@ -391,6 +392,15 @@ struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct 
     return e;
 }
 
+struct parser_expr *parser_new_outarg_expr(struct parser_expr *arg)
+{
+    struct parser_expr *e = new_expr(NOD_EXPR_OUTARG);
+    e->type = arg->type;
+    e->l = arg;
+    return e;
+}
+
+/* access */
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx)
 {
     struct parser_expr *e = new_expr(NOD_EXPR_INDEX);

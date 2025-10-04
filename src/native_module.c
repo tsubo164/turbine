@@ -27,7 +27,7 @@ void native_declare_func(struct parser_scope *scope,
             break;
         }
 
-        parser_declare_param(func, param->name, param->type);
+        parser_declare_param(func, param->name, param->type, param->is_out);
 
         if (param->is_format)
             func->sig->has_format_param = true;

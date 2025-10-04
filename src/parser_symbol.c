@@ -272,10 +272,11 @@ struct parser_func *parser_declare_native_func(struct parser_scope *parent,
 }
 
 void parser_declare_param(struct parser_func *func,
-        const char *name, const struct parser_type *type)
+        const char *name, const struct parser_type *type, bool is_out)
 {
     struct parser_symbol *sym = parser_define_var(func->scope, name, type, false);
     sym->var->is_param = true;
+    sym->var->is_out = is_out;
 
     if (!strcmp(name, "..."))
         func->sig->is_variadic = true;

@@ -165,6 +165,8 @@ static bool unify_template_types(
     return true;
 }
 
+static struct parser_expr *ident_expr(struct parser *p, bool find_parent);
+
 static struct parser_expr *arg_list(struct parser *p, const struct parser_func_sig *func_sig,
         const struct parser_type **type_mapping, int max_mapping_size)
 {
@@ -181,7 +183,14 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
             const struct parser_type *param_type;
             struct parser_pos arg_pos = peek_pos(p);
 
-            arg = arg->next = expression(p);
+            if (consume(p, TOK_AMPERSAND)) {
+                struct parser_expr *ident = ident_expr(p, true);
+                arg = arg->next = parser_new_outarg_expr(ident);
+            }
+            else {
+                arg = arg->next = expression(p);
+            }
+
             arg->pos = arg_pos;
             arg_count++;
 
@@ -1213,8 +1222,10 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
     if (!parser_ast_is_mutable(lval)) {
         const struct parser_var *var = find_root_object(lval);
         assert(var);
-        error(p, pos, "parameter value can not be modified: '%s'",
-                var->name);
+        if (!var->is_out) {
+            error(p, pos, "parameter value can not be modified: '%s'",
+                    var->name);
+        }
     }
 }
 
@@ -2177,19 +2188,23 @@ static void param_list(struct parser *p, struct parser_func *func)
 
     do {
         const struct parser_type *type = NULL;
-        const char *name;
+        const char *name = NULL;
+        bool is_out = false;
 
         if (consume(p, TOK_CALLER_LINE)) {
             name = tok_str(p);
             type = parser_new_int_type();
         }
         else {
+            if (consume(p, TOK_AMPERSAND))
+                is_out = true;
+
             expect(p, TOK_IDENT);
             name = tok_str(p);
             type = type_spec(p);
         }
 
-        parser_declare_param(func, name, type);
+        parser_declare_param(func, name, type, is_out);
     }
     while (consume(p, TOK_COMMA));
 

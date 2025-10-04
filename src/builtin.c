@@ -342,7 +342,7 @@ void define_builtin_functions(struct parser_scope *builtin)
         const char *name = "format";
         native_func_t fp = builtin_format;
         struct native_func_param params[] = {
-            { "fmt",  parser_new_string_type(), true },
+            { "fmt",  parser_new_string_type(), .is_format = true },
             { "...",  parser_new_any_type() },
             { "_ret", parser_new_string_type() },
             { NULL },

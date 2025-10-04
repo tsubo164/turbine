@@ -16,6 +16,7 @@ struct parser_var {
     int offset;
     bool is_global;
     bool is_param;
+    bool is_out;
 };
 
 struct parser_func_sig {
@@ -186,7 +187,7 @@ struct parser_func *parser_declare_native_func(struct parser_scope *parent,
         const char *modulename, const char *name, native_func_t func_ptr);
 
 void parser_declare_param(struct parser_func *func, const char *name,
-        const struct parser_type *type);
+        const struct parser_type *type, bool is_out);
 void parser_add_return_type(struct parser_func *func, const struct parser_type *type);
 
 const struct parser_type *parser_get_param_type(const struct parser_func_sig *func_sig,

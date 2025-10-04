@@ -33,6 +33,7 @@ enum parser_node_kind {
     NOD_EXPR_VAR,
     NOD_EXPR_STRUCTFIELD,
     NOD_EXPR_ENUMFIELD,
+    NOD_EXPR_OUTARG,
     /* literal */
     NOD_EXPR_NILLIT,
     NOD_EXPR_BOOLLIT,
@@ -169,6 +170,8 @@ struct parser_expr *parser_new_enumlit_expr(const struct parser_type *enum_type,
 struct parser_expr *parser_new_modulelit_expr(const struct parser_type *module_type);
 struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
         struct parser_type *to);
+
+struct parser_expr *parser_new_outarg_expr(struct parser_expr *arg);
 
 /* access */
 struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
