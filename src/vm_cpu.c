@@ -269,6 +269,28 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_LOADADDR:
+            {
+                int dst = inst.A;
+                int src = inst.B;
+                value_addr_t addr = reg_to_addr(vm, src);
+                struct runtime_value srcval = {.inum = addr};
+
+                set_local(vm, dst, srcval);
+            }
+            break;
+
+        case OP_STOREINDIRECT:
+            {
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value dstaddr = fetch_register_value(vm, dst);
+                struct runtime_value srcval = fetch_register_value(vm, src);
+
+                write_stack(vm, dstaddr.inum, srcval);
+            }
+            break;
+
         case OP_LOADVEC:
             {
                 int dst = inst.A;

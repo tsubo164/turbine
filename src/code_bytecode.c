@@ -318,6 +318,29 @@ int code_emit_store_global_ref(struct code_bytecode *code, int dst, int src)
     return dst;
 }
 
+int code_emit_load_addr(struct code_bytecode *code, int dst, int src)
+{
+    mark_ref(code, dst, false);
+    push_inst_ab(code, OP_LOADADDR, dst, src);
+    return dst;
+}
+
+int code_emit_load_indirect(struct code_bytecode *code, int dst, int src)
+{
+    /* always mark local slot as false because indirect is used for primitives */
+    mark_ref(code, dst, false);
+    push_inst_ab(code, OP_STOREINDIRECT, dst, src);
+    return dst;
+}
+
+int code_emit_store_indirect(struct code_bytecode *code, int dst, int src)
+{
+    /* always mark local slot as false because indirect is used for primitives */
+    mark_ref(code, dst, false);
+    push_inst_ab(code, OP_STOREINDIRECT, dst, src);
+    return dst;
+}
+
 int code_emit_load_vec(struct code_bytecode *code, int dst, int src, int idx)
 {
     mark_ref(code, dst, false);

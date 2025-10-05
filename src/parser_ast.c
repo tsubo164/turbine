@@ -902,6 +902,17 @@ bool parser_ast_is_mutable(const struct parser_expr *e)
     }
 }
 
+bool parser_ast_is_output(const struct parser_expr *e)
+{
+    switch (e->kind) {
+    case NOD_EXPR_VAR:
+        return e->var->is_out;
+
+    default:
+        return false;
+    }
+}
+
 void parser_free_expr(struct parser_expr *e)
 {
     if (!e)

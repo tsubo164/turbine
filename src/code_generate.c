@@ -517,6 +517,13 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         return code_emit_store_global(code, dst, src);
     }
 
+    if (parser_ast_is_output(lval)) {
+        /* &a = x */
+        int src = gen_expr(code, rval);
+        int dst = gen_addr(code, lval);
+        return code_emit_store_indirect(code, dst, src);
+    }
+
     /* check the rvalue expression to see if `a = x + y` can be applied */
     /* e.g. a = x + y */
     /*            ^ here */
@@ -778,6 +785,13 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_MODULEACCESS:
         return gen_expr(code, e->r);
+
+    case NOD_EXPR_OUTARG:
+        {
+            int src = gen_addr(code, e->l);
+            int dst = gen_dst_register1(code, src);
+            return code_emit_load_addr(code, dst, src);
+        }
 
     case NOD_EXPR_CALL:
         return gen_call(code, e);

@@ -48,6 +48,9 @@ test: all
 	@echo "[for statement tests]"
 	@../turbine for_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"
+	@echo "[func tests]"
+	@../turbine func_tests.tu
+	@echo "\033[0;32mOK\033[0;39m"
 	@echo "[math module tests]"
 	@../turbine math_tests.tu
 	@echo "\033[0;32mOK\033[0;39m"

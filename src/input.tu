@@ -18,10 +18,19 @@
   ok = true
   return 2 * a
 
+# bar(&a int)
+  a = 42
+
 # main(args vec{string}) int
   - ok bool
+
+  print(ok)
   - a = foo(12, &ok)
+  print(ok)
 
   print(a)
+  bar(&a)
+  print(a)
+
 
   return 0
