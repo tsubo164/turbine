@@ -280,6 +280,17 @@ static void run_cpu(struct vm_cpu *vm)
             }
             break;
 
+        case OP_LOADINDIRECT:
+            {
+                int dst = inst.A;
+                int src = inst.B;
+                struct runtime_value srcaddr = fetch_register_value(vm, src);
+                struct runtime_value srcval = read_stack(vm, srcaddr.inum);
+
+                set_local(vm, dst, srcval);
+            }
+            break;
+
         case OP_STOREINDIRECT:
             {
                 int dst = inst.A;

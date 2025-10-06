@@ -7,6 +7,10 @@
 # bar(&a int)
   a = 42
 
+# baz(&a int)
+  a = 2
+  a = a + 3
+  a += 8
 
 # main(args vec{string}) int
 
@@ -22,6 +26,13 @@
     test.AssertI(0, b)
     bar(&b)
     test.AssertI(42, b)
+
+  ---
+    // use output parameter in function
+    - a int
+    test.AssertI(0, a)
+    baz(&a)
+    test.AssertI(13, a)
 
   print(test._test_count_, "tests done.")
 

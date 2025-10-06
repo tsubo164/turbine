@@ -610,6 +610,16 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
         return code_emit_store_global(code, dst, src);
     }
+
+    if (parser_ast_is_output(lval)) {
+        /* &a += x */
+        int tmp1 = gen_expr(code, lval);
+        int tmp2 = gen_expr(code, rval);
+        int src = gen_dst_register2(code, tmp1, tmp2);
+        int dst = gen_addr(code, lval);
+        gen_binop(code, e->type, e->kind, src, tmp1, tmp2);
+        return code_emit_store_indirect(code, dst, src);
+    }
     {
         /* a += x */
         int tmp1 = gen_expr(code, lval);
@@ -737,9 +747,14 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
 
     case NOD_EXPR_VAR:
         if (e->var->is_global) {
-            int id = code_emit_load_int(code, e->var->offset);
+            int id = gen_addr(code, e);
             int dst = code_allocate_temporary_register(code);
             return code_emit_load_global(code, dst, id);
+        }
+        else if (e->var->is_out) {
+            int id = gen_addr(code, e);
+            int dst = code_allocate_temporary_register(code);
+            return code_emit_load_indirect(code, dst, id);
         }
         else {
             return e->var->offset;

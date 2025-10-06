@@ -329,7 +329,7 @@ int code_emit_load_indirect(struct code_bytecode *code, int dst, int src)
 {
     /* always mark local slot as false because indirect is used for primitives */
     mark_ref(code, dst, false);
-    push_inst_ab(code, OP_STOREINDIRECT, dst, src);
+    push_inst_ab(code, OP_LOADINDIRECT, dst, src);
     return dst;
 }
 

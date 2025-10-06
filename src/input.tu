@@ -20,6 +20,9 @@
 
 # bar(&a int)
   a = 42
+  a += 8
+  print(a)
+  a -= 10
 
 # main(args vec{string}) int
   - ok bool
