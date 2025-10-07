@@ -1368,20 +1368,21 @@ struct loop_var {
 static struct parser_var *define_loop_vars(struct parser_scope *scope,
         const struct loop_var *loopvars)
 {
-    struct parser_symbol *sym = NULL;
-    const struct loop_var *var;
+    struct parser_var *firstvar = NULL;
+    const struct loop_var *loopvar;
 
-    for (var = loopvars; var->name; var++) {
+    for (loopvar = loopvars; loopvar->name; loopvar++) {
         bool isglobal = false;
-        struct parser_symbol *s;
+        struct parser_var *var;
 
-        s = parser_define_var(scope, var->name, var->type, isglobal);
-        assert(s);
-        if (!sym)
-            sym = s;
+        var = parser_define_var(scope, loopvar->name, loopvar->type, isglobal);
+        assert(var);
+
+        if (!firstvar)
+            firstvar = var;
     }
 
-    return sym->var;
+    return firstvar;
 }
 
 static int iter_list(struct parser *p, const struct parser_token **iters, int max_iters)
@@ -1985,14 +1986,16 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
 
     expect(p, TOK_NEWLINE);
 
-    /* define sym */
-    struct parser_symbol *sym = parser_define_var(p->scope, name, type, isglobal);
-    if (!sym)
+    /* define var */
+    struct parser_var *var = parser_define_var(p->scope, name, type, isglobal);
+    if (!var)
         error(p, ident_pos, "re-defined identifier: '%s'", name);
-    struct parser_expr *var = parser_new_var_expr(sym->var);
-    semantic_check_assign_stmt(p, init_pos, var, init);
 
-    return parser_new_init_stmt(var, init);
+    /* var expr */
+    struct parser_expr *expr = parser_new_var_expr(var);
+    semantic_check_assign_stmt(p, init_pos, expr, init);
+
+    return parser_new_init_stmt(expr, init);
 }
 
 static void field_list(struct parser *p, struct parser_struct *strct)

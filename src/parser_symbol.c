@@ -187,7 +187,7 @@ static void free_var(struct parser_var *var)
     free(var);
 }
 
-struct parser_symbol *parser_define_var(struct parser_scope *sc,
+struct parser_var *parser_define_var(struct parser_scope *sc,
         const char *name, const struct parser_type *type, bool isglobal)
 {
     if (parser_find_symbol_local(sc, name))
@@ -200,7 +200,7 @@ struct parser_symbol *parser_define_var(struct parser_scope *sc,
         return NULL;
     push_symbol(&sc->syms, sym);
 
-    return sym;
+    return sym->var;
 }
 
 static const char *func_fullname(const char *modulename, const char *funcname)
@@ -274,9 +274,9 @@ struct parser_func *parser_declare_native_func(struct parser_scope *parent,
 void parser_declare_param(struct parser_func *func,
         const char *name, const struct parser_type *type, bool is_out)
 {
-    struct parser_symbol *sym = parser_define_var(func->scope, name, type, false);
-    sym->var->is_param = true;
-    sym->var->is_out = is_out;
+    struct parser_var *var = parser_define_var(func->scope, name, type, false);
+    var->is_param = true;
+    var->is_out = is_out;
 
     if (!strcmp(name, "..."))
         func->sig->is_variadic = true;

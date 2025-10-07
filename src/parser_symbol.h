@@ -177,7 +177,7 @@ struct parser_symbol *parser_find_symbol_local(const struct parser_scope *sc,
         const char *name);
 
 /* var */
-struct parser_symbol *parser_define_var(struct parser_scope *sc, const char *name,
+struct parser_var *parser_define_var(struct parser_scope *sc, const char *name,
         const struct parser_type *type, bool isglobal);
 
 /* func */
