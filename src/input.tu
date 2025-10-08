@@ -14,26 +14,15 @@
   return 0
 */
 
-# foo(a int, &ok bool) int
+# foo(a int, &ok bool, x int) int
   ok = true
   return 2 * a
-
-# bar(&a int)
-  a = 42
-  a += 8
-  print(a)
-  a -= 10
 
 # main(args vec{string}) int
   - ok bool
 
   print(ok)
-  - a = foo(12, &ok)
+  - a = foo(12, &ok, 11)
   print(ok)
-
-  print(a)
-  bar(&a)
-  print(a)
-
 
   return 0

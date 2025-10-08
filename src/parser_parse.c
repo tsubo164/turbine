@@ -2189,6 +2189,8 @@ static void param_list(struct parser *p, struct parser_func *func)
     if (consume(p, TOK_RPAREN))
         return;
 
+    bool has_outparam = false;
+
     do {
         const struct parser_type *type = NULL;
         const char *name = NULL;
@@ -2199,8 +2201,13 @@ static void param_list(struct parser *p, struct parser_func *func)
             type = parser_new_int_type();
         }
         else {
-            if (consume(p, TOK_AMPERSAND))
+            if (consume(p, TOK_AMPERSAND)) {
                 is_out = true;
+                has_outparam = true;
+            }
+            else if (has_outparam) {
+                error(p, peek_pos(p), "regular parameter cannot follow an out parameter");
+            }
 
             expect(p, TOK_IDENT);
             name = tok_str(p);
