@@ -22,6 +22,7 @@ struct parser_var {
 struct parser_func_sig {
     const struct parser_type *return_type;
     struct parser_typevec param_types;
+    int first_outparam_index;
 
     bool is_native;
     bool is_variadic;
@@ -196,6 +197,7 @@ int parser_required_param_count(const struct parser_func_sig *func_sig);
 bool parser_require_type_sequence(const struct parser_func_sig *func_sig);
 bool parser_match_func_signature(const struct parser_func_sig *sig1,
         const struct parser_func_sig *sig2);
+bool parser_is_outparam_index(const struct parser_func_sig *func_sig, int param_index);
 
 /* struct */
 struct parser_struct *parser_define_struct(struct parser_scope *sc,

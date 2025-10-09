@@ -184,10 +184,18 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
             struct parser_pos arg_pos = peek_pos(p);
 
             if (consume(p, TOK_AMPERSAND)) {
+                if (!parser_is_outparam_index(func_sig, param_idx)) {
+                    error(p, arg_pos, "'&' used for non-output parameter");
+                }
+
                 struct parser_expr *ident = ident_expr(p, true);
                 arg = arg->next = parser_new_outarg_expr(ident);
             }
             else {
+                if (parser_is_outparam_index(func_sig, param_idx)) {
+                    error(p, arg_pos, "missing '&' for output parameter");
+                }
+
                 arg = arg->next = expression(p);
             }
 

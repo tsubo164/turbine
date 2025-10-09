@@ -14,7 +14,7 @@
   return 0
 */
 
-# foo(a int, &ok bool, x int) int
+# foo(a int, &ok bool) int
   ok = true
   return 2 * a
 
@@ -22,7 +22,9 @@
   - ok bool
 
   print(ok)
-  - a = foo(12, &ok, 11)
+  - i = 12
+  - a = foo(i, ok)
+  //- a = foo(&i, &ok)
   print(ok)
 
   return 0

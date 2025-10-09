@@ -221,6 +221,8 @@ static struct parser_func *new_func(struct parser_scope *parent,
 
     func = calloc(1, sizeof(*func));
     func->sig = calloc(1, sizeof(*func->sig));
+    func->sig->first_outparam_index = -1;
+
     func->name = name;
     func->fullname = func_fullname(modulename, name);
     func->scope = parser_new_scope(parent);
@@ -278,9 +280,17 @@ void parser_declare_param(struct parser_func *func,
     var->is_param = true;
     var->is_out = is_out;
 
+    /* out param */
+    if (is_out && func->sig->first_outparam_index == -1) {
+        int idx = func->sig->param_types.len;
+        func->sig->first_outparam_index = idx;
+    }
+
+    /* variadic */
     if (!strcmp(name, "..."))
         func->sig->is_variadic = true;
 
+    /* special */
     if (name[0] == '$')
         func->sig->has_special_var = true;
 
@@ -349,6 +359,14 @@ bool parser_match_func_signature(const struct parser_func_sig *sig1,
     }
 
     return true;
+}
+
+bool parser_is_outparam_index(const struct parser_func_sig *func_sig, int param_index)
+{
+    if (func_sig->first_outparam_index == -1)
+        return false;
+
+    return func_sig->first_outparam_index <= param_index;
 }
 
 /* struct */
