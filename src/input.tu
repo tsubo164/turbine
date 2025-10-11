@@ -14,6 +14,8 @@
   return 0
 */
 
+- _G_ = 42
+
 # foo(a int, &ok bool) int
   ok = true
   return 2 * a
@@ -23,8 +25,9 @@
 
   print(ok)
   - i = 12
-  - a = foo(i, ok)
+  - a = foo(i, &ok)
+  //- a = foo(i, ok)
   //- a = foo(&i, &ok)
-  print(ok)
+  //print(ok)
 
   return 0

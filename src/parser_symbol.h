@@ -6,6 +6,7 @@
 #include "native_module.h"
 #include "value_types.h"
 #include "parser_type.h"
+#include "parser_token.h"
 #include "data_hashmap.h"
 #include "data_vec.h"
 
@@ -14,9 +15,12 @@ struct parser_var {
     const char *name;
     const struct parser_type *type;
     int offset;
+
     bool is_global;
     bool is_param;
     bool is_out;
+    bool passed_as_out;
+    struct parser_pos out_pos;
 };
 
 struct parser_func_sig {

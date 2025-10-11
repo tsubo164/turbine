@@ -183,12 +183,20 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
             const struct parser_type *param_type;
             struct parser_pos arg_pos = peek_pos(p);
 
+            /* arg */
             if (consume(p, TOK_AMPERSAND)) {
                 if (!parser_is_outparam_index(func_sig, param_idx)) {
                     error(p, arg_pos, "'&' used for non-output parameter");
                 }
 
                 struct parser_expr *ident = ident_expr(p, true);
+                if (ident->kind != NOD_EXPR_VAR)
+                    error(p, arg_pos, "non local variable used for output parameter");
+                if (parser_ast_is_global(ident))
+                    error(p, arg_pos, "global variable used for output parameter");
+
+                ident->var->passed_as_out = true;
+                ident->var->out_pos = arg_pos;
                 arg = arg->next = parser_new_outarg_expr(ident);
             }
             else {
@@ -202,6 +210,7 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
             arg->pos = arg_pos;
             arg_count++;
 
+            /* type */
             param_type = parser_get_param_type(func_sig, param_idx);
             if (!param_type)
                 error(p, arg_pos, "too many arguments");
@@ -227,12 +236,14 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
         while (consume(p, TOK_COMMA));
     }
 
+    /* special */
     if (func_sig->has_special_var) {
         int caller_line = caller_pos.y;
         arg = arg->next = parser_new_intlit_expr(caller_line);
         arg_count++;
     }
 
+    /* count */
     int param_count = parser_required_param_count(func_sig);
     if (arg_count < param_count)
         error(p, tok_pos(p), "too few arguments");
@@ -569,6 +580,7 @@ static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
     }
     else if (sym->kind == SYM_VAR) {
         expr = parser_new_var_expr(sym->var);
+        sym->var->passed_as_out = false;
     }
     else {
         printf("unknown identifier kind: %d\n", sym->kind);
@@ -2112,6 +2124,21 @@ static void struct_or_enum_def(struct parser *p)
         enum_def(p, ident);
 }
 
+static void semantic_check_outarg(struct parser *p)
+{
+    const struct parser_scope *sc = p->scope;
+
+    for (int i = 0; i < sc->syms.len; i++) {
+        const struct parser_symbol *sym = sc->syms.data[i];
+
+        if (sym->kind == SYM_VAR) {
+            if (sym->var->passed_as_out) {
+                error(p, sym->var->out_pos, "output variable not used after call");
+            }
+        }
+    }
+}
+
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope)
 {
     struct parser_stmt head = {0};
@@ -2182,6 +2209,7 @@ static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *blo
     }
 
     p->block_tail = tail;
+    semantic_check_outarg(p);
 
     /* leave scope */
     p->scope = p->scope->parent;
