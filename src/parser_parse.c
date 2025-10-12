@@ -194,6 +194,8 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
                     error(p, arg_pos, "non local variable used for output parameter");
                 if (parser_ast_is_global(ident))
                     error(p, arg_pos, "global variable used for output parameter");
+                if (ident->var->passed_as_out)
+                    error(p, arg_pos, "output variable overriten before use");
 
                 ident->var->passed_as_out = true;
                 ident->var->out_pos = arg_pos;
@@ -580,7 +582,6 @@ static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
     }
     else if (sym->kind == SYM_VAR) {
         expr = parser_new_var_expr(sym->var);
-        sym->var->passed_as_out = false;
     }
     else {
         printf("unknown identifier kind: %d\n", sym->kind);
@@ -650,7 +651,12 @@ static struct parser_expr *primary_expr(struct parser *p)
         }
 
     case TOK_IDENT:
-        return ident_expr(p, true);
+        {
+            struct parser_expr *ident = ident_expr(p, true);
+            if (ident->kind == NOD_EXPR_VAR)
+                ident->var->passed_as_out = false;
+            return ident;
+        }
 
     case TOK_CALLER_LINE:
         return caller_line_expr(p);

@@ -30,4 +30,6 @@
   //- a = foo(&i, &ok)
   //print(ok)
 
+  - b = foo(i, &ok)
+
   return 0
