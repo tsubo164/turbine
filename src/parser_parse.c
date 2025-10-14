@@ -165,6 +165,32 @@ static bool unify_template_types(
     return true;
 }
 
+static struct parser_expr *discard_expr(struct parser *p)
+{
+    const char *name = "_discard";
+    struct parser_symbol *sym;
+    struct parser_var *var;
+
+    expect(p, TOK_DISCARD);
+
+    sym = parser_find_symbol(p->scope, name);
+
+    if (sym) {
+        assert(sym->kind == SYM_VAR);
+        var = sym->var;
+    }
+    else {
+        bool isglobal = false;
+        const struct parser_type *type = parser_new_any_type();
+        var = parser_define_var(p->scope, name, type, isglobal);
+    }
+
+    assert(var);
+    var->is_discard = true;
+
+    return parser_new_var_expr(var);
+}
+
 static struct parser_expr *ident_expr(struct parser *p, bool find_parent);
 
 static struct parser_expr *arg_list(struct parser *p, const struct parser_func_sig *func_sig,
@@ -189,7 +215,12 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
                     error(p, arg_pos, "'&' used for non-output parameter");
                 }
 
-                struct parser_expr *ident = ident_expr(p, true);
+                struct parser_expr *ident;
+                if (peek(p) == TOK_DISCARD)
+                    ident = discard_expr(p);
+                else
+                    ident = ident_expr(p, true);
+
                 if (ident->kind != NOD_EXPR_VAR)
                     error(p, arg_pos, "non local variable used for output parameter");
                 if (parser_ast_is_global(ident))
@@ -2138,7 +2169,7 @@ static void semantic_check_outarg(struct parser *p)
         const struct parser_symbol *sym = sc->syms.data[i];
 
         if (sym->kind == SYM_VAR) {
-            if (sym->var->passed_as_out) {
+            if (sym->var->passed_as_out && !sym->var->is_discard) {
                 error(p, sym->var->out_pos, "output variable not used after call");
             }
         }

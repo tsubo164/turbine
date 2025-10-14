@@ -20,6 +20,7 @@ const char *parser_get_token_string(int kind)
     [TOK_NIL]           = "nil",
     [TOK_TRUE]          = "true",
     [TOK_FALSE]         = "false",
+    [TOK_DISCARD]       = "discard",
     [TOK_BOOL]          = "bool",
     [TOK_INT]           = "int",
     [TOK_FLOAT]         = "float",

@@ -18,6 +18,7 @@ struct parser_var {
 
     bool is_global;
     bool is_param;
+    bool is_discard;
     bool is_out;
     bool passed_as_out;
     struct parser_pos out_pos;

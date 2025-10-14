@@ -34,6 +34,14 @@
     baz(&a)
     test.AssertI(13, a)
 
+  ---
+    // discard output parameter
+    - ok bool
+    test.AssertB(false, ok)
+    - a = foo(12, &discard)
+    test.AssertB(false, ok)
+    test.AssertI(24, a)
+
   print(test._test_count_, "tests done.")
 
   return 0

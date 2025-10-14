@@ -11,6 +11,7 @@ enum parser_token_kind {
     TOK_NIL,
     TOK_TRUE,
     TOK_FALSE,
+    TOK_DISCARD,
     TOK_BOOL,
     TOK_INT,
     TOK_FLOAT,
