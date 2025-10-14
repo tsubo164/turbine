@@ -18,6 +18,10 @@
   ok = true
   return 2 * a
 
+# bar(a int, &ok string) int
+  ok = "true"
+  return 2 * a
+
 # main(args vec{string}) int
   - ok bool
 

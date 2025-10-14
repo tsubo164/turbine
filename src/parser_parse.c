@@ -212,7 +212,7 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
             /* arg */
             if (consume(p, TOK_AMPERSAND)) {
                 if (!parser_is_outparam_index(func_sig, param_idx)) {
-                    error(p, arg_pos, "'&' used for non-output parameter");
+                    error(p, arg_pos, "'&' used for non-out parameter");
                 }
 
                 struct parser_expr *ident;
@@ -222,11 +222,11 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
                     ident = ident_expr(p, true);
 
                 if (ident->kind != NOD_EXPR_VAR)
-                    error(p, arg_pos, "non local variable used for output parameter");
+                    error(p, arg_pos, "non local variable used for out parameter");
                 if (parser_ast_is_global(ident))
-                    error(p, arg_pos, "global variable used for output parameter");
+                    error(p, arg_pos, "global variable used for out parameter");
                 if (ident->var->passed_as_out)
-                    error(p, arg_pos, "output variable overriten before use");
+                    error(p, arg_pos, "out variable overriten before use");
 
                 ident->var->passed_as_out = true;
                 ident->var->out_pos = arg_pos;
@@ -234,7 +234,7 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
             }
             else {
                 if (parser_is_outparam_index(func_sig, param_idx)) {
-                    error(p, arg_pos, "missing '&' for output parameter");
+                    error(p, arg_pos, "missing '&' for out parameter");
                 }
 
                 arg = arg->next = expression(p);
@@ -2170,7 +2170,7 @@ static void semantic_check_outarg(struct parser *p)
 
         if (sym->kind == SYM_VAR) {
             if (sym->var->passed_as_out && !sym->var->is_discard) {
-                error(p, sym->var->out_pos, "output variable not used after call");
+                error(p, sym->var->out_pos, "out variable not used after call");
             }
         }
     }
@@ -2255,6 +2255,19 @@ static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *blo
     return parser_new_block_stmt(head.next);
 }
 
+static bool is_primitive(const struct parser_type *type)
+{
+    if (parser_is_bool_type(type) ||
+        parser_is_int_type(type) ||
+        parser_is_float_type(type) ||
+        parser_is_enum_type(type)) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 static void param_list(struct parser *p, struct parser_func *func)
 {
     expect(p, TOK_LPAREN);
@@ -2285,6 +2298,10 @@ static void param_list(struct parser *p, struct parser_func *func)
             expect(p, TOK_IDENT);
             name = tok_str(p);
             type = type_spec(p);
+
+            if (is_out && !is_primitive(type)) {
+                error(p, tok_pos(p), "non-primitive type cannot be used as an out parameter");
+            }
         }
 
         parser_declare_param(func, name, type, is_out);
