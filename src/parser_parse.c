@@ -1279,7 +1279,7 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
     if (!parser_ast_is_mutable(lval)) {
         const struct parser_var *var = find_root_object(lval);
         assert(var);
-        if (!var->is_out) {
+        if (!var->is_outparam) {
             error(p, pos, "parameter value can not be modified: '%s'",
                     var->name);
         }
@@ -2169,8 +2169,12 @@ static void semantic_check_outarg(struct parser *p)
         const struct parser_symbol *sym = sc->syms.data[i];
 
         if (sym->kind == SYM_VAR) {
-            if (sym->var->passed_as_out && !sym->var->is_discard) {
-                error(p, sym->var->out_pos, "out variable not used after call");
+            const struct parser_var *var = sym->var;
+
+            if (var->passed_as_out &&
+                !var->is_outparam &&
+                !var->is_discard) {
+                error(p, var->out_pos, "out variable not used after call");
             }
         }
     }

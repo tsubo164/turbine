@@ -278,7 +278,7 @@ void parser_declare_param(struct parser_func *func,
 {
     struct parser_var *var = parser_define_var(func->scope, name, type, false);
     var->is_param = true;
-    var->is_out = is_out;
+    var->is_outparam = is_out;
 
     /* out param */
     if (is_out && func->sig->first_outparam_index == -1) {

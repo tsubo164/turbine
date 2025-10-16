@@ -517,7 +517,7 @@ static int gen_assign(struct code_bytecode *code, const struct parser_expr *e)
         return code_emit_store_global(code, dst, src);
     }
 
-    if (parser_ast_is_output(lval)) {
+    if (parser_ast_is_outparam(lval)) {
         /* &a = x */
         int src = gen_expr(code, rval);
         int dst = gen_addr(code, lval);
@@ -611,7 +611,7 @@ static int gen_binop_assign(struct code_bytecode *code, const struct parser_expr
         return code_emit_store_global(code, dst, src);
     }
 
-    if (parser_ast_is_output(lval)) {
+    if (parser_ast_is_outparam(lval)) {
         /* &a += x */
         int tmp1 = gen_expr(code, lval);
         int tmp2 = gen_expr(code, rval);
@@ -751,7 +751,7 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
             int dst = code_allocate_temporary_register(code);
             return code_emit_load_global(code, dst, id);
         }
-        else if (e->var->is_out) {
+        else if (e->var->is_outparam) {
             int id = gen_addr(code, e);
             int dst = code_allocate_temporary_register(code);
             return code_emit_load_indirect(code, dst, id);
@@ -802,7 +802,10 @@ static int gen_expr(struct code_bytecode *code, const struct parser_expr *e)
         return gen_expr(code, e->r);
 
     case NOD_EXPR_OUTARG:
-        {
+        if (parser_ast_is_outparam(e->l)) {
+            return gen_addr(code, e->l);
+        }
+        else {
             int src = gen_addr(code, e->l);
             int dst = gen_dst_register1(code, src);
             return code_emit_load_addr(code, dst, src);
