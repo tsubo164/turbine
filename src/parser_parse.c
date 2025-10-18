@@ -227,6 +227,8 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
                     error(p, arg_pos, "global variable used for out parameter");
                 if (ident->var->passed_as_out)
                     error(p, arg_pos, "out variable overriten before use");
+                if (ident->var->is_param && !ident->var->is_outparam)
+                    error(p, arg_pos, "non-out parameter cannet be passed as output");
 
                 ident->var->passed_as_out = true;
                 ident->var->out_pos = arg_pos;

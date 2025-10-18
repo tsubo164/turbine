@@ -15,11 +15,15 @@
 */
 
 # foo(a int, &ok bool) int
-  //ok = true
+  ok = true
   return 2 * a
 
 # bar(&ok bool) int
   return foo(42, &ok)
+
+# baz(ok bool) int
+  ok = false
+  return bar(&ok)
 
 # main(args vec{string}) int
   - ok bool
