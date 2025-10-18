@@ -1230,7 +1230,7 @@ static struct parser_expr *expression(struct parser *p)
     return logor_expr(p);
 }
 
-static const struct parser_var *find_root_object(const struct parser_expr *e)
+static struct parser_var *find_root_object(const struct parser_expr *e)
 {
     switch (e->kind) {
     case NOD_EXPR_VAR:
@@ -1283,6 +1283,13 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
             error(p, pos, "parameter value can not be modified: '%s'",
                     var->name);
         }
+    }
+
+    /* assigned flag */
+    if (parser_ast_is_outparam(lval)) {
+        struct parser_var *var = find_root_object(lval);
+        assert(var);
+        var->is_assigned = true;
     }
 }
 
@@ -2176,6 +2183,12 @@ static void semantic_check_outarg(struct parser *p)
                 !var->is_discard) {
                 error(p, var->out_pos, "out variable not used after call");
             }
+
+            if (var->is_outparam &&
+                !var->is_assigned &&
+                !var->passed_as_out) {
+                error(p, var->out_pos, "out parameter neither assigned nor passed as output");
+            }
         }
     }
 }
@@ -2282,6 +2295,8 @@ static void param_list(struct parser *p, struct parser_func *func)
     bool has_outparam = false;
 
     do {
+        struct parser_var *var = NULL;
+        struct parser_pos out_pos;
         const struct parser_type *type = NULL;
         const char *name = NULL;
         bool is_out = false;
@@ -2294,6 +2309,7 @@ static void param_list(struct parser *p, struct parser_func *func)
             if (consume(p, TOK_AMPERSAND)) {
                 is_out = true;
                 has_outparam = true;
+                out_pos = tok_pos(p);
             }
             else if (has_outparam) {
                 error(p, peek_pos(p), "regular parameter cannot follow an out parameter");
@@ -2308,7 +2324,9 @@ static void param_list(struct parser *p, struct parser_func *func)
             }
         }
 
-        parser_declare_param(func, name, type, is_out);
+        var = parser_declare_param(func, name, type, is_out);
+        if (is_out)
+            var->out_pos = out_pos;
     }
     while (consume(p, TOK_COMMA));
 

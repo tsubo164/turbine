@@ -273,7 +273,7 @@ struct parser_func *parser_declare_native_func(struct parser_scope *parent,
     return func;
 }
 
-void parser_declare_param(struct parser_func *func,
+struct parser_var *parser_declare_param(struct parser_func *func,
         const char *name, const struct parser_type *type, bool is_out)
 {
     struct parser_var *var = parser_define_var(func->scope, name, type, false);
@@ -296,6 +296,8 @@ void parser_declare_param(struct parser_func *func,
 
     /* func sig */
     parser_typevec_push(&func->sig->param_types, type);
+
+    return var;
 }
 
 void parser_add_return_type(struct parser_func *func, const struct parser_type *type)

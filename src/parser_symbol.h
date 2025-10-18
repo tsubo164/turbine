@@ -20,7 +20,11 @@ struct parser_var {
     bool is_param;
     bool is_discard;
     bool is_outparam;
+
+    bool is_assigned;
     bool passed_as_out;
+    /* pos of outarg or outparam */
+    /* TODO need members for each? */
     struct parser_pos out_pos;
 };
 
@@ -192,7 +196,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 struct parser_func *parser_declare_native_func(struct parser_scope *parent,
         const char *modulename, const char *name, native_func_t func_ptr);
 
-void parser_declare_param(struct parser_func *func, const char *name,
+struct parser_var *parser_declare_param(struct parser_func *func, const char *name,
         const struct parser_type *type, bool is_out);
 void parser_add_return_type(struct parser_func *func, const struct parser_type *type);
 

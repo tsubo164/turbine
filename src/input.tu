@@ -15,27 +15,24 @@
 */
 
 # foo(a int, &ok bool) int
-  ok = true
+  //ok = true
   return 2 * a
 
 # bar(&ok bool) int
   return foo(42, &ok)
-  //- x = foo(42, &ok)
-  //print(">>>>>>>>>>>>>", ok)
-  //return x
 
 # main(args vec{string}) int
   - ok bool
 
   print(ok)
-  //- i = 12
-  //- a = foo(i, &ok)
+  - i = 12
+  - a = foo(i, &ok)
   //- a = foo(i, &discard)
   //- a = foo(i, ok)
   //- a = foo(&i, &ok)
   //a = foo(i, &ok)
   //a = foo(i, &discard)
-  -a = bar(&ok)
+  //-a = bar(&ok)
   print(ok, a)
 
   return 0

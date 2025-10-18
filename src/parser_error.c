@@ -1,9 +1,12 @@
 #include "parser_error.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 static void print_detail(const char *srctext, int posx, int posy)
 {
+    assert(posx > 0 && posy > 0);
+
     int y = 1;
     const char *p = srctext;
 
