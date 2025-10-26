@@ -23,7 +23,7 @@ enum parser_node_kind {
     NOD_STMT_CONTINUE,
     NOD_STMT_SWITCH,
     NOD_STMT_CASE,
-    NOD_STMT_DEFAULT,
+    NOD_STMT_OTHERS,
     NOD_STMT_RETURN,
     NOD_STMT_EXPR,
     NOD_STMT_ASSIGN,
@@ -245,8 +245,8 @@ struct parser_stmt *parser_new_forenum_stmt(struct parser_expr *iter,
 struct parser_stmt *parser_new_break_stmt(void);
 struct parser_stmt *parser_new_continue_stmt(void);
 struct parser_stmt *parser_new_switch_stmt(struct parser_expr *cond, struct parser_stmt *cases);
-struct parser_stmt *parser_new_case_stmt(struct parser_expr *conds, struct parser_stmt *body);
-struct parser_stmt *parser_new_default_stmt(struct parser_stmt *body);
+struct parser_stmt *parser_new_case_stmt(struct parser_expr *cond, struct parser_stmt *body);
+struct parser_stmt *parser_new_others_stmt(struct parser_stmt *body);
 struct parser_stmt *parser_new_return_stmt(struct parser_expr *e);
 struct parser_stmt *parser_new_expr_stmt(struct parser_expr *e);
 

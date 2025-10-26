@@ -1788,24 +1788,17 @@ static struct parser_stmt *continue_stmt(struct parser *p)
 
 static struct parser_stmt *case_stmt(struct parser *p, const struct parser_type *switch_type)
 {
-    struct parser_expr conds = {0};
-    struct parser_expr *cond = &conds;
+    struct parser_expr *cond = expression(p);
 
-    do {
-        struct parser_expr *expr = expression(p);
-        cond = cond->next = expr;
-
-        if (!parser_match_type(cond->type, switch_type)) {
-            error(p, tok_pos(p), "case expression must be of type '%s'",
-                    parser_type_string(switch_type));
-        }
+    if (!parser_match_type(cond->type, switch_type)) {
+        error(p, tok_pos(p),
+                "case enum type does not match switch expression type");
     }
-    while (consume(p, TOK_COMMA));
 
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    return parser_new_case_stmt(conds.next, body);
+    return parser_new_case_stmt(cond, body);
 }
 
 static struct parser_stmt *others_stmt(struct parser *p)
@@ -1813,7 +1806,7 @@ static struct parser_stmt *others_stmt(struct parser *p)
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    return parser_new_default_stmt(body);
+    return parser_new_others_stmt(body);
 }
 
 static struct parser_stmt *switch_stmt(struct parser *p)

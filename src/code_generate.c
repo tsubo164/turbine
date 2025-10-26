@@ -1298,7 +1298,7 @@ static void gen_stmt(struct code_bytecode *code, const struct parser_stmt *s)
         }
         break;
 
-    case NOD_STMT_DEFAULT:
+    case NOD_STMT_OTHERS:
         /* body */
         gen_stmt(code, s->body);
         break;

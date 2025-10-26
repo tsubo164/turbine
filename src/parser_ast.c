@@ -28,7 +28,7 @@ const char *parser_node_string(int kind)
     [NOD_STMT_CONTINUE]       = "continue",
     [NOD_STMT_SWITCH]         = "switch",
     [NOD_STMT_CASE]           = "case",
-    [NOD_STMT_DEFAULT]        = "default",
+    [NOD_STMT_OTHERS]         = "others",
     [NOD_STMT_RETURN]         = "return",
     [NOD_STMT_EXPR]           = "expr",
     [NOD_STMT_ASSIGN]         = "assign",
@@ -766,17 +766,17 @@ struct parser_stmt *parser_new_switch_stmt(struct parser_expr *cond, struct pars
     return s;
 }
 
-struct parser_stmt *parser_new_case_stmt(struct parser_expr *conds, struct parser_stmt *body)
+struct parser_stmt *parser_new_case_stmt(struct parser_expr *cond, struct parser_stmt *body)
 {
     struct parser_stmt *s = new_stmt(NOD_STMT_CASE);
-    s->cond = conds;
+    s->cond = cond;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_default_stmt(struct parser_stmt *body)
+struct parser_stmt *parser_new_others_stmt(struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_DEFAULT);
+    struct parser_stmt *s = new_stmt(NOD_STMT_OTHERS);
     s->body = body;
     return s;
 }
