@@ -789,52 +789,6 @@ int main(int argc, char **argv)
         ASSERTL(5, interpret_source(input, &args, &opt));
     }
     {
-        /* "switch" statment */
-        const char *input = 
-            "# main(args vec{string}) int\n"
-            "  - i int\n"
-            "  - j int\n"
-            "  i = 2\n"
-            "  j = 0\n"
-            "  switch i\n"
-            "  case 0\n"
-            "    j = 0\n"
-            "  case 1\n"
-            "    j = 23\n"
-            "  case 2\n"
-            "    j = 34\n"
-            "  case 3\n"
-            "    j = 77\n"
-            "  return j\n"
-            ;
-
-        ASSERTL(34, interpret_source(input, &args, &opt));
-    }
-    {
-        /* "default" statment */
-        const char *input = 
-            "# main(args vec{string}) int\n"
-            "  - i int\n"
-            "  - j int\n"
-            "  i = 5\n"
-            "  j = 0\n"
-            "  switch i\n"
-            "  case 0\n"
-            "    j = 0\n"
-            "  case 1\n"
-            "    j = 23\n"
-            "  case 2\n"
-            "    j = 34\n"
-            "  case 3\n"
-            "    j = 77\n"
-            "  default\n"
-            "    j = 99\n"
-            "  return j\n"
-            ;
-
-        ASSERTL(99, interpret_source(input, &args, &opt));
-    }
-    {
         /* local var init */
         const char *input = 
             "# main(args vec{string}) int\n"

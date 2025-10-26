@@ -32,8 +32,7 @@ enum parser_token_kind {
     TOK_BREAK,
     TOK_CONTINUE,
     TOK_SWITCH,
-    TOK_CASE,
-    TOK_DEFAULT,
+    TOK_OTHERS,
     TOK_RETURN,
     TOK_NOP,
     /* special */

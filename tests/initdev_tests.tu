@@ -497,42 +497,6 @@
     test.AssertI(5, j)
 
   ---
-    // "switch" statment
-    - i int
-    - j int
-    i = 2
-    j = 0
-    switch i
-    case 0
-      j = 0
-    case 1
-      j = 23
-    case 2
-      j = 34
-    case 3
-      j = 77
-    test.AssertI(34, j)
-
-  ---
-    // "default" statment
-    - i int
-    - j int
-    i = 5
-    j = 0
-    switch i
-    case 0
-      j = 0
-    case 1
-      j = 23
-    case 2
-      j = 34
-    case 3
-      j = 77
-    default
-      j = 99
-    test.AssertI(99, j)
-
-  ---
     // local var init
     - i int = 42
     test.AssertI(42, i)
@@ -657,38 +621,6 @@
 
   // C++ test
   // ==========================================================================
-
-  // switch with multi case values
-  ---
-    - n = 6
-    - x = 0
-
-    switch n
-    case 1
-      x = 11
-    case 2, 3, 4
-      x = 22
-    case 13, 55, 6
-      x = 99
-    default
-      x = 255
-    test.AssertI(99, x)
-
-  // switch with multi case values
-  ---
-    - n = 3
-    - x = 0
-
-    switch n
-    case 1
-      x = 11
-    case 2, 3, 4
-      x = 22
-    case 13, 55, 6
-      x = 99
-    default
-      x = 255
-    test.AssertI(22, x)
 
   // bool default
   ---

@@ -14,29 +14,21 @@
   return 0
 */
 
-# foo(a int, &ok bool) int
-  ok = true
-  return 2 * a
-
-# bar(&ok bool) int
-  return foo(42, &ok)
-
-# baz(ok bool) int
-  ok = false
-  return bar(&ok)
+## Shape enum
+  : tag
+  - Line
+  - Circle
+  - Rectangle
+  - Triangle
 
 # main(args vec{string}) int
-  - ok bool
+  - sh = Shape.Line
+  sh = Shape.Rectangle
 
-  print(ok)
-  - i = 12
-  - a = foo(i, &ok)
-  //- a = foo(i, &discard)
-  //- a = foo(i, ok)
-  //- a = foo(&i, &ok)
-  //a = foo(i, &ok)
-  //a = foo(i, &discard)
-  //-a = bar(&ok)
-  print(ok, a)
+  switch sh
+  * Shape.Line
+    print("* draw line")
+  * others
+    print("* others", sh)
 
   return 0

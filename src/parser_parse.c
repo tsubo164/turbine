@@ -1808,7 +1808,7 @@ static struct parser_stmt *case_stmt(struct parser *p, const struct parser_type 
     return parser_new_case_stmt(conds.next, body);
 }
 
-static struct parser_stmt *default_stmt(struct parser *p)
+static struct parser_stmt *others_stmt(struct parser *p)
 {
     expect(p, TOK_NEWLINE);
 
@@ -1827,34 +1827,35 @@ static struct parser_stmt *switch_stmt(struct parser *p)
     p->uncond_ret = false;
 
     expr = expression(p);
-    if (!parser_is_int_type(expr->type) && !parser_is_enum_type(expr->type)) {
-        error(p, tok_pos(p), "switch expression must be of type 'int' or 'enum'");
+    if (!parser_is_enum_type(expr->type)) {
+        error(p, tok_pos(p), "switch expression must be an enum");
     }
 
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt head = {0};
     struct parser_stmt *tail = &head;
-    int default_count = 0;
+    int others_count = 0;
 
     while (true) {
         p->uncond_ret = false;
 
-        if (consume(p, TOK_CASE)) {
-            if (default_count > 0) {
+        if (!consume(p, TOK_ASTER)) {
+            break;
+        }
+
+        if (consume(p, TOK_OTHERS)) {
+            tail = tail->next = others_stmt(p);
+            uncond_ret &= p->uncond_ret;
+            others_count++;
+        }
+        else {
+            if (others_count > 0) {
                 error(p, tok_pos(p),
                         "no 'case' labels are allowed after 'default' label");
             }
             tail = tail->next = case_stmt(p, expr->type);
             uncond_ret &= p->uncond_ret;
-        }
-        else if (consume(p, TOK_DEFAULT)) {
-            tail = tail->next = default_stmt(p);
-            uncond_ret &= p->uncond_ret;
-            default_count++;
-        }
-        else {
-            break;
         }
     }
 

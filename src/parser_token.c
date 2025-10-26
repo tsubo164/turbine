@@ -41,8 +41,7 @@ const char *parser_get_token_string(int kind)
     [TOK_BREAK]         = "break",
     [TOK_CONTINUE]      = "continue",
     [TOK_SWITCH]        = "switch",
-    [TOK_CASE]          = "case",
-    [TOK_DEFAULT]       = "default",
+    [TOK_OTHERS]        = "others",
     [TOK_RETURN]        = "return",
     [TOK_NOP]           = "nop",
     /* special */

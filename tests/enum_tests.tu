@@ -140,13 +140,13 @@
     - i = 3
     - c = Color.G
     switch c
-    case Color.B
+    * Color.B
       i = 33
-    case Color.R
+    * Color.R
       i = 44
-    case Color.G
+    * Color.G
       i = 55
-    default
+    * others
       nop
     test.AssertI(55, i)
 
