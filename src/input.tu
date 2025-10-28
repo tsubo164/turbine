@@ -26,9 +26,16 @@
   sh = Shape.Rectangle
 
   switch sh
-  * Shape.Line
+  * Line
     print("* draw line")
-  * others
-    print("* others", sh)
+
+  * Circle
+    print("* draw circle")
+
+  //* Foo
+  //  print("* draw foo")
+
+  //* others
+  //  print("* others", sh)
 
   return 0

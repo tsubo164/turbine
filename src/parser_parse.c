@@ -10,6 +10,7 @@
 #include "builtin_module.h"
 #include "data_intern.h"
 #include "data_strbuf.h"
+#include "data_vec.h"
 #include "read_file.h"
 #include "project.h"
 #include "format.h"
@@ -554,7 +555,7 @@ static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol 
     int index = parser_find_enum_member(enm, tok_str(p));
     if (index < 0) {
         error(p, tok_pos(p),
-                "no member named '%s' in enum '%s'", tok_str(p));
+                "no member named '%s' in enum '%s'", tok_str(p), enm->name);
     }
 
     return parser_new_enumlit_expr(sym->type, index);
@@ -1786,19 +1787,28 @@ static struct parser_stmt *continue_stmt(struct parser *p)
     return parser_new_continue_stmt();
 }
 
-static struct parser_stmt *case_stmt(struct parser *p, const struct parser_type *switch_type)
+static struct parser_stmt *case_stmt(struct parser *p, const struct parser_type *enum_type,
+        int *member_index)
 {
-    struct parser_expr *cond = expression(p);
+    const struct parser_enum *enm = enum_type->enm;
+    struct parser_expr *member;
+    int index;
 
-    if (!parser_match_type(cond->type, switch_type)) {
+    expect(p, TOK_IDENT);
+
+    index = parser_find_enum_member(enm, tok_str(p));
+    if (index < 0) {
         error(p, tok_pos(p),
-                "case enum type does not match switch expression type");
+                "no member named '%s' in enum '%s'", tok_str(p), enm->name);
     }
+
+    member = parser_new_enumlit_expr(enum_type, index);
+    *member_index = index;
 
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    return parser_new_case_stmt(cond, body);
+    return parser_new_case_stmt(member, body);
 }
 
 static struct parser_stmt *others_stmt(struct parser *p)
@@ -1809,25 +1819,79 @@ static struct parser_stmt *others_stmt(struct parser *p)
     return parser_new_others_stmt(body);
 }
 
+static void semantic_check_switch_exhaustiveness(struct parser *p,
+        const struct parser_enum *enm, const bool *case_covered)
+{
+    int member_count = parser_get_enum_member_count(enm);
+    bool is_exhaustive = true;
+
+    for (int i = 0; i < member_count; i++) {
+        if (!case_covered[i]) {
+            is_exhaustive = false;
+            break;
+        }
+    }
+
+    if (is_exhaustive)
+        return;
+
+#define MAX_MISSING_CASES_LEN 63
+    const char *others = ", and others";
+    int others_len = strlen(others);
+    char missing_cases[MAX_MISSING_CASES_LEN + 1] = {'\0'};
+    char *pos = missing_cases;
+    int total_len = 0;
+
+    for (int i = 0; i < member_count; i++) {
+        if (!case_covered[i]) {
+            struct parser_enum_value val = parser_get_enum_value(enm, 0, i);
+            size_t len = strlen(val.sval);
+
+            if (MAX_MISSING_CASES_LEN - others_len - total_len < len) {
+                strcpy(pos, others);
+                break;
+            }
+
+            if (pos != missing_cases) {
+                strcpy(pos, ", ");
+                pos += 2;
+                total_len += 2;
+            }
+
+            strcpy(pos, val.sval);
+            pos += len;
+            total_len += len;
+        }
+    }
+
+    error(p, tok_pos(p),
+            "missing cases in switch on enum '%s': %s", enm->name, missing_cases);
+#undef MAX_MISSING_CASES_LEN
+}
+
 static struct parser_stmt *switch_stmt(struct parser *p)
 {
     expect(p, TOK_SWITCH);
 
     struct parser_expr *expr;
+    const struct parser_enum *enm;
     bool uncond_ret = true;
     bool uncond_exe = p->uncond_exe;
     p->uncond_exe = false;
     p->uncond_ret = false;
 
+    /* enum var */
     expr = expression(p);
     if (!parser_is_enum_type(expr->type)) {
         error(p, tok_pos(p), "switch expression must be an enum");
     }
+    enm = expr->type->enm;
 
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt head = {0};
     struct parser_stmt *tail = &head;
+    bool case_covered[1024] = {false};
     int others_count = 0;
 
     while (true) {
@@ -1843,13 +1907,21 @@ static struct parser_stmt *switch_stmt(struct parser *p)
             others_count++;
         }
         else {
+            int member_index = -1;
             if (others_count > 0) {
                 error(p, tok_pos(p),
                         "no 'case' labels are allowed after 'default' label");
             }
-            tail = tail->next = case_stmt(p, expr->type);
+            tail = tail->next = case_stmt(p, expr->type, &member_index);
             uncond_ret &= p->uncond_ret;
+
+            case_covered[member_index] = true;
         }
+    }
+
+    /* exhaustiveness check */
+    if (others_count == 0) {
+        semantic_check_switch_exhaustiveness(p, enm, case_covered);
     }
 
     p->uncond_exe = uncond_exe;

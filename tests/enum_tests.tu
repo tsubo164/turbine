@@ -140,11 +140,11 @@
     - i = 3
     - c = Color.G
     switch c
-    * Color.B
+    * B
       i = 33
-    * Color.R
+    * R
       i = 44
-    * Color.G
+    * G
       i = 55
     * others
       nop
