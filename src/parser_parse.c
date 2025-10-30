@@ -2,6 +2,7 @@
 #include "parser_search_path.h"
 #include "parser_escseq.h"
 #include "parser_symbol.h"
+#include "parser_limits.h"
 #include "parser_error.h"
 #include "parser_token.h"
 #include "parser_eval.h"
@@ -1891,7 +1892,7 @@ static struct parser_stmt *switch_stmt(struct parser *p)
 
     struct parser_stmt head = {0};
     struct parser_stmt *tail = &head;
-    bool case_covered[1024] = {false};
+    bool case_covered[LANG_MAX_ENUM_MEMBERS] = {false};
     int others_count = 0;
 
     while (true) {
@@ -2171,18 +2172,28 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
     expect(p, TOK_BLOCKBEGIN);
 
     /* header */
+    int nfields = 0;
     expect(p, TOK_COLON);
+
     do {
         expect(p, TOK_IDENT);
         parser_add_enum_field(enm, tok_str(p));
+        nfields++;
+
+        if (nfields > LANG_MAX_ENUM_FIELDS) {
+            error(p, tok_pos(p), "too many fields in enum '%s' (maximum is %d)",
+                    enm->name, LANG_MAX_ENUM_FIELDS);
+        }
     } while (consume(p, TOK_COMMA));
+
     expect(p, TOK_NEWLINE);
 
     /* members */
-    int nfields = parser_get_enum_field_count(enm);
     int y = 0;
 
     do {
+        struct parser_pos tag_pos;
+
         expect(p, TOK_MINUS);
 
         for (int x = 0; x < nfields; x++) {
@@ -2192,6 +2203,7 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
                 expect(p, TOK_IDENT);
                 const char *name = tok_str(p);
                 struct parser_expr *expr = parser_new_stringlit_expr(name);
+                tag_pos = tok_pos(p);
 
                 if (y == 0)
                     enm->fields.data[x]->type = expr->type;
@@ -2217,6 +2229,11 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
         }
         expect(p, TOK_NEWLINE);
         y++;
+
+        if (y > LANG_MAX_ENUM_MEMBERS) {
+            error(p, tag_pos, "too many enumerators in enum '%s' (maximum is %d)",
+                    enm->name, LANG_MAX_ENUM_MEMBERS);
+        }
     }
     while(!consume(p, TOK_BLOCKEND));
 
