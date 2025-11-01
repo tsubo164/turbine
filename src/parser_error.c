@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
+jmp_buf parse_env;
+
+
 static void print_detail(const char *srctext, int posx, int posy)
 {
     assert(posx > 0 && posy > 0);
@@ -36,5 +40,5 @@ void parser_error_va(const char *srctext, const char *filename,
 
     print_detail(srctext, posx, posy);
 
-    exit(EXIT_FAILURE);
+    longjmp(parse_env, 1);
 }

@@ -6,6 +6,7 @@
 #include "parser_parse.h"
 #include "parser_token.h"
 #include "parser_print.h"
+#include "parser_error.h"
 #include "parser_ast.h"
 #include "code_bytecode.h"
 #include "code_generate.h"
@@ -138,66 +139,71 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
      * instead of holding them in struct parser_search_path */
     parser_search_path_add_builtin_modules(&paths, &builtin_modules);
 
-    /* tokenize */
+    /* compile source code */
     struct parser_token *tok = NULL;
-    if (pass.tokenize) {
-        tok = parser_tokenize(text, args->filename);
-    }
-
-    /* print token */
-    if (opt->print_token) {
-        parser_print_token(tok, !opt->print_token_raw);
-    }
-
-    /* compile source */
     struct parser_module *mod_main = NULL;
-    if (pass.parse) {
-        struct parser_source source = {0};
-        parser_source_init(&source, text, args->filename, "_main");
-        mod_main = parser_parse(tok, builtin, &source, &paths);
-        code_resolve_offset(mod_main);
+    value_int_t ret_code = 0;
+    bool parse_error = false;
+
+    if (setjmp(parse_env) == 0) {
+        /* tokenize */
+        if (pass.tokenize) {
+            tok = parser_tokenize(text, args->filename);
+        }
+
+        /* print tokens */
+        if (opt->print_token) {
+            parser_print_token(tok, !opt->print_token_raw);
+        }
+
+        /* parse tokens */
+        if (pass.parse) {
+            struct parser_source source = {0};
+            parser_source_init(&source, text, args->filename, "_main");
+            mod_main = parser_parse(tok, builtin, &source, &paths);
+            code_resolve_offset(mod_main);
+        }
     }
-#if 0
-    const struct parser_token *tok = parser_tokenize(text, module_filename);
-    struct parser_source source = {0};
-    struct parser_search_path paths;
-
-    parser_source_init(&source, text, module_filename, modulename);
-    parser_search_path_init(&paths, p->paths->filedir);
-    parser_parse(tok, p->scope, &source, &paths);
-#endif
-
-    /* print tree */
-    if (opt->print_tree) {
-        print_tree(mod_main);
+    else {
+        parse_error = true;
+        ret_code = EXIT_FAILURE;
     }
 
-    /* generate bytecode */
+    /* generate and execute bytecode */
     struct code_bytecode code;
     code_bytecode_init(&code);
-    if (pass.generate) {
-        code_generate(&code, mod_main);
-    }
 
-    /* print symbols */
-    if (opt->print_symbols) {
-        print_syms(mod_main->scope, opt->print_symbols_all);
-    }
+    if (!parse_error) {
+        /* print tree */
+        if (opt->print_tree) {
+            print_tree(mod_main);
+        }
 
-    /* print bytecode */
-    if (opt->print_bytecode) {
-        print_code(&code, opt->print_bytecode_all);
-    }
+        /* generate bytecode */
+        code_bytecode_init(&code);
+        if (pass.generate) {
+            code_generate(&code, mod_main);
+        }
 
-    /* print stackmap */
-    if (opt->print_stackmap) {
-        print_stackmap(&code);
-    }
+        /* print symbols */
+        if (opt->print_symbols) {
+            print_syms(mod_main->scope, opt->print_symbols_all);
+        }
 
-    /* execute */
-    value_int_t ret = 0;
-    if (pass.execute) {
-        ret = exec_code(&code, args, opt->print_stack);
+        /* print bytecode */
+        if (opt->print_bytecode) {
+            print_code(&code, opt->print_bytecode_all);
+        }
+
+        /* print stackmap */
+        if (opt->print_stackmap) {
+            print_stackmap(&code);
+        }
+
+        /* execute */
+        if (pass.execute) {
+            ret_code = exec_code(&code, args, opt->print_stack);
+        }
     }
 
     /* clean */
@@ -212,5 +218,5 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     parser_type_pool_free();
     data_intern_table_free();
 
-    return ret;
+    return ret_code;
 }
