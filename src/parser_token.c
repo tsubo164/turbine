@@ -903,26 +903,26 @@ static void get_token(struct lexer *l, struct parser_token *tok)
     set(tok, TOK_EOF, l->pos);
 }
 
-static struct parser_token *new_token(int kind)
+static struct parser_token *new_token(int kind, struct parser_token_pool *pool)
 {
     struct parser_token *t;
 
-    t = calloc(1, sizeof(*t));
+    t = data_mem_pool_alloc(&pool->pool);
     t-> kind = kind;
 
     return t;
 }
 
-struct parser_token *parser_tokenize(const char *src, const char *filename)
+struct parser_token *parser_tokenize(const char *src, const char *filename, struct parser_token_pool *pool)
 {
     struct lexer l = {0};
     set_input(&l, src, filename);
 
-    struct parser_token *head = new_token(TOK_ROOT);
+    struct parser_token *head = new_token(TOK_ROOT, pool);
     struct parser_token *tail = head;
 
     while (tail->kind != TOK_EOF) {
-        struct parser_token *tok = new_token(0);
+        struct parser_token *tok = new_token(0, pool);
         get_token(&l, tok);
 
         tail->next = tok;
@@ -933,16 +933,12 @@ struct parser_token *parser_tokenize(const char *src, const char *filename)
     return head;
 }
 
-void parser_free_tokens(struct parser_token *tokens)
+void parser_token_pool_init(struct parser_token_pool *pool)
 {
-    struct parser_token *tok = tokens;
-    struct parser_token *next;
-    /* int i = 0; */
+    data_mem_pool_init(&pool->pool, sizeof(struct parser_token), 256);
+}
 
-    while (tok) {
-        /* printf("[%06d] %s\n", i++, parser_get_token_string(tok->kind)); */
-        next = tok->next;
-        free(tok);
-        tok = next;
-    }
+void parser_token_pool_clear(struct parser_token_pool *pool)
+{
+    data_mem_pool_clear(&pool->pool, NULL);
 }

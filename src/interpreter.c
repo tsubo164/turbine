@@ -113,6 +113,10 @@ static value_int_t exec_code(const struct code_bytecode *code, const struct inte
 value_int_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
+    /* memory pools */
+    struct parser_token_pool token_pool = {0};
+    parser_token_pool_init(&token_pool);
+
     /* string intern */
     data_intern_table_init();
 
@@ -148,7 +152,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     if (setjmp(parse_env) == 0) {
         /* tokenize */
         if (pass.tokenize) {
-            tok = parser_tokenize(text, args->filename);
+            tok = parser_tokenize(text, args->filename, &token_pool);
         }
 
         /* print tokens */
@@ -208,7 +212,6 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
 
     /* clean */
     code_bytecode_clear(&code);
-    parser_free_tokens(tok);
     parser_free_scope(builtin);
 
     builtin_free_modules(&builtin_modules);
@@ -217,6 +220,8 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
 
     parser_type_pool_free();
     data_intern_table_free();
+
+    parser_token_pool_clear(&token_pool);
 
     return ret_code;
 }

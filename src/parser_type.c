@@ -27,11 +27,11 @@ void parser_type_pool_init(void)
 void parser_type_pool_free(void)
 {
     if (true) {
-        data_mem_pool_free(&type_pool, NULL);
+        data_mem_pool_clear(&type_pool, NULL);
     }
     else {
         printf("mem pool type count: %d\n", data_mem_pool_alloc_count(&type_pool));
-        data_mem_pool_free(&type_pool, free_type);
+        data_mem_pool_clear(&type_pool, free_type);
     }
 }
 

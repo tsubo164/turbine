@@ -2649,7 +2649,10 @@ static void module_import(struct parser *p)
         }
 
         /* parse module file */
-        struct parser_token *tok = parser_tokenize(text, module_filename);
+        /* TODO use the same pool from parser */
+        struct parser_token_pool token_pool = {0};
+        parser_token_pool_init(&token_pool);
+        struct parser_token *tok = parser_tokenize(text, module_filename, &token_pool);
         struct parser_source source = {0};
         struct parser_search_path paths;
 
@@ -2659,7 +2662,7 @@ static void module_import(struct parser *p)
 
         /* clean */
         parser_search_path_free(&paths);
-        parser_free_tokens(tok);
+        parser_token_pool_init(&token_pool);
         free(module_filepath);
         free(text);
     } /* file module end */

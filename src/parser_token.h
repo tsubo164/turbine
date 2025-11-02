@@ -2,6 +2,7 @@
 #define PARSER_TOKEN_H
 
 #include "value_types.h"
+#include "data_mem_pool.h"
 #include <stdbool.h>
 
 enum parser_token_kind {
@@ -121,8 +122,14 @@ struct parser_token {
     struct parser_token *next;
 };
 
-struct parser_token *parser_tokenize(const char *src, const char *filename);
+struct parser_token_pool {
+    struct data_mem_pool pool;
+};
+
+struct parser_token *parser_tokenize(const char *src, const char *filename, struct parser_token_pool *pool);
 const char *parser_get_token_string(int kind);
-void parser_free_tokens(struct parser_token *tokens);
+
+void parser_token_pool_init(struct parser_token_pool *pool);
+void parser_token_pool_clear(struct parser_token_pool *pool);
 
 #endif /* _H */

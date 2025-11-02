@@ -16,7 +16,7 @@ struct data_mem_pool {
 };
 
 void data_mem_pool_init(struct data_mem_pool *pool, int obj_size, int capacity);
-void data_mem_pool_free(struct data_mem_pool *pool, void (*free_obj)(void *));
+void data_mem_pool_clear(struct data_mem_pool *pool, void (*free_obj)(void *));
 void *data_mem_pool_alloc(struct data_mem_pool *pool);
 int data_mem_pool_alloc_count(const struct data_mem_pool *pool);
 

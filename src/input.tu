@@ -14,6 +14,7 @@
   return 0
 */
 
+/*
 ## Shape enum
   : tag
   - Line
@@ -32,10 +33,15 @@
   * Circle
     print("* draw circle")
 
-  //* Foo
-  //  print("* draw foo")
+  // * Foo
+  //   print("* draw foo")
 
-  //* others
-  //  print("* others", sh)
+  // * others
+  //   print("* others", sh)
 
+  return 0
+*/
+
+# main(args vec{string}) int
+  - s = "foo
   return 0
