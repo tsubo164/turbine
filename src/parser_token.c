@@ -1,7 +1,7 @@
 #include "parser_token.h"
-#include "parser_limits.h"
 #include "parser_escseq.h"
 #include "parser_error.h"
+#include "lang_limits.h"
 #include "data_intern.h"
 
 #include <assert.h>
@@ -145,7 +145,7 @@ struct lexer {
     const char *filename;
 
     /* indent */
-    int indent_stack[PARSER_MAX_INDENT_DEPTH];
+    int indent_stack[LANG_MAX_INDENT_DEPTH];
     int sp;
     int unread_blockend;
     int grouping_depth;
@@ -228,7 +228,7 @@ static bool eof(const struct lexer *l)
 
 static void push(struct lexer *l, int indent)
 {
-    if (l->sp == PARSER_MAX_INDENT_DEPTH - 1)
+    if (l->sp == LANG_MAX_INDENT_DEPTH - 1)
         error(l, "indent stack overflow");
 
     l->indent_stack[++l->sp] = indent;
@@ -341,7 +341,7 @@ static void validate_underscores(struct lexer *l, const char *name)
 
 static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
 {
-    static char buf[PARSER_MAX_IDENTIFIER_LENGTH + 1] = {'\0'};
+    static char buf[LANG_MAX_IDENTIFIER_LEN + 1] = {'\0'};
     int bufsize = sizeof(buf)/sizeof(buf[0]);
     char *p = buf;
     int len = 0;
@@ -384,7 +384,7 @@ static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_p
 static void scan_string_literal(struct lexer *l, struct parser_token *tok,
         struct parser_pos pos)
 {
-    static char buf[PARSER_MAX_STRING_LITERAL_LENGTH + 1] = {'\0'};
+    static char buf[LANG_MAX_STRING_LITERAL_LEN + 1] = {'\0'};
     int bufsize = sizeof(buf)/sizeof(buf[0]);
     char *dst = buf;
 
@@ -471,7 +471,7 @@ static void scan_block_comment(struct lexer *l, struct parser_pos pos)
     }
 }
 
-static int count_indent(struct lexer *l)
+static int count_spaces(struct lexer *l)
 {
     int indent = 0;
 
@@ -489,12 +489,8 @@ static int count_indent(struct lexer *l)
                 break;
             }
         }
-        else if (ch == ' ' || ch == '\v' || ch == '\f') {
+        else if (ch == ' ') {
             indent++;
-            continue;
-        }
-        else if (ch == '\t') {
-            indent += 4;
             continue;
         }
         else if (ch == '\n') {
@@ -513,11 +509,11 @@ static int count_indent(struct lexer *l)
 
 static int scan_indent(struct lexer *l, struct parser_token *tok)
 {
-    int indent = count_indent(l);
+    int nspaces = count_spaces(l);
 
-    if (indent > top(l)) {
-        /* push indent */
-        push(l, indent);
+    if (nspaces > top(l)) {
+        /* push space count */
+        push(l, nspaces);
         set(tok, TOK_BLOCKBEGIN, l->pos);
 
         /* BlockBegin alwasy starts at beginning of line */
@@ -525,14 +521,14 @@ static int scan_indent(struct lexer *l, struct parser_token *tok)
 
         return tok->kind;
     }
-    else if (indent < top(l)) {
+    else if (nspaces < top(l)) {
         /* pop indents until it matches current */
         l->unread_blockend = 0;
 
-        while (indent < top(l)) {
+        while (nspaces < top(l)) {
             pop(l);
 
-            if (indent == top(l)) {
+            if (nspaces == top(l)) {
                 set(tok, TOK_BLOCKEND, l->pos);
                 return tok->kind;
             }
@@ -540,12 +536,12 @@ static int scan_indent(struct lexer *l, struct parser_token *tok)
             l->unread_blockend++;
         }
 
-        /* no indent matches current */
-        error(l, "mismatch outer indent");
+        /* no space count matches current */
+        error(l, "mismatch outer space count");
         return tok->kind;
     }
     else {
-        /* no indent change */
+        /* no space count change */
         return tok->kind;
     }
 }
@@ -892,8 +888,12 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         }
 
         /* skip */
-        if (ch == ' ' || ch == '\t' || ch == '\v') {
+        if (ch == ' ') {
             continue;
+        }
+
+        if (ch == '\t' || ch == '\v' || ch == '\f') {
+            error(l, "control whitespace not allowed (use spaces only)");
         }
 
         error(l, "unknown token");
