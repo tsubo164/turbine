@@ -2161,6 +2161,28 @@ static struct parser_struct *struct_decl(struct parser *p, const struct parser_t
     return strct;
 }
 
+static void add_enum_value(struct parser_enum *enm, const struct parser_expr *expr)
+{
+    switch (expr->kind) {
+
+    case NOD_EXPR_INTLIT:
+        parser_add_enum_value_int(enm, expr->ival);
+        break;
+
+    case NOD_EXPR_FLOATLIT:
+        parser_add_enum_value_float(enm, expr->fval);
+        break;
+
+    case NOD_EXPR_STRINGLIT:
+        parser_add_enum_value_string(enm, expr->sval);
+        break;
+
+    default:
+        assert("unknown enum value type");
+        break;
+    }
+}
+
 static struct parser_enum *enum_def(struct parser *p, const struct parser_token *ident)
 {
     struct parser_enum *enm = parser_define_enum(p->scope, ident->sval);
@@ -2212,7 +2234,7 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
                 int idx = parser_add_enum_member(enm, expr->sval);
                 assert(idx == y);
 
-                parser_add_enum_value_expr(enm, expr);
+                add_enum_value(enm, expr);
             }
             else {
                 struct parser_expr *expr = primary_expr(p);
@@ -2221,7 +2243,7 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
                 if (y == 0)
                     enm->fields.data[x]->type = expr->type;
 
-                parser_add_enum_value_expr(enm, expr);
+                add_enum_value(enm, expr);
             }
 
             if (x < nfields - 1)

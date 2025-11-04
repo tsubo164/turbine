@@ -101,8 +101,8 @@ struct parser_enum_value {
     };
 };
 
-struct parser_exprvec {
-    struct parser_expr **data;
+struct parser_enum_valuevec {
+    struct parser_enum_value *data;
     int cap;
     int len;
 };
@@ -111,7 +111,7 @@ struct parser_enum {
     const char *name;
     struct data_hashmap members;
     struct parser_enum_fieldvec fields;
-    struct parser_exprvec valueexprs;
+    struct parser_enum_valuevec values;
 
     int member_begin;
     int member_end;
@@ -235,7 +235,9 @@ struct parser_enum_field *parser_find_enum_field(const struct parser_enum *enm, 
 struct parser_enum_field *parser_get_enum_field(const struct parser_enum *enm, int idx);
 int parser_get_enum_field_count(const struct parser_enum *enm);
 
-void parser_add_enum_value_expr(struct parser_enum *enm, struct parser_expr *e);
+void parser_add_enum_value_int(struct parser_enum *enm, value_int_t val);
+void parser_add_enum_value_float(struct parser_enum *enm, value_float_t val);
+void parser_add_enum_value_string(struct parser_enum *enm, const char *val);
 struct parser_enum_value parser_get_enum_value(const struct parser_enum *enm, int x, int y);
 
 /* module */
