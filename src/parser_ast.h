@@ -145,6 +145,12 @@ struct parser_stmt {
     struct parser_stmt *next;
 };
 
+/* node pool */
+struct parser_node_pool {
+    struct data_mem_pool expr_pool;
+    struct data_mem_pool stmt_pool;
+};
+
 /* expr */
 struct parser_expr *parser_new_nillit_expr(void);
 struct parser_expr *parser_new_boollit_expr(bool b);
@@ -275,5 +281,9 @@ bool parser_ast_is_outparam(const struct parser_expr *e);
 
 void parser_free_expr(struct parser_expr *s);
 void parser_free_stmt(struct parser_stmt *s);
+
+/* node pool */
+void parser_node_pool_init(struct parser_node_pool *pool);
+void parser_node_pool_clear(struct parser_node_pool *pool);
 
 #endif /* _H */

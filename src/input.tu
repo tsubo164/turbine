@@ -43,5 +43,5 @@
 */
 
 # main(args vec{string}) int
-  - s = "foo
+  - s = "foo" + 42
   return 0

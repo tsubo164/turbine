@@ -940,3 +940,15 @@ void parser_free_stmt(struct parser_stmt *s)
 
     free(s);
 }
+
+void parser_node_pool_init(struct parser_node_pool *pool)
+{
+    data_mem_pool_init(&pool->expr_pool, sizeof(struct parser_expr), 1024);
+    data_mem_pool_init(&pool->stmt_pool, sizeof(struct parser_stmt), 1024);
+}
+
+void parser_node_pool_clear(struct parser_node_pool *pool)
+{
+    data_mem_pool_clear(&pool->expr_pool, NULL);
+    data_mem_pool_clear(&pool->stmt_pool, NULL);
+}

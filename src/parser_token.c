@@ -935,7 +935,7 @@ struct parser_token *parser_tokenize(const char *src, const char *filename, stru
 
 void parser_token_pool_init(struct parser_token_pool *pool)
 {
-    data_mem_pool_init(&pool->pool, sizeof(struct parser_token), 256);
+    data_mem_pool_init(&pool->pool, sizeof(struct parser_token), 1024);
 }
 
 void parser_token_pool_clear(struct parser_token_pool *pool)
