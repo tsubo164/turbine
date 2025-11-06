@@ -2221,28 +2221,40 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
         for (int x = 0; x < nfields; x++) {
 
             if (x == 0) {
-                /* tag field */
+                /* make tag field */
                 expect(p, TOK_IDENT);
                 const char *name = tok_str(p);
-                struct parser_expr *expr = parser_new_stringlit_expr(name);
                 tag_pos = tok_pos(p);
 
-                if (y == 0)
-                    enm->fields.data[x]->type = expr->type;
+                /* set string type */
+                if (y == 0) {
+                    parser_set_enum_field_type(enm, 0, parser_new_string_type());
+                }
 
-                /* tag to index */
-                int idx = parser_add_enum_member(enm, expr->sval);
+                /* set value */
+                int idx = parser_add_enum_member(enm, name);
                 assert(idx == y);
-
-                add_enum_value(enm, expr);
+                parser_add_enum_value_string(enm, name);
             }
             else {
                 struct parser_expr *expr = primary_expr(p);
                 /* TODO need const calc */
-                /* TODO type check */
-                if (y == 0)
-                    enm->fields.data[x]->type = expr->type;
 
+                if (y == 0) {
+                    /* set type */
+                    parser_set_enum_field_type(enm, x, expr->type);
+                } else {
+                    /* check type */
+                    const struct parser_enum_field *field;
+                    field = parser_get_enum_field(enm, x);
+                    if (!parser_match_type(field->type, expr->type)) {
+                        error(p, tok_pos(p), "type mismatch: field '%s': value '%s'",
+                                parser_type_string(field->type),
+                                parser_type_string(expr->type));
+                    }
+                }
+
+                /* set value */
                 add_enum_value(enm, expr);
             }
 

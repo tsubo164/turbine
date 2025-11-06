@@ -42,6 +42,11 @@
   return 0
 */
 
+## Shape enum
+  : tag,    name
+  - Line,   "Line"
+  - Circle, 3.14
+
 # main(args vec{string}) int
   - s = "foo" + 42
   return 0

@@ -576,6 +576,12 @@ struct parser_enum_field *parser_get_enum_field(const struct parser_enum *enm, i
     return enm->fields.data[idx];
 }
 
+void parser_set_enum_field_type(struct parser_enum *enm, int idx, const struct parser_type *type)
+{
+    assert(idx >= 0 && idx < parser_get_enum_field_count(enm));
+    enm->fields.data[idx]->type = type;
+}
+
 int parser_get_enum_field_count(const struct parser_enum *enm)
 {
     return enm->fields.len;

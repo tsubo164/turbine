@@ -233,6 +233,7 @@ int parser_get_enum_member_count(const struct parser_enum *enm);
 struct parser_enum_field *parser_add_enum_field(struct parser_enum *enm, const char *name);
 struct parser_enum_field *parser_find_enum_field(const struct parser_enum *enm, const char *name);
 struct parser_enum_field *parser_get_enum_field(const struct parser_enum *enm, int idx);
+void parser_set_enum_field_type(struct parser_enum *enm, int idx, const struct parser_type *type);
 int parser_get_enum_field_count(const struct parser_enum *enm);
 
 void parser_add_enum_value_int(struct parser_enum *enm, value_int_t val);
