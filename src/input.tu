@@ -42,11 +42,24 @@
   return 0
 */
 
+/*
+- _S_ = "Shape"
+
 ## Shape enum
   : tag,    name
   - Line,   "Line"
-  - Circle, 3.14
+  - Circle, "Circle"
+  //- Circle, "Circle" + "Shape"//3.14
+  //- Circle, "Circle" + _S_
+*/
 
 # main(args vec{string}) int
-  - s = "foo" + 42
+  //- s = "foo" + 42
+  //- x = 32 + 3 * 2
+  //print(x)
+  //print(Shape.Circle.name)
+
+  if "Hello," == " World!"
+    print("Hello, World!")
+
   return 0

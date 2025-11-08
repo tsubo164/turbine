@@ -111,25 +111,35 @@ const char *parser_node_string(int kind)
 }
 
 /* eval */
-static int updated_kind(int orig_kind, int new_kind)
+static void fold_kind(struct parser_expr *e)
 {
-    switch (orig_kind) {
+    /* save */
+    e->kind_orig = e->kind;
+
+    /* update */
+    switch (e->kind_orig) {
     case NOD_EXPR_EQ:
     case NOD_EXPR_NEQ:
     case NOD_EXPR_GT:
     case NOD_EXPR_LT:
     case NOD_EXPR_GTE:
     case NOD_EXPR_LTE:
-        return NOD_EXPR_BOOLLIT;
+        /* comparisons fold to bools */
+        /* e.g. "foo" == "bar" -> bool */
+        e->kind = NOD_EXPR_BOOLLIT;
+        break;
+
     default:
-        return new_kind;
+        /* arithmetic folds to operand type */
+        /* e.g. 3 + 5 -> int */
+        e->kind = e->l->kind;
+        break;
     }
 }
 
 static void eval_bool(struct parser_expr *e)
 {
-    e->kind_orig = e->kind;
-    e->kind = updated_kind(e->kind, NOD_EXPR_BOOLLIT);
+    fold_kind(e);
 
     switch (e->kind_orig) {
         case NOD_EXPR_LOGNOT: e->ival = !e->l->ival; break;
@@ -140,8 +150,7 @@ static void eval_bool(struct parser_expr *e)
 
 static void eval_int(struct parser_expr *e)
 {
-    e->kind_orig = e->kind;
-    e->kind = updated_kind(e->kind, NOD_EXPR_INTLIT);
+    fold_kind(e);
 
     switch (e->kind_orig) {
         case NOD_EXPR_NEG: e->ival = -1 * e->l->ival; break;
@@ -170,8 +179,7 @@ static void eval_int(struct parser_expr *e)
 
 static void eval_float(struct parser_expr *e)
 {
-    e->kind_orig = e->kind;
-    e->kind = updated_kind(e->kind, NOD_EXPR_FLOATLIT);
+    fold_kind(e);
 
     switch (e->kind_orig) {
         case NOD_EXPR_NEG: e->fval = -1 * e->l->fval; break;
@@ -207,8 +215,7 @@ static const char *cats(const char *s1, const char *s2)
 
 static void eval_string(struct parser_expr *e)
 {
-    e->kind_orig = e->kind;
-    e->kind = updated_kind(e->kind, NOD_EXPR_STRINGLIT);
+    fold_kind(e);
 
     switch (e->kind_orig) {
         case NOD_EXPR_ADD: e->sval = cats(e->l->sval, e->r->sval); break;
@@ -875,6 +882,11 @@ struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parse
 struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r)
 {
     return new_assign_stmt(l, r, NOD_EXPR_XORASSIGN);
+}
+
+bool parser_ast_is_const(const struct parser_expr *e)
+{
+    return e->is_const;
 }
 
 bool parser_ast_is_global(const struct parser_expr *e)

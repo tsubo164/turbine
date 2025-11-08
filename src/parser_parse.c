@@ -2237,8 +2237,11 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
                 parser_add_enum_value_string(enm, name);
             }
             else {
-                struct parser_expr *expr = primary_expr(p);
-                /* TODO need const calc */
+                struct parser_expr *expr = expression(p);
+
+                /* check const expr */
+                if (!parser_ast_is_const(expr))
+                    error(p, tok_pos(p), "enum field value must be a compile-time constant");
 
                 if (y == 0) {
                     /* set type */
