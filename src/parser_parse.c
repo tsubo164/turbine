@@ -1,12 +1,10 @@
 #include "parser_parse.h"
-#include "parser_search_path.h"
 #include "parser_escseq.h"
 #include "parser_symbol.h"
 #include "parser_error.h"
 #include "parser_token.h"
 #include "parser_eval.h"
 #include "parser_type.h"
-#include "parser_ast.h"
 #include "builtin_module.h"
 #include "lang_limits.h"
 #include "data_intern.h"
@@ -40,6 +38,9 @@ struct parser {
     struct parser_stmt *block_tail;
     bool uncond_exe;
     bool uncond_ret;
+
+    /* pool */
+    struct parser_node_pool *node_pool;
 };
 
 static void error(const struct parser *p, struct parser_pos pos, const char *fmt, ...)
@@ -127,7 +128,7 @@ static bool consume(struct parser *p, int kind)
 static struct parser_type *type_spec(struct parser *p);
 static struct parser_expr *expression(struct parser *p);
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
-static struct parser_expr *default_value(const struct parser_type *type);
+static struct parser_expr *default_value(struct parser_node_pool *pool, const struct parser_type *type);
 
 static bool unify_template_types(
         const struct parser_type *param_type, const struct parser_type *arg_type,
@@ -190,7 +191,7 @@ static struct parser_expr *discard_expr(struct parser *p)
     assert(var);
     var->is_discard = true;
 
-    return parser_new_var_expr(var);
+    return parser_new_var_expr(p->node_pool, var);
 }
 
 static struct parser_expr *ident_expr(struct parser *p, bool find_parent);
@@ -234,7 +235,7 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
 
                 ident->var->passed_as_out = true;
                 ident->var->out_pos = arg_pos;
-                arg = arg->next = parser_new_outarg_expr(ident);
+                arg = arg->next = parser_new_outarg_expr(p->node_pool, ident);
             }
             else {
                 if (parser_is_outparam_index(func_sig, param_idx)) {
@@ -276,7 +277,7 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
     /* special */
     if (func_sig->has_special_var) {
         int caller_line = caller_pos.y;
-        arg = arg->next = parser_new_intlit_expr(caller_line);
+        arg = arg->next = parser_new_intlit_expr(p->node_pool, caller_line);
         arg_count++;
     }
 
@@ -307,7 +308,7 @@ static struct parser_expr *conv_expr(struct parser *p)
                 parser_type_string(to_type));
     }
 
-    return parser_new_conversion_expr(expr, to_type);
+    return parser_new_conversion_expr(p->node_pool, expr, to_type);
 }
 
 static struct parser_expr *vec_lit_expr(struct parser *p)
@@ -339,7 +340,7 @@ static struct parser_expr *vec_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_veclit_expr(elem_type, elemhead.next, len);
+    return parser_new_veclit_expr(p->node_pool, elem_type, elemhead.next, len);
 }
 
 static struct parser_expr *map_lit_expr(struct parser *p)
@@ -373,13 +374,13 @@ static struct parser_expr *map_lit_expr(struct parser *p)
                     parser_type_string(val->type));
         }
 
-        elem = elem->next = parser_new_element_expr(key, val);
+        elem = elem->next = parser_new_element_expr(p->node_pool, key, val);
         len++;
     }
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_maplit_expr(elem_type, elemhead.next, len);
+    return parser_new_maplit_expr(p->node_pool, elem_type, elemhead.next, len);
 }
 
 static struct parser_expr *set_lit_expr(struct parser *p)
@@ -411,7 +412,7 @@ static struct parser_expr *set_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_setlit_expr(elem_type, elemhead.next, len);
+    return parser_new_setlit_expr(p->node_pool, elem_type, elemhead.next, len);
 }
 
 static struct parser_expr *stack_lit_expr(struct parser *p)
@@ -443,7 +444,7 @@ static struct parser_expr *stack_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_stacklit_expr(elem_type, elemhead.next, len);
+    return parser_new_stacklit_expr(p->node_pool, elem_type, elemhead.next, len);
 }
 
 static struct parser_expr *queue_lit_expr(struct parser *p)
@@ -475,7 +476,7 @@ static struct parser_expr *queue_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_queuelit_expr(elem_type, elemhead.next, len);
+    return parser_new_queuelit_expr(p->node_pool, elem_type, elemhead.next, len);
 }
 
 static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbol *sym)
@@ -498,7 +499,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
 
             expect(p, TOK_EQUAL);
 
-            struct parser_expr *fld = parser_new_struct_field_expr(field);
+            struct parser_expr *fld = parser_new_struct_field_expr(p->node_pool, field);
             struct parser_expr *val = expression(p);
 
             if (!parser_match_type(fld->type, val->type)) {
@@ -506,7 +507,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
                         parser_type_string(fld->type), parser_type_string(val->type));
             }
 
-            elem = elem->next = parser_new_element_expr(fld, val);
+            elem = elem->next = parser_new_element_expr(p->node_pool, fld, val);
         }
         while (consume(p, TOK_COMMA));
 
@@ -534,16 +535,16 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
                 continue;
             }
 
-            struct parser_expr *fld = parser_new_struct_field_expr(field);
-            struct parser_expr *val = default_value(field->type);
-            dflt = dflt->next = parser_new_element_expr(fld, val);
+            struct parser_expr *fld = parser_new_struct_field_expr(p->node_pool, field);
+            struct parser_expr *val = default_value(p->node_pool, field->type);
+            dflt = dflt->next = parser_new_element_expr(p->node_pool, fld, val);
         }
 
         elem = elem->next = dflthead.next;
     }
 
     expect(p, TOK_RBRACE);
-    return parser_new_structlit_expr(sym->type, elemhead.next);
+    return parser_new_structlit_expr(p->node_pool, sym->type, elemhead.next);
 }
 
 static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol *sym)
@@ -559,7 +560,7 @@ static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol 
                 "no member named '%s' in enum '%s'", tok_str(p), enm->name);
     }
 
-    return parser_new_enumlit_expr(sym->type, index);
+    return parser_new_enumlit_expr(p->node_pool, sym->type, index);
 }
 
 static struct parser_expr *string_lit_expr(struct parser *p)
@@ -567,7 +568,7 @@ static struct parser_expr *string_lit_expr(struct parser *p)
     struct parser_expr *expr;
 
     expect(p, TOK_STRINGLIT);
-    expr = parser_new_stringlit_expr(tok_str(p));
+    expr = parser_new_stringlit_expr(p->node_pool, tok_str(p));
 
     return expr;
 }
@@ -585,7 +586,7 @@ static struct parser_expr *caller_line_expr(struct parser *p)
                 tok_str(p));
     }
 
-    return parser_new_var_expr(sym->var);
+    return parser_new_var_expr(p->node_pool, sym->var);
 }
 
 static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
@@ -604,7 +605,7 @@ static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
     }
 
     if (sym->kind == SYM_FUNC) {
-        expr = parser_new_funclit_expr(sym->type, sym->func);
+        expr = parser_new_funclit_expr(p->node_pool, sym->type, sym->func);
     }
     else if (sym->kind == SYM_STRUCT) {
         expr = struct_lit_expr(p, sym);
@@ -613,10 +614,10 @@ static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
         expr = enum_lit_expr(p, sym);
     }
     else if (sym->kind == SYM_MODULE) {
-        expr = parser_new_modulelit_expr(sym->type);
+        expr = parser_new_modulelit_expr(p->node_pool, sym->type);
     }
     else if (sym->kind == SYM_VAR) {
-        expr = parser_new_var_expr(sym->var);
+        expr = parser_new_var_expr(p->node_pool, sym->var);
     }
     else {
         printf("unknown identifier kind: %d\n", sym->kind);
@@ -641,23 +642,23 @@ static struct parser_expr *primary_expr(struct parser *p)
 
     case TOK_NIL:
         gettok(p);
-        return parser_new_nillit_expr();
+        return parser_new_nillit_expr(p->node_pool);
 
     case TOK_TRUE:
         gettok(p);
-        return parser_new_boollit_expr(true);
+        return parser_new_boollit_expr(p->node_pool, true);
 
     case TOK_FALSE:
         gettok(p);
-        return parser_new_boollit_expr(false);
+        return parser_new_boollit_expr(p->node_pool, false);
 
     case TOK_INTLIT:
         gettok(p);
-        return parser_new_intlit_expr(tok_int(p));
+        return parser_new_intlit_expr(p->node_pool, tok_int(p));
 
     case TOK_FLOATLIT:
         gettok(p);
-        return parser_new_floatlit_expr(tok_float(p));
+        return parser_new_floatlit_expr(p->node_pool, tok_float(p));
 
     case TOK_STRINGLIT:
         return string_lit_expr(p);
@@ -708,7 +709,7 @@ static struct parser_expr *primary_expr(struct parser *p)
     }
 }
 
-static struct parser_expr *add_packed_type_info(struct parser_expr *args, int *argc)
+static struct parser_expr *add_packed_type_info(struct parser_node_pool *pool, struct parser_expr *args, int *argc)
 {
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
     struct parser_expr *arg;
@@ -719,7 +720,7 @@ static struct parser_expr *add_packed_type_info(struct parser_expr *args, int *a
     }
 
     const char *typelist = sbuf.data ? sbuf.data : "";
-    fmt = parser_new_stringlit_expr(data_string_intern(typelist));
+    fmt = parser_new_stringlit_expr(pool, data_string_intern(typelist));
     data_strbuf_free(&sbuf);
 
     fmt->next = args;
@@ -810,15 +811,15 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
         validate_format_string(p, args);
     }
     if (parser_require_type_sequence(func_sig)) {
-        args = add_packed_type_info(args, &argc);
+        args = add_packed_type_info(p->node_pool, args, &argc);
     }
     if (func_sig->is_variadic) {
-        struct parser_expr *e = parser_new_intlit_expr(argc);
+        struct parser_expr *e = parser_new_intlit_expr(p->node_pool, argc);
         e->next = args;
         args = e;
     }
 
-    call = parser_new_call_expr(base, args);
+    call = parser_new_call_expr(p->node_pool, base, args);
 
     if (func_sig->has_template_return_type) {
         int id = func_sig->return_type->template_id;
@@ -846,7 +847,8 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
             error(p, tok_pos(p), "no field named '%s' in struct '%s'",
                     tok_str(p), strct->name);
         }
-        return parser_new_struct_access_expr(base, parser_new_struct_field_expr(f));
+        struct parser_expr *field_expr = parser_new_struct_field_expr(p->node_pool, f);
+        return parser_new_struct_access_expr(p->node_pool, base, field_expr);
     }
 
     if (parser_is_enum_type(base->type)) {
@@ -857,14 +859,15 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
             error(p, tok_pos(p),
                     "no member named '%s' in enum '%s'", tok_str(p), enm->name);
         }
-        return parser_new_enum_access_expr(base, parser_new_enum_field_expr(f));
+        struct parser_expr *field_expr = parser_new_enum_field_expr(p->node_pool, f);
+        return parser_new_enum_access_expr(p->node_pool, base, field_expr);
     }
 
     if (parser_is_module_type(base->type)) {
         struct parser_scope *cur = p->scope;
         struct parser_expr *expr;
         p->scope = base->type->module->scope;
-        expr = parser_new_module_access_expr(base, ident_expr(p, false));
+        expr = parser_new_module_access_expr(p->node_pool, base, ident_expr(p, false));
         p->scope = cur;
         return expr;
     }
@@ -899,9 +902,9 @@ static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *b
     struct parser_expr *expr = NULL;
 
     if (parser_is_vec_type(base->type))
-        expr = parser_new_index_expr(base, idx);
+        expr = parser_new_index_expr(p->node_pool, base, idx);
     else if (parser_is_map_type(base->type))
-        expr = parser_new_mapindex_expr(base, idx);
+        expr = parser_new_mapindex_expr(p->node_pool, base, idx);
 
     return expr;
 }
@@ -958,19 +961,19 @@ static struct parser_expr *unary_expr(struct parser *p)
 
     case TOK_PLUS:
         e = unary_expr(p);
-        return parser_new_posi_expr(e);
+        return parser_new_posi_expr(p->node_pool, e);
 
     case TOK_MINUS:
         e = unary_expr(p);
-        return parser_new_nega_expr(e);
+        return parser_new_nega_expr(p->node_pool, e);
 
     case TOK_EXCLAM:
         e = unary_expr(p);
-        return parser_new_lognot_expr(e);
+        return parser_new_lognot_expr(p->node_pool, e);
 
     case TOK_TILDE:
         e = unary_expr(p);
-        return parser_new_not_expr(e);
+        return parser_new_not_expr(p->node_pool, e);
 
     default:
         ungettok(p);
@@ -1024,42 +1027,42 @@ static struct parser_expr *mul_expr(struct parser *p)
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
-            expr = parser_new_mul_expr(expr, r);
+            expr = parser_new_mul_expr(p->node_pool, expr, r);
             break;
 
         case TOK_SLASH:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
-            expr = parser_new_div_expr(expr, r);
+            expr = parser_new_div_expr(p->node_pool, expr, r);
             break;
 
         case TOK_PERCENT:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
-            expr = parser_new_rem_expr(expr, r);
+            expr = parser_new_rem_expr(p->node_pool, expr, r);
             break;
 
         case TOK_AMPERSAND:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_and_expr(expr, r);
+            expr = parser_new_and_expr(p->node_pool, expr, r);
             break;
 
         case TOK_LT2:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_shl_expr(expr, r);
+            expr = parser_new_shl_expr(p->node_pool, expr, r);
             break;
 
         case TOK_GT2:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_shr_expr(expr, r);
+            expr = parser_new_shr_expr(p->node_pool, expr, r);
             break;
 
         default:
@@ -1088,28 +1091,28 @@ static struct parser_expr *add_expr(struct parser *p)
             r = mul_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_add_expr(expr, r);
+            expr = parser_new_add_expr(p->node_pool, expr, r);
             break;
 
         case TOK_MINUS:
             r = mul_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
-            expr = parser_new_sub_expr(expr, r);
+            expr = parser_new_sub_expr(p->node_pool, expr, r);
             break;
 
         case TOK_VBAR:
             r = mul_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_or_expr(expr, r);
+            expr = parser_new_or_expr(p->node_pool, expr, r);
             break;
 
         case TOK_CARET:
             r = mul_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_xor_expr(expr, r);
+            expr = parser_new_xor_expr(p->node_pool, expr, r);
             break;
 
         default:
@@ -1138,42 +1141,42 @@ static struct parser_expr *rel_expr(struct parser *p)
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING_BOOL_ENUM);
-            expr = parser_new_eq_expr(expr, r);
+            expr = parser_new_eq_expr(p->node_pool, expr, r);
             break;
 
         case TOK_EXCLAMEQ:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING_BOOL_ENUM);
-            expr = parser_new_neq_expr(expr, r);
+            expr = parser_new_neq_expr(p->node_pool, expr, r);
             break;
 
         case TOK_LT:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_lt_expr(expr, r);
+            expr = parser_new_lt_expr(p->node_pool, expr, r);
             break;
 
         case TOK_LTE:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_lte_expr(expr, r);
+            expr = parser_new_lte_expr(p->node_pool, expr, r);
             break;
 
         case TOK_GT:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_gt_expr(expr, r);
+            expr = parser_new_gt_expr(p->node_pool, expr, r);
             break;
 
         case TOK_GTE:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_gte_expr(expr, r);
+            expr = parser_new_gte_expr(p->node_pool, expr, r);
             break;
 
         default:
@@ -1196,7 +1199,7 @@ static struct parser_expr *logand_expr(struct parser *p)
         switch (tok->kind) {
 
         case TOK_AMPERSAND2:
-            expr = parser_new_logand_expr(expr, rel_expr(p));
+            expr = parser_new_logand_expr(p->node_pool, expr, rel_expr(p));
             break;
 
         default:
@@ -1219,7 +1222,7 @@ static struct parser_expr *logor_expr(struct parser *p)
         switch (tok->kind) {
 
         case TOK_VBAR2:
-            expr = parser_new_logor_expr(expr, logand_expr(p));
+            expr = parser_new_logor_expr(p->node_pool, expr, logand_expr(p));
             break;
 
         default:
@@ -1314,61 +1317,61 @@ static struct parser_stmt *assign_stmt(struct parser *p)
     case TOK_EQUAL:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_assign_stmt(lval, rval);
+        return parser_new_assign_stmt(p->node_pool, lval, rval);
 
     case TOK_PLUSEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_addassign_stmt(lval, rval);
+        return parser_new_addassign_stmt(p->node_pool, lval, rval);
 
     case TOK_MINUSEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_subassign_stmt(lval, rval);
+        return parser_new_subassign_stmt(p->node_pool, lval, rval);
 
     case TOK_ASTEREQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_mulassign_stmt(lval, rval);
+        return parser_new_mulassign_stmt(p->node_pool, lval, rval);
 
     case TOK_SLASHEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_divassign_stmt(lval, rval);
+        return parser_new_divassign_stmt(p->node_pool, lval, rval);
 
     case TOK_PERCENTEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_remassign_stmt(lval, rval);
+        return parser_new_remassign_stmt(p->node_pool, lval, rval);
 
     case TOK_LT2EQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_shlassign_stmt(lval, rval);
+        return parser_new_shlassign_stmt(p->node_pool, lval, rval);
 
     case TOK_GT2EQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_shrassign_stmt(lval, rval);
+        return parser_new_shrassign_stmt(p->node_pool, lval, rval);
 
     case TOK_VBAREQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_orassign_stmt(lval, rval);
+        return parser_new_orassign_stmt(p->node_pool, lval, rval);
 
     case TOK_CARETEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_xorassign_stmt(lval, rval);
+        return parser_new_xorassign_stmt(p->node_pool, lval, rval);
 
     case TOK_AMPERSANDEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_andassign_stmt(lval, rval);
+        return parser_new_andassign_stmt(p->node_pool, lval, rval);
 
     default:
         ungettok(p);
-        return parser_new_expr_stmt(lval);
+        return parser_new_expr_stmt(p->node_pool, lval);
     }
 }
 
@@ -1391,7 +1394,7 @@ static struct parser_stmt *cond_clause(struct parser *p, struct parser_expr *con
     expect(p, TOK_NEWLINE);
     body = block_stmt(p, new_child_scope(p));
 
-    return parser_new_else_stmt(cond, body);
+    return parser_new_else_stmt(p->node_pool, cond, body);
 }
 
 static struct parser_stmt *if_stmt(struct parser *p)
@@ -1425,7 +1428,7 @@ static struct parser_stmt *if_stmt(struct parser *p)
 
     p->uncond_exe = uncond_exe;
     p->uncond_ret = uncond_ret;
-    return parser_new_if_stmt(head.next);
+    return parser_new_if_stmt(p->node_pool, head.next);
 }
 
 struct loop_var {
@@ -1482,7 +1485,7 @@ static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *bl
     if (consume(p, TOK_COMMA))
         step = expression(p);
     else
-        step = parser_new_intlit_expr(1);
+        step = parser_new_intlit_expr(p->node_pool, 1);
 
     collection->next = stop;
     stop->next = step;
@@ -1502,10 +1505,10 @@ static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *bl
     };
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(var);
+    iter = parser_new_var_expr(p->node_pool, var);
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_fornum_stmt(iter, collection, body);
+    return parser_new_fornum_stmt(p->node_pool, iter, collection, body);
 }
 
 static struct parser_stmt *forvec_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1534,10 +1537,10 @@ static struct parser_stmt *forvec_stmt(struct parser *p, struct parser_scope *bl
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(var);
+    iter = parser_new_var_expr(p->node_pool, var);
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forvec_stmt(iter, collection, body);
+    return parser_new_forvec_stmt(p->node_pool, iter, collection, body);
 }
 
 static struct parser_stmt *formap_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1567,10 +1570,10 @@ static struct parser_stmt *formap_stmt(struct parser *p, struct parser_scope *bl
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(var);
+    iter = parser_new_var_expr(p->node_pool, var);
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_formap_stmt(iter, collection, body);
+    return parser_new_formap_stmt(p->node_pool, iter, collection, body);
 }
 
 static struct parser_stmt *forset_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1595,10 +1598,10 @@ static struct parser_stmt *forset_stmt(struct parser *p, struct parser_scope *bl
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(var);
+    iter = parser_new_var_expr(p->node_pool, var);
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forset_stmt(iter, collection, body);
+    return parser_new_forset_stmt(p->node_pool, iter, collection, body);
 }
 
 static struct parser_stmt *forstack_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1623,10 +1626,10 @@ static struct parser_stmt *forstack_stmt(struct parser *p, struct parser_scope *
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(var);
+    iter = parser_new_var_expr(p->node_pool, var);
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forstack_stmt(iter, collection, body);
+    return parser_new_forstack_stmt(p->node_pool, iter, collection, body);
 }
 
 static struct parser_stmt *forqueue_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1651,10 +1654,10 @@ static struct parser_stmt *forqueue_stmt(struct parser *p, struct parser_scope *
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(var);
+    iter = parser_new_var_expr(p->node_pool, var);
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forqueue_stmt(iter, collection, body);
+    return parser_new_forqueue_stmt(p->node_pool, iter, collection, body);
 }
 
 static struct parser_stmt *forenum_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1678,10 +1681,10 @@ static struct parser_stmt *forenum_stmt(struct parser *p, struct parser_scope *b
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(var);
+    iter = parser_new_var_expr(p->node_pool, var);
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forenum_stmt(iter, collection, body);
+    return parser_new_forenum_stmt(p->node_pool, iter, collection, body);
 }
 
 /*
@@ -1712,7 +1715,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         struct parser_symbol *sym;
         sym = parser_find_symbol(p->scope, tok_str(p));
         if (sym->kind == SYM_ENUM) {
-            collection = parser_new_enumlit_expr(sym->type, 0);
+            collection = parser_new_enumlit_expr(p->node_pool, sym->type, 0);
         }
         else {
             ungettok(p);
@@ -1771,21 +1774,21 @@ static struct parser_stmt *while_stmt(struct parser *p)
     body = block_stmt(p, new_child_scope(p));
 
     p->uncond_exe = uncond_exe;
-    return parser_new_while_stmt(cond, body);
+    return parser_new_while_stmt(p->node_pool, cond, body);
 }
 
 static struct parser_stmt *break_stmt(struct parser *p)
 {
     gettok(p);
     expect(p, TOK_NEWLINE);
-    return parser_new_break_stmt();
+    return parser_new_break_stmt(p->node_pool);
 }
 
 static struct parser_stmt *continue_stmt(struct parser *p)
 {
     gettok(p);
     expect(p, TOK_NEWLINE);
-    return parser_new_continue_stmt();
+    return parser_new_continue_stmt(p->node_pool);
 }
 
 static struct parser_stmt *case_stmt(struct parser *p, const struct parser_type *enum_type,
@@ -1803,13 +1806,13 @@ static struct parser_stmt *case_stmt(struct parser *p, const struct parser_type 
                 "no member named '%s' in enum '%s'", tok_str(p), enm->name);
     }
 
-    member = parser_new_enumlit_expr(enum_type, index);
+    member = parser_new_enumlit_expr(p->node_pool, enum_type, index);
     *member_index = index;
 
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    return parser_new_case_stmt(member, body);
+    return parser_new_case_stmt(p->node_pool, member, body);
 }
 
 static struct parser_stmt *others_stmt(struct parser *p)
@@ -1817,7 +1820,7 @@ static struct parser_stmt *others_stmt(struct parser *p)
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    return parser_new_others_stmt(body);
+    return parser_new_others_stmt(p->node_pool, body);
 }
 
 static void semantic_check_switch_exhaustiveness(struct parser *p,
@@ -1927,7 +1930,7 @@ static struct parser_stmt *switch_stmt(struct parser *p)
 
     p->uncond_exe = uncond_exe;
     p->uncond_ret = uncond_ret;
-    return parser_new_switch_stmt(expr, head.next);
+    return parser_new_switch_stmt(p->node_pool, expr, head.next);
 }
 
 static struct parser_stmt *return_stmt(struct parser *p)
@@ -1955,7 +1958,7 @@ static struct parser_stmt *return_stmt(struct parser *p)
     }
 
     p->uncond_ret = true;
-    return parser_new_return_stmt(expr);
+    return parser_new_return_stmt(p->node_pool, expr);
 }
 
 static struct parser_stmt *expr_stmt(struct parser *p)
@@ -1978,13 +1981,13 @@ static struct parser_stmt *nop_stmt(struct parser *p)
 {
     expect(p, TOK_NOP);
 
-    struct parser_stmt *s = parser_new_nop_stmt();
+    struct parser_stmt *s = parser_new_nop_stmt(p->node_pool);
     expect(p, TOK_NEWLINE);
 
     return s;
 }
 
-static struct parser_expr *default_struct_lit(const struct parser_type *type)
+static struct parser_expr *default_struct_lit(struct parser_node_pool *pool, const struct parser_type *type)
 {
     const struct parser_struct *strct = type->strct;
     struct parser_expr elemhead = {0};
@@ -1995,68 +1998,68 @@ static struct parser_expr *default_struct_lit(const struct parser_type *type)
         struct parser_struct_field *field = parser_get_struct_field(strct, i);
 
         if (parser_is_vec_type(field->type)) {
-            struct parser_expr *f = parser_new_struct_field_expr(field);
-            struct parser_expr *e = parser_new_veclit_expr(field->type->underlying,
+            struct parser_expr *f = parser_new_struct_field_expr(pool, field);
+            struct parser_expr *e = parser_new_veclit_expr(pool, field->type->underlying,
                     NULL, 0);
-            elem = elem->next = parser_new_element_expr(f, e);
+            elem = elem->next = parser_new_element_expr(pool, f, e);
             continue;
         }
 
         if (parser_is_struct_type(field->type)) {
-            struct parser_expr *f = parser_new_struct_field_expr(field);
-            struct parser_expr *e = default_struct_lit(field->type);
-            elem = elem->next = parser_new_element_expr(f, e);
+            struct parser_expr *f = parser_new_struct_field_expr(pool, field);
+            struct parser_expr *e = default_struct_lit(pool, field->type);
+            elem = elem->next = parser_new_element_expr(pool, f, e);
             continue;
         }
     }
 
-    return parser_new_structlit_expr(type, elemhead.next);
+    return parser_new_structlit_expr(pool, type, elemhead.next);
 }
 
-static struct parser_expr *default_value(const struct parser_type *type)
+static struct parser_expr *default_value(struct parser_node_pool *pool, const struct parser_type *type)
 {
     switch ((enum parser_type_kind) type->kind) {
 
     case TYP_NIL:
-        return parser_new_nillit_expr();
+        return parser_new_nillit_expr(pool);
 
     case TYP_BOOL:
-        return parser_new_boollit_expr(false);
+        return parser_new_boollit_expr(pool, false);
 
     case TYP_INT:
-        return parser_new_intlit_expr(0);
+        return parser_new_intlit_expr(pool, 0);
 
     case TYP_FLOAT:
-        return parser_new_floatlit_expr(0.0);
+        return parser_new_floatlit_expr(pool, 0.0);
 
     case TYP_STRING:
-        return parser_new_stringlit_expr("");
+        return parser_new_stringlit_expr(pool, "");
 
     case TYP_VEC:
-        return parser_new_veclit_expr(type->underlying, NULL, 0);
+        return parser_new_veclit_expr(pool, type->underlying, NULL, 0);
 
     case TYP_MAP:
-        return parser_new_maplit_expr(type->underlying, NULL, 0);
+        return parser_new_maplit_expr(pool, type->underlying, NULL, 0);
 
     case TYP_SET:
-        return parser_new_setlit_expr(type->underlying, NULL, 0);
+        return parser_new_setlit_expr(pool, type->underlying, NULL, 0);
 
     case TYP_STACK:
-        return parser_new_stacklit_expr(type->underlying, NULL, 0);
+        return parser_new_stacklit_expr(pool, type->underlying, NULL, 0);
 
     case TYP_QUEUE:
-        return parser_new_queuelit_expr(type->underlying, NULL, 0);
+        return parser_new_queuelit_expr(pool, type->underlying, NULL, 0);
 
     case TYP_STRUCT:
-        return default_struct_lit(type);
+        return default_struct_lit(pool, type);
 
     case TYP_ENUM:
-        return parser_new_enumlit_expr(type, 0);
+        return parser_new_enumlit_expr(pool, type, 0);
 
     case TYP_FUNC:
     case TYP_MODULE:
         /* TODO */
-        return parser_new_nillit_expr();
+        return parser_new_nillit_expr(pool);
 
     case TYP_ANY:
     case TYP_TEMPLATE:
@@ -2107,7 +2110,7 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
         }
         else {
             /* "- x int" */
-            init = default_value(type);
+            init = default_value(p->node_pool, type);
         }
 
         if (!parser_match_type(type, init->type)) {
@@ -2125,10 +2128,10 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
         error(p, ident_pos, "re-defined identifier: '%s'", name);
 
     /* var expr */
-    struct parser_expr *expr = parser_new_var_expr(var);
+    struct parser_expr *expr = parser_new_var_expr(p->node_pool, var);
     semantic_check_assign_stmt(p, init_pos, expr, init);
 
-    return parser_new_init_stmt(expr, init);
+    return parser_new_init_stmt(p->node_pool, expr, init);
 }
 
 static void field_list(struct parser *p, struct parser_struct *strct)
@@ -2391,7 +2394,7 @@ static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *blo
     p->scope = p->scope->parent;
     expect(p, TOK_BLOCKEND);
 
-    return parser_new_block_stmt(head.next);
+    return parser_new_block_stmt(p->node_pool, head.next);
 }
 
 static bool is_primitive(const struct parser_type *type)
@@ -2579,8 +2582,8 @@ static void validate_return_stmt(struct parser *p, const struct parser_func *fun
 
     const struct parser_type *ret_type = func->sig->return_type;
     if (parser_is_nil_type(ret_type)) {
-        struct parser_expr *dflt_val = default_value(ret_type);
-        p->block_tail->next = parser_new_return_stmt(dflt_val);
+        struct parser_expr *dflt_val = default_value(p->node_pool, ret_type);
+        p->block_tail->next = parser_new_return_stmt(p->node_pool, dflt_val);
         return;
     }
 
@@ -2695,11 +2698,11 @@ static void module_import(struct parser *p)
 
         parser_source_init(&source, text, module_filename, modulename);
         parser_search_path_init(&paths, p->paths->filedir);
-        parser_parse(tok, p->scope, &source, &paths);
+        parser_parse(tok, p->scope, &source, &paths, p->node_pool);
 
         /* clean */
         parser_search_path_free(&paths);
-        parser_token_pool_init(&token_pool);
+        parser_token_pool_clear(&token_pool);
         free(module_filepath);
         free(text);
     } /* file module end */
@@ -2759,7 +2762,8 @@ static void program(struct parser *p)
 struct parser_module *parser_parse(const struct parser_token *tok,
         struct parser_scope *scope,
         const struct parser_source *source,
-        const struct parser_search_path *paths)
+        const struct parser_search_path *paths,
+        struct parser_node_pool *node_pool)
 {
     struct parser_module *mod;
     mod = parser_define_module(scope, source->filename, source->modulename);
@@ -2772,6 +2776,7 @@ struct parser_module *parser_parse(const struct parser_token *tok,
     p.source = source;
     p.module = mod;
     p.paths = paths;
+    p.node_pool = node_pool;
 
     program(&p);
 

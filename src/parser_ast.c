@@ -249,14 +249,14 @@ static void eval(struct parser_expr *e)
 }
 
 /* new node */
-static struct parser_expr *new_expr(int kind)
+static struct parser_expr *new_expr(struct parser_node_pool *p, int kind)
 {
     struct parser_expr *e = calloc(1, sizeof(struct parser_expr));
     e->kind = kind;
     return e;
 }
 
-static struct parser_stmt *new_stmt(int kind)
+static struct parser_stmt *new_stmt(struct parser_node_pool *p, int kind)
 {
     struct parser_stmt *s = calloc(1, sizeof(struct parser_stmt));
     s->kind = kind;
@@ -264,242 +264,254 @@ static struct parser_stmt *new_stmt(int kind)
 }
 
 /* expr */
-struct parser_expr *parser_new_nillit_expr(void)
+struct parser_expr *parser_new_nillit_expr(struct parser_node_pool *p)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_NILLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_NILLIT);
     e->type = parser_new_nil_type();
     return e;
 }
 
-struct parser_expr *parser_new_boollit_expr(bool b)
+struct parser_expr *parser_new_boollit_expr(struct parser_node_pool *p, bool b)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_BOOLLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_BOOLLIT);
     e->type = parser_new_bool_type();
     e->ival = b;
     e->is_const = true;
     return e;
 }
 
-struct parser_expr *parser_new_intlit_expr(long l)
+struct parser_expr *parser_new_intlit_expr(struct parser_node_pool *p, long l)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_INTLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_INTLIT);
     e->type = parser_new_int_type();
     e->ival = l;
     e->is_const = true;
     return e;
 }
 
-struct parser_expr *parser_new_floatlit_expr(double d)
+struct parser_expr *parser_new_floatlit_expr(struct parser_node_pool *p, double d)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_FLOATLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_FLOATLIT);
     e->type = parser_new_float_type();
     e->fval = d;
     e->is_const = true;
     return e;
 }
 
-struct parser_expr *parser_new_stringlit_expr(const char *s)
+struct parser_expr *parser_new_stringlit_expr(struct parser_node_pool *p, const char *s)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_STRINGLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_STRINGLIT);
     e->type = parser_new_string_type();
     e->sval = s;
     e->is_const = true;
     return e;
 }
 
-struct parser_expr *parser_new_funclit_expr(const struct parser_type *func_type,
-        struct parser_func *func)
+struct parser_expr *parser_new_funclit_expr(struct parser_node_pool *p,
+        const struct parser_type *func_type, struct parser_func *func)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_FUNCLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_FUNCLIT);
     e->type = func_type;
     e->func = func;
     return e;
 }
 
-struct parser_expr *parser_new_veclit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len)
+struct parser_expr *parser_new_veclit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_VECLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_VECLIT);
     e->type = parser_new_vec_type(elem_type);
-    e->l = parser_new_intlit_expr(len);
+    e->l = parser_new_intlit_expr(p, len);
     e->r = elems;
     return e;
 }
 
-struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len)
+struct parser_expr *parser_new_maplit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_MAPLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_MAPLIT);
     e->type = parser_new_map_type(elem_type);
-    e->l = parser_new_intlit_expr(len);
+    e->l = parser_new_intlit_expr(p, len);
     e->r = elems;
     return e;
 }
 
-struct parser_expr *parser_new_setlit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len)
+struct parser_expr *parser_new_setlit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_SETLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_SETLIT);
     e->type = parser_new_set_type(elem_type);
-    e->l = parser_new_intlit_expr(len);
+    e->l = parser_new_intlit_expr(p, len);
     e->r = elems;
     return e;
 }
 
-struct parser_expr *parser_new_stacklit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len)
+struct parser_expr *parser_new_stacklit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_STACKLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_STACKLIT);
     e->type = parser_new_stack_type(elem_type);
-    e->l = parser_new_intlit_expr(len);
+    e->l = parser_new_intlit_expr(p, len);
     e->r = elems;
     return e;
 }
 
-struct parser_expr *parser_new_queuelit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len)
+struct parser_expr *parser_new_queuelit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_QUEUELIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_QUEUELIT);
     e->type = parser_new_queue_type(elem_type);
-    e->l = parser_new_intlit_expr(len);
+    e->l = parser_new_intlit_expr(p, len);
     e->r = elems;
     return e;
 }
 
-struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_type,
-        struct parser_expr *fields)
+struct parser_expr *parser_new_structlit_expr(struct parser_node_pool *p,
+        const struct parser_type *struct_type, struct parser_expr *fields)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_STRUCTLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_STRUCTLIT);
     e->type = struct_type;
     e->l = fields;
     return e;
 }
 
-struct parser_expr *parser_new_enumlit_expr(const struct parser_type *enum_type,
-        int member_idx)
+struct parser_expr *parser_new_enumlit_expr(struct parser_node_pool *p,
+        const struct parser_type *enum_type, int member_idx)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_ENUMLIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_ENUMLIT);
     e->type = enum_type;
     e->ival = member_idx;
     return e;
 }
 
-struct parser_expr *parser_new_modulelit_expr(const struct parser_type *module_type)
+struct parser_expr *parser_new_modulelit_expr(struct parser_node_pool *p,
+        const struct parser_type *module_type)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_MODULELIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_MODULELIT);
     e->type = module_type;
     return e;
 }
 
-struct parser_expr *parser_new_conversion_expr(struct parser_expr *from, struct parser_type *to)
+struct parser_expr *parser_new_conversion_expr(struct parser_node_pool *p,
+        struct parser_expr *from, struct parser_type *to)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_CONV);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_CONV);
     e->type = to;
     e->l = from;
     return e;
 }
 
-struct parser_expr *parser_new_outarg_expr(struct parser_expr *arg)
+struct parser_expr *parser_new_outarg_expr(struct parser_node_pool *p,
+        struct parser_expr *arg)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_OUTARG);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_OUTARG);
     e->type = arg->type;
     e->l = arg;
     return e;
 }
 
 /* access */
-struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx)
+struct parser_expr *parser_new_index_expr(struct parser_node_pool *p,
+        struct parser_expr *ary, struct parser_expr *idx)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_INDEX);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_INDEX);
     e->type = ary->type->underlying;
     e->l = ary;
     e->r = idx;
     return e;
 }
 
-struct parser_expr *parser_new_mapindex_expr(struct parser_expr *map, struct parser_expr *key)
+struct parser_expr *parser_new_mapindex_expr(struct parser_node_pool *p,
+        struct parser_expr *map, struct parser_expr *key)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_MAPINDEX);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_MAPINDEX);
     e->type = map->type->underlying;
     e->l = map;
     e->r = key;
     return e;
 }
 
-struct parser_expr *parser_new_struct_access_expr(struct parser_expr *inst, struct parser_expr *fld)
+struct parser_expr *parser_new_struct_access_expr(struct parser_node_pool *p,
+        struct parser_expr *inst, struct parser_expr *fld)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_STRUCTACCESS);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_STRUCTACCESS);
     e->type = fld->type;
     e->l = inst;
     e->r = fld;
     return e;
 }
 
-struct parser_expr *parser_new_enum_access_expr(struct parser_expr *enm,
-        struct parser_expr *fld)
+struct parser_expr *parser_new_enum_access_expr(struct parser_node_pool *p,
+        struct parser_expr *enm, struct parser_expr *fld)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_ENUMACCESS);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_ENUMACCESS);
     e->type = fld->type;
     e->l = enm;
     e->r = fld;
     return e;
 }
 
-struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
-        struct parser_expr *member)
+struct parser_expr *parser_new_module_access_expr(struct parser_node_pool *p,
+        struct parser_expr *mod, struct parser_expr *member)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_MODULEACCESS);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_MODULEACCESS);
     e->type = member->type;
     e->l = mod;
     e->r = member;
     return e;
 }
 
-struct parser_expr *parser_new_var_expr(struct parser_var *v)
+struct parser_expr *parser_new_var_expr(struct parser_node_pool *p,
+        struct parser_var *v)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_VAR);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_VAR);
     e->type = v->type;
     e->var = v;
     return e;
 }
 
-struct parser_expr *parser_new_struct_field_expr(struct parser_struct_field *f)
+struct parser_expr *parser_new_struct_field_expr(struct parser_node_pool *p,
+        struct parser_struct_field *f)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_STRUCTFIELD);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_STRUCTFIELD);
     e->type = f->type;
     e->struct_field = f;
     return e;
 }
 
-struct parser_expr *parser_new_enum_field_expr(struct parser_enum_field *f)
+struct parser_expr *parser_new_enum_field_expr(struct parser_node_pool *p,
+        struct parser_enum_field *f)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_ENUMFIELD);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_ENUMFIELD);
     e->type = f->type;
     e->enum_field = f;
     return e;
 }
 
-struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args)
+struct parser_expr *parser_new_call_expr(struct parser_node_pool *p,
+        struct parser_expr *callee, struct parser_expr *args)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_CALL);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_CALL);
     e->type = callee->type->func_sig->return_type;
     e->l = callee;
     e->r = args;
     return e;
 }
 
-struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val)
+struct parser_expr *parser_new_element_expr(struct parser_node_pool *p,
+        struct parser_expr *key, struct parser_expr *val)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_ELEMENT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_ELEMENT);
     e->type = val->type;
     e->l = key;
     e->r = val;
     return e;
 }
 
-static struct parser_expr *new_unary_expr(struct parser_expr *l, int kind)
+static struct parser_expr *new_unary_expr(struct parser_node_pool *p,
+        struct parser_expr *l, int kind)
 {
-    struct parser_expr *e = new_expr(kind);
+    struct parser_expr *e = new_expr(p, kind);
     e->type = l->type;
     e->l = l;
     e->is_const = e->l->is_const;
@@ -510,30 +522,34 @@ static struct parser_expr *new_unary_expr(struct parser_expr *l, int kind)
     return e;
 }
 
-struct parser_expr *parser_new_posi_expr(struct parser_expr *l)
+struct parser_expr *parser_new_posi_expr(struct parser_node_pool *p,
+        struct parser_expr *l)
 {
-    return new_unary_expr(l, NOD_EXPR_POS);
+    return new_unary_expr(p, l, NOD_EXPR_POS);
 }
 
-struct parser_expr *parser_new_nega_expr(struct parser_expr *l)
+struct parser_expr *parser_new_nega_expr(struct parser_node_pool *p,
+        struct parser_expr *l)
 {
-    return new_unary_expr(l, NOD_EXPR_NEG);
+    return new_unary_expr(p, l, NOD_EXPR_NEG);
 }
 
-struct parser_expr *parser_new_lognot_expr(struct parser_expr *l)
+struct parser_expr *parser_new_lognot_expr(struct parser_node_pool *p,
+        struct parser_expr *l)
 {
-    return new_unary_expr(l, NOD_EXPR_LOGNOT);
+    return new_unary_expr(p, l, NOD_EXPR_LOGNOT);
 }
 
-struct parser_expr *parser_new_not_expr(struct parser_expr *l)
+struct parser_expr *parser_new_not_expr(struct parser_node_pool *p,
+        struct parser_expr *l)
 {
-    return new_unary_expr(l, NOD_EXPR_NOT);
+    return new_unary_expr(p, l, NOD_EXPR_NOT);
 }
 
-static struct parser_expr *new_binary_expr(struct parser_expr *l, struct parser_expr *r,
-        int kind)
+static struct parser_expr *new_binary_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r, int kind)
 {
-    struct parser_expr *e = new_expr(kind);
+    struct parser_expr *e = new_expr(p, kind);
     e->type = l->type;
     e->l = l;
     e->r = r;
@@ -545,59 +561,70 @@ static struct parser_expr *new_binary_expr(struct parser_expr *l, struct parser_
     return e;
 }
 
-struct parser_expr *parser_new_add_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_add_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_ADD);
+    return new_binary_expr(p, l, r, NOD_EXPR_ADD);
 }
 
-struct parser_expr *parser_new_sub_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_sub_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_SUB);
+    return new_binary_expr(p, l, r, NOD_EXPR_SUB);
 }
 
-struct parser_expr *parser_new_mul_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_mul_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_MUL);
+    return new_binary_expr(p, l, r, NOD_EXPR_MUL);
 }
 
-struct parser_expr *parser_new_div_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_div_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_DIV);
+    return new_binary_expr(p, l, r, NOD_EXPR_DIV);
 }
 
-struct parser_expr *parser_new_rem_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_rem_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_REM);
+    return new_binary_expr(p, l, r, NOD_EXPR_REM);
 }
 
-struct parser_expr *parser_new_shl_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_shl_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_SHL);
+    return new_binary_expr(p, l, r, NOD_EXPR_SHL);
 }
 
-struct parser_expr *parser_new_shr_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_shr_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_SHR);
+    return new_binary_expr(p, l, r, NOD_EXPR_SHR);
 }
 
-struct parser_expr *parser_new_and_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_and_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_AND);
+    return new_binary_expr(p, l, r, NOD_EXPR_AND);
 }
 
-struct parser_expr *parser_new_or_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_or_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_OR);
+    return new_binary_expr(p, l, r, NOD_EXPR_OR);
 }
 
-struct parser_expr *parser_new_xor_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_xor_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_XOR);
+    return new_binary_expr(p, l, r, NOD_EXPR_XOR);
 }
 
-static struct parser_expr *new_rel_expr(struct parser_expr *l, struct parser_expr *r, int kind)
+static struct parser_expr *new_rel_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r, int kind)
 {
-    struct parser_expr *e = new_expr(kind);
+    struct parser_expr *e = new_expr(p, kind);
     e->type = parser_new_bool_type();
     e->l = l;
     e->r = r;
@@ -609,279 +636,308 @@ static struct parser_expr *new_rel_expr(struct parser_expr *l, struct parser_exp
     return e;
 }
 
-struct parser_expr *parser_new_eq_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_eq_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_rel_expr(l, r, NOD_EXPR_EQ);
+    return new_rel_expr(p, l, r, NOD_EXPR_EQ);
 }
 
-struct parser_expr *parser_new_neq_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_neq_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_rel_expr(l, r, NOD_EXPR_NEQ);
+    return new_rel_expr(p, l, r, NOD_EXPR_NEQ);
 }
 
-struct parser_expr *parser_new_lt_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_lt_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_rel_expr(l, r, NOD_EXPR_LT);
+    return new_rel_expr(p, l, r, NOD_EXPR_LT);
 }
 
-struct parser_expr *parser_new_lte_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_lte_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_rel_expr(l, r, NOD_EXPR_LTE);
+    return new_rel_expr(p, l, r, NOD_EXPR_LTE);
 }
 
-struct parser_expr *parser_new_gt_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_gt_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_rel_expr(l, r, NOD_EXPR_GT);
+    return new_rel_expr(p, l, r, NOD_EXPR_GT);
 }
 
-struct parser_expr *parser_new_gte_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_gte_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_rel_expr(l, r, NOD_EXPR_GTE);
+    return new_rel_expr(p, l, r, NOD_EXPR_GTE);
 }
 
-struct parser_expr *parser_new_logand_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_logand_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_LOGAND);
+    return new_binary_expr(p, l, r, NOD_EXPR_LOGAND);
 }
 
-struct parser_expr *parser_new_logor_expr(struct parser_expr *l, struct parser_expr *r)
+struct parser_expr *parser_new_logor_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_binary_expr(l, r, NOD_EXPR_LOGOR);
+    return new_binary_expr(p, l, r, NOD_EXPR_LOGOR);
 }
 
 /* stmt */
-struct parser_stmt *parser_new_nop_stmt(void)
+struct parser_stmt *parser_new_nop_stmt(struct parser_node_pool *p)
 {
-    return new_stmt(NOD_STMT_NOP);
+    return new_stmt(p, NOD_STMT_NOP);
 }
 
-struct parser_stmt *parser_new_block_stmt(struct parser_stmt *children)
+struct parser_stmt *parser_new_block_stmt(struct parser_node_pool *p,
+        struct parser_stmt *children)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_BLOCK);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_BLOCK);
     s->children = children;
     return s;
 }
 
-struct parser_stmt *parser_new_if_stmt(struct parser_stmt *or_list)
+struct parser_stmt *parser_new_if_stmt(struct parser_node_pool *p,
+        struct parser_stmt *or_list)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_IF);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_IF);
     s->children = or_list;
     return s;
 }
 
-struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser_stmt *body)
+struct parser_stmt *parser_new_else_stmt(struct parser_node_pool *p,
+        struct parser_expr *cond, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_ELSE);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_ELSE);
     s->cond = cond;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_while_stmt(struct parser_expr *cond, struct parser_stmt *body)
+struct parser_stmt *parser_new_while_stmt(struct parser_node_pool *p,
+        struct parser_expr *cond, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_WHILE);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_WHILE);
     s->cond = cond;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_fornum_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body)
+struct parser_stmt *parser_new_fornum_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FORNUM);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_FORNUM);
     s->expr = iter;
     s->cond = collection;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_forvec_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body)
+struct parser_stmt *parser_new_forvec_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FORVEC);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_FORVEC);
     s->expr = iter;
     s->cond = collection;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_formap_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body)
+struct parser_stmt *parser_new_formap_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FORMAP);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_FORMAP);
     s->expr = iter;
     s->cond = collection;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_forset_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body)
+struct parser_stmt *parser_new_forset_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FORSET);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_FORSET);
     s->expr = iter;
     s->cond = collection;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_forstack_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body)
+struct parser_stmt *parser_new_forstack_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FORSTACK);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_FORSTACK);
     s->expr = iter;
     s->cond = collection;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_forqueue_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body)
+struct parser_stmt *parser_new_forqueue_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FORQUEUE);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_FORQUEUE);
     s->expr = iter;
     s->cond = collection;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_forenum_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body)
+struct parser_stmt *parser_new_forenum_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_FORENUM);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_FORENUM);
     s->expr = iter;
     s->cond = collection;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_break_stmt(void)
+struct parser_stmt *parser_new_break_stmt(struct parser_node_pool *p)
 {
-    return new_stmt(NOD_STMT_BREAK);
+    return new_stmt(p, NOD_STMT_BREAK);
 }
 
-struct parser_stmt *parser_new_continue_stmt(void)
+struct parser_stmt *parser_new_continue_stmt(struct parser_node_pool *p)
 {
-    return new_stmt(NOD_STMT_CONTINUE);
+    return new_stmt(p, NOD_STMT_CONTINUE);
 }
 
-struct parser_stmt *parser_new_switch_stmt(struct parser_expr *cond, struct parser_stmt *cases)
+struct parser_stmt *parser_new_switch_stmt(struct parser_node_pool *p,
+        struct parser_expr *cond, struct parser_stmt *cases)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_SWITCH);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_SWITCH);
     s->cond = cond;
     s->children = cases;
     return s;
 }
 
-struct parser_stmt *parser_new_case_stmt(struct parser_expr *cond, struct parser_stmt *body)
+struct parser_stmt *parser_new_case_stmt(struct parser_node_pool *p,
+        struct parser_expr *cond, struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_CASE);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_CASE);
     s->cond = cond;
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_others_stmt(struct parser_stmt *body)
+struct parser_stmt *parser_new_others_stmt(struct parser_node_pool *p,
+        struct parser_stmt *body)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_OTHERS);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_OTHERS);
     s->body = body;
     return s;
 }
 
-struct parser_stmt *parser_new_return_stmt(struct parser_expr *e)
+struct parser_stmt *parser_new_return_stmt(struct parser_node_pool *p,
+        struct parser_expr *e)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_RETURN);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_RETURN);
     s->expr = e;
     return s;
 }
 
-struct parser_stmt *parser_new_expr_stmt(struct parser_expr *e)
+struct parser_stmt *parser_new_expr_stmt(struct parser_node_pool *p,
+        struct parser_expr *e)
 {
-    struct parser_stmt *s = new_stmt(NOD_STMT_EXPR);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_EXPR);
     s->expr = e;
     return s;
 }
 
-struct parser_stmt *parser_new_init_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_init_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    struct parser_expr *e = new_expr(NOD_EXPR_INIT);
+    struct parser_expr *e = new_expr(p, NOD_EXPR_INIT);
     e->type = l->type;
     e->l = l;
     e->r = r;
 
-    struct parser_stmt *s = new_stmt(NOD_STMT_INIT);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_INIT);
     s->expr = e;
 
     return s;
 }
 
-static struct parser_stmt *new_assign_stmt(struct parser_expr *l, struct parser_expr *r,
-        int kind)
+static struct parser_stmt *new_assign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r, int kind)
 {
-    struct parser_expr *e = new_expr(kind);
+    struct parser_expr *e = new_expr(p, kind);
     e->type = l->type;
     e->l = l;
     e->r = r;
 
-    struct parser_stmt *s = new_stmt(NOD_STMT_ASSIGN);
+    struct parser_stmt *s = new_stmt(p, NOD_STMT_ASSIGN);
     s->expr = e;
 
     return s;
 }
 
-struct parser_stmt *parser_new_assign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_assign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_ASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_ASSIGN);
 }
 
-struct parser_stmt *parser_new_addassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_addassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_ADDASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_ADDASSIGN);
 }
 
-struct parser_stmt *parser_new_subassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_subassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_SUBASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_SUBASSIGN);
 }
 
-struct parser_stmt *parser_new_mulassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_mulassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_MULASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_MULASSIGN);
 }
 
-struct parser_stmt *parser_new_divassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_divassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_DIVASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_DIVASSIGN);
 }
 
-struct parser_stmt *parser_new_remassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_remassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_REMASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_REMASSIGN);
 }
 
-struct parser_stmt *parser_new_shlassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_shlassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_SHLASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_SHLASSIGN);
 }
 
-struct parser_stmt *parser_new_shrassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_shrassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_SHRASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_SHRASSIGN);
 }
 
-struct parser_stmt *parser_new_andassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_andassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_ANDASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_ANDASSIGN);
 }
 
-struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_orassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_ORASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_ORASSIGN);
 }
 
-struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r)
+struct parser_stmt *parser_new_xorassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r)
 {
-    return new_assign_stmt(l, r, NOD_EXPR_XORASSIGN);
+    return new_assign_stmt(p, l, r, NOD_EXPR_XORASSIGN);
 }
 
 bool parser_ast_is_const(const struct parser_expr *e)

@@ -53,13 +53,8 @@
   //- Circle, "Circle" + _S_
 */
 
+# foo()
+  nop
+
 # main(args vec{string}) int
-  //- s = "foo" + 42
-  //- x = 32 + 3 * 2
-  //print(x)
-  //print(Shape.Circle.name)
-
-  if "Hello," == " World!"
-    print("Hello, World!")
-
   return 0

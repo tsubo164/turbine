@@ -116,6 +116,8 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     /* memory pools */
     struct parser_token_pool token_pool = {0};
     parser_token_pool_init(&token_pool);
+    struct parser_node_pool node_pool = {0};
+    parser_node_pool_init(&node_pool);
 
     /* string intern */
     data_intern_table_init();
@@ -164,7 +166,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
         if (pass.parse) {
             struct parser_source source = {0};
             parser_source_init(&source, text, args->filename, "_main");
-            mod_main = parser_parse(tok, builtin, &source, &paths);
+            mod_main = parser_parse(tok, builtin, &source, &paths, &node_pool);
             code_resolve_offset(mod_main);
         }
     }
@@ -222,6 +224,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     data_intern_table_free();
 
     parser_token_pool_clear(&token_pool);
+    parser_node_pool_clear(&node_pool);
 
     return ret_code;
 }

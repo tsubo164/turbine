@@ -152,124 +152,176 @@ struct parser_node_pool {
 };
 
 /* expr */
-struct parser_expr *parser_new_nillit_expr(void);
-struct parser_expr *parser_new_boollit_expr(bool b);
-struct parser_expr *parser_new_intlit_expr(long l);
-struct parser_expr *parser_new_floatlit_expr(double d);
-struct parser_expr *parser_new_stringlit_expr(const char *s);
-struct parser_expr *parser_new_funclit_expr(const struct parser_type *func_type,
-        struct parser_func *func);
-struct parser_expr *parser_new_veclit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len);
-struct parser_expr *parser_new_maplit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len);
-struct parser_expr *parser_new_setlit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len);
-struct parser_expr *parser_new_stacklit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len);
-struct parser_expr *parser_new_queuelit_expr(const struct parser_type *elem_type,
-        struct parser_expr *elems, int len);
-struct parser_expr *parser_new_structlit_expr(const struct parser_type *struct_type,
-        struct parser_expr *fields);
-struct parser_expr *parser_new_enumlit_expr(const struct parser_type *enum_type,
-        int member_idx);
-struct parser_expr *parser_new_modulelit_expr(const struct parser_type *module_type);
-struct parser_expr *parser_new_conversion_expr(struct parser_expr *from,
-        struct parser_type *to);
-
-struct parser_expr *parser_new_outarg_expr(struct parser_expr *arg);
+struct parser_expr *parser_new_nillit_expr(struct parser_node_pool *p);
+struct parser_expr *parser_new_boollit_expr(struct parser_node_pool *p, bool b);
+struct parser_expr *parser_new_intlit_expr(struct parser_node_pool *p, long l);
+struct parser_expr *parser_new_floatlit_expr(struct parser_node_pool *p, double d);
+struct parser_expr *parser_new_stringlit_expr(struct parser_node_pool *p, const char *s);
+struct parser_expr *parser_new_funclit_expr(struct parser_node_pool *p,
+        const struct parser_type *func_type, struct parser_func *func);
+struct parser_expr *parser_new_veclit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len);
+struct parser_expr *parser_new_maplit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len);
+struct parser_expr *parser_new_setlit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len);
+struct parser_expr *parser_new_stacklit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len);
+struct parser_expr *parser_new_queuelit_expr(struct parser_node_pool *p,
+        const struct parser_type *elem_type, struct parser_expr *elems, int len);
+struct parser_expr *parser_new_structlit_expr(struct parser_node_pool *p,
+        const struct parser_type *struct_type, struct parser_expr *fields);
+struct parser_expr *parser_new_enumlit_expr(struct parser_node_pool *p,
+        const struct parser_type *enum_type, int member_idx);
+struct parser_expr *parser_new_modulelit_expr(struct parser_node_pool *p,
+        const struct parser_type *module_type);
+struct parser_expr *parser_new_conversion_expr(struct parser_node_pool *p,
+        struct parser_expr *from, struct parser_type *to);
+struct parser_expr *parser_new_outarg_expr(struct parser_node_pool *p,
+        struct parser_expr *arg);
 
 /* access */
-struct parser_expr *parser_new_index_expr(struct parser_expr *ary, struct parser_expr *idx);
-struct parser_expr *parser_new_mapindex_expr(struct parser_expr *map, struct parser_expr *key);
-struct parser_expr *parser_new_struct_access_expr(struct parser_expr *inst,
-        struct parser_expr *fld);
-struct parser_expr *parser_new_enum_access_expr(struct parser_expr *enm,
-        struct parser_expr *fld);
-struct parser_expr *parser_new_module_access_expr(struct parser_expr *mod,
-        struct parser_expr *member);
+struct parser_expr *parser_new_index_expr(struct parser_node_pool *p,
+        struct parser_expr *ary, struct parser_expr *idx);
+struct parser_expr *parser_new_mapindex_expr(struct parser_node_pool *p,
+        struct parser_expr *map, struct parser_expr *key);
+struct parser_expr *parser_new_struct_access_expr(struct parser_node_pool *p,
+        struct parser_expr *inst, struct parser_expr *fld);
+struct parser_expr *parser_new_enum_access_expr(struct parser_node_pool *p,
+        struct parser_expr *enm, struct parser_expr *fld);
+struct parser_expr *parser_new_module_access_expr(struct parser_node_pool *p,
+        struct parser_expr *mod, struct parser_expr *member);
 
-struct parser_expr *parser_new_var_expr(struct parser_var *v);
-struct parser_expr *parser_new_struct_field_expr(struct parser_struct_field *f);
-struct parser_expr *parser_new_enum_field_expr(struct parser_enum_field *f);
-struct parser_expr *parser_new_call_expr(struct parser_expr *callee, struct parser_expr *args);
-struct parser_expr *parser_new_element_expr(struct parser_expr *key, struct parser_expr *val);
-struct parser_expr *parser_new_const_expr(struct parser_expr *orig, struct parser_expr *cnst);
+struct parser_expr *parser_new_var_expr(struct parser_node_pool *p,
+        struct parser_var *v);
+struct parser_expr *parser_new_struct_field_expr(struct parser_node_pool *p,
+        struct parser_struct_field *f);
+struct parser_expr *parser_new_enum_field_expr(struct parser_node_pool *p,
+        struct parser_enum_field *f);
+struct parser_expr *parser_new_call_expr(struct parser_node_pool *p,
+        struct parser_expr *callee, struct parser_expr *args);
+struct parser_expr *parser_new_element_expr(struct parser_node_pool *p,
+        struct parser_expr *key, struct parser_expr *val);
+struct parser_expr *parser_new_const_expr(struct parser_node_pool *p,
+        struct parser_expr *orig, struct parser_expr *cnst);
 
 /* unary expr */
-struct parser_expr *parser_new_posi_expr(struct parser_expr *l);
-struct parser_expr *parser_new_nega_expr(struct parser_expr *l);
-struct parser_expr *parser_new_lognot_expr(struct parser_expr *l);
-struct parser_expr *parser_new_not_expr(struct parser_expr *l);
+struct parser_expr *parser_new_posi_expr(struct parser_node_pool *p,
+    struct parser_expr *l);
+struct parser_expr *parser_new_nega_expr(struct parser_node_pool *p,
+    struct parser_expr *l);
+struct parser_expr *parser_new_lognot_expr(struct parser_node_pool *p,
+    struct parser_expr *l);
+struct parser_expr *parser_new_not_expr(struct parser_node_pool *p,
+    struct parser_expr *l);
 
 /* binary expr */
-struct parser_expr *parser_new_add_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_sub_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_mul_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_div_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_rem_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_shl_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_shr_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_and_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_or_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_xor_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_add_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_sub_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_mul_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_div_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_rem_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_shl_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_shr_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_and_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_or_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_xor_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
 
 /* relational expr */
-struct parser_expr *parser_new_eq_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_neq_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_lt_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_lte_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_gt_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_gte_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_eq_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_neq_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_lt_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_lte_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_gt_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_gte_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
 
 /* logical expr */
-struct parser_expr *parser_new_logand_expr(struct parser_expr *l, struct parser_expr *r);
-struct parser_expr *parser_new_logor_expr(struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_logand_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_expr *parser_new_logor_expr(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
 
 /* stmt */
-struct parser_stmt *parser_new_nop_stmt(void);
-struct parser_stmt *parser_new_block_stmt(struct parser_stmt *children);
-struct parser_stmt *parser_new_if_stmt(struct parser_stmt *or_list);
-struct parser_stmt *parser_new_else_stmt(struct parser_expr *cond, struct parser_stmt *body);
-struct parser_stmt *parser_new_while_stmt(struct parser_expr *cond, struct parser_stmt *body);
+struct parser_stmt *parser_new_nop_stmt(struct parser_node_pool *p);
+struct parser_stmt *parser_new_block_stmt(struct parser_node_pool *p,
+        struct parser_stmt *children);
+struct parser_stmt *parser_new_if_stmt(struct parser_node_pool *p,
+struct parser_stmt *or_list);
+struct parser_stmt *parser_new_else_stmt(struct parser_node_pool *p,
+struct parser_expr *cond, struct parser_stmt *body);
+struct parser_stmt *parser_new_while_stmt(struct parser_node_pool *p,
+struct parser_expr *cond, struct parser_stmt *body);
 
-struct parser_stmt *parser_new_fornum_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body);
-struct parser_stmt *parser_new_forvec_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body);
-struct parser_stmt *parser_new_formap_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body);
-struct parser_stmt *parser_new_forset_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body);
-struct parser_stmt *parser_new_forstack_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body);
-struct parser_stmt *parser_new_forqueue_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body);
-struct parser_stmt *parser_new_forenum_stmt(struct parser_expr *iter,
-        struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_fornum_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_forvec_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_formap_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_forset_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_forstack_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_forqueue_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body);
+struct parser_stmt *parser_new_forenum_stmt(struct parser_node_pool *p,
+        struct parser_expr *iter, struct parser_expr *collection, struct parser_stmt *body);
 
-struct parser_stmt *parser_new_break_stmt(void);
-struct parser_stmt *parser_new_continue_stmt(void);
-struct parser_stmt *parser_new_switch_stmt(struct parser_expr *cond, struct parser_stmt *cases);
-struct parser_stmt *parser_new_case_stmt(struct parser_expr *cond, struct parser_stmt *body);
-struct parser_stmt *parser_new_others_stmt(struct parser_stmt *body);
-struct parser_stmt *parser_new_return_stmt(struct parser_expr *e);
-struct parser_stmt *parser_new_expr_stmt(struct parser_expr *e);
+struct parser_stmt *parser_new_break_stmt(struct parser_node_pool *p);
+struct parser_stmt *parser_new_continue_stmt(struct parser_node_pool *p);
+struct parser_stmt *parser_new_switch_stmt(struct parser_node_pool *p,
+        struct parser_expr *cond, struct parser_stmt *cases);
+struct parser_stmt *parser_new_case_stmt(struct parser_node_pool *p,
+        struct parser_expr *cond, struct parser_stmt *body);
+struct parser_stmt *parser_new_others_stmt(struct parser_node_pool *p,
+        struct parser_stmt *body);
+struct parser_stmt *parser_new_return_stmt(struct parser_node_pool *p,
+        struct parser_expr *e);
+struct parser_stmt *parser_new_expr_stmt(struct parser_node_pool *p,
+        struct parser_expr *e);
 
 /* assign stmt */
-struct parser_stmt *parser_new_init_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_assign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_addassign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_subassign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_mulassign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_divassign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_remassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_init_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_assign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_addassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_subassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_mulassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_divassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_remassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
 
-struct parser_stmt *parser_new_shlassign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_shrassign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_andassign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_orassign_stmt(struct parser_expr *l, struct parser_expr *r);
-struct parser_stmt *parser_new_xorassign_stmt(struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_shlassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_shrassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_andassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_orassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
+struct parser_stmt *parser_new_xorassign_stmt(struct parser_node_pool *p,
+        struct parser_expr *l, struct parser_expr *r);
 
 /* node string */
 const char *parser_node_string(int kind);
