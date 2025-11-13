@@ -251,14 +251,14 @@ static void eval(struct parser_expr *e)
 /* new node */
 static struct parser_expr *new_expr(struct parser_node_pool *p, int kind)
 {
-    struct parser_expr *e = calloc(1, sizeof(struct parser_expr));
+    struct parser_expr *e = data_mem_pool_alloc(&p->expr_pool);
     e->kind = kind;
     return e;
 }
 
 static struct parser_stmt *new_stmt(struct parser_node_pool *p, int kind)
 {
-    struct parser_stmt *s = calloc(1, sizeof(struct parser_stmt));
+    struct parser_stmt *s = data_mem_pool_alloc(&p->stmt_pool);
     s->kind = kind;
     return s;
 }
@@ -979,34 +979,6 @@ bool parser_ast_is_outparam(const struct parser_expr *e)
     default:
         return false;
     }
-}
-
-void parser_free_expr(struct parser_expr *e)
-{
-    if (!e)
-        return;
-    parser_free_expr(e->l);
-    parser_free_expr(e->r);
-    parser_free_expr(e->next);
-
-    free(e);
-}
-
-void parser_free_stmt(struct parser_stmt *s)
-{
-    if (!s)
-        return;
-
-    parser_free_expr(s->expr);
-    parser_free_stmt(s->init);
-    parser_free_expr(s->cond);
-    parser_free_stmt(s->post);
-    parser_free_stmt(s->body);
-
-    parser_free_stmt(s->children);
-    parser_free_stmt(s->next);
-
-    free(s);
 }
 
 void parser_node_pool_init(struct parser_node_pool *pool)

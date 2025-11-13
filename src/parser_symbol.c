@@ -240,7 +240,6 @@ static void free_func(struct parser_func *func)
 {
     free_func_sig(func->sig);
     parser_free_scope(func->scope);
-    parser_free_stmt(func->body);
     free(func);
 }
 
@@ -676,7 +675,6 @@ struct parser_module *parser_define_module(struct parser_scope *sc,
 void parser_free_module(struct parser_module *mod)
 {
     parser_free_scope(mod->scope);
-    parser_free_stmt(mod->gvars);
     free_funcvec(&mod->funcs);
     free(mod);
 }

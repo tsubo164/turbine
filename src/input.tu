@@ -42,19 +42,13 @@
   return 0
 */
 
-/*
-- _S_ = "Shape"
-
 ## Shape enum
   : tag,    name
   - Line,   "Line"
-  - Circle, "Circle"
-  //- Circle, "Circle" + "Shape"//3.14
-  //- Circle, "Circle" + _S_
-*/
-
-# foo()
-  nop
+  //- Circle, "Circle"
+  //- Circle, 3.14
 
 # main(args vec{string}) int
+  - s = "foo" + 42
+  print("ok")
   return 0
