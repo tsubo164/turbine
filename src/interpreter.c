@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "compile_context.h"
 #include "data_intern.h"
 #include "builtin_module.h"
 #include "parser_search_path.h"
@@ -113,11 +114,9 @@ static value_int_t exec_code(const struct code_bytecode *code, const struct inte
 value_int_t interpret_source(const char *text, const struct interpreter_args *args,
         const struct interpreter_option *opt)
 {
-    /* memory pools */
-    struct parser_token_pool token_pool = {0};
-    parser_token_pool_init(&token_pool);
-    struct parser_node_pool node_pool = {0};
-    parser_node_pool_init(&node_pool);
+    /* compile context */
+    struct compile_context ctx;
+    compile_context_init(&ctx);
 
     /* string intern */
     data_intern_table_init();
@@ -154,7 +153,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     if (setjmp(parse_env) == 0) {
         /* tokenize */
         if (pass.tokenize) {
-            tok = parser_tokenize(text, args->filename, &token_pool);
+            tok = parser_tokenize(text, args->filename, &ctx.token_pool);
         }
 
         /* print tokens */
@@ -166,7 +165,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
         if (pass.parse) {
             struct parser_source source = {0};
             parser_source_init(&source, text, args->filename, "_main");
-            mod_main = parser_parse(tok, builtin, &source, &paths, &node_pool);
+            mod_main = parser_parse(tok, builtin, &source, &paths, &ctx);
             code_resolve_offset(mod_main);
         }
     }
@@ -223,8 +222,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     parser_type_pool_free();
     data_intern_table_free();
 
-    parser_token_pool_clear(&token_pool);
-    parser_node_pool_clear(&node_pool);
+    compile_context_clear(&ctx);
 
     return ret_code;
 }

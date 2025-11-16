@@ -41,6 +41,7 @@
 
   return 0
 */
+> my_calc
 
 ## Shape enum
   : tag,    name
@@ -49,6 +50,6 @@
   //- Circle, 3.14
 
 # main(args vec{string}) int
-  - s = "foo" + 42
+  //- s = "foo" + 42
   print("ok")
   return 0
