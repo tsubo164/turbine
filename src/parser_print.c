@@ -3,6 +3,8 @@
 #include "parser_token.h"
 #include "parser_type.h"
 #include "parser_ast.h"
+#include "data_intern.h"
+#include "data_strbuf.h"
 
 #include <stdio.h>
 
@@ -65,6 +67,17 @@ void parser_print_token(const struct parser_token *token, bool format)
     printf("\n");
 }
 
+static const char *type_string(const struct parser_type *t)
+{
+    struct data_strbuf sbuf = DATA_STRBUF_INIT;
+    parser_type_string(t, &sbuf);
+
+    const char *typestr = data_string_intern(sbuf.data);
+    data_strbuf_free(&sbuf);
+
+    return typestr;
+}
+
 static void print_expr(const struct parser_expr *e, int depth)
 {
     if (!e)
@@ -79,7 +92,7 @@ static void print_expr(const struct parser_expr *e, int depth)
     int printed_kind = is_constexpr ? e->kind_orig : e->kind;
 
     printf("%d. <%s>", depth, parser_node_string(printed_kind));
-    printf(" (%s)", parser_type_string(e->type));
+    printf(" (%s)", type_string(e->type));
 
     if (is_constexpr)
         printf("(constexpr)");
@@ -160,7 +173,7 @@ static void print_func(const struct parser_func *func, int depth)
 
     /* basic info */
     printf("%d. <func> \"%s\"", depth, func->name);
-    printf(" %s", parser_type_string(func->sig->return_type));
+    printf(" %s", type_string(func->sig->return_type));
     printf("\n");
 
     /* children */
@@ -211,7 +224,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
             const struct parser_var *v = sym->var;
             print_header(depth);
             printf("[var] \"%s\" %s @%d\n",
-                    v->name, parser_type_string(v->type),
+                    v->name, type_string(v->type),
                     v->offset);
         }
 
@@ -219,7 +232,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
             const struct parser_func *func = sym->func;
             print_header(depth);
             printf("[fnc] \"%s\" %s (id:%d)\n",
-                    func->name, parser_type_string(func->sig->return_type), func->id);
+                    func->name, type_string(func->sig->return_type), func->id);
             print_scope(func->scope, depth + 1);
         }
 
@@ -232,7 +245,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
                 const struct parser_struct_field *f = strct->fields.data[j];
                 print_header(depth + 1);
                 printf("[field] \"%s\" @%d %s\n",
-                        f->name, f->offset, parser_type_string(f->type));
+                        f->name, f->offset, type_string(f->type));
             }
         }
 
@@ -247,7 +260,7 @@ static void print_scope(const struct parser_scope *sc, int depth)
             print_header(depth + 1);
             for (int x = 0; x < nfields; x++) {
                 const struct parser_enum_field *f = enm->fields.data[x];
-                printf("| %s(%s)", f->name, parser_type_string(f->type));
+                printf("| %s(%s)", f->name, type_string(f->type));
                 printf("%c", x < nfields - 1 ? ' ' : '\n');
             }
 

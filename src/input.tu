@@ -41,15 +41,16 @@
 
   return 0
 */
-> my_calc
+//> my_calc
 
-## Shape enum
-  : tag,    name
-  - Line,   "Line"
-  //- Circle, "Circle"
-  //- Circle, 3.14
+//## Shape enum
+//  : tag,    name
+//  - Line,   "Line"
+//  //- Circle, "Circle"
+//  //- Circle, 3.14
 
 # main(args vec{string}) int
-  //- s = "foo" + 42
+  - s string = vec{1, 2, 3}
+  //- v = vec{1, 2, 3}
   print("ok")
   return 0

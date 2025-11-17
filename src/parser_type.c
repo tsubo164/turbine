@@ -2,7 +2,6 @@
 #include "parser_symbol.h"
 #include "data_mem_pool.h"
 #include "data_intern.h"
-#include "data_strbuf.h"
 #include "assert.h"
 
 #include <stdio.h>
@@ -201,62 +200,56 @@ bool parser_is_collection_type(const struct parser_type *t)
         parser_is_queue_type(t);
 }
 
-static const char *type_kind_string(int kind)
+static void type_string(const struct parser_type *t, struct data_strbuf *sbuf)
 {
-    switch ((enum parser_type_kind) kind) {
-    case TYP_NIL:      return "nil";
-    case TYP_BOOL:     return "bool";
-    case TYP_INT:      return "int";
-    case TYP_FLOAT:    return "float";
-    case TYP_STRING:   return "string";
-    case TYP_FUNC:     return "func";
-    case TYP_VEC:      return "[]";
-    case TYP_MAP:      return "{}";
-    case TYP_SET:      return "set{}";
-    case TYP_STACK:    return "stack{}";
-    case TYP_QUEUE:    return "queue{}";
-    case TYP_STRUCT:   return "struct";
-    case TYP_ENUM:     return "enum";
-    case TYP_MODULE:   return "module";
-    case TYP_ANY:      return "any";
-    case TYP_TEMPLATE: return "template";
+    if (parser_is_nil_type(t)) {
+        data_strbuf_cat(sbuf, "nil");
     }
-
-    assert("unreachable");
-    return NULL;
+    else if (parser_is_bool_type(t)) {
+        data_strbuf_cat(sbuf, "bool");
+    }
+    else if (parser_is_int_type(t)) {
+        data_strbuf_cat(sbuf, "int");
+    }
+    else if (parser_is_float_type(t)) {
+        data_strbuf_cat(sbuf, "float");
+    }
+    else if (parser_is_string_type(t)) {
+        data_strbuf_cat(sbuf, "string");
+    }
+    else if (parser_is_vec_type(t)) {
+        data_strbuf_cat(sbuf, "vec{");
+        type_string(t->underlying, sbuf);
+        data_strbuf_cat(sbuf, "}");
+    }
+    else if (parser_is_map_type(t)) {
+        data_strbuf_cat(sbuf, "map{");
+        type_string(t->underlying, sbuf);
+        data_strbuf_cat(sbuf, "}");
+    }
+    else if (parser_is_set_type(t)) {
+        data_strbuf_cat(sbuf, "set{");
+        type_string(t->underlying, sbuf);
+        data_strbuf_cat(sbuf, "}");
+    }
+    else if (parser_is_stack_type(t)) {
+        data_strbuf_cat(sbuf, "stack{");
+        type_string(t->underlying, sbuf);
+        data_strbuf_cat(sbuf, "}");
+    }
+    else if (parser_is_queue_type(t)) {
+        data_strbuf_cat(sbuf, "queue{");
+        type_string(t->underlying, sbuf);
+        data_strbuf_cat(sbuf, "}");
+    }
+    else {
+        assert("unreachable");
+    }
 }
 
-const char *parser_type_string(const struct parser_type *t)
+void parser_type_string(const struct parser_type *t, struct data_strbuf *sbuf)
 {
-    const char *interned = "";
-
-    for (const struct parser_type *type = t; type; type = type->underlying) {
-        /* TODO take care of buffer overflow */
-        char buf[128] = {'\0'};
-
-        if (parser_is_vec_type(type)) {
-            sprintf(buf, "[]%s", interned);
-        }
-        else if (parser_is_struct_type(type)) {
-            sprintf(buf, "%s%s", interned, type->strct->name);
-        }
-        else if (parser_is_enum_type(type)) {
-            sprintf(buf, "%s%s", interned, type->enm->name);
-        }
-        else if (parser_is_module_type(type)) {
-            sprintf(buf, "%s%s", interned, type->module->name);
-        }
-        else if (parser_is_template_type(type)) {
-            sprintf(buf, "%stype%d", interned, type->template_id);
-        }
-        else {
-            sprintf(buf, "%s%s", interned, type_kind_string(type->kind));
-        }
-
-        interned = data_string_intern(buf);
-    }
-
-    return interned;
+    type_string(t, sbuf);
 }
 
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2)

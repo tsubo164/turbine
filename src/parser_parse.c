@@ -129,6 +129,17 @@ struct parser_node_pool *node_pool(struct parser *p)
     return &p->ctx->node_pool;
 }
 
+static const char *type_string(struct parser *p, const struct parser_type *t)
+{
+    struct data_strbuf sbuf = DATA_STRBUF_INIT;
+    parser_type_string(t, &sbuf);
+
+    const char *typestr = data_string_intern(sbuf.data);
+    data_strbuf_free(&sbuf);
+
+    return typestr;
+}
+
 /* forward decls */
 static struct parser_type *type_spec(struct parser *p);
 static struct parser_expr *expression(struct parser *p);
@@ -265,15 +276,15 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
                 if (!unified) {
                     error(p, arg_pos,
                             "type mismatch: parameter '%s': argument '%s'",
-                            parser_type_string(param_type),
-                            parser_type_string(arg->type));
+                            type_string(p, param_type),
+                            type_string(p, arg->type));
                 }
             }
             else if (!parser_match_type(arg->type, param_type)) {
                 error(p, arg_pos,
                         "type mismatch: parameter '%s': argument '%s'",
-                        parser_type_string(param_type),
-                        parser_type_string(arg->type));
+                        type_string(p, param_type),
+                        type_string(p, arg->type));
             }
         }
         while (consume(p, TOK_COMMA));
@@ -309,8 +320,8 @@ static struct parser_expr *conv_expr(struct parser *p)
         from_type->kind != TYP_INT &&
         from_type->kind != TYP_FLOAT) {
         error(p, tokpos, "unable to convert type from '%s' to '%s'",
-                parser_type_string(from_type),
-                parser_type_string(to_type));
+                type_string(p, from_type),
+                type_string(p, to_type));
     }
 
     return parser_new_conversion_expr(node_pool(p), expr, to_type);
@@ -335,8 +346,8 @@ static struct parser_expr *vec_lit_expr(struct parser *p)
         else if (!parser_match_type(elem_type, val->type)) {
             error(p, tok_pos(p),
                     "type mismatch: first value '%s': this value '%s'",
-                    parser_type_string(elem_type),
-                    parser_type_string(val->type));
+                    type_string(p, elem_type),
+                    type_string(p, val->type));
         }
 
         elem = elem->next = val;
@@ -375,8 +386,8 @@ static struct parser_expr *map_lit_expr(struct parser *p)
         else if (!parser_match_type(elem_type, val->type)) {
             error(p, tok_pos(p),
                     "type mismatch: first value '%s': this value '%s'",
-                    parser_type_string(elem_type),
-                    parser_type_string(val->type));
+                    type_string(p, elem_type),
+                    type_string(p, val->type));
         }
 
         elem = elem->next = parser_new_element_expr(node_pool(p), key, val);
@@ -407,8 +418,8 @@ static struct parser_expr *set_lit_expr(struct parser *p)
         else if (!parser_match_type(elem_type, val->type)) {
             error(p, tok_pos(p),
                     "type mismatch: first value '%s': this value '%s'",
-                    parser_type_string(elem_type),
-                    parser_type_string(val->type));
+                    type_string(p, elem_type),
+                    type_string(p, val->type));
         }
 
         elem = elem->next = val;
@@ -439,8 +450,8 @@ static struct parser_expr *stack_lit_expr(struct parser *p)
         else if (!parser_match_type(elem_type, val->type)) {
             error(p, tok_pos(p),
                     "type mismatch: first value '%s': this value '%s'",
-                    parser_type_string(elem_type),
-                    parser_type_string(val->type));
+                    type_string(p, elem_type),
+                    type_string(p, val->type));
         }
 
         elem = elem->next = val;
@@ -471,8 +482,8 @@ static struct parser_expr *queue_lit_expr(struct parser *p)
         else if (!parser_match_type(elem_type, val->type)) {
             error(p, tok_pos(p),
                     "type mismatch: first value '%s': this value '%s'",
-                    parser_type_string(elem_type),
-                    parser_type_string(val->type));
+                    type_string(p, elem_type),
+                    type_string(p, val->type));
         }
 
         elem = elem->next = val;
@@ -509,7 +520,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
 
             if (!parser_match_type(fld->type, val->type)) {
                 error(p, tok_pos(p), "type mismatch: field %s and expression %s",
-                        parser_type_string(fld->type), parser_type_string(val->type));
+                        type_string(p, fld->type), type_string(p, val->type));
             }
 
             elem = elem->next = parser_new_element_expr(node_pool(p), fld, val);
@@ -832,7 +843,7 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
         const struct parser_type *mapped_type = type_mapping[id];
         if (!mapped_type) {
             error(p, call_pos, "return type not resolved: '%s'",
-                    parser_type_string(func_sig->return_type));
+                    type_string(p, func_sig->return_type));
         }
         call->type = mapped_type;
     }
@@ -991,7 +1002,7 @@ static void validate_binop_type_match(struct parser *p, struct parser_pos pos,
 {
     if (!parser_match_type(t0, t1)) {
         error(p, pos, "type mismatch: %s and %s",
-                parser_type_string(t0), parser_type_string(t1));
+                type_string(p, t0), type_string(p, t1));
     }
 }
 
@@ -1010,7 +1021,7 @@ static void validate_binop_types(struct parser *p, struct parser_pos pos,
     }
 
     error(p, pos, "invalid operands to binary expression: %s",
-            parser_type_string(type));
+            type_string(p, type));
 }
 
 /*
@@ -1279,12 +1290,12 @@ static void semantic_check_assign_stmt(struct parser *p, struct parser_pos pos,
     /* type check */
     if (!parser_match_type(lval->type, rval->type)) {
         error(p, pos, "type mismatch: l-value '%s': r-value '%s'",
-                parser_type_string(lval->type), parser_type_string(rval->type));
+                type_string(p, lval->type), type_string(p, rval->type));
     }
 
     /* nil check */
     if (parser_is_nil_type(rval->type)) {
-        error(p, pos, "invalid type: r-value '%s'", parser_type_string(rval->type));
+        error(p, pos, "invalid type: r-value '%s'", type_string(p, rval->type));
     }
 
     /* mutable check */
@@ -1958,8 +1969,8 @@ static struct parser_stmt *return_stmt(struct parser *p)
     if (expr && p->func->sig->return_type->kind != expr->type->kind) {
         error(p, exprpos,
                 "type mismatch: function type '%s': expression type '%s'",
-                parser_type_string(p->func->sig->return_type),
-                parser_type_string(expr->type), "");
+                type_string(p, p->func->sig->return_type),
+                type_string(p, expr->type), "");
     }
 
     p->uncond_ret = true;
@@ -2120,7 +2131,7 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
 
         if (!parser_match_type(type, init->type)) {
             error(p, spec_pos, "type mismatch: variable '%s': initializer '%s'",
-                    parser_type_string(type), parser_type_string(init->type));
+                    type_string(p, type), type_string(p, init->type));
         }
     }
     struct parser_pos init_pos = tok_pos(p);
@@ -2260,8 +2271,8 @@ static struct parser_enum *enum_def(struct parser *p, const struct parser_token 
                     field = parser_get_enum_field(enm, x);
                     if (!parser_match_type(field->type, expr->type)) {
                         error(p, tok_pos(p), "type mismatch: field '%s': value '%s'",
-                                parser_type_string(field->type),
-                                parser_type_string(expr->type));
+                                type_string(p, field->type),
+                                type_string(p, expr->type));
                     }
                 }
 
@@ -2595,7 +2606,7 @@ static void validate_return_stmt(struct parser *p, const struct parser_func *fun
     struct parser_pos end_pos = tok_pos(p);
     end_pos.y--;
     error(p, end_pos, "function must return a value of type: '%s'",
-            parser_type_string(ret_type));
+            type_string(p, ret_type));
 }
 
 static bool is_valid_main_signature(const struct parser_func *func)

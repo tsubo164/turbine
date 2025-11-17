@@ -2,6 +2,7 @@
 #define PARSER_TYPE_H
 
 #include <stdbool.h>
+#include "data_strbuf.h"
 
 struct parser_func_sig;
 struct parser_struct;
@@ -91,15 +92,13 @@ bool parser_is_collection_type(const struct parser_type *t);
 
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2);
 struct parser_type *parser_duplicate_type(const struct parser_type *t);
-const char *parser_type_string(const struct parser_type *t);
+void parser_type_string(const struct parser_type *t, struct data_strbuf *sbuf);
 
 /* type vec */
 void parser_typevec_push(struct parser_typevec *v, const struct parser_type *val);
 void parser_typevec_free(struct parser_typevec *v);
 
 /* type list is an ordered list packed into a string */
-struct data_strbuf;
-
 struct parser_typelist_iterator {
     const char *curr;
     enum parser_type_kind kind;
