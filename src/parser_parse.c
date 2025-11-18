@@ -2697,30 +2697,27 @@ static void module_import(struct parser *p)
         /* TODO consider making parse_module_file() */
         /* read module file */
         char *module_filepath = parser_search_path_find(p->paths, module_filename);
-        char *text = read_file(module_filepath);
+        struct parser_import import = {0};
+        bool found = parser_import_file(&import, module_filepath);
 
-        if (!text) {
+        if (!found) {
             error(p, tok_pos(p),
                     "module %s.%s not found", modulename, PROJECT_SRC_EXT);
         }
+        parser_importvec_push(&p->ctx->imports, &import);
 
         /* parse module file */
-        /* TODO use the same pool from parser */
-        struct parser_token_pool token_pool = {0};
-        parser_token_pool_init(&token_pool);
-        struct parser_token *tok = parser_tokenize(text, module_filename, &p->ctx->token_pool);
+        struct parser_token *tok = parser_tokenize(import.text, module_filename, &p->ctx->token_pool);
         struct parser_source source = {0};
         struct parser_search_path paths;
 
-        parser_source_init(&source, text, module_filename, modulename);
+        parser_source_init(&source, import.text, module_filename, modulename);
         parser_search_path_init(&paths, p->paths->filedir);
         parser_parse(tok, p->scope, &source, &paths, p->ctx);
 
         /* clean */
         parser_search_path_free(&paths);
-        parser_token_pool_clear(&token_pool);
         free(module_filepath);
-        free(text);
     } /* file module end */
 
     expect(p, TOK_NEWLINE);
