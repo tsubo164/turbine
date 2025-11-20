@@ -2,7 +2,7 @@
 #define PROJECT_H
 
 #define PROJECT_NAME     "Turbine"
-#define PROJECT_VERSION  "0.3.0"
+#define PROJECT_VERSION  "0.3.1"
 #define PROJECT_EXE_NAME "turbine"
 #define PROJECT_SRC_EXT  "tu"
 
