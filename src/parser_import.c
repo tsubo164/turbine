@@ -2,19 +2,22 @@
 #include "read_file.h"
 #include <stdlib.h>
 
-bool parser_import_file(struct parser_import *i, const char *filepath)
+bool parser_import_file(struct parser_import *imp, char *filepath)
 {
     char *text = read_file(filepath);
     if (!text)
         return false;
 
-    i->text = text;
+    imp->text = text;
+    imp->filepath = filepath;
+
     return true;
 }
 
-static void clear_import(struct parser_import *i)
+static void clear_import(struct parser_import *imp)
 {
-    free(i->text);
+    free(imp->text);
+    free(imp->filepath);
 }
 
 #define MIN_CAP 8

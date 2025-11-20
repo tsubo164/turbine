@@ -6,6 +6,8 @@
 struct parser_import {
     char *text;
     char *filepath;
+    const char *filename;
+    const char *filedir;
     const char *modulename;
 };
 
@@ -15,7 +17,7 @@ struct parser_importvec {
     int len;
 };
 
-bool parser_import_file(struct parser_import *i, const char *filepath);
+bool parser_import_file(struct parser_import *imp, char *filepath);
 
 void parser_importvec_init(struct parser_importvec *v);
 bool parser_importvec_is_empty(const struct parser_importvec *v);

@@ -2717,7 +2717,6 @@ static void module_import(struct parser *p)
 
         /* clean */
         parser_search_path_free(&paths);
-        free(module_filepath);
     } /* file module end */
 
     expect(p, TOK_NEWLINE);
