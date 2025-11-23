@@ -4,12 +4,15 @@
 #include "parser_ast.h"
 #include "parser_token.h"
 #include "parser_source.h"
+#include "parser_search_path.h"
 
 struct compile_context {
     struct parser_token_pool token_pool;
     struct parser_node_pool node_pool;
 
     struct parser_source_stack sources;
+
+    struct parser_search_path search_dirs;
 };
 
 void compile_context_init(struct compile_context *ctx);

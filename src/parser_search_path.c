@@ -9,7 +9,7 @@ void parser_search_path_init(struct parser_search_path *paths, const char *filed
     paths->filedir = filedir;
 }
 
-void parser_search_path_free(struct parser_search_path *paths)
+void parser_search_path_clear(struct parser_search_path *paths)
 {
 }
 

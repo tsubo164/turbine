@@ -2,7 +2,6 @@
 #define PARSER_PARSE_H
 
 #include "parser_ast.h"
-#include "parser_search_path.h"
 #include "parser_source.h"
 #include "compile_context.h"
 
@@ -13,7 +12,6 @@ struct parser_token;
 struct parser_module *parser_parse(const struct parser_token *tok,
         struct parser_scope *scope,
         const struct parser_source *source,
-        const struct parser_search_path *paths,
         struct compile_context *ctx);
 
 void parser_source_init(struct parser_source *source,

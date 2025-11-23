@@ -29,8 +29,6 @@ struct parser {
 
     /* source */
     const struct parser_source *source;
-    /* paths */
-    const struct parser_search_path *paths;
 
     struct parser_module *module;
 
@@ -2688,7 +2686,7 @@ static void module_import(struct parser *p)
 
     /* builtin modules */
     const struct builtin_module *found_module;
-    found_module = builtin_find_module(p->paths->builtin_modules, modulename);
+    found_module = builtin_find_module(p->ctx->search_dirs.builtin_modules, modulename);
 
     if (found_module) {
         builtin_import_module(p->scope, found_module);
@@ -2696,7 +2694,7 @@ static void module_import(struct parser *p)
     else {
         /* TODO consider making parse_module_file() */
         /* read module file */
-        char *module_filepath = parser_search_path_find(p->paths, module_filename);
+        char *module_filepath = parser_search_path_find(&p->ctx->search_dirs, module_filename);
         struct parser_source source = {0};
         bool found = parser_source_from_file(&source, module_filepath);
 
@@ -2707,17 +2705,12 @@ static void module_import(struct parser *p)
 
         /* parse module file */
         struct parser_token *tok = parser_tokenize(source.text, module_filename, &p->ctx->token_pool);
-        struct parser_search_path paths;
 
         /* TODO do same level init and clear */
         parser_source_init(&source, source.text, module_filename, modulename);
         parser_source_stack_push(&p->ctx->sources, &source);
 
-        parser_search_path_init(&paths, p->paths->filedir);
-        parser_parse(tok, p->scope, &source, &paths, p->ctx);
-
-        /* clean */
-        parser_search_path_free(&paths);
+        parser_parse(tok, p->scope, &source, p->ctx);
     } /* file module end */
 
     expect(p, TOK_NEWLINE);
@@ -2775,7 +2768,6 @@ static void program(struct parser *p)
 struct parser_module *parser_parse(const struct parser_token *tok,
         struct parser_scope *scope,
         const struct parser_source *source,
-        const struct parser_search_path *paths,
         struct compile_context *ctx)
 {
     struct parser_module *mod;
@@ -2788,7 +2780,6 @@ struct parser_module *parser_parse(const struct parser_token *tok,
     p.func = NULL;
     p.source = source;
     p.module = mod;
-    p.paths = paths;
     p.ctx = ctx;
 
     program(&p);

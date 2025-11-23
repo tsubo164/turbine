@@ -137,12 +137,11 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
 
     /* search paths */
     char *script_dir = get_script_dir(args->filename);
-    struct parser_search_path paths = {0};
 
-    parser_search_path_init(&paths, script_dir);
+    parser_search_path_init(&ctx.search_dirs, script_dir);
     /* TODO consdier passing builtin modules to parser_parse() separately
      * instead of holding them in struct parser_search_path */
-    parser_search_path_add_builtin_modules(&paths, &builtin_modules);
+    parser_search_path_add_builtin_modules(&ctx.search_dirs, &builtin_modules);
 
     /* compile source code */
     struct parser_token *tok = NULL;
@@ -165,7 +164,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
         if (pass.parse) {
             struct parser_source source = {0};
             parser_source_init(&source, text, args->filename, "_main");
-            mod_main = parser_parse(tok, builtin, &source, &paths, &ctx);
+            mod_main = parser_parse(tok, builtin, &source, &ctx);
             code_resolve_offset(mod_main);
         }
     }
@@ -216,7 +215,6 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     parser_free_scope(builtin);
 
     builtin_free_modules(&builtin_modules);
-    parser_search_path_free(&paths);
     free(script_dir);
 
     parser_type_pool_free();
