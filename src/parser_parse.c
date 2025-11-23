@@ -2694,7 +2694,7 @@ static void module_import(struct parser *p)
     else {
         /* TODO consider making parse_module_file() */
         /* read module file */
-        char *module_filepath = parser_search_path_find(&p->ctx->search_dirs, module_filename);
+        char *module_filepath = parser_search_dirs_find(&p->ctx->search_dirs, module_filename);
         struct parser_source source = {0};
         bool found = parser_source_from_file(&source, module_filepath);
 

@@ -4,7 +4,7 @@
 #include "parser_ast.h"
 #include "parser_token.h"
 #include "parser_source.h"
-#include "parser_search_path.h"
+#include "parser_search_dirs.h"
 
 struct compile_context {
     struct parser_token_pool token_pool;
@@ -12,7 +12,7 @@ struct compile_context {
 
     struct parser_source_stack sources;
 
-    struct parser_search_path search_dirs;
+    struct parser_search_dirs search_dirs;
 };
 
 void compile_context_init(struct compile_context *ctx);

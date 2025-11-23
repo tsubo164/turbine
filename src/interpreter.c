@@ -2,7 +2,7 @@
 #include "compile_context.h"
 #include "data_intern.h"
 #include "builtin_module.h"
-#include "parser_search_path.h"
+#include "parser_search_dirs.h"
 #include "parser_symbol.h"
 #include "parser_parse.h"
 #include "parser_token.h"
@@ -138,10 +138,10 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     /* search paths */
     char *script_dir = get_script_dir(args->filename);
 
-    parser_search_path_init(&ctx.search_dirs, script_dir);
+    parser_search_dirs_init(&ctx.search_dirs, script_dir);
     /* TODO consdier passing builtin modules to parser_parse() separately
-     * instead of holding them in struct parser_search_path */
-    parser_search_path_add_builtin_modules(&ctx.search_dirs, &builtin_modules);
+     * instead of holding them in struct parser_search_dirs */
+    parser_search_dirs_add_builtin_modules(&ctx.search_dirs, &builtin_modules);
 
     /* compile source code */
     struct parser_token *tok = NULL;

@@ -7,7 +7,7 @@ void compile_context_init(struct compile_context *ctx)
 
     parser_source_stack_init(&ctx->sources);
 
-    struct parser_search_path init = {0};
+    struct parser_search_dirs init = {0};
     ctx->search_dirs = init;
 }
 
@@ -18,5 +18,5 @@ void compile_context_clear(struct compile_context *ctx)
 
     parser_source_stack_clear(&ctx->sources);
 
-    parser_search_path_clear(&ctx->search_dirs);
+    parser_search_dirs_clear(&ctx->search_dirs);
 }
