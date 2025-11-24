@@ -26,13 +26,14 @@ struct parser_source *compile_context_read_file(struct compile_context *ctx,
         const char *filedir, const char *filename, const char *modulename)
 {
     /* file path */
-    char *filepath = parser_search_dirs_find(&ctx->search_dirs, filename);
+    const char *filepath = parser_search_dirs_find(&ctx->search_dirs, filename);
     if (!filepath)
         return NULL;
 
     struct parser_source *src;
 
     src = calloc(1, sizeof(*src));
+    /* TODO use parser_source_init() */
     src->filepath = filepath;
     src->filename = filename;
     src->filedir = filedir;

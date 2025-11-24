@@ -120,6 +120,11 @@ int data_strbuf_len(const struct data_strbuf *sb)
     return sb->len;
 }
 
+const char *data_strbuf_get(const struct data_strbuf *sb)
+{
+    return sb->data;
+}
+
 void data_strbuf_free(struct data_strbuf *sb)
 {
     if (!sb)

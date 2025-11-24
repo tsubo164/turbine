@@ -8,9 +8,9 @@ struct parser_source {
 
     const char *filedir;
     const char *filename;
+    const char *filepath;
     const char *modulename;
 
-    char *filepath;
     char *file_content;
 };
 
@@ -20,7 +20,7 @@ struct parser_source_stack {
     int len;
 };
 
-bool parser_source_from_file(struct parser_source *src, char *filepath);
+bool parser_source_from_file(struct parser_source *src, const char *filepath);
 void parser_source_clear(struct parser_source *src);
 
 void parser_source_stack_init(struct parser_source_stack *v);

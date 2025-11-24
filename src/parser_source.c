@@ -2,7 +2,7 @@
 #include "read_file.h"
 #include <stdlib.h>
 
-bool parser_source_from_file(struct parser_source *src, char *filepath)
+bool parser_source_from_file(struct parser_source *src, const char *filepath)
 {
     char *content = read_file(filepath);
     if (!content)
@@ -18,7 +18,6 @@ bool parser_source_from_file(struct parser_source *src, char *filepath)
 void parser_source_clear(struct parser_source *src)
 {
     free(src->file_content);
-    free(src->filepath);
 }
 
 #define MIN_CAP 8
