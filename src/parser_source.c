@@ -2,22 +2,29 @@
 #include "read_file.h"
 #include <stdlib.h>
 
-bool parser_source_from_file(struct parser_source *src, const char *filepath)
+void parser_source_init(struct parser_source *source,
+        const char *text, const char *filename, const char *modulename)
 {
-    char *content = read_file(filepath);
-    if (!content)
-        return false;
-    src->file_content = content;
-
-    src->text = src->file_content;
-    src->filepath = filepath;
-
-    return true;
+    source->text = text;
+    source->filename = filename;
+    source->modulename = modulename;
 }
 
 void parser_source_clear(struct parser_source *src)
 {
     free(src->file_content);
+}
+
+bool parser_source_from_file(struct parser_source *src, const char *filepath)
+{
+    char *content = read_file(filepath);
+    if (!content)
+        return false;
+
+    src->file_content = content;
+    src->text = src->file_content;
+
+    return true;
 }
 
 #define MIN_CAP 8

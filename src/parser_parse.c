@@ -2692,11 +2692,17 @@ static void module_import(struct parser *p)
         builtin_import_module(p->scope, found_module);
     }
     else {
+        /* find search dir */
+        const char *found_dir = compile_context_find_dir(p->ctx, module_filename);
+        if (!found_dir) {
+            error(p, tok_pos(p),
+                    "module %s.%s not found", modulename, PROJECT_SRC_EXT);
+        }
+
         /* TODO consider making parse_module_file() */
         /* read module file */
         struct parser_source *src = compile_context_read_file(p->ctx,
-                p->ctx->search_dirs.filedir, module_filename, modulename);
-
+                found_dir, module_filename, modulename);
         if (!src) {
             error(p, tok_pos(p),
                     "module %s.%s not found", modulename, PROJECT_SRC_EXT);
@@ -2781,12 +2787,4 @@ struct parser_module *parser_parse(const struct parser_token *tok,
     program(&p);
 
     return mod;
-}
-
-void parser_source_init(struct parser_source *source,
-        const char *text, const char *filename, const char *modulename)
-{
-    source->text = text;
-    source->filename = filename;
-    source->modulename = modulename;
 }

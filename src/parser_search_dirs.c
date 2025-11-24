@@ -19,14 +19,19 @@ void parser_search_dirs_clear(struct parser_search_dirs *dirs)
 
 const char *parser_search_dirs_find(struct parser_search_dirs *dirs, const char *filename)
 {
-    data_strbuf_copy(&dirs->pathbuf, dirs->filedir);
-    data_strbuf_push(&dirs->pathbuf, '/');
-    data_strbuf_cat(&dirs->pathbuf, filename);
+    char dir_sep = os_dir_sep();
 
-    const char *path = data_strbuf_get(&dirs->pathbuf);
+    /* loop over search dir list */
+    {
+        const char *dir = dirs->filedir;
+        data_strbuf_copy(&dirs->pathbuf, dir);
+        data_strbuf_push(&dirs->pathbuf, dir_sep);
+        data_strbuf_cat(&dirs->pathbuf, filename);
 
-    if (os_path_exists(path))
-        return path;
+        const char *path = data_strbuf_get(&dirs->pathbuf);
+        if (os_path_exists(path))
+            return dir;
+    }
 
     return NULL;
 }

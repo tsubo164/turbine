@@ -14,7 +14,4 @@ struct parser_module *parser_parse(const struct parser_token *tok,
         const struct parser_source *source,
         struct compile_context *ctx);
 
-void parser_source_init(struct parser_source *source,
-        const char *text, const char *filename, const char *modulename);
-
 #endif /* _H */

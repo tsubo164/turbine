@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+#define DIR_SEP '/'
+
 char *os_get_current_directory(void)
 {
     return getcwd(NULL, 0);
@@ -57,6 +59,11 @@ char *os_dirname(const char *path)
     assert(len == strlen(dst));
 
     return dst;
+}
+
+char os_dir_sep(void)
+{
+    return DIR_SEP;
 }
 
 double os_time(void)
