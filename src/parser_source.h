@@ -15,7 +15,7 @@ struct parser_source {
 };
 
 struct parser_source_stack {
-    struct parser_source *data;
+    struct parser_source **data;
     int cap;
     int len;
 };
@@ -25,7 +25,7 @@ void parser_source_clear(struct parser_source *src);
 
 void parser_source_stack_init(struct parser_source_stack *v);
 bool parser_source_stack_is_empty(const struct parser_source_stack *v);
-void parser_source_stack_push(struct parser_source_stack *v, const struct parser_source *val);
+void parser_source_stack_push(struct parser_source_stack *v, struct parser_source *val);
 void parser_source_stack_clear(struct parser_source_stack *v);
 
 #endif /* _H */

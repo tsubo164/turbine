@@ -18,4 +18,7 @@ struct compile_context {
 void compile_context_init(struct compile_context *ctx);
 void compile_context_clear(struct compile_context *ctx);
 
+struct parser_source *compile_context_read_file(struct compile_context *ctx,
+        const char *filedir, const char *filename, const char *modulename);
+
 #endif /* _H */

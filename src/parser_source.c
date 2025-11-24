@@ -51,19 +51,21 @@ void parser_source_stack_resize(struct parser_source_stack *v, int new_len)
     v->len = new_len;
 }
 
-void parser_source_stack_push(struct parser_source_stack *v, const struct parser_source *val)
+void parser_source_stack_push(struct parser_source_stack *v, struct parser_source *val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
         v->data = realloc(v->data, v->cap * sizeof(*v->data));
     }
-    v->data[v->len++] = *val;
+    v->data[v->len++] = val;
 }
 
 void parser_source_stack_clear(struct parser_source_stack *v)
 {
     for (int i = 0; i < v->len; i++) {
-        parser_source_clear(&v->data[i]);
+        struct parser_source *src = v->data[i];
+        parser_source_clear(src);
+        free(src);
     }
 
     free(v->data);

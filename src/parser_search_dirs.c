@@ -17,6 +17,9 @@ char *parser_search_dirs_find(const struct parser_search_dirs *dirs, const char 
 {
     char *filepath = os_path_join(dirs->filedir, filename);
 
+    if (!filepath)
+        return NULL;
+
     if (os_path_exists(filepath))
         return filepath;
 

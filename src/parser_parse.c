@@ -2694,23 +2694,19 @@ static void module_import(struct parser *p)
     else {
         /* TODO consider making parse_module_file() */
         /* read module file */
-        char *module_filepath = parser_search_dirs_find(&p->ctx->search_dirs, module_filename);
-        struct parser_source source = {0};
-        bool found = parser_source_from_file(&source, module_filepath);
+        struct parser_source *src = compile_context_read_file(p->ctx,
+                p->ctx->search_dirs.filedir, module_filename, modulename);
 
-        if (!found) {
+        if (!src) {
             error(p, tok_pos(p),
                     "module %s.%s not found", modulename, PROJECT_SRC_EXT);
         }
 
         /* parse module file */
-        struct parser_token *tok = parser_tokenize(source.text, module_filename, &p->ctx->token_pool);
+        struct parser_token *tok = parser_tokenize(src->text, module_filename, &p->ctx->token_pool);
 
         /* TODO do same level init and clear */
-        parser_source_init(&source, source.text, module_filename, modulename);
-        parser_source_stack_push(&p->ctx->sources, &source);
-
-        parser_parse(tok, p->scope, &source, p->ctx);
+        parser_parse(tok, p->scope, src, p->ctx);
     } /* file module end */
 
     expect(p, TOK_NEWLINE);
