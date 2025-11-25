@@ -11,12 +11,13 @@ struct compile_context {
     struct parser_token_pool token_pool;
     struct parser_node_pool node_pool;
 
+    struct parser_source main_src;
     struct parser_sourcevec sources;
 
     struct parser_search_dirs search_dirs;
     struct data_strbuf pathbuf;
 
-    const struct parser_source *importstack[32];
+    const struct parser_source **importstack;
     int importsp;
 };
 
@@ -30,5 +31,10 @@ struct parser_source *compile_context_read_file(struct compile_context *ctx,
 
 void compile_context_push_source(struct compile_context *ctx, const struct parser_source *src);
 void compile_context_pop_source(struct compile_context *ctx);
+bool compile_context_has_cyclic_import(const struct compile_context *ctx, const struct parser_source *src);
+int compile_context_get_import_stack_count(const struct compile_context *ctx);
+const struct parser_source *compile_context_get_stacked_source(const struct compile_context *ctx, int index);
+void compile_context_set_main_source(struct compile_context *ctx, const struct parser_source *src);
+const struct parser_source *compile_context_get_main_source(const struct compile_context *ctx);
 
 #endif /* _H */

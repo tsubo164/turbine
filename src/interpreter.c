@@ -164,6 +164,10 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
         if (pass.parse) {
             struct parser_source source = {0};
             parser_source_init(&source, text, args->filename, "_main");
+            /* TODO make real filename for main e.g. src/input.tu -> input */
+            source.filedir = script_dir;
+            compile_context_set_main_source(&ctx, &source);
+
             mod_main = parser_parse(tok, builtin, &source, &ctx);
             code_resolve_offset(mod_main);
         }

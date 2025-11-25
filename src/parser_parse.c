@@ -2669,6 +2669,28 @@ static void func_def(struct parser *p)
     }
 }
 
+static const char *format_import_cycle(struct compile_context *ctx, const struct parser_source *src)
+{
+    struct data_strbuf sbuf = DATA_STRBUF_INIT;
+    int N = compile_context_get_import_stack_count(ctx);
+
+    const struct parser_source *main_src = compile_context_get_main_source(ctx);
+    data_strbuf_cat(&sbuf, main_src->filename);
+    data_strbuf_cat(&sbuf, " -> ");
+
+    for (int i = 0; i < N; i++) {
+        const struct parser_source *imported = compile_context_get_stacked_source(ctx, i);
+        data_strbuf_cat(&sbuf, imported->modulename);
+        data_strbuf_cat(&sbuf, " -> ");
+    }
+    data_strbuf_cat(&sbuf, src->modulename);
+
+    const char *fmt = data_string_intern(data_strbuf_get(&sbuf));
+    data_strbuf_free(&sbuf);
+
+    return fmt;
+}
+
 static void module_import(struct parser *p)
 {
     expect(p, TOK_GT);
@@ -2705,6 +2727,12 @@ static void module_import(struct parser *p)
         if (!src) {
             error(p, tok_pos(p),
                     "failed to read module file: %s.%s", modulename, PROJECT_SRC_EXT);
+        }
+
+        /* check cyclic import */
+        if (compile_context_has_cyclic_import(p->ctx, src)) {
+            const char *import_cycle = format_import_cycle(p->ctx, src);
+            error(p, tok_pos(p), "cyclic import detected: %s", import_cycle);
         }
 
         /* push module being imported */
