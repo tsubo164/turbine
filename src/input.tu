@@ -41,16 +41,12 @@
 
   return 0
 */
-> my_calc2
-
-//## Shape enum
-//  : tag,    name
-//  - Line,   "Line"
-//  //- Circle, "Circle"
-//  //- Circle, 3.14
+> my_calc
 
 # main(args vec{string}) int
-  //- s string = vec{1, 2, 3}
-  //- v = vec{1, 2, 3}
+  print(my_calc.add(2, 3))
+  print("my_math version:", my_calc.my_math._VERSION_)
+  - x = 5.0
+  print("square of", x, "is", my_calc.square(x))
   print("ok")
   return 0

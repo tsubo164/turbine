@@ -1,4 +1,5 @@
 > test
+> my_calc
 
 # return_large_int() int
   return 4422
@@ -66,6 +67,12 @@
     test.AssertB(false, 2000.0 <= 1000.0)
     test.AssertB(true, 2000.0 > 1000.0)
     test.AssertB(false, 2000.0 < 1000.0)
+
+  ---
+    // my_calc module
+    test.AssertI(5, my_calc.add(2, 3))
+    test.AssertI(255, my_calc._UINT8_MAX_)
+    test.AssertF(25.0, my_calc.square(5.0))
 
   print(test._test_count_, "tests done.")
 

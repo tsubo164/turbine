@@ -29,19 +29,19 @@ bool parser_source_from_file(struct parser_source *src, const char *filepath)
 
 #define MIN_CAP 8
 
-void parser_source_stack_init(struct parser_source_stack *v)
+void parser_sourcevec_init(struct parser_sourcevec *v)
 {
     v->data = NULL;
     v->cap = 0;
     v->len = 0;
 }
 
-bool parser_source_stack_is_empty(const struct parser_source_stack *v)
+bool parser_sourcevec_is_empty(const struct parser_sourcevec *v)
 {
     return v->len == 0;
 }
 
-void parser_source_stack_resize(struct parser_source_stack *v, int new_len)
+void parser_sourcevec_resize(struct parser_sourcevec *v, int new_len)
 {
     if (new_len <= v->cap) {
         v->len = new_len;
@@ -57,7 +57,7 @@ void parser_source_stack_resize(struct parser_source_stack *v, int new_len)
     v->len = new_len;
 }
 
-void parser_source_stack_push(struct parser_source_stack *v, struct parser_source *val)
+void parser_sourcevec_push(struct parser_sourcevec *v, struct parser_source *val)
 {
     if (v->len == v->cap) {
         v->cap = v->cap < MIN_CAP ? MIN_CAP : 2 * v->cap;
@@ -66,7 +66,7 @@ void parser_source_stack_push(struct parser_source_stack *v, struct parser_sourc
     v->data[v->len++] = val;
 }
 
-void parser_source_stack_clear(struct parser_source_stack *v)
+void parser_sourcevec_clear(struct parser_sourcevec *v)
 {
     for (int i = 0; i < v->len; i++) {
         struct parser_source *src = v->data[i];

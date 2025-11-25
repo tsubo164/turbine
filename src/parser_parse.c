@@ -2699,21 +2699,24 @@ static void module_import(struct parser *p)
                     "module %s.%s not found", modulename, PROJECT_SRC_EXT);
         }
 
-        /* TODO consider making parse_module_file() */
         /* read module file */
         struct parser_source *src = compile_context_read_file(p->ctx,
                 found_dir, module_filename, modulename);
         if (!src) {
             error(p, tok_pos(p),
-                    "module %s.%s not found", modulename, PROJECT_SRC_EXT);
+                    "failed to read module file: %s.%s", modulename, PROJECT_SRC_EXT);
         }
+
+        /* push module being imported */
+        compile_context_push_source(p->ctx, src);
 
         /* parse module file */
         struct parser_token *tok = parser_tokenize(src->text, module_filename, &p->ctx->token_pool);
-
-        /* TODO do same level init and clear */
         parser_parse(tok, p->scope, src, p->ctx);
-    } /* file module end */
+
+        /* pop module imported */
+        compile_context_pop_source(p->ctx);
+    }
 
     expect(p, TOK_NEWLINE);
 }

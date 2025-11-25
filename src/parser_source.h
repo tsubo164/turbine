@@ -13,7 +13,7 @@ struct parser_source {
     char *file_content;
 };
 
-struct parser_source_stack {
+struct parser_sourcevec {
     struct parser_source **data;
     int cap;
     int len;
@@ -25,9 +25,10 @@ void parser_source_clear(struct parser_source *src);
 
 bool parser_source_from_file(struct parser_source *src, const char *filepath);
 
-void parser_source_stack_init(struct parser_source_stack *v);
-bool parser_source_stack_is_empty(const struct parser_source_stack *v);
-void parser_source_stack_push(struct parser_source_stack *v, struct parser_source *val);
-void parser_source_stack_clear(struct parser_source_stack *v);
+/* source vec */
+void parser_sourcevec_init(struct parser_sourcevec *v);
+bool parser_sourcevec_is_empty(const struct parser_sourcevec *v);
+void parser_sourcevec_push(struct parser_sourcevec *v, struct parser_source *val);
+void parser_sourcevec_clear(struct parser_sourcevec *v);
 
 #endif /* _H */

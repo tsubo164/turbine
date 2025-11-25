@@ -1,19 +1,25 @@
 #include "compile_context.h"
 #include "os.h"
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 void compile_context_init(struct compile_context *ctx)
 {
     parser_token_pool_init(&ctx->token_pool);
     parser_node_pool_init(&ctx->node_pool);
 
-    parser_source_stack_init(&ctx->sources);
+    parser_sourcevec_init(&ctx->sources);
 
     /* search dirs */
     struct parser_search_dirs dirsinit = {0};
     ctx->search_dirs = dirsinit;
     struct data_strbuf sbufinit = DATA_STRBUF_INIT;
     ctx->pathbuf = sbufinit;
+
+    /* import stack */
+    memset(ctx->importstack, 0, sizeof(ctx->importstack));
+    ctx->importsp = -1;
 }
 
 void compile_context_clear(struct compile_context *ctx)
@@ -21,7 +27,7 @@ void compile_context_clear(struct compile_context *ctx)
     parser_token_pool_clear(&ctx->token_pool);
     parser_node_pool_clear(&ctx->node_pool);
 
-    parser_source_stack_clear(&ctx->sources);
+    parser_sourcevec_clear(&ctx->sources);
 
     /* search dirs */
     parser_search_dirs_clear(&ctx->search_dirs);
@@ -50,7 +56,7 @@ struct parser_source *compile_context_read_file(struct compile_context *ctx,
     src->filedir = filedir;
     src->modulename = modulename;
 
-    parser_source_stack_push(&ctx->sources, src);
+    parser_sourcevec_push(&ctx->sources, src);
 
     const char *filepath = data_strbuf_get(&ctx->pathbuf);
     bool ok = parser_source_from_file(src, filepath);
@@ -58,4 +64,18 @@ struct parser_source *compile_context_read_file(struct compile_context *ctx,
         return NULL;
 
     return src;
+}
+
+void compile_context_push_source(struct compile_context *ctx, const struct parser_source *src)
+{
+    int max_size = sizeof(ctx->importstack)/sizeof(ctx->importstack[0]);
+    assert(ctx->importsp < max_size - 1);
+
+    ctx->importstack[++ctx->importsp] = src;
+}
+
+void compile_context_pop_source(struct compile_context *ctx)
+{
+    assert(ctx->importsp >= 0);
+    ctx->importstack[ctx->importsp--] = NULL;
 }
