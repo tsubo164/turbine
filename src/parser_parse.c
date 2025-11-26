@@ -880,8 +880,15 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
     if (parser_is_module_type(base->type)) {
         struct parser_scope *cur = p->scope;
         struct parser_expr *expr;
+        struct parser_expr *ident;
         p->scope = base->type->module->scope;
-        expr = parser_new_module_access_expr(node_pool(p), base, ident_expr(p, false));
+        ident = ident_expr(p, false);
+
+        if (parser_is_module_type(ident->type)) {
+            /* can't access to indirect modules. e.g. A.B.foo() */
+            error(p, tok_pos(p), "module '%s' is not directly imported.", tok_str(p));
+        }
+        expr = parser_new_module_access_expr(node_pool(p), base, ident);
         p->scope = cur;
         return expr;
     }

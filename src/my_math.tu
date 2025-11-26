@@ -1,4 +1,4 @@
-> my_calc
+//> my_calc
 //> input
 
 - _VERSION_ = 11
