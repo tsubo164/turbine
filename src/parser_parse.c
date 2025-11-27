@@ -132,7 +132,7 @@ static const char *type_string(struct parser *p, const struct parser_type *t)
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
     parser_type_string(t, &sbuf);
 
-    const char *typestr = data_string_intern(sbuf.data);
+    const char *typestr = data_string_intern(&p->ctx->intern_table, sbuf.data);
     data_strbuf_free(&sbuf);
 
     return typestr;
@@ -723,7 +723,7 @@ static struct parser_expr *primary_expr(struct parser *p)
     }
 }
 
-static struct parser_expr *add_packed_type_info(struct parser_node_pool *pool, struct parser_expr *args, int *argc)
+static struct parser_expr *add_packed_type_info(struct parser *p, struct parser_expr *args, int *argc)
 {
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
     struct parser_expr *arg;
@@ -734,7 +734,7 @@ static struct parser_expr *add_packed_type_info(struct parser_node_pool *pool, s
     }
 
     const char *typelist = sbuf.data ? sbuf.data : "";
-    fmt = parser_new_stringlit_expr(pool, data_string_intern(typelist));
+    fmt = parser_new_stringlit_expr(node_pool(p), data_string_intern(&p->ctx->intern_table, typelist));
     data_strbuf_free(&sbuf);
 
     fmt->next = args;
@@ -825,7 +825,7 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
         validate_format_string(p, args);
     }
     if (parser_require_type_sequence(func_sig)) {
-        args = add_packed_type_info(node_pool(p), args, &argc);
+        args = add_packed_type_info(p, args, &argc);
     }
     if (func_sig->is_variadic) {
         struct parser_expr *e = parser_new_intlit_expr(node_pool(p), argc);
@@ -2692,7 +2692,7 @@ static const char *format_import_cycle(struct compile_context *ctx, const struct
     }
     data_strbuf_cat(&sbuf, src->modulename);
 
-    const char *fmt = data_string_intern(data_strbuf_get(&sbuf));
+    const char *fmt = data_string_intern(&ctx->intern_table, data_strbuf_get(&sbuf));
     data_strbuf_free(&sbuf);
 
     return fmt;
@@ -2746,7 +2746,8 @@ static void module_import(struct parser *p)
         compile_context_push_source(p->ctx, src);
 
         /* parse module file */
-        struct parser_token *tok = parser_tokenize(src->text, module_filename, &p->ctx->token_pool);
+        struct parser_token *tok = parser_tokenize(src->text, module_filename,
+                &p->ctx->token_pool, &p->ctx->intern_table);
         parser_parse(tok, p->scope, src, p->ctx);
 
         /* pop module imported */

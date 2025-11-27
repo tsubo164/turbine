@@ -8,9 +8,12 @@
 
 void compile_context_init(struct compile_context *ctx)
 {
+    /* memory */
     parser_token_pool_init(&ctx->token_pool);
     parser_node_pool_init(&ctx->node_pool);
+    data_intern_table_init(&ctx->intern_table);
 
+    /* sources */
     parser_sourcevec_init(&ctx->sources);
 
     /* search dirs */
@@ -26,9 +29,12 @@ void compile_context_init(struct compile_context *ctx)
 
 void compile_context_clear(struct compile_context *ctx)
 {
+    /* memory */
     parser_token_pool_clear(&ctx->token_pool);
     parser_node_pool_clear(&ctx->node_pool);
+    data_intern_table_clear(&ctx->intern_table);
 
+    /* sources */
     parser_sourcevec_clear(&ctx->sources);
 
     /* search dirs */

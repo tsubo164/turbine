@@ -3,17 +3,12 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #define MAX_LOAD_FACTOR 70
 #define INIT_SIZE 256
-
-static char **buckets = NULL;
-static int64_t capacity = 0;
-static int64_t occupied = 0;
 
 static uint64_t fnv_hash(const char *key)
 {
@@ -25,24 +20,24 @@ static uint64_t fnv_hash(const char *key)
     return hash;
 }
 
-static const char *insert(const char *key, bool dup_key)
+static const char *insert(struct data_intern_table *table, const char *key, bool dup_key)
 {
     if (!key)
         return NULL;
 
     uint64_t hash = fnv_hash(key);
 
-    for (int i = 0; i < capacity; i++) {
-        int pos = (hash + i) % capacity;
-        const char *ent = buckets[pos];
+    for (int i = 0; i < table->cap; i++) {
+        int pos = (hash + i) % table->cap;
+        const char *ent = table->buckets[pos];
 
         if (!ent) {
             if (dup_key)
-                buckets[pos] = data_strdup(key);
+                table->buckets[pos] = data_strdup(key);
             else
-                buckets[pos] = (char*) key;
-            occupied++;
-            return buckets[pos];
+                table->buckets[pos] = (char*) key;
+            table->used++;
+            return table->buckets[pos];
         }
         else if (!strcmp(ent, key)) {
             return ent;
@@ -51,65 +46,65 @@ static const char *insert(const char *key, bool dup_key)
     return NULL;
 }
 
-static void rehash(void)
+static void rehash(struct data_intern_table *table)
 {
-    char **old_buckets = buckets;
-    int old_cap = capacity;
+    char **old_buckets = table->buckets;
+    int old_cap = table->cap;
 
     /* resize buckets */
-    capacity = capacity < INIT_SIZE ? INIT_SIZE : 2 * capacity;
-    buckets = calloc(capacity, sizeof(buckets[0]));
-    occupied = 0;
+    table->cap = table->cap < INIT_SIZE ? INIT_SIZE : 2 * table->cap;
+    table->buckets = calloc(table->cap, sizeof(table->buckets[0]));
+    table->used = 0;
 
     /* move keys to new buckets */
     for ( int i = 0; i < old_cap; i++ ) {
         const char *ent = old_buckets[i];
         if (ent) {
             bool dup_key = false;
-            insert(ent, dup_key);
+            insert(table, ent, dup_key);
         }
     }
 
     free(old_buckets);
 }
 
-const char *data_string_intern(const char *key)
+const char *data_string_intern(struct data_intern_table *table, const char *key)
 {
     if (!key)
         return NULL;
 
-    if (100 * occupied >= MAX_LOAD_FACTOR * capacity)
-        rehash();
+    if (100 * table->used >= MAX_LOAD_FACTOR * table->cap)
+        rehash(table);
 
     bool dup_key = true;
-    return insert(key, dup_key);
+    return insert(table, key, dup_key);
 }
 
-void data_print_intern_table(void)
+void data_print_intern_table(const struct data_intern_table *table)
 {
-    for (int i = 0; i < capacity; i++) {
-        const char *ent = buckets[i];
+    for (int i = 0; i < table->cap; i++) {
+        const char *ent = table->buckets[i];
         if (ent)
             printf("%4d: \"%s\"\n", i, ent);
     }
-    printf("buckets %" PRId64 "/%" PRId64 ": %g%% occupied\n",
-            occupied, capacity, ((float) occupied) / capacity);
+    printf("table->buckets %" PRId64 "/%" PRId64 ": %g%% table->used\n",
+            table->used, table->cap, ((float) table->used) / table->cap);
 }
 
-void data_intern_table_init(void)
+void data_intern_table_init(struct data_intern_table *table)
 {
-    buckets = NULL;
-    capacity = 0;
-    occupied = 0;
+    table->buckets = NULL;
+    table->cap = 0;
+    table->used = 0;
 }
 
-void data_intern_table_free(void)
+void data_intern_table_clear(struct data_intern_table *table)
 {
-    for (int i = 0; i < capacity; i++) {
-        char *ent = buckets[i];
+    for (int i = 0; i < table->cap; i++) {
+        char *ent = table->buckets[i];
         if (ent)
             free(ent);
     }
-    free(buckets);
-    data_intern_table_init();
+    free(table->buckets);
+    data_intern_table_init(table);
 }

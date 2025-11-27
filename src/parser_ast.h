@@ -130,6 +130,7 @@ struct parser_expr {
 
     /* constexpr */
     bool is_const;
+    char *evalstr;
 };
 
 struct parser_stmt {

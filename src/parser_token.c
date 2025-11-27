@@ -2,7 +2,6 @@
 #include "parser_escseq.h"
 #include "parser_error.h"
 #include "lang_limits.h"
-#include "data_intern.h"
 
 #include <assert.h>
 #include <string.h>
@@ -339,7 +338,8 @@ static void validate_underscores(struct lexer *l, const char *name)
     error(l, "leading and trailing underscores must be either both absent or both single");
 }
 
-static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_pos pos)
+static void scan_word(struct lexer *l, struct parser_token *tok,
+        struct parser_pos pos, struct data_intern_table *table)
 {
     static char buf[LANG_MAX_IDENTIFIER_LEN + 1] = {'\0'};
     int bufsize = sizeof(buf)/sizeof(buf[0]);
@@ -377,12 +377,12 @@ static void scan_word(struct lexer *l, struct parser_token *tok, struct parser_p
     validate_underscores(l, buf);
 
     int kind = keyword_or_ident(buf);
-    tok->sval = data_string_intern(buf);
+    tok->sval = data_string_intern(table, buf);
     set(tok, kind, pos);
 }
 
 static void scan_string_literal(struct lexer *l, struct parser_token *tok,
-        struct parser_pos pos)
+        struct parser_pos pos, struct data_intern_table *table)
 {
     static char buf[LANG_MAX_STRING_LITERAL_LEN + 1] = {'\0'};
     int bufsize = sizeof(buf)/sizeof(buf[0]);
@@ -419,7 +419,7 @@ static void scan_string_literal(struct lexer *l, struct parser_token *tok,
     }
     *dst = '\0';
 
-    tok->sval = data_string_intern(buf);
+    tok->sval = data_string_intern(table, buf);
     set(tok, TOK_STRINGLIT, pos);
 }
 
@@ -546,7 +546,7 @@ static int scan_indent(struct lexer *l, struct parser_token *tok)
     }
 }
 
-static void get_token(struct lexer *l, struct parser_token *tok)
+static void get_token(struct lexer *l, struct parser_token *tok, struct data_intern_table *table)
 {
     static const struct parser_token ini = {0};
     *tok = ini;
@@ -841,13 +841,13 @@ static void get_token(struct lexer *l, struct parser_token *tok)
         /* word */
         if (isalpha(ch) || ch == '_') {
             unget(l);
-            scan_word(l, tok, pos);
+            scan_word(l, tok, pos, table);
             return;
         }
 
         if (ch == '$') {
             unget(l);
-            scan_word(l, tok, pos);
+            scan_word(l, tok, pos, table);
             if (tok->kind == TOK_IDENT) {
                 l->pos = pos;
                 error(l, "unknown special variables: '%s'", tok->sval);
@@ -857,7 +857,7 @@ static void get_token(struct lexer *l, struct parser_token *tok)
 
         /* string */
         if (ch == '"') {
-            scan_string_literal(l, tok, pos);
+            scan_string_literal(l, tok, pos, table);
             return;
         }
 
@@ -913,7 +913,8 @@ static struct parser_token *new_token(int kind, struct parser_token_pool *pool)
     return t;
 }
 
-struct parser_token *parser_tokenize(const char *src, const char *filename, struct parser_token_pool *pool)
+struct parser_token *parser_tokenize(const char *src, const char *filename,
+        struct parser_token_pool *pool, struct data_intern_table *table)
 {
     struct lexer l = {0};
     set_input(&l, src, filename);
@@ -923,7 +924,7 @@ struct parser_token *parser_tokenize(const char *src, const char *filename, stru
 
     while (tail->kind != TOK_EOF) {
         struct parser_token *tok = new_token(0, pool);
-        get_token(&l, tok);
+        get_token(&l, tok, table);
 
         tail->next = tok;
         tok->prev = tail;

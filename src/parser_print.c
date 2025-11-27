@@ -3,10 +3,10 @@
 #include "parser_token.h"
 #include "parser_type.h"
 #include "parser_ast.h"
-#include "data_intern.h"
 #include "data_strbuf.h"
 
 #include <stdio.h>
+#include <string.h>
 
 void parser_print_token(const struct parser_token *token, bool format)
 {
@@ -69,10 +69,12 @@ void parser_print_token(const struct parser_token *token, bool format)
 
 static const char *type_string(const struct parser_type *t)
 {
+    static char typestr[1024] = {'\0'};
+
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
     parser_type_string(t, &sbuf);
 
-    const char *typestr = data_string_intern(sbuf.data);
+    strncpy(typestr, data_strbuf_get(&sbuf), 1023);
     data_strbuf_free(&sbuf);
 
     return typestr;

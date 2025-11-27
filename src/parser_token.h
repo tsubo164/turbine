@@ -3,6 +3,7 @@
 
 #include "value_types.h"
 #include "data_mem_pool.h"
+#include "data_intern.h"
 #include <stdbool.h>
 
 enum parser_token_kind {
@@ -126,7 +127,8 @@ struct parser_token_pool {
     struct data_mem_pool pool;
 };
 
-struct parser_token *parser_tokenize(const char *src, const char *filename, struct parser_token_pool *pool);
+struct parser_token *parser_tokenize(const char *src, const char *filename,
+        struct parser_token_pool *pool, struct data_intern_table *table);
 const char *parser_get_token_string(int kind);
 
 void parser_token_pool_init(struct parser_token_pool *pool);

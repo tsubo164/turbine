@@ -1,6 +1,5 @@
 #include "interpreter.h"
 #include "compile_context.h"
-#include "data_intern.h"
 #include "builtin_module.h"
 #include "parser_search_dirs.h"
 #include "parser_symbol.h"
@@ -118,9 +117,6 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     struct compile_context ctx;
     compile_context_init(&ctx);
 
-    /* string intern */
-    data_intern_table_init();
-
     /* type pool */
     parser_type_pool_init();
 
@@ -152,7 +148,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     if (setjmp(parse_env) == 0) {
         /* tokenize */
         if (pass.tokenize) {
-            tok = parser_tokenize(text, args->filename, &ctx.token_pool);
+            tok = parser_tokenize(text, args->filename, &ctx.token_pool, &ctx.intern_table);
         }
 
         /* print tokens */
@@ -222,7 +218,6 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     free(script_dir);
 
     parser_type_pool_free();
-    data_intern_table_free();
 
     compile_context_clear(&ctx);
 

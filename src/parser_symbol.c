@@ -1,6 +1,6 @@
 #include "parser_symbol.h"
 #include "parser_ast.h"
-#include "data_intern.h"
+#include "data_cstr.h"
 
 #include <assert.h>
 #include <string.h>
@@ -203,14 +203,14 @@ struct parser_var *parser_define_var(struct parser_scope *sc,
     return sym->var;
 }
 
-static const char *func_fullname(const char *modulename, const char *funcname)
+static char *func_fullname(const char *modulename, const char *funcname)
 {
     /* unique func name */
     static char fullname[1024] = {'\0'};
     static const size_t size = sizeof(fullname) / sizeof(fullname[0]);
 
     snprintf(fullname, size, "%s:%s", modulename, funcname);
-    return data_string_intern(fullname);
+    return data_strdup(fullname);
 }
 
 /* func */
@@ -240,6 +240,8 @@ static void free_func(struct parser_func *func)
 {
     free_func_sig(func->sig);
     parser_free_scope(func->scope);
+    free(func->fullname);
+
     free(func);
 }
 

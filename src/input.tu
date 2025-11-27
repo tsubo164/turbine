@@ -45,7 +45,7 @@
 
 # main(args vec{string}) int
   print(my_calc.add(2, 3))
-  print("my_math version:", my_calc.my_math._VERSION_)
+  //print("my_math version:", my_calc.my_math._VERSION_)
   - x = 5.0
   print("square of", x, "is", my_calc.square(x))
   print("ok")

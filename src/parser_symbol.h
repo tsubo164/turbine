@@ -43,7 +43,7 @@ struct parser_func_sig {
 
 struct parser_func {
     const char *name;
-    const char *fullname;
+    char *fullname;
     struct parser_func_sig *sig;
     int size;
     int id;

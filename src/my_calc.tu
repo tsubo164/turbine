@@ -6,4 +6,6 @@
   return x + y
 
 # square(x float) float
+  //- i = 42 + "foo"
+  - i = "bar" + "foo" + 32
   return my_math.Square(x)

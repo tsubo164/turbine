@@ -1,7 +1,7 @@
 #include "parser_ast.h"
 #include "parser_type.h"
 #include "data_strbuf.h"
-#include "data_intern.h"
+#include "data_cstr.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -199,18 +199,19 @@ static void eval_float(struct parser_expr *e)
     }
 }
 
-static const char *cats(const char *s1, const char *s2)
+static const char *cats(struct parser_expr *e)
 {
+    const char *s1 = e->l->sval;
+    const char *s2 = e->r->sval;
     struct data_strbuf sb = DATA_STRBUF_INIT;
-    const char *s3 = NULL;
 
     data_strbuf_copy(&sb, s1);
     data_strbuf_cat(&sb, s2);
 
-    s3 = data_string_intern(sb.data);
+    e->evalstr = data_strdup(data_strbuf_get(&sb));
     data_strbuf_free(&sb);
 
-    return s3;
+    return e->evalstr;
 }
 
 static void eval_string(struct parser_expr *e)
@@ -218,7 +219,7 @@ static void eval_string(struct parser_expr *e)
     fold_kind(e);
 
     switch (e->kind_orig) {
-        case NOD_EXPR_ADD: e->sval = cats(e->l->sval, e->r->sval); break;
+        case NOD_EXPR_ADD: e->sval = cats(e); break;
 
         case NOD_EXPR_EQ:  e->ival = strcmp(e->l->sval, e->r->sval) == 0; break;
         case NOD_EXPR_NEQ: e->ival = strcmp(e->l->sval, e->r->sval) != 0; break;
@@ -987,8 +988,14 @@ void parser_node_pool_init(struct parser_node_pool *pool)
     data_mem_pool_init(&pool->stmt_pool, sizeof(struct parser_stmt), 1024);
 }
 
+void free_expr(void *data)
+{
+    struct parser_expr *expr = (struct parser_expr *)data;
+    free(expr->evalstr);
+}
+
 void parser_node_pool_clear(struct parser_node_pool *pool)
 {
-    data_mem_pool_clear(&pool->expr_pool, NULL);
+    data_mem_pool_clear(&pool->expr_pool, free_expr);
     data_mem_pool_clear(&pool->stmt_pool, NULL);
 }
