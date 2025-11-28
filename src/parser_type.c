@@ -8,9 +8,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-/* memory pool */
-static struct data_mem_pool type_pool = {0};
-
 void free_type(void *data)
 {
     struct parser_type *t = (struct parser_type*) data;
@@ -19,124 +16,124 @@ void free_type(void *data)
 }
 
 /* TODO consider allocate basic types */
-struct parser_type *parser_new_nil_type(struct parser_type_pool *pool)
+struct parser_type *parser_new_nil_type(struct parser_type_pool *p)
 {
     static struct parser_type t;
     t.kind = TYP_NIL;
     return &t;
 }
 
-struct parser_type *parser_new_bool_type(struct parser_type_pool *pool)
+struct parser_type *parser_new_bool_type(struct parser_type_pool *p)
 {
     static struct parser_type t;
     t.kind = TYP_BOOL;
     return &t;
 }
 
-struct parser_type *parser_new_int_type(struct parser_type_pool *pool)
+struct parser_type *parser_new_int_type(struct parser_type_pool *p)
 {
     static struct parser_type t;
     t.kind = TYP_INT;
     return &t;
 }
 
-struct parser_type *parser_new_float_type(struct parser_type_pool *pool)
+struct parser_type *parser_new_float_type(struct parser_type_pool *p)
 {
     static struct parser_type t;
     t.kind = TYP_FLOAT;
     return &t;
 }
 
-struct parser_type *parser_new_string_type(struct parser_type_pool *pool)
+struct parser_type *parser_new_string_type(struct parser_type_pool *p)
 {
     static struct parser_type t;
     t.kind = TYP_STRING;
     return &t;
 }
 
-static struct parser_type *new_type(struct parser_type_pool *pool, int kind)
+static struct parser_type *new_type(struct parser_type_pool *p, int kind)
 {
     struct parser_type *t;
 
-    t = data_mem_pool_alloc(&type_pool);
+    t = data_mem_pool_alloc(&p->pool);
     t->kind = kind;
 
     return t;
 }
 
-struct parser_type *parser_new_func_type(struct parser_type_pool *pool, const struct parser_func_sig *func_sig)
+struct parser_type *parser_new_func_type(struct parser_type_pool *p, const struct parser_func_sig *func_sig)
 {
-    struct parser_type *t = new_type(pool, TYP_FUNC);
+    struct parser_type *t = new_type(p, TYP_FUNC);
     t->func_sig = func_sig;
     return t;
 }
 
-struct parser_type *parser_new_vec_type(struct parser_type_pool *pool, const struct parser_type *underlying)
+struct parser_type *parser_new_vec_type(struct parser_type_pool *p, const struct parser_type *underlying)
 {
-    struct parser_type *t = new_type(pool, TYP_VEC);
+    struct parser_type *t = new_type(p, TYP_VEC);
     t->underlying = underlying;
     return t;
 }
 
-struct parser_type *parser_new_map_type(struct parser_type_pool *pool, const struct parser_type *underlying)
+struct parser_type *parser_new_map_type(struct parser_type_pool *p, const struct parser_type *underlying)
 {
-    struct parser_type *t = new_type(pool, TYP_MAP);
+    struct parser_type *t = new_type(p, TYP_MAP);
     t->underlying = underlying;
     return t;
 }
 
-struct parser_type *parser_new_set_type(struct parser_type_pool *pool, const struct parser_type *underlying)
+struct parser_type *parser_new_set_type(struct parser_type_pool *p, const struct parser_type *underlying)
 {
-    struct parser_type *t = new_type(pool, TYP_SET);
+    struct parser_type *t = new_type(p, TYP_SET);
     t->underlying = underlying;
     return t;
 }
 
-struct parser_type *parser_new_stack_type(struct parser_type_pool *pool, const struct parser_type *underlying)
+struct parser_type *parser_new_stack_type(struct parser_type_pool *p, const struct parser_type *underlying)
 {
-    struct parser_type *t = new_type(pool, TYP_STACK);
+    struct parser_type *t = new_type(p, TYP_STACK);
     t->underlying = underlying;
     return t;
 }
 
-struct parser_type *parser_new_queue_type(struct parser_type_pool *pool, const struct parser_type *underlying)
+struct parser_type *parser_new_queue_type(struct parser_type_pool *p, const struct parser_type *underlying)
 {
-    struct parser_type *t = new_type(pool, TYP_QUEUE);
+    struct parser_type *t = new_type(p, TYP_QUEUE);
     t->underlying = underlying;
     return t;
 }
 
-struct parser_type *parser_new_struct_type(struct parser_type_pool *pool, const struct parser_struct *s)
+struct parser_type *parser_new_struct_type(struct parser_type_pool *p, const struct parser_struct *s)
 {
-    struct parser_type *t = new_type(pool, TYP_STRUCT);
+    struct parser_type *t = new_type(p, TYP_STRUCT);
     t->strct = s;
     return t;
 }
 
-struct parser_type *parser_new_enum_type(struct parser_type_pool *pool, const struct parser_enum *e)
+struct parser_type *parser_new_enum_type(struct parser_type_pool *p, const struct parser_enum *e)
 {
-    struct parser_type *t = new_type(pool, TYP_ENUM);
+    struct parser_type *t = new_type(p, TYP_ENUM);
     t->enm = e;
     return t;
 }
 
-struct parser_type *parser_new_module_type(struct parser_type_pool *pool, const struct parser_module *mod)
+struct parser_type *parser_new_module_type(struct parser_type_pool *p, const struct parser_module *mod)
 {
-    struct parser_type *t = new_type(pool, TYP_MODULE);
+    struct parser_type *t = new_type(p, TYP_MODULE);
     t->module = mod;
     return t;
 }
 
-struct parser_type *parser_new_any_type(struct parser_type_pool *pool)
+struct parser_type *parser_new_any_type(struct parser_type_pool *p)
 {
     static struct parser_type t;
     t.kind = TYP_ANY;
     return &t;
 }
 
-struct parser_type *parser_new_template_type(struct parser_type_pool *pool, int id)
+struct parser_type *parser_new_template_type(struct parser_type_pool *p, int id)
 {
-    struct parser_type *t = new_type(pool, TYP_TEMPLATE);
+    struct parser_type *t = new_type(p, TYP_TEMPLATE);
     t->template_id = id;
     return t;
 }
@@ -259,9 +256,9 @@ bool parser_match_type(const struct parser_type *t1, const struct parser_type *t
     return t1->kind == t2->kind;
 }
 
-struct parser_type *parser_duplicate_type(struct parser_type_pool *pool, const struct parser_type *t)
+struct parser_type *parser_duplicate_type(struct parser_type_pool *p, const struct parser_type *t)
 {
-    struct parser_type *dup = new_type(pool, 0);
+    struct parser_type *dup = new_type(p, 0);
     *dup = *t;
     return dup;
 }
@@ -400,18 +397,18 @@ void parser_typelist_skip_next(struct parser_typelist_iterator *it)
     }
 }
 
-void parser_type_pool_init(struct parser_type_pool *pool)
+void parser_type_pool_init(struct parser_type_pool *p)
 {
-    data_mem_pool_init(&type_pool, sizeof(struct parser_type), 128);
+    data_mem_pool_init(&p->pool, sizeof(struct parser_type), 128);
 }
 
-void parser_type_pool_clear(struct parser_type_pool *pool)
+void parser_type_pool_clear(struct parser_type_pool *p)
 {
     if (true) {
-        data_mem_pool_clear(&type_pool, NULL);
+        data_mem_pool_clear(&p->pool, NULL);
     }
     else {
-        printf("mem pool type count: %d\n", data_mem_pool_alloc_count(&type_pool));
-        data_mem_pool_clear(&type_pool, free_type);
+        printf("mem pool type count: %d\n", data_mem_pool_alloc_count(&p->pool));
+        data_mem_pool_clear(&p->pool, free_type);
     }
 }
