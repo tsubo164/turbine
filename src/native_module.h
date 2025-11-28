@@ -33,11 +33,14 @@ struct native_func_param {
     bool is_out;
 };
 
+struct parser_type_pool;
+
 void native_declare_func(struct parser_scope *scope,
         const char *modulename,
         const char *funcname,
         const struct native_func_param *params,
-        native_func_t native_func);
+        native_func_t native_func,
+        struct parser_type_pool *pool);
 
 /* struct */
 struct native_struct_field {
@@ -47,7 +50,8 @@ struct native_struct_field {
 
 struct parser_struct *native_define_struct(struct parser_scope *scope,
         const char *structname,
-        const struct native_struct_field *fields);
+        const struct native_struct_field *fields,
+        struct parser_type_pool *pool);
 
 /* enum */
 struct native_enum_field {
@@ -66,7 +70,8 @@ struct native_enum_value {
 struct parser_enum *native_define_enum(struct parser_scope *scope,
         const char *enumname,
         const struct native_enum_field *fields,
-        const struct native_enum_value *values);
+        const struct native_enum_value *values,
+        struct parser_type_pool *pool);
 
 /* global */
 struct native_global_var {

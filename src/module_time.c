@@ -1,7 +1,6 @@
 #include "module_time.h"
 #include "native_module.h"
 #include "parser_symbol.h"
-#include "parser_type.h"
 #include "runtime_vec.h"
 #include "runtime_gc.h"
 #include "os.h"
@@ -53,9 +52,10 @@ static int time_sleep(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
-int module_define_time(struct parser_scope *scope)
+int module_define_time(struct parser_scope *scope, struct parser_type_pool *type_pool)
 {
-    struct parser_module *mod = parser_define_module(scope, "_builtin", "time");
+    struct parser_module *mod = parser_define_module(scope, "_builtin", "time", type_pool);
+    struct parser_type_pool *pool = type_pool;
 
     /* struct */
     {
@@ -65,53 +65,53 @@ int module_define_time(struct parser_scope *scope)
         const char *name = "init";
         native_func_t fp = time_init;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "now";
         native_func_t fp = time_now;
         struct native_func_param params[] = {
-            { "_ret", parser_new_float_type() },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "perf";
         native_func_t fp = time_perf;
         struct native_func_param params[] = {
-            { "_ret", parser_new_float_type() },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "elapsed";
         native_func_t fp = time_elapsed;
         struct native_func_param params[] = {
-            { "start", parser_new_float_type() },
-            { "_ret",  parser_new_float_type() },
+            { "start", parser_new_float_type(pool) },
+            { "_ret",  parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "sleep";
         native_func_t fp = time_sleep;
         struct native_func_param params[] = {
-            { "seconds", parser_new_float_type() },
-            { "_ret",    parser_new_nil_type() },
+            { "seconds", parser_new_float_type(pool) },
+            { "_ret",    parser_new_nil_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
 
     return 0;

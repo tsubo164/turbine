@@ -1,7 +1,6 @@
 #include "module_file.h"
 #include "native_module.h"
 #include "parser_symbol.h"
-#include "parser_type.h"
 #include "runtime_string.h"
 #include "runtime_vec.h"
 #include "runtime_gc.h"
@@ -162,88 +161,89 @@ static int file_write_lines(struct runtime_gc *gc, struct runtime_registers *reg
     return RESULT_SUCCESS;
 }
 
-int module_define_file(struct parser_scope *scope)
+int module_define_file(struct parser_scope *scope, struct parser_type_pool *type_pool)
 {
-    struct parser_module *mod = parser_define_module(scope, "_builtin", "file");
+    struct parser_module *mod = parser_define_module(scope, "_builtin", "file", type_pool);
     struct parser_struct *file_struct = NULL;
+    struct parser_type_pool *pool = type_pool;
 
     /* struct */
     {
         const char *name = "File";
         struct native_struct_field fields[] = {
-            { "fd", parser_new_int_type() },
+            { "fd", parser_new_int_type(pool) },
             { NULL },
         };
 
-        file_struct = native_define_struct(mod->scope, name, fields);
+        file_struct = native_define_struct(mod->scope, name, fields, pool);
     }
     /* function */
     {
         const char *name = "init";
         native_func_t fp = file_init;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "new";
         native_func_t fp = file_new;
         struct native_func_param params[] = {
-            { "path", parser_new_string_type() },
-            { "_ret", parser_new_struct_type(file_struct) },
+            { "path", parser_new_string_type(pool) },
+            { "_ret", parser_new_struct_type(pool, file_struct) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "read_text";
         native_func_t fp = file_read_text;
         struct native_func_param params[] = {
-            { "path", parser_new_string_type() },
-            { "_ret", parser_new_string_type() },
+            { "path", parser_new_string_type(pool) },
+            { "_ret", parser_new_string_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "write_text";
         native_func_t fp = file_write_text;
         struct native_func_param params[] = {
-            { "path", parser_new_string_type() },
-            { "text", parser_new_string_type() },
-            { "_ret", parser_new_bool_type() },
+            { "path", parser_new_string_type(pool) },
+            { "text", parser_new_string_type(pool) },
+            { "_ret", parser_new_bool_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "read_lines";
         native_func_t fp = file_read_lines;
         struct native_func_param params[] = {
-            { "path", parser_new_string_type() },
-            { "_ret", parser_new_vec_type(parser_new_string_type()) },
+            { "path", parser_new_string_type(pool) },
+            { "_ret", parser_new_vec_type(pool, parser_new_string_type(pool)) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "write_lines";
         native_func_t fp = file_write_lines;
         struct native_func_param params[] = {
-            { "path",  parser_new_string_type() },
-            { "lines", parser_new_vec_type(parser_new_string_type()) },
-            { "_ret",  parser_new_int_type() },
+            { "path",  parser_new_string_type(pool) },
+            { "lines", parser_new_vec_type(pool, parser_new_string_type(pool)) },
+            { "_ret",  parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
 
     return 0;

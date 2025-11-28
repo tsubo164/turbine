@@ -1,8 +1,10 @@
 #ifndef PARSER_TYPE_H
 #define PARSER_TYPE_H
 
-#include <stdbool.h>
+#include "data_mem_pool.h"
 #include "data_strbuf.h"
+
+#include <stdbool.h>
 
 struct parser_func_sig;
 struct parser_struct;
@@ -51,25 +53,27 @@ struct parser_type {
     };
 };
 
-void parser_type_pool_init(void);
-void parser_type_pool_free(void);
+/* type pool */
+struct parser_type_pool {
+    struct data_mem_pool pool;
+};
 
-struct parser_type *parser_new_nil_type(void);
-struct parser_type *parser_new_bool_type(void);
-struct parser_type *parser_new_int_type(void);
-struct parser_type *parser_new_float_type(void);
-struct parser_type *parser_new_string_type(void);
-struct parser_type *parser_new_func_type(const struct parser_func_sig *func_sig);
-struct parser_type *parser_new_vec_type(const struct parser_type *underlying);
-struct parser_type *parser_new_map_type(const struct parser_type *underlying);
-struct parser_type *parser_new_set_type(const struct parser_type *underlying);
-struct parser_type *parser_new_stack_type(const struct parser_type *underlying);
-struct parser_type *parser_new_queue_type(const struct parser_type *underlying);
-struct parser_type *parser_new_struct_type(const struct parser_struct *s);
-struct parser_type *parser_new_enum_type(const struct parser_enum *e);
-struct parser_type *parser_new_module_type(const struct parser_module *m);
-struct parser_type *parser_new_any_type(void);
-struct parser_type *parser_new_template_type(int id);
+struct parser_type *parser_new_nil_type(struct parser_type_pool *pool);
+struct parser_type *parser_new_bool_type(struct parser_type_pool *pool);
+struct parser_type *parser_new_int_type(struct parser_type_pool *pool);
+struct parser_type *parser_new_float_type(struct parser_type_pool *pool);
+struct parser_type *parser_new_string_type(struct parser_type_pool *pool);
+struct parser_type *parser_new_func_type(struct parser_type_pool *pool, const struct parser_func_sig *func_sig);
+struct parser_type *parser_new_vec_type(struct parser_type_pool *pool, const struct parser_type *underlying);
+struct parser_type *parser_new_map_type(struct parser_type_pool *pool, const struct parser_type *underlying);
+struct parser_type *parser_new_set_type(struct parser_type_pool *pool, const struct parser_type *underlying);
+struct parser_type *parser_new_stack_type(struct parser_type_pool *pool, const struct parser_type *underlying);
+struct parser_type *parser_new_queue_type(struct parser_type_pool *pool, const struct parser_type *underlying);
+struct parser_type *parser_new_struct_type(struct parser_type_pool *pool, const struct parser_struct *s);
+struct parser_type *parser_new_enum_type(struct parser_type_pool *pool, const struct parser_enum *e);
+struct parser_type *parser_new_module_type(struct parser_type_pool *pool, const struct parser_module *m);
+struct parser_type *parser_new_any_type(struct parser_type_pool *pool);
+struct parser_type *parser_new_template_type(struct parser_type_pool *pool, int id);
 
 bool parser_is_nil_type(const struct parser_type *t);
 bool parser_is_bool_type(const struct parser_type *t);
@@ -91,7 +95,7 @@ bool parser_has_template_type(const struct parser_type *t);
 bool parser_is_collection_type(const struct parser_type *t);
 
 bool parser_match_type(const struct parser_type *t1, const struct parser_type *t2);
-struct parser_type *parser_duplicate_type(const struct parser_type *t);
+struct parser_type *parser_duplicate_type(struct parser_type_pool *pool, const struct parser_type *t);
 void parser_type_string(const struct parser_type *t, struct data_strbuf *sbuf);
 
 /* type vec */
@@ -111,5 +115,9 @@ bool parser_typelist_struct_end(const struct parser_typelist_iterator *it);
 void parser_typelist_push(struct data_strbuf *sb, const struct parser_type *t);
 
 void parser_typelist_skip_next(struct parser_typelist_iterator *it);
+
+/* type pool */
+void parser_type_pool_init(struct parser_type_pool *pool);
+void parser_type_pool_clear(struct parser_type_pool *pool);
 
 #endif /* _H */

@@ -246,7 +246,7 @@ static void free_func(struct parser_func *func)
 }
 
 struct parser_func *parser_declare_func(struct parser_scope *parent,
-        const char *modulename, const char *name)
+        const char *modulename, const char *name, struct parser_type_pool *pool)
 {
     if (parser_find_symbol_local(parent, name))
         return NULL;
@@ -255,7 +255,7 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 
     /* add func itself to symbol enum */
     struct parser_symbol *sym = parser_new_symbol(SYM_FUNC,
-            func->name, parser_new_func_type(func->sig));
+            func->name, parser_new_func_type(pool, func->sig));
     sym->func = func;
 
     if (!data_hashmap_insert(&parent->symbols, func->name, sym))
@@ -266,9 +266,9 @@ struct parser_func *parser_declare_func(struct parser_scope *parent,
 }
 
 struct parser_func *parser_declare_native_func(struct parser_scope *parent,
-        const char *modulename, const char *name, native_func_t func_ptr)
+        const char *modulename, const char *name, native_func_t func_ptr, struct parser_type_pool *pool)
 {
-    struct parser_func *func = parser_declare_func(parent, modulename, name);
+    struct parser_func *func = parser_declare_func(parent, modulename, name, pool);
     func->native_func_ptr = func_ptr;
     func->sig->is_native = true;
     return func;
@@ -407,11 +407,11 @@ static void free_struct(struct parser_struct *strct)
 }
 
 struct parser_struct *parser_define_struct(struct parser_scope *sc,
-        const char *name)
+        const char *name, struct parser_type_pool *pool)
 {
     struct parser_struct *strct = new_struct(name);
     struct parser_symbol *sym = parser_new_symbol(SYM_STRUCT,
-            name, parser_new_struct_type(strct));
+            name, parser_new_struct_type(pool, strct));
     sym->strct = strct;
 
     if (!data_hashmap_insert(&sc->symbols, name, sym))
@@ -480,7 +480,7 @@ struct parser_struct_field *parser_get_struct_field(const struct parser_struct *
 
 /* enum */
 struct parser_enum *parser_define_enum(struct parser_scope *sc,
-        const char *name)
+        const char *name, struct parser_type_pool *pool)
 {
     struct parser_enum *enm;
 
@@ -488,7 +488,7 @@ struct parser_enum *parser_define_enum(struct parser_scope *sc,
     enm->name = name;
 
     struct parser_symbol *sym = parser_new_symbol(SYM_ENUM,
-            name, parser_new_enum_type(enm));
+            name, parser_new_enum_type(pool, enm));
     sym->enm = enm;
 
     if (!data_hashmap_insert(&sc->symbols, name, sym))
@@ -654,7 +654,7 @@ static void free_enum(struct parser_enum *enm)
 
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,
-        const char *filename, const char *modulename)
+        const char *filename, const char *modulename, struct parser_type_pool *pool)
 {
     struct parser_module *mod;
 
@@ -664,7 +664,7 @@ struct parser_module *parser_define_module(struct parser_scope *sc,
     mod->scope = parser_new_scope(sc);
 
     struct parser_symbol *sym = parser_new_symbol(SYM_MODULE,
-            modulename, parser_new_module_type(mod));
+            modulename, parser_new_module_type(pool, mod));
     sym->module = mod;
 
     if (!data_hashmap_insert(&sc->symbols, modulename, sym))

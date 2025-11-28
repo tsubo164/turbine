@@ -2,6 +2,7 @@
 #define COMPILE_CONTEXT_H
 
 #include "parser_ast.h"
+#include "parser_type.h"
 #include "parser_token.h"
 #include "parser_source.h"
 #include "parser_search_dirs.h"
@@ -12,6 +13,7 @@ struct compile_context {
     /* memory */
     struct parser_token_pool token_pool;
     struct parser_node_pool node_pool;
+    struct parser_type_pool type_pool;
     struct data_intern_table intern_table;
 
     /* sources */

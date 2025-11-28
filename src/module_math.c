@@ -1,7 +1,6 @@
 #include "module_math.h"
 #include "native_module.h"
 #include "parser_symbol.h"
-#include "parser_type.h"
 #include "runtime_gc.h"
 
 #include <stdio.h>
@@ -308,9 +307,10 @@ static int math_log2(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
-int module_define_math(struct parser_scope *scope)
+int module_define_math(struct parser_scope *scope, struct parser_type_pool *type_pool)
 {
-    struct parser_module *mod = parser_define_module(scope, "_builtin", "math");
+    struct parser_module *mod = parser_define_module(scope, "_builtin", "math", type_pool);
+    struct parser_type_pool *pool = type_pool;
     /* TODO define math::vecnormalize() */
     /*
     struct parser_struct *vec3_struct = NULL;
@@ -319,9 +319,9 @@ int module_define_math(struct parser_scope *scope)
     /* global */
     {
         struct native_global_var gvars[] = {
-            { "_PI_",  parser_new_float_type() },
-            { "_E_",   parser_new_float_type() },
-            { "_INF_", parser_new_float_type() },
+            { "_PI_",  parser_new_float_type(pool) },
+            { "_E_",   parser_new_float_type(pool) },
+            { "_INF_", parser_new_float_type(pool) },
             { NULL },
         };
 
@@ -331,319 +331,319 @@ int module_define_math(struct parser_scope *scope)
     {
         const char *name = "Vec3";
         struct native_struct_field fields[] = {
-            { "x", parser_new_float_type() },
-            { "y", parser_new_float_type() },
-            { "z", parser_new_float_type() },
+            { "x", parser_new_float_type(pool) },
+            { "y", parser_new_float_type(pool) },
+            { "z", parser_new_float_type(pool) },
             { NULL },
         };
 
         /*
         vec3_struct = native_define_struct(mod->scope, name, fields);
         */
-        native_define_struct(mod->scope, name, fields);
+        native_define_struct(mod->scope, name, fields, pool);
     }
     /* function */
     {
         const char *name = "init";
         native_func_t fp = math_init;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "isclose";
         native_func_t fp = math_isclose;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "y",    parser_new_float_type() },
-            { "_ret", parser_new_bool_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "y",    parser_new_float_type(pool) },
+            { "_ret", parser_new_bool_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "pow";
         native_func_t fp = math_pow;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "y",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "y",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "sqrt";
         native_func_t fp = math_sqrt;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "abs";
         native_func_t fp = math_abs;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "floor";
         native_func_t fp = math_floor;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "ceil";
         native_func_t fp = math_ceil;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "round";
         native_func_t fp = math_round;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     /* trigonometric */
     {
         const char *name = "radians";
         native_func_t fp = math_radians;
         struct native_func_param params[] = {
-            { "degree", parser_new_float_type() },
-            { "_ret",   parser_new_float_type() },
+            { "degree", parser_new_float_type(pool) },
+            { "_ret",   parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "degrees";
         native_func_t fp = math_degrees;
         struct native_func_param params[] = {
-            { "degree", parser_new_float_type() },
-            { "_ret",   parser_new_float_type() },
+            { "degree", parser_new_float_type(pool) },
+            { "_ret",   parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "sin";
         native_func_t fp = math_sin;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "cos";
         native_func_t fp = math_cos;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "tan";
         native_func_t fp = math_tan;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "asin";
         native_func_t fp = math_asin;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "acos";
         native_func_t fp = math_acos;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "atan";
         native_func_t fp = math_atan;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "atan2";
         native_func_t fp = math_atan2;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "y",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "y",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     /* hyperbolic */
     {
         const char *name = "sinh";
         native_func_t fp = math_sinh;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "cosh";
         native_func_t fp = math_cosh;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "tanh";
         native_func_t fp = math_tanh;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "asinh";
         native_func_t fp = math_asinh;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "acosh";
         native_func_t fp = math_acosh;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "atanh";
         native_func_t fp = math_atanh;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     /* exponent */
     {
         const char *name = "exp";
         native_func_t fp = math_exp;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "log";
         native_func_t fp = math_log;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "log10";
         native_func_t fp = math_log10;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "log2";
         native_func_t fp = math_log2;
         struct native_func_param params[] = {
-            { "x",    parser_new_float_type() },
-            { "_ret", parser_new_float_type() },
+            { "x",    parser_new_float_type(pool) },
+            { "_ret", parser_new_float_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
 
     return 0;

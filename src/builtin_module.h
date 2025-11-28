@@ -2,9 +2,10 @@
 #define BUILTIN_MODULE_H
 
 struct parser_scope;
+struct parser_type_pool;
 struct runtime_value;
 
-typedef int (*define_module_function_t)(struct parser_scope *scope);
+typedef int (*define_module_function_t)(struct parser_scope *scope, struct parser_type_pool *type_pool);
 typedef int (*init_module_function_t)(struct runtime_value *values,
         struct parser_scope *scope);
 
@@ -34,6 +35,6 @@ const struct builtin_module *builtin_find_module(
 
 /* TODO consider renaming to builtin_import_module_symbols */
 void builtin_import_module(struct parser_scope *scope,
-        const struct builtin_module *mod);
+        const struct builtin_module *mod, struct parser_type_pool *type_pool);
 
 #endif /* _H */

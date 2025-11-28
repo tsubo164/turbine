@@ -59,8 +59,8 @@ const struct builtin_module *builtin_find_module(
 }
 
 void builtin_import_module(struct parser_scope *scope,
-        const struct builtin_module *mod)
+        const struct builtin_module *mod, struct parser_type_pool *type_pool)
 {
     assert(mod->define_module);
-    mod->define_module(scope);
+    mod->define_module(scope, type_pool);
 }

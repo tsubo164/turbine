@@ -192,9 +192,9 @@ struct parser_var *parser_define_var(struct parser_scope *sc, const char *name,
 
 /* func */
 struct parser_func *parser_declare_func(struct parser_scope *parent,
-        const char *modulename, const char *name);
+        const char *modulename, const char *name, struct parser_type_pool *pool);
 struct parser_func *parser_declare_native_func(struct parser_scope *parent,
-        const char *modulename, const char *name, native_func_t func_ptr);
+        const char *modulename, const char *name, native_func_t func_ptr, struct parser_type_pool *pool);
 
 struct parser_var *parser_declare_param(struct parser_func *func, const char *name,
         const struct parser_type *type, bool is_out);
@@ -210,7 +210,7 @@ bool parser_is_outparam_index(const struct parser_func_sig *func_sig, int param_
 
 /* struct */
 struct parser_struct *parser_define_struct(struct parser_scope *sc,
-        const char *name);
+        const char *name, struct parser_type_pool *pool);
 struct parser_struct *parser_find_struct(const struct parser_scope *sc,
         const char *name);
 struct parser_struct_field *parser_add_struct_field(struct parser_struct *strct,
@@ -222,7 +222,7 @@ struct parser_struct_field *parser_get_struct_field(const struct parser_struct *
 
 /* enum */
 struct parser_enum *parser_define_enum(struct parser_scope *sc,
-        const char *name);
+        const char *name, struct parser_type_pool *pool);
 struct parser_enum *parser_find_enum(const struct parser_scope *sc,
         const char *name);
 
@@ -243,7 +243,7 @@ struct parser_enum_value parser_get_enum_value(const struct parser_enum *enm, in
 
 /* module */
 struct parser_module *parser_define_module(struct parser_scope *sc,
-        const char *filename, const char *modulename);
+        const char *filename, const char *modulename, struct parser_type_pool *pool);
 void parser_free_module(struct parser_module *mod);
 
 /* TODO consider remove this */

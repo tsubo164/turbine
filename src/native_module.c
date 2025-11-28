@@ -9,13 +9,14 @@ void native_declare_func(struct parser_scope *scope,
         const char *modulename,
         const char *funcname,
         const struct native_func_param *params,
-        native_func_t native_func)
+        native_func_t native_func,
+        struct parser_type_pool *pool)
 {
     const struct native_func_param *param;
     struct parser_func *func;
     bool has_ret = false;
 
-    func = parser_declare_native_func(scope, modulename, funcname, native_func);
+    func = parser_declare_native_func(scope, modulename, funcname, native_func, pool);
 
     for (param = params; param->name; param++) {
         if (!strcmp(param->name, "_ret")) {
@@ -31,18 +32,19 @@ void native_declare_func(struct parser_scope *scope,
     }
 
     if (!has_ret)
-        parser_add_return_type(func, parser_new_nil_type());
+        parser_add_return_type(func, parser_new_nil_type(pool));
 }
 
 /* struct */
 struct parser_struct *native_define_struct(struct parser_scope *scope,
         const char *structname,
-        const struct native_struct_field *fields)
+        const struct native_struct_field *fields,
+        struct parser_type_pool *pool)
 {
     const struct native_struct_field *field;
     struct parser_struct *strct;
 
-    strct = parser_define_struct(scope, structname);
+    strct = parser_define_struct(scope, structname, pool);
 
     for (field = fields; field->name; field++) {
         parser_add_struct_field(strct, field->name, field->type);
@@ -55,13 +57,14 @@ struct parser_struct *native_define_struct(struct parser_scope *scope,
 struct parser_enum *native_define_enum(struct parser_scope *scope,
         const char *enumname,
         const struct native_enum_field *fields,
-        const struct native_enum_value *values)
+        const struct native_enum_value *values,
+        struct parser_type_pool *pool)
 {
     const struct native_enum_field *field;
     const struct native_enum_value *value;
     struct parser_enum *enm;
 
-    enm = parser_define_enum(scope, enumname);
+    enm = parser_define_enum(scope, enumname, pool);
 
     for (field = fields; field->name; field++) {
         struct parser_enum_field *f;

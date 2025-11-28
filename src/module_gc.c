@@ -1,7 +1,6 @@
 #include "module_gc.h"
 #include "native_module.h"
 #include "parser_symbol.h"
-#include "parser_type.h"
 #include "runtime_struct.h"
 #include "runtime_vec.h"
 #include "runtime_gc.h"
@@ -132,16 +131,17 @@ static int gc_get_log(struct runtime_gc *gc, struct runtime_registers *regs)
     return RESULT_SUCCESS;
 }
 
-int module_define_gc(struct parser_scope *scope)
+int module_define_gc(struct parser_scope *scope, struct parser_type_pool *type_pool)
 {
-    struct parser_module *mod = parser_define_module(scope, "_builtin", "gc");
+    struct parser_module *mod = parser_define_module(scope, "_builtin", "gc", type_pool);
+    struct parser_type_pool *pool = type_pool;
 
     /* enum */
     {
         const char *name = "Reason";
         const struct native_enum_field fields[] = {
-            { "sym",    parser_new_string_type() },
-            { "str",    parser_new_string_type() },
+            { "sym",    parser_new_string_type(pool) },
+            { "str",    parser_new_string_type(pool) },
             { NULL },
         };
         const struct native_enum_value values[] = {
@@ -150,127 +150,127 @@ int module_define_gc(struct parser_scope *scope)
             { .sval = "THRESHOLD" }, { .sval = "Reached the threshold" },
             { .sval = NULL },
         };
-        enum_gc_reason = native_define_enum(mod->scope, name, fields, values);
+        enum_gc_reason = native_define_enum(mod->scope, name, fields, values, pool);
     }
     /* struct */
     {
         const char *name = "Stat";
         const struct native_struct_field fields[] = {
-            { "total_collections",    parser_new_int_type() },
-            { "used_bytes",           parser_new_int_type() },
-            { "threshold_bytes",      parser_new_int_type() },
-            { "max_threshold_bytes",  parser_new_int_type() },
-            { "threshold_multiplier", parser_new_float_type() },
+            { "total_collections",    parser_new_int_type(pool) },
+            { "used_bytes",           parser_new_int_type(pool) },
+            { "threshold_bytes",      parser_new_int_type(pool) },
+            { "max_threshold_bytes",  parser_new_int_type(pool) },
+            { "threshold_multiplier", parser_new_float_type(pool) },
             { NULL },
         };
-        struct_gc_stat = native_define_struct(mod->scope, name, fields);
+        struct_gc_stat = native_define_struct(mod->scope, name, fields, pool);
     }
     {
         const char *name = "LogEntry";
         const struct native_struct_field fields[] = {
-            { "triggered_addr",    parser_new_int_type() },
-            { "trigger_reason",    parser_new_enum_type(enum_gc_reason) },
-            { "used_bytes_before", parser_new_int_type() },
-            { "used_bytes_after",  parser_new_int_type() },
-            { "duration_msec",     parser_new_float_type() },
-            { "total_collections", parser_new_int_type() },
+            { "triggered_addr",    parser_new_int_type(pool) },
+            { "trigger_reason",    parser_new_enum_type(pool, enum_gc_reason) },
+            { "used_bytes_before", parser_new_int_type(pool) },
+            { "used_bytes_after",  parser_new_int_type(pool) },
+            { "duration_msec",     parser_new_float_type(pool) },
+            { "total_collections", parser_new_int_type(pool) },
             { NULL },
         };
-        struct_gc_log_entry = native_define_struct(mod->scope, name, fields);
+        struct_gc_log_entry = native_define_struct(mod->scope, name, fields, pool);
     }
     /* function */
     {
         const char *name = "init";
         native_func_t fp = gc_init;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "print_objects";
         native_func_t fp = gc_print_objects;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "collect";
         native_func_t fp = gc_collect;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "request";
         native_func_t fp = gc_request;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "get_object_id";
         native_func_t fp = gc_get_object_id;
         struct native_func_param params[] = {
             /* TODO check if any type is the best */
-            { "obj",  parser_new_any_type() },
-            { "_ret", parser_new_int_type() },
+            { "obj",  parser_new_any_type(pool) },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "is_object_alive";
         native_func_t fp = gc_is_object_alive;
         struct native_func_param params[] = {
-            { "id",   parser_new_int_type() },
-            { "_ret", parser_new_bool_type() },
+            { "id",   parser_new_int_type(pool) },
+            { "_ret", parser_new_bool_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "get_stats";
         native_func_t fp = gc_get_stats;
         struct native_func_param params[] = {
-            { "_ret", parser_new_struct_type(struct_gc_stat) },
+            { "_ret", parser_new_struct_type(pool, struct_gc_stat) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "print_stats";
         native_func_t fp = gc_print_stats;
         struct native_func_param params[] = {
-            { "_ret", parser_new_int_type() },
+            { "_ret", parser_new_int_type(pool) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
     {
         const char *name = "get_log";
         native_func_t fp = gc_get_log;
         struct native_func_param params[] = {
-            { "_ret", parser_new_vec_type(parser_new_struct_type(struct_gc_log_entry)) },
+            { "_ret", parser_new_vec_type(pool, parser_new_struct_type(pool, struct_gc_log_entry)) },
             { NULL },
         };
 
-        native_declare_func(mod->scope, mod->name, name, params, fp);
+        native_declare_func(mod->scope, mod->name, name, params, fp, pool);
     }
 
     return 0;

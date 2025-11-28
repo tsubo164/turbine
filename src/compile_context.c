@@ -11,6 +11,7 @@ void compile_context_init(struct compile_context *ctx)
     /* memory */
     parser_token_pool_init(&ctx->token_pool);
     parser_node_pool_init(&ctx->node_pool);
+    parser_type_pool_init(&ctx->type_pool);
     data_intern_table_init(&ctx->intern_table);
 
     /* sources */
@@ -32,6 +33,7 @@ void compile_context_clear(struct compile_context *ctx)
     /* memory */
     parser_token_pool_clear(&ctx->token_pool);
     parser_node_pool_clear(&ctx->node_pool);
+    parser_type_pool_clear(&ctx->type_pool);
     data_intern_table_clear(&ctx->intern_table);
 
     /* sources */

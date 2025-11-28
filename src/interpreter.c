@@ -117,15 +117,12 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     struct compile_context ctx;
     compile_context_init(&ctx);
 
-    /* type pool */
-    parser_type_pool_init();
-
     /* exec passes */
     struct exec_pass pass = make_exec_pass(opt);
 
     /* builtin functions */
     struct parser_scope *builtin = parser_new_scope(NULL);
-    define_builtin_functions(builtin);
+    define_builtin_functions(builtin, &ctx.type_pool);
 
     /* builtin modules */
     struct builtin_module_list builtin_modules = {0};
@@ -216,8 +213,6 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
 
     builtin_free_modules(&builtin_modules);
     free(script_dir);
-
-    parser_type_pool_free();
 
     compile_context_clear(&ctx);
 
