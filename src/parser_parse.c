@@ -163,7 +163,7 @@ static const char *type_string(const struct parser_type *t)
 static struct parser_type *type_spec(struct parser *p);
 static struct parser_expr *expression(struct parser *p);
 static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *block_scope);
-static struct parser_expr *default_value(struct compile_context *ctx, const struct parser_type *type);
+static struct parser_expr *default_value(const struct parser_type *type, struct compile_context *ctx);
 
 static bool unify_template_types(
         const struct parser_type *param_type, const struct parser_type *arg_type,
@@ -226,7 +226,7 @@ static struct parser_expr *discard_expr(struct parser *p)
     assert(var);
     var->is_discard = true;
 
-    return parser_new_var_expr(context(p), var);
+    return parser_new_var_expr(var, context(p));
 }
 
 static struct parser_expr *ident_expr(struct parser *p, bool find_parent);
@@ -270,7 +270,7 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
 
                 ident->var->passed_as_out = true;
                 ident->var->out_pos = arg_pos;
-                arg = arg->next = parser_new_outarg_expr(context(p), ident);
+                arg = arg->next = parser_new_outarg_expr(ident, context(p));
             }
             else {
                 if (parser_is_outparam_index(func_sig, param_idx)) {
@@ -312,7 +312,7 @@ static struct parser_expr *arg_list(struct parser *p, const struct parser_func_s
     /* special */
     if (func_sig->has_special_var) {
         int caller_line = caller_pos.y;
-        arg = arg->next = parser_new_intlit_expr(context(p), caller_line);
+        arg = arg->next = parser_new_intlit_expr(caller_line, context(p));
         arg_count++;
     }
 
@@ -343,7 +343,7 @@ static struct parser_expr *conv_expr(struct parser *p)
                 type_string(to_type));
     }
 
-    return parser_new_conversion_expr(context(p), expr, to_type);
+    return parser_new_conversion_expr(expr, to_type, context(p));
 }
 
 static struct parser_expr *vec_lit_expr(struct parser *p)
@@ -375,7 +375,7 @@ static struct parser_expr *vec_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_veclit_expr(context(p), elem_type, elemhead.next, len);
+    return parser_new_veclit_expr(elem_type, elemhead.next, len, context(p));
 }
 
 static struct parser_expr *map_lit_expr(struct parser *p)
@@ -409,13 +409,13 @@ static struct parser_expr *map_lit_expr(struct parser *p)
                     type_string(val->type));
         }
 
-        elem = elem->next = parser_new_element_expr(context(p), key, val);
+        elem = elem->next = parser_new_element_expr(key, val, context(p));
         len++;
     }
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_maplit_expr(context(p), elem_type, elemhead.next, len);
+    return parser_new_maplit_expr(elem_type, elemhead.next, len, context(p));
 }
 
 static struct parser_expr *set_lit_expr(struct parser *p)
@@ -447,7 +447,7 @@ static struct parser_expr *set_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_setlit_expr(context(p), elem_type, elemhead.next, len);
+    return parser_new_setlit_expr(elem_type, elemhead.next, len, context(p));
 }
 
 static struct parser_expr *stack_lit_expr(struct parser *p)
@@ -479,7 +479,7 @@ static struct parser_expr *stack_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_stacklit_expr(context(p), elem_type, elemhead.next, len);
+    return parser_new_stacklit_expr(elem_type, elemhead.next, len, context(p));
 }
 
 static struct parser_expr *queue_lit_expr(struct parser *p)
@@ -511,7 +511,7 @@ static struct parser_expr *queue_lit_expr(struct parser *p)
     while (consume(p, TOK_COMMA));
 
     expect(p, TOK_RBRACE);
-    return parser_new_queuelit_expr(context(p), elem_type, elemhead.next, len);
+    return parser_new_queuelit_expr(elem_type, elemhead.next, len, context(p));
 }
 
 static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbol *sym)
@@ -534,7 +534,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
 
             expect(p, TOK_EQUAL);
 
-            struct parser_expr *fld = parser_new_struct_field_expr(context(p), field);
+            struct parser_expr *fld = parser_new_struct_field_expr(field, context(p));
             struct parser_expr *val = expression(p);
 
             if (!parser_match_type(fld->type, val->type)) {
@@ -542,7 +542,7 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
                         type_string(fld->type), type_string(val->type));
             }
 
-            elem = elem->next = parser_new_element_expr(context(p), fld, val);
+            elem = elem->next = parser_new_element_expr(fld, val, context(p));
         }
         while (consume(p, TOK_COMMA));
 
@@ -570,16 +570,16 @@ static struct parser_expr *struct_lit_expr(struct parser *p, struct parser_symbo
                 continue;
             }
 
-            struct parser_expr *fld = parser_new_struct_field_expr(context(p), field);
-            struct parser_expr *val = default_value(context(p), field->type);
-            dflt = dflt->next = parser_new_element_expr(context(p), fld, val);
+            struct parser_expr *fld = parser_new_struct_field_expr(field, context(p));
+            struct parser_expr *val = default_value(field->type, context(p));
+            dflt = dflt->next = parser_new_element_expr(fld, val, context(p));
         }
 
         elem = elem->next = dflthead.next;
     }
 
     expect(p, TOK_RBRACE);
-    return parser_new_structlit_expr(context(p), sym->type, elemhead.next);
+    return parser_new_structlit_expr(sym->type, elemhead.next, context(p));
 }
 
 static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol *sym)
@@ -595,7 +595,7 @@ static struct parser_expr *enum_lit_expr(struct parser *p, struct parser_symbol 
                 "no member named '%s' in enum '%s'", tok_str(p), enm->name);
     }
 
-    return parser_new_enumlit_expr(context(p), sym->type, index);
+    return parser_new_enumlit_expr(sym->type, index, context(p));
 }
 
 static struct parser_expr *string_lit_expr(struct parser *p)
@@ -603,7 +603,7 @@ static struct parser_expr *string_lit_expr(struct parser *p)
     struct parser_expr *expr;
 
     expect(p, TOK_STRINGLIT);
-    expr = parser_new_stringlit_expr(context(p), tok_str(p));
+    expr = parser_new_stringlit_expr(tok_str(p), context(p));
 
     return expr;
 }
@@ -621,7 +621,7 @@ static struct parser_expr *caller_line_expr(struct parser *p)
                 tok_str(p));
     }
 
-    return parser_new_var_expr(context(p), sym->var);
+    return parser_new_var_expr(sym->var, context(p));
 }
 
 static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
@@ -640,7 +640,7 @@ static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
     }
 
     if (sym->kind == SYM_FUNC) {
-        expr = parser_new_funclit_expr(context(p), sym->type, sym->func);
+        expr = parser_new_funclit_expr(sym->type, sym->func, context(p));
     }
     else if (sym->kind == SYM_STRUCT) {
         expr = struct_lit_expr(p, sym);
@@ -649,10 +649,10 @@ static struct parser_expr *ident_expr(struct parser *p, bool find_parent)
         expr = enum_lit_expr(p, sym);
     }
     else if (sym->kind == SYM_MODULE) {
-        expr = parser_new_modulelit_expr(context(p), sym->type);
+        expr = parser_new_modulelit_expr(sym->type, context(p));
     }
     else if (sym->kind == SYM_VAR) {
-        expr = parser_new_var_expr(context(p), sym->var);
+        expr = parser_new_var_expr(sym->var, context(p));
     }
     else {
         printf("unknown identifier kind: %d\n", sym->kind);
@@ -681,19 +681,19 @@ static struct parser_expr *primary_expr(struct parser *p)
 
     case TOK_TRUE:
         gettok(p);
-        return parser_new_boollit_expr(context(p), true);
+        return parser_new_boollit_expr(true, context(p));
 
     case TOK_FALSE:
         gettok(p);
-        return parser_new_boollit_expr(context(p), false);
+        return parser_new_boollit_expr(false, context(p));
 
     case TOK_INTLIT:
         gettok(p);
-        return parser_new_intlit_expr(context(p), tok_int(p));
+        return parser_new_intlit_expr(tok_int(p), context(p));
 
     case TOK_FLOATLIT:
         gettok(p);
-        return parser_new_floatlit_expr(context(p), tok_float(p));
+        return parser_new_floatlit_expr(tok_float(p), context(p));
 
     case TOK_STRINGLIT:
         return string_lit_expr(p);
@@ -755,7 +755,8 @@ static struct parser_expr *add_packed_type_info(struct parser *p, struct parser_
     }
 
     const char *typelist = sbuf.data ? sbuf.data : "";
-    fmt = parser_new_stringlit_expr(context(p), data_string_intern(&p->ctx->intern_table, typelist));
+    /* TODO remove data_string_intern() */
+    fmt = parser_new_stringlit_expr(data_string_intern(&p->ctx->intern_table, typelist), context(p));
     data_strbuf_free(&sbuf);
 
     fmt->next = args;
@@ -849,12 +850,12 @@ static struct parser_expr *call_expr(struct parser *p, struct parser_expr *base)
         args = add_packed_type_info(p, args, &argc);
     }
     if (func_sig->is_variadic) {
-        struct parser_expr *e = parser_new_intlit_expr(context(p), argc);
+        struct parser_expr *e = parser_new_intlit_expr(argc, context(p));
         e->next = args;
         args = e;
     }
 
-    call = parser_new_call_expr(context(p), base, args);
+    call = parser_new_call_expr(base, args, context(p));
 
     if (func_sig->has_template_return_type) {
         int id = func_sig->return_type->template_id;
@@ -882,8 +883,8 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
             error(p, tok_pos(p), "no field named '%s' in struct '%s'",
                     tok_str(p), strct->name);
         }
-        struct parser_expr *field_expr = parser_new_struct_field_expr(context(p), f);
-        return parser_new_struct_access_expr(context(p), base, field_expr);
+        struct parser_expr *field_expr = parser_new_struct_field_expr(f, context(p));
+        return parser_new_struct_access_expr(base, field_expr, context(p));
     }
 
     if (parser_is_enum_type(base->type)) {
@@ -894,8 +895,8 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
             error(p, tok_pos(p),
                     "no member named '%s' in enum '%s'", tok_str(p), enm->name);
         }
-        struct parser_expr *field_expr = parser_new_enum_field_expr(context(p), f);
-        return parser_new_enum_access_expr(context(p), base, field_expr);
+        struct parser_expr *field_expr = parser_new_enum_field_expr(f, context(p));
+        return parser_new_enum_access_expr(base, field_expr, context(p));
     }
 
     if (parser_is_module_type(base->type)) {
@@ -909,7 +910,7 @@ static struct parser_expr *select_expr(struct parser *p, struct parser_expr *bas
             /* can't access to indirect modules. e.g. A.B.foo() */
             error(p, tok_pos(p), "module '%s' is not directly imported.", tok_str(p));
         }
-        expr = parser_new_module_access_expr(context(p), base, ident);
+        expr = parser_new_module_access_expr(base, ident, context(p));
         p->scope = cur;
         return expr;
     }
@@ -944,9 +945,9 @@ static struct parser_expr *indexing_expr(struct parser *p, struct parser_expr *b
     struct parser_expr *expr = NULL;
 
     if (parser_is_vec_type(base->type))
-        expr = parser_new_index_expr(context(p), base, idx);
+        expr = parser_new_index_expr(base, idx, context(p));
     else if (parser_is_map_type(base->type))
-        expr = parser_new_mapindex_expr(context(p), base, idx);
+        expr = parser_new_mapindex_expr(base, idx, context(p));
 
     return expr;
 }
@@ -1003,19 +1004,19 @@ static struct parser_expr *unary_expr(struct parser *p)
 
     case TOK_PLUS:
         e = unary_expr(p);
-        return parser_new_posi_expr(context(p), e);
+        return parser_new_posi_expr(e, context(p));
 
     case TOK_MINUS:
         e = unary_expr(p);
-        return parser_new_nega_expr(context(p), e);
+        return parser_new_nega_expr(e, context(p));
 
     case TOK_EXCLAM:
         e = unary_expr(p);
-        return parser_new_lognot_expr(context(p), e);
+        return parser_new_lognot_expr(e, context(p));
 
     case TOK_TILDE:
         e = unary_expr(p);
-        return parser_new_not_expr(context(p), e);
+        return parser_new_not_expr(e, context(p));
 
     default:
         ungettok(p);
@@ -1069,42 +1070,42 @@ static struct parser_expr *mul_expr(struct parser *p)
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
-            expr = parser_new_mul_expr(context(p), expr, r);
+            expr = parser_new_mul_expr(expr, r, context(p));
             break;
 
         case TOK_SLASH:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
-            expr = parser_new_div_expr(context(p), expr, r);
+            expr = parser_new_div_expr(expr, r, context(p));
             break;
 
         case TOK_PERCENT:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
-            expr = parser_new_rem_expr(context(p), expr, r);
+            expr = parser_new_rem_expr(expr, r, context(p));
             break;
 
         case TOK_AMPERSAND:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_and_expr(context(p), expr, r);
+            expr = parser_new_and_expr(expr, r, context(p));
             break;
 
         case TOK_LT2:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_shl_expr(context(p), expr, r);
+            expr = parser_new_shl_expr(expr, r, context(p));
             break;
 
         case TOK_GT2:
             r = unary_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_shr_expr(context(p), expr, r);
+            expr = parser_new_shr_expr(expr, r, context(p));
             break;
 
         default:
@@ -1133,28 +1134,28 @@ static struct parser_expr *add_expr(struct parser *p)
             r = mul_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_add_expr(context(p), expr, r);
+            expr = parser_new_add_expr(expr, r, context(p));
             break;
 
         case TOK_MINUS:
             r = mul_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT);
-            expr = parser_new_sub_expr(context(p), expr, r);
+            expr = parser_new_sub_expr(expr, r, context(p));
             break;
 
         case TOK_VBAR:
             r = mul_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_or_expr(context(p), expr, r);
+            expr = parser_new_or_expr(expr, r, context(p));
             break;
 
         case TOK_CARET:
             r = mul_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT);
-            expr = parser_new_xor_expr(context(p), expr, r);
+            expr = parser_new_xor_expr(expr, r, context(p));
             break;
 
         default:
@@ -1183,42 +1184,42 @@ static struct parser_expr *rel_expr(struct parser *p)
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING_BOOL_ENUM);
-            expr = parser_new_eq_expr(context(p), expr, r);
+            expr = parser_new_eq_expr(expr, r, context(p));
             break;
 
         case TOK_EXCLAMEQ:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING_BOOL_ENUM);
-            expr = parser_new_neq_expr(context(p), expr, r);
+            expr = parser_new_neq_expr(expr, r, context(p));
             break;
 
         case TOK_LT:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_lt_expr(context(p), expr, r);
+            expr = parser_new_lt_expr(expr, r, context(p));
             break;
 
         case TOK_LTE:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_lte_expr(context(p), expr, r);
+            expr = parser_new_lte_expr(expr, r, context(p));
             break;
 
         case TOK_GT:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_gt_expr(context(p), expr, r);
+            expr = parser_new_gt_expr(expr, r, context(p));
             break;
 
         case TOK_GTE:
             r = add_expr(p);
             validate_binop_type_match(p, pos, expr->type, r->type);
             validate_binop_types(p, pos, expr->type, VALID_INT_FLOAT_STRING);
-            expr = parser_new_gte_expr(context(p), expr, r);
+            expr = parser_new_gte_expr(expr, r, context(p));
             break;
 
         default:
@@ -1241,7 +1242,7 @@ static struct parser_expr *logand_expr(struct parser *p)
         switch (tok->kind) {
 
         case TOK_AMPERSAND2:
-            expr = parser_new_logand_expr(context(p), expr, rel_expr(p));
+            expr = parser_new_logand_expr(expr, rel_expr(p), context(p));
             break;
 
         default:
@@ -1264,7 +1265,7 @@ static struct parser_expr *logor_expr(struct parser *p)
         switch (tok->kind) {
 
         case TOK_VBAR2:
-            expr = parser_new_logor_expr(context(p), expr, logand_expr(p));
+            expr = parser_new_logor_expr(expr, logand_expr(p), context(p));
             break;
 
         default:
@@ -1359,61 +1360,61 @@ static struct parser_stmt *assign_stmt(struct parser *p)
     case TOK_EQUAL:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_assign_stmt(context(p), lval, rval);
+        return parser_new_assign_stmt(lval, rval, context(p));
 
     case TOK_PLUSEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_addassign_stmt(context(p), lval, rval);
+        return parser_new_addassign_stmt(lval, rval, context(p));
 
     case TOK_MINUSEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_subassign_stmt(context(p), lval, rval);
+        return parser_new_subassign_stmt(lval, rval, context(p));
 
     case TOK_ASTEREQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_mulassign_stmt(context(p), lval, rval);
+        return parser_new_mulassign_stmt(lval, rval, context(p));
 
     case TOK_SLASHEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_divassign_stmt(context(p), lval, rval);
+        return parser_new_divassign_stmt(lval, rval, context(p));
 
     case TOK_PERCENTEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_remassign_stmt(context(p), lval, rval);
+        return parser_new_remassign_stmt(lval, rval, context(p));
 
     case TOK_LT2EQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_shlassign_stmt(context(p), lval, rval);
+        return parser_new_shlassign_stmt(lval, rval, context(p));
 
     case TOK_GT2EQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_shrassign_stmt(context(p), lval, rval);
+        return parser_new_shrassign_stmt(lval, rval, context(p));
 
     case TOK_VBAREQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_orassign_stmt(context(p), lval, rval);
+        return parser_new_orassign_stmt(lval, rval, context(p));
 
     case TOK_CARETEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_xorassign_stmt(context(p), lval, rval);
+        return parser_new_xorassign_stmt(lval, rval, context(p));
 
     case TOK_AMPERSANDEQ:
         rval = expression(p);
         semantic_check_assign_stmt(p, pos, lval, rval);
-        return parser_new_andassign_stmt(context(p), lval, rval);
+        return parser_new_andassign_stmt(lval, rval, context(p));
 
     default:
         ungettok(p);
-        return parser_new_expr_stmt(context(p), lval);
+        return parser_new_expr_stmt(lval, context(p));
     }
 }
 
@@ -1436,7 +1437,7 @@ static struct parser_stmt *cond_clause(struct parser *p, struct parser_expr *con
     expect(p, TOK_NEWLINE);
     body = block_stmt(p, new_child_scope(p));
 
-    return parser_new_else_stmt(context(p), cond, body);
+    return parser_new_else_stmt(cond, body, context(p));
 }
 
 static struct parser_stmt *if_stmt(struct parser *p)
@@ -1470,7 +1471,7 @@ static struct parser_stmt *if_stmt(struct parser *p)
 
     p->uncond_exe = uncond_exe;
     p->uncond_ret = uncond_ret;
-    return parser_new_if_stmt(context(p), head.next);
+    return parser_new_if_stmt(head.next, context(p));
 }
 
 struct loop_var {
@@ -1527,7 +1528,7 @@ static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *bl
     if (consume(p, TOK_COMMA))
         step = expression(p);
     else
-        step = parser_new_intlit_expr(context(p), 1);
+        step = parser_new_intlit_expr(1, context(p));
 
     collection->next = stop;
     stop->next = step;
@@ -1547,10 +1548,10 @@ static struct parser_stmt *fornum_stmt(struct parser *p, struct parser_scope *bl
     };
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(context(p), var);
+    iter = parser_new_var_expr(var, context(p));
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_fornum_stmt(context(p), iter, collection, body);
+    return parser_new_fornum_stmt(iter, collection, body, context(p));
 }
 
 static struct parser_stmt *forvec_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1579,10 +1580,10 @@ static struct parser_stmt *forvec_stmt(struct parser *p, struct parser_scope *bl
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(context(p), var);
+    iter = parser_new_var_expr(var, context(p));
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forvec_stmt(context(p), iter, collection, body);
+    return parser_new_forvec_stmt(iter, collection, body, context(p));
 }
 
 static struct parser_stmt *formap_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1612,10 +1613,10 @@ static struct parser_stmt *formap_stmt(struct parser *p, struct parser_scope *bl
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(context(p), var);
+    iter = parser_new_var_expr(var, context(p));
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_formap_stmt(context(p), iter, collection, body);
+    return parser_new_formap_stmt(iter, collection, body, context(p));
 }
 
 static struct parser_stmt *forset_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1640,10 +1641,10 @@ static struct parser_stmt *forset_stmt(struct parser *p, struct parser_scope *bl
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(context(p), var);
+    iter = parser_new_var_expr(var, context(p));
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forset_stmt(context(p), iter, collection, body);
+    return parser_new_forset_stmt(iter, collection, body, context(p));
 }
 
 static struct parser_stmt *forstack_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1668,10 +1669,10 @@ static struct parser_stmt *forstack_stmt(struct parser *p, struct parser_scope *
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(context(p), var);
+    iter = parser_new_var_expr(var, context(p));
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forstack_stmt(context(p), iter, collection, body);
+    return parser_new_forstack_stmt(iter, collection, body, context(p));
 }
 
 static struct parser_stmt *forqueue_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1696,10 +1697,10 @@ static struct parser_stmt *forqueue_stmt(struct parser *p, struct parser_scope *
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(context(p), var);
+    iter = parser_new_var_expr(var, context(p));
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forqueue_stmt(context(p), iter, collection, body);
+    return parser_new_forqueue_stmt(iter, collection, body, context(p));
 }
 
 static struct parser_stmt *forenum_stmt(struct parser *p, struct parser_scope *block_scope,
@@ -1723,10 +1724,10 @@ static struct parser_stmt *forenum_stmt(struct parser *p, struct parser_scope *b
     }
 
     var = define_loop_vars(block_scope, loop_vars);
-    iter = parser_new_var_expr(context(p), var);
+    iter = parser_new_var_expr(var, context(p));
 
     struct parser_stmt *body = block_stmt(p, block_scope);
-    return parser_new_forenum_stmt(context(p), iter, collection, body);
+    return parser_new_forenum_stmt(iter, collection, body, context(p));
 }
 
 /*
@@ -1757,7 +1758,7 @@ static struct parser_stmt *for_stmt(struct parser *p)
         struct parser_symbol *sym;
         sym = parser_find_symbol(p->scope, tok_str(p));
         if (sym->kind == SYM_ENUM) {
-            collection = parser_new_enumlit_expr(context(p), sym->type, 0);
+            collection = parser_new_enumlit_expr(sym->type, 0, context(p));
         }
         else {
             ungettok(p);
@@ -1816,7 +1817,7 @@ static struct parser_stmt *while_stmt(struct parser *p)
     body = block_stmt(p, new_child_scope(p));
 
     p->uncond_exe = uncond_exe;
-    return parser_new_while_stmt(context(p), cond, body);
+    return parser_new_while_stmt(cond, body, context(p));
 }
 
 static struct parser_stmt *break_stmt(struct parser *p)
@@ -1848,13 +1849,13 @@ static struct parser_stmt *case_stmt(struct parser *p, const struct parser_type 
                 "no member named '%s' in enum '%s'", tok_str(p), enm->name);
     }
 
-    member = parser_new_enumlit_expr(context(p), enum_type, index);
+    member = parser_new_enumlit_expr(enum_type, index, context(p));
     *member_index = index;
 
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    return parser_new_case_stmt(context(p), member, body);
+    return parser_new_case_stmt(member, body, context(p));
 }
 
 static struct parser_stmt *others_stmt(struct parser *p)
@@ -1862,7 +1863,7 @@ static struct parser_stmt *others_stmt(struct parser *p)
     expect(p, TOK_NEWLINE);
 
     struct parser_stmt *body = block_stmt(p, new_child_scope(p));
-    return parser_new_others_stmt(context(p), body);
+    return parser_new_others_stmt(body, context(p));
 }
 
 static void semantic_check_switch_exhaustiveness(struct parser *p,
@@ -1972,7 +1973,7 @@ static struct parser_stmt *switch_stmt(struct parser *p)
 
     p->uncond_exe = uncond_exe;
     p->uncond_ret = uncond_ret;
-    return parser_new_switch_stmt(context(p), expr, head.next);
+    return parser_new_switch_stmt(expr, head.next, context(p));
 }
 
 static struct parser_stmt *return_stmt(struct parser *p)
@@ -2000,7 +2001,7 @@ static struct parser_stmt *return_stmt(struct parser *p)
     }
 
     p->uncond_ret = true;
-    return parser_new_return_stmt(context(p), expr);
+    return parser_new_return_stmt(expr, context(p));
 }
 
 static struct parser_stmt *expr_stmt(struct parser *p)
@@ -2029,7 +2030,7 @@ static struct parser_stmt *nop_stmt(struct parser *p)
     return s;
 }
 
-static struct parser_expr *default_struct_lit(struct compile_context *ctx, const struct parser_type *type)
+static struct parser_expr *default_struct_lit(const struct parser_type *type, struct compile_context *ctx)
 {
     const struct parser_struct *strct = type->strct;
     struct parser_expr elemhead = {0};
@@ -2040,25 +2041,25 @@ static struct parser_expr *default_struct_lit(struct compile_context *ctx, const
         struct parser_struct_field *field = parser_get_struct_field(strct, i);
 
         if (parser_is_vec_type(field->type)) {
-            struct parser_expr *f = parser_new_struct_field_expr(ctx, field);
-            struct parser_expr *e = parser_new_veclit_expr(ctx, field->type->underlying,
-                    NULL, 0);
-            elem = elem->next = parser_new_element_expr(ctx, f, e);
+            struct parser_expr *f = parser_new_struct_field_expr(field, ctx);
+            struct parser_expr *e = parser_new_veclit_expr(field->type->underlying,
+                    NULL, 0, ctx);
+            elem = elem->next = parser_new_element_expr(f, e, ctx);
             continue;
         }
 
         if (parser_is_struct_type(field->type)) {
-            struct parser_expr *f = parser_new_struct_field_expr(ctx, field);
-            struct parser_expr *e = default_struct_lit(ctx, field->type);
-            elem = elem->next = parser_new_element_expr(ctx, f, e);
+            struct parser_expr *f = parser_new_struct_field_expr(field, ctx);
+            struct parser_expr *e = default_struct_lit(field->type, ctx);
+            elem = elem->next = parser_new_element_expr(f, e, ctx);
             continue;
         }
     }
 
-    return parser_new_structlit_expr(ctx, type, elemhead.next);
+    return parser_new_structlit_expr(type, elemhead.next, ctx);
 }
 
-static struct parser_expr *default_value(struct compile_context *ctx, const struct parser_type *type)
+static struct parser_expr *default_value(const struct parser_type *type, struct compile_context *ctx)
 {
     switch ((enum parser_type_kind) type->kind) {
 
@@ -2066,37 +2067,37 @@ static struct parser_expr *default_value(struct compile_context *ctx, const stru
         return parser_new_nillit_expr(ctx);
 
     case TYP_BOOL:
-        return parser_new_boollit_expr(ctx, false);
+        return parser_new_boollit_expr(false, ctx);
 
     case TYP_INT:
-        return parser_new_intlit_expr(ctx, 0);
+        return parser_new_intlit_expr(0, ctx);
 
     case TYP_FLOAT:
-        return parser_new_floatlit_expr(ctx, 0.0);
+        return parser_new_floatlit_expr(0.0, ctx);
 
     case TYP_STRING:
-        return parser_new_stringlit_expr(ctx, "");
+        return parser_new_stringlit_expr("", ctx);
 
     case TYP_VEC:
-        return parser_new_veclit_expr(ctx, type->underlying, NULL, 0);
+        return parser_new_veclit_expr(type->underlying, NULL, 0, ctx);
 
     case TYP_MAP:
-        return parser_new_maplit_expr(ctx, type->underlying, NULL, 0);
+        return parser_new_maplit_expr(type->underlying, NULL, 0, ctx);
 
     case TYP_SET:
-        return parser_new_setlit_expr(ctx, type->underlying, NULL, 0);
+        return parser_new_setlit_expr(type->underlying, NULL, 0, ctx);
 
     case TYP_STACK:
-        return parser_new_stacklit_expr(ctx, type->underlying, NULL, 0);
+        return parser_new_stacklit_expr(type->underlying, NULL, 0, ctx);
 
     case TYP_QUEUE:
-        return parser_new_queuelit_expr(ctx, type->underlying, NULL, 0);
+        return parser_new_queuelit_expr(type->underlying, NULL, 0, ctx);
 
     case TYP_STRUCT:
-        return default_struct_lit(ctx, type);
+        return default_struct_lit(type, ctx);
 
     case TYP_ENUM:
-        return parser_new_enumlit_expr(ctx, type, 0);
+        return parser_new_enumlit_expr(type, 0, ctx);
 
     case TYP_FUNC:
     case TYP_MODULE:
@@ -2152,7 +2153,7 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
         }
         else {
             /* "- x int" */
-            init = default_value(context(p), type);
+            init = default_value(type, context(p));
         }
 
         if (!parser_match_type(type, init->type)) {
@@ -2170,10 +2171,10 @@ static struct parser_stmt *var_decl(struct parser *p, bool isglobal)
         error(p, ident_pos, "re-defined identifier: '%s'", name);
 
     /* var expr */
-    struct parser_expr *expr = parser_new_var_expr(context(p), var);
+    struct parser_expr *expr = parser_new_var_expr(var, context(p));
     semantic_check_assign_stmt(p, init_pos, expr, init);
 
-    return parser_new_init_stmt(context(p), expr, init);
+    return parser_new_init_stmt(expr, init, context(p));
 }
 
 static void field_list(struct parser *p, struct parser_struct *strct)
@@ -2436,7 +2437,7 @@ static struct parser_stmt *block_stmt(struct parser *p, struct parser_scope *blo
     p->scope = p->scope->parent;
     expect(p, TOK_BLOCKEND);
 
-    return parser_new_block_stmt(context(p), head.next);
+    return parser_new_block_stmt(head.next, context(p));
 }
 
 static bool is_primitive(const struct parser_type *type)
@@ -2626,8 +2627,8 @@ static void validate_return_stmt(struct parser *p, const struct parser_func *fun
 
     const struct parser_type *ret_type = func->sig->return_type;
     if (parser_is_nil_type(ret_type)) {
-        struct parser_expr *dflt_val = default_value(context(p), ret_type);
-        p->block_tail->next = parser_new_return_stmt(context(p), dflt_val);
+        struct parser_expr *dflt_val = default_value(ret_type, context(p));
+        p->block_tail->next = parser_new_return_stmt(dflt_val, context(p));
         return;
     }
 
@@ -2699,7 +2700,7 @@ static void func_def(struct parser *p)
     }
 }
 
-static const char *format_import_cycle(struct compile_context *ctx, const struct parser_source *src)
+static const char *format_import_cycle(const struct parser_source *src, struct compile_context *ctx)
 {
     struct data_strbuf sbuf = DATA_STRBUF_INIT;
     int N = compile_context_get_import_stack_count(ctx);
@@ -2738,22 +2739,23 @@ static void module_import(struct parser *p)
     sprintf(module_filename, "%s.%s", modulename, PROJECT_SRC_EXT);
 
     /* builtin modules */
+    struct compile_context *ctx = context(p);
     const struct builtin_module *found_module;
-    found_module = builtin_find_module(p->ctx->search_dirs.builtin_modules, modulename);
+    found_module = builtin_find_module(ctx->search_dirs.builtin_modules, modulename);
 
     if (found_module) {
         builtin_import_module(p->scope, found_module, type_pool(p));
     }
     else {
         /* find search dir */
-        const char *found_dir = compile_context_find_dir(p->ctx, module_filename);
+        const char *found_dir = compile_context_find_dir(context(p), module_filename);
         if (!found_dir) {
             error(p, tok_pos(p),
                     "module %s.%s not found", modulename, PROJECT_SRC_EXT);
         }
 
         /* read module file */
-        struct parser_source *src = compile_context_read_file(p->ctx,
+        struct parser_source *src = compile_context_read_file(ctx,
                 found_dir, module_filename, modulename);
         if (!src) {
             error(p, tok_pos(p),
@@ -2761,20 +2763,20 @@ static void module_import(struct parser *p)
         }
 
         /* check cyclic import */
-        if (compile_context_has_cyclic_import(p->ctx, src)) {
-            const char *import_cycle = format_import_cycle(p->ctx, src);
+        if (compile_context_has_cyclic_import(ctx, src)) {
+            const char *import_cycle = format_import_cycle(src, context(p));
             error(p, tok_pos(p), "cyclic import detected: %s", import_cycle);
         }
 
         /* push module being imported */
-        compile_context_push_source(p->ctx, src);
+        compile_context_push_source(ctx, src);
 
         /* parse module file */
-        struct parser_token *tok = parser_tokenize(src->text, module_filename, p->ctx);
-        parser_parse(tok, p->scope, src, p->ctx);
+        struct parser_token *tok = parser_tokenize(src->text, module_filename, ctx);
+        parser_parse(tok, p->scope, src, ctx);
 
         /* pop module imported */
-        compile_context_pop_source(p->ctx);
+        compile_context_pop_source(ctx);
     }
 
     expect(p, TOK_NEWLINE);
