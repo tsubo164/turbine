@@ -5,7 +5,6 @@
 #include "runtime_string.h"
 #include "runtime_vec.h"
 #include "runtime_gc.h"
-#include "data_intern.h"
 #include "data_strbuf.h"
 
 #include <stdio.h>

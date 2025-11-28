@@ -3,7 +3,6 @@
 #include "parser_symbol.h"
 #include "parser_type.h"
 #include "runtime_gc.h"
-#include "data_intern.h"
 
 #include <stdio.h>
 #include <math.h>
