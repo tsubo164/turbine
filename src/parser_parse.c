@@ -2770,8 +2770,7 @@ static void module_import(struct parser *p)
         compile_context_push_source(p->ctx, src);
 
         /* parse module file */
-        struct parser_token *tok = parser_tokenize(src->text, module_filename,
-                &p->ctx->token_pool, &p->ctx->intern_table);
+        struct parser_token *tok = parser_tokenize(src->text, module_filename, p->ctx);
         parser_parse(tok, p->scope, src, p->ctx);
 
         /* pop module imported */

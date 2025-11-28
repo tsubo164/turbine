@@ -1,6 +1,7 @@
 #include "parser_token.h"
 #include "parser_escseq.h"
 #include "parser_error.h"
+#include "compile_context.h"
 #include "lang_limits.h"
 
 #include <assert.h>
@@ -914,17 +915,17 @@ static struct parser_token *new_token(int kind, struct parser_token_pool *pool)
 }
 
 struct parser_token *parser_tokenize(const char *src, const char *filename,
-        struct parser_token_pool *pool, struct data_intern_table *table)
+        struct compile_context *ctx)
 {
     struct lexer l = {0};
     set_input(&l, src, filename);
 
-    struct parser_token *head = new_token(TOK_ROOT, pool);
+    struct parser_token *head = new_token(TOK_ROOT, &ctx->token_pool);
     struct parser_token *tail = head;
 
     while (tail->kind != TOK_EOF) {
-        struct parser_token *tok = new_token(0, pool);
-        get_token(&l, tok, table);
+        struct parser_token *tok = new_token(0, &ctx->token_pool);
+        get_token(&l, tok, &ctx->intern_table);
 
         tail->next = tok;
         tok->prev = tail;

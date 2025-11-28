@@ -127,8 +127,11 @@ struct parser_token_pool {
     struct data_mem_pool pool;
 };
 
+/* forward decl */
+struct compile_context;
+
 struct parser_token *parser_tokenize(const char *src, const char *filename,
-        struct parser_token_pool *pool, struct data_intern_table *table);
+        struct compile_context *ctx);
 const char *parser_get_token_string(int kind);
 
 void parser_token_pool_init(struct parser_token_pool *pool);

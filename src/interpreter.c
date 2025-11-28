@@ -145,7 +145,7 @@ value_int_t interpret_source(const char *text, const struct interpreter_args *ar
     if (setjmp(parse_env) == 0) {
         /* tokenize */
         if (pass.tokenize) {
-            tok = parser_tokenize(text, args->filename, &ctx.token_pool, &ctx.intern_table);
+            tok = parser_tokenize(text, args->filename, &ctx);
         }
 
         /* print tokens */
